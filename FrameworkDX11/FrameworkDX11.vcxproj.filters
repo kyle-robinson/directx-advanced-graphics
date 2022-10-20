@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="graphics\DrawableGameObject.h">
+      <Filter>Headers\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\structures.h">
+      <Filter>Headers\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\DDSTextureLoader.h">
+      <Filter>Headers\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\COMException.h">
+      <Filter>Headers\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\ErrorLogger.h">
+      <Filter>Headers\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\StringConverter.h">
+      <Filter>Headers\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="res\Resource.h">
+      <Filter>Resources\Miscellaneous</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{c4e360bd-b26b-427d-8c8f-bf538e819818}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{0fd4644f-3f49-4cc7-abf3-e3b76205f830}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{67cdca99-f288-49be-9daf-e00f5bde2f3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Shaders">
+      <UniqueIdentifier>{9a27f70a-f844-412d-9ce1-bb47abff26f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Textures">
+      <UniqueIdentifier>{ca549a25-15a7-4c94-b484-7bded1559695}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Cursors">
+      <UniqueIdentifier>{bdb809fc-b2ce-4333-9bcd-d7e1694cb1f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Fonts">
+      <UniqueIdentifier>{e9ff957c-ff73-486d-85a0-1aa6b791695f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Miscellaneous">
+      <UniqueIdentifier>{1d8c2ef3-4f82-4770-b351-d61316d54cf2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Icons">
+      <UniqueIdentifier>{3011bfb3-13ff-4e7b-82e5-8ff35513d213}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Graphics">
+      <UniqueIdentifier>{fde589aa-46c2-4274-9d8c-c591790231ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics">
+      <UniqueIdentifier>{93d8350b-ee0d-418a-a358-b3105778b68f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Utility">
+      <UniqueIdentifier>{c8aba2f5-1b87-4e8e-9d48-d3619677644e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Utility">
+      <UniqueIdentifier>{40ea2878-b1f0-4133-8159-0bf7748b8478}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\textures\bricks_DISP.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="res\textures\bricks_NORM.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="res\textures\bricks_TEX.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="res\textures\stone.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="res\directx.ico">
+      <Filter>Resources\Icons</Filter>
+    </Image>
+    <Image Include="res\textures\alpha_mayoris.jpg">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="res\shaders\shader.fx">
+      <Filter>Resources\Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\fonts\open_sans_ms_16.spritefont">
+      <Filter>Resources\Fonts</Filter>
+    </None>
+    <None Include="res\cursors\Link Select.ani">
+      <Filter>Resources\Cursors</Filter>
+    </None>
+    <None Include="res\cursors\Normal Select.ani">
+      <Filter>Resources\Cursors</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="graphics\DrawableGameObject.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\DDSTextureLoader.cpp">
+      <Filter>Source\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\ErrorLogger.cpp">
+      <Filter>Source\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\StringConverter.cpp">
+      <Filter>Source\Utility</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="res\Tutorial01.rc">
+      <Filter>Resources\Miscellaneous</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
