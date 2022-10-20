@@ -141,15 +141,15 @@ HRESULT DrawableGameObject::initMesh( ID3D11Device* pd3dDevice, ID3D11DeviceCont
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// load and setup textures
-	hr = DirectX::CreateDDSTextureFromFile(pd3dDevice, L"res\\textures\\bricks_TEX.dds", nullptr, &m_pTextureResourceView_Diff);
+	hr = DirectX::CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\bricks_TEX.dds", nullptr, &m_pTextureResourceView_Diff);
 	if (FAILED(hr))
 		return hr;
 
-	hr = DirectX::CreateDDSTextureFromFile(pd3dDevice, L"res\\textures\\bricks_NORM.dds", nullptr, &m_pTextureResourceView_Norm);
+	hr = DirectX::CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\bricks_NORM.dds", nullptr, &m_pTextureResourceView_Norm);
 	if (FAILED(hr))
 		return hr;
 
-	hr = DirectX::CreateDDSTextureFromFile(pd3dDevice, L"res\\textures\\bricks_DISP.dds", nullptr, &m_pTextureResourceView_Disp);
+	hr = DirectX::CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\bricks_DISP.dds", nullptr, &m_pTextureResourceView_Disp);
 	if (FAILED(hr))
 		return hr;
 

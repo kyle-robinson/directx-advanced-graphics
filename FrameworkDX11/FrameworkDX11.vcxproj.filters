@@ -22,8 +22,41 @@
     <ClInclude Include="utility\StringConverter.h">
       <Filter>Headers\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="res\Resource.h">
+    <ClInclude Include="graphics\Camera.h">
+      <Filter>Headers\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\Resource.h">
       <Filter>Resources\Miscellaneous</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\Keyboard.h">
+      <Filter>Headers\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\Mouse.h">
+      <Filter>Headers\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imconfig.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_impl_dx11.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_impl_win32.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_internal.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_rectpack.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_textedit.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_truetype.h">
+      <Filter>Resources\ImGui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -66,42 +99,35 @@
     <Filter Include="Headers\Utility">
       <UniqueIdentifier>{40ea2878-b1f0-4133-8159-0bf7748b8478}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Input">
+      <UniqueIdentifier>{cd7154da-f20e-4b8e-9971-890eaeca8b3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Input">
+      <UniqueIdentifier>{b073e192-979d-4dd7-a1df-efc4ecf00a7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\ImGui">
+      <UniqueIdentifier>{892b92d8-932b-4911-8ab9-a95b026786c5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\textures\bricks_DISP.dds">
+    <Image Include="Resources\Textures\alpha_mayoris.jpg">
       <Filter>Resources\Textures</Filter>
     </Image>
-    <Image Include="res\textures\bricks_NORM.dds">
+    <Image Include="Resources\Textures\bricks_DISP.dds">
       <Filter>Resources\Textures</Filter>
     </Image>
-    <Image Include="res\textures\bricks_TEX.dds">
+    <Image Include="Resources\Textures\bricks_NORM.dds">
       <Filter>Resources\Textures</Filter>
     </Image>
-    <Image Include="res\textures\stone.dds">
+    <Image Include="Resources\Textures\bricks_TEX.dds">
       <Filter>Resources\Textures</Filter>
     </Image>
-    <Image Include="res\directx.ico">
+    <Image Include="Resources\Textures\stone.dds">
+      <Filter>Resources\Textures</Filter>
+    </Image>
+    <Image Include="Resources\directx.ico">
       <Filter>Resources\Icons</Filter>
     </Image>
-    <Image Include="res\textures\alpha_mayoris.jpg">
-      <Filter>Resources\Textures</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="res\shaders\shader.fx">
-      <Filter>Resources\Shaders</Filter>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="res\fonts\open_sans_ms_16.spritefont">
-      <Filter>Resources\Fonts</Filter>
-    </None>
-    <None Include="res\cursors\Link Select.ani">
-      <Filter>Resources\Cursors</Filter>
-    </None>
-    <None Include="res\cursors\Normal Select.ani">
-      <Filter>Resources\Cursors</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="graphics\DrawableGameObject.cpp">
@@ -119,10 +145,53 @@
     <ClCompile Include="utility\StringConverter.cpp">
       <Filter>Source\Utility</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\Camera.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\Mouse.cpp">
+      <Filter>Source\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\Keyboard.cpp">
+      <Filter>Source\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui.cpp">
+      <Filter>Resources\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_demo.cpp">
+      <Filter>Resources\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_draw.cpp">
+      <Filter>Resources\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_impl_dx11.cpp">
+      <Filter>Resources\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_impl_win32.cpp">
+      <Filter>Resources\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_widgets.cpp">
+      <Filter>Resources\ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="res\Tutorial01.rc">
+    <FxCompile Include="Resources\Shaders\shader.fx">
+      <Filter>Resources\Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resources\Tutorial01.rc">
       <Filter>Resources\Miscellaneous</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Cursors\Link Select.ani">
+      <Filter>Resources\Cursors</Filter>
+    </None>
+    <None Include="Resources\Cursors\Normal Select.ani">
+      <Filter>Resources\Cursors</Filter>
+    </None>
+    <None Include="Resources\Fonts\open_sans_ms_16.spritefont">
+      <Filter>Resources\Fonts</Filter>
+    </None>
   </ItemGroup>
 </Project>

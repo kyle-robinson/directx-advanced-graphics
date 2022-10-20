@@ -12,7 +12,12 @@
 #include "DDSTextureLoader.h"
 #include "Resource.h"
 #include <iostream>
+#include <memory>
 
+#include "ErrorLogger.h"
+#include "Keyboard.h"
+#include "Mouse.h"
+#include "Camera.h"
 #include "DrawableGameObject.h"
 #include "structures.h"
 #include <vector>

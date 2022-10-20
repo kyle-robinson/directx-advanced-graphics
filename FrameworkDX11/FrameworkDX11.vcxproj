@@ -97,7 +97,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
-    <IncludePath>$(IncludePath);$(VC_IncludePath);$(SolutionDir)/External;$(WindowsSDK_IncludePath);$(ProjectDir)/;$(ProjectDir)/graphics;$(ProjectDir)/utility;$(ProjectDir)/res</IncludePath>
+    <IncludePath>$(IncludePath);$(VC_IncludePath);$(SolutionDir)/External;$(WindowsSDK_IncludePath);$(ProjectDir)/;$(ProjectDir)/Graphics;$(ProjectDir)/Input;$(ProjectDir)/Utility;$(ProjectDir)/Resources</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)\External\lib;$(SolutionDir)\External\lib\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -203,7 +203,7 @@
       </AdditionalIncludeDirectories>
       <ShaderModel>4.0_level_9_3</ShaderModel>
       <ShaderType>Effect</ShaderType>
-      <ObjectFileOutput>$(ProjectDir)res\shaders\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -368,9 +368,20 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\External\imgui\imconfig.h" />
+    <ClInclude Include="..\External\imgui\imgui.h" />
+    <ClInclude Include="..\External\imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="..\External\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="..\External\imgui\imgui_internal.h" />
+    <ClInclude Include="..\External\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\External\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\External\imgui\imstb_truetype.h" />
+    <ClInclude Include="graphics\Camera.h" />
     <ClInclude Include="graphics\DrawableGameObject.h" />
+    <ClInclude Include="Input\Keyboard.h" />
+    <ClInclude Include="Input\Mouse.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="res\Resource.h" />
+    <ClInclude Include="Resources\Resource.h" />
     <ClInclude Include="utility\COMException.h" />
     <ClInclude Include="utility\DDSTextureLoader.h" />
     <ClInclude Include="utility\ErrorLogger.h" />
@@ -378,33 +389,41 @@
     <ClInclude Include="utility\structures.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\directx.ico" />
-    <Image Include="res\textures\alpha_mayoris.jpg" />
-    <Image Include="res\textures\bricks_DISP.dds" />
-    <Image Include="res\textures\bricks_NORM.dds" />
-    <Image Include="res\textures\bricks_TEX.dds" />
-    <Image Include="res\textures\stone.dds" />
+    <Image Include="Resources\directx.ico" />
+    <Image Include="Resources\Textures\alpha_mayoris.jpg" />
+    <Image Include="Resources\Textures\bricks_DISP.dds" />
+    <Image Include="Resources\Textures\bricks_NORM.dds" />
+    <Image Include="Resources\Textures\bricks_TEX.dds" />
+    <Image Include="Resources\Textures\stone.dds" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="res\shaders\shader.fx">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0_level_9_3</ShaderModel>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="res\cursors\Link Select.ani" />
-    <None Include="res\cursors\Normal Select.ani" />
-    <None Include="res\fonts\open_sans_ms_16.spritefont" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClCompile Include="..\External\imgui\imgui.cpp" />
+    <ClCompile Include="..\External\imgui\imgui_demo.cpp" />
+    <ClCompile Include="..\External\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\External\imgui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="..\External\imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\External\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="graphics\Camera.cpp" />
     <ClCompile Include="graphics\DrawableGameObject.cpp" />
+    <ClCompile Include="Input\Keyboard.cpp" />
+    <ClCompile Include="Input\Mouse.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="utility\DDSTextureLoader.cpp" />
     <ClCompile Include="utility\ErrorLogger.cpp" />
     <ClCompile Include="utility\StringConverter.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="res\Tutorial01.rc" />
+    <FxCompile Include="Resources\Shaders\shader.fx">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resources\Tutorial01.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Cursors\Link Select.ani" />
+    <None Include="Resources\Cursors\Normal Select.ani" />
+    <None Include="Resources\Fonts\open_sans_ms_16.spritefont" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

@@ -1,8 +1,6 @@
 #define _XM_NO_INTRINSICS_
 #include "main.h"
 
-DirectX::XMFLOAT4 g_EyePosition( 0.0f, 0, -3, 1.0f );
-
 // Forward declarations
 HRESULT InitWindow( HINSTANCE hInstance, int nCmdShow );
 HRESULT InitDevice();
@@ -10,6 +8,8 @@ HRESULT InitMesh();
 HRESULT InitWorld(int width, int height);
 void CleanupDevice();
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+void UpdateInput( float dt );
+void Update();
 void Render();
 
 HINSTANCE g_hInst = nullptr;
@@ -38,12 +38,12 @@ ID3D11InputLayout* g_pVertexLayout = nullptr;
 ID3D11Buffer* g_pConstantBuffer = nullptr;
 ID3D11Buffer* g_pLightConstantBuffer = nullptr;
 
-DirectX::XMMATRIX g_View;
-DirectX::XMMATRIX g_Projection;
-
 int g_viewWidth;
 int g_viewHeight;
 
+Mouse mouse;
+Keyboard keyboard;
+std::shared_ptr<Camera> camera;
 DrawableGameObject g_GameObject;
 
 // Functions
@@ -72,6 +72,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         }
         else
         {
+            Update();
             Render();
         }
     }
@@ -118,6 +119,25 @@ HRESULT InitWindow( HINSTANCE hInstance, int nCmdShow )
 
     ShowWindow( g_hWnd, nCmdShow );
 
+    // Initialize raw mouse input
+    static bool rawInputInitialized = false;
+    if ( !rawInputInitialized )
+    {
+        RAWINPUTDEVICE rid = { 0 };
+        rid.usUsagePage = 0x01;
+        rid.usUsage = 0x02;
+        rid.dwFlags = 0;
+        rid.hwndTarget = NULL;
+
+        if ( RegisterRawInputDevices( &rid, 1, sizeof( rid ) ) == FALSE )
+        {
+            ErrorLogger::Log( GetLastError(), "Failed to register raw input devices!" );
+            exit( -1 );
+        }
+
+        rawInputInitialized = true;
+    }
+
     return S_OK;
 }
 
@@ -128,13 +148,7 @@ HRESULT CompileShaderFromFile(const WCHAR* szFileName, LPCSTR szEntryPoint, LPCS
 
     DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef _DEBUG
-    // Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
-    // Setting this flag improves the shader debugging experience, but still allows 
-    // the shaders to be optimized and to run exactly the way they will run in 
-    // the release configuration of this program.
     dwShaderFlags |= D3DCOMPILE_DEBUG;
-
-    // Disable optimizations to further improve shader debugging
     dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
@@ -359,7 +373,7 @@ HRESULT InitMesh()
 {
     // Compile the vertex shader
     ID3DBlob* pVSBlob = nullptr;
-    HRESULT hr = CompileShaderFromFile(L"res\\shaders\\shader.fx", "VS", "vs_4_0", &pVSBlob);
+    HRESULT hr = CompileShaderFromFile(L"Resources\\Shaders\\shader.fx", "VS", "vs_4_0", &pVSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -397,7 +411,7 @@ HRESULT InitMesh()
 
 	// Compile the pixel shader
 	ID3DBlob* pPSBlob = nullptr;
-	hr = CompileShaderFromFile(L"res\\shaders\\shader.fx", "PS", "ps_4_0", &pPSBlob);
+	hr = CompileShaderFromFile(L"Resources\\Shaders\\shader.fx", "PS", "ps_4_0", &pPSBlob);
 	if (FAILED(hr))
 	{
 		MessageBox(nullptr,
@@ -444,14 +458,14 @@ HRESULT InitMesh()
 // Initialize world matrices
 HRESULT InitWorld( int width, int height )
 {
-	// Initialize the view matrix
-	DirectX::XMVECTOR Eye = DirectX::XMLoadFloat4( &g_EyePosition );
-	DirectX::XMVECTOR At = DirectX::XMVectorSet( 0.0f, 0.0f, 0.0f, 0.0f );
-	DirectX::XMVECTOR Up = DirectX::XMVectorSet( 0.0f, 1.0f, 0.0f, 0.0f );
-	g_View = XMMatrixLookAtLH( Eye, At, Up );
+    // Initialize the camera
+    camera = std::make_shared<Camera>( XMFLOAT3( 0.0f, 0.0f, -3.0f ) );
+    camera->SetProjectionValues( 75.0f, static_cast<float>( width ) / static_cast<float>( height ), 0.01f, 100.0f );
 
-	// Initialize the projection matrix
-	g_Projection = DirectX::XMMatrixPerspectiveFovLH( DirectX::XM_PIDIV2, (FLOAT)width / (FLOAT)height, 0.01f, 100.0f );
+    // Update keyboard processing
+    keyboard.DisableAutoRepeatKeys();
+    keyboard.DisableAutoRepeatChars();
+
 	return S_OK;
 }
 
@@ -496,19 +510,17 @@ void CleanupDevice()
 }
 
 // Process window messages
-LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
+extern LRESULT ImGui_ImplWin32_WndProcHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
+    if ( ImGui_ImplWin32_WndProcHandler( hWnd, uMsg, wParam, lParam ) )
+        return true;
+
     PAINTSTRUCT ps;
     HDC hdc;
 
-    switch( message )
+    switch( uMsg )
     {
-	case WM_LBUTTONDOWN:
-	{
-		int xPos = GET_X_LPARAM(lParam);
-		int yPos = GET_Y_LPARAM(lParam);
-		break;
-	}
     case WM_PAINT:
         hdc = BeginPaint( hWnd, &ps );
         EndPaint( hWnd, &ps );
@@ -518,8 +530,132 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
         PostQuitMessage( 0 );
         break;
 
+    // Keyboard Events
+    case WM_KEYDOWN:
+    {
+        unsigned char keycode = static_cast<unsigned char>( wParam );
+        if ( keyboard.IsKeysAutoRepeat() )
+            keyboard.OnKeyPressed( keycode );
+        else
+        {
+            const bool wasPressed = lParam & 0x40000000;
+            if ( !wasPressed )
+                keyboard.OnKeyPressed( keycode );
+        }
+        switch ( wParam )
+        {
+        case VK_ESCAPE:
+            DestroyWindow( hWnd );
+            PostQuitMessage( 0 );
+            return 0;
+        }
+        return 0;
+    }
+    case WM_KEYUP:
+    {
+        unsigned char keycode = static_cast<unsigned char>( wParam );
+        keyboard.OnKeyReleased( keycode );
+        return 0;
+    }
+    case WM_CHAR:
+    {
+        unsigned char ch = static_cast<unsigned char>( wParam );
+        if ( keyboard.IsCharsAutoRepeat() )
+            keyboard.OnChar( ch );
+        else
+        {
+            const bool wasPressed = lParam & 0x40000000;
+            if ( !wasPressed )
+                keyboard.OnChar( ch );
+        }
+        return 0;
+    }
+
+    // Mouse Events
+    case WM_MOUSEMOVE:
+    {
+        int x = LOWORD( lParam );
+        int y = HIWORD( lParam );
+        mouse.OnMouseMove( x, y );
+        return 0;
+    }
+    case WM_LBUTTONDOWN:
+    {
+        int x = LOWORD( lParam );
+        int y = HIWORD( lParam );
+        mouse.OnLeftPressed( x, y );
+        return 0;
+    }
+    case WM_LBUTTONUP:
+    {
+        int x = LOWORD( lParam );
+        int y = HIWORD( lParam );
+        mouse.OnLeftReleased( x, y );
+        return 0;
+    }
+    case WM_RBUTTONDOWN:
+    {
+        int x = LOWORD( lParam );
+        int y = HIWORD( lParam );
+        mouse.OnRightPressed( x, y );
+        return 0;
+    }
+    case WM_RBUTTONUP:
+    {
+        int x = LOWORD( lParam );
+        int y = HIWORD( lParam );
+        mouse.OnRightReleased( x, y );
+        return 0;
+    }
+    case WM_MBUTTONDOWN:
+    {
+        int x = LOWORD( lParam );
+        int y = HIWORD( lParam );
+        mouse.OnMiddlePressed( x, y );
+        return 0;
+    }
+    case WM_MBUTTONUP:
+    {
+        int x = LOWORD( lParam );
+        int y = HIWORD( lParam );
+        mouse.OnMiddleReleased( x, y );
+        return 0;
+    }
+    case WM_MOUSEWHEEL:
+    {
+        int x = LOWORD( lParam );
+        int y = HIWORD( lParam );
+        if ( GET_WHEEL_DELTA_WPARAM( wParam ) > 0 )
+        {
+            mouse.OnWheelUp( x, y );
+        }
+        else if ( GET_WHEEL_DELTA_WPARAM( wParam ) < 0 )
+        {
+            mouse.OnWheelDown( x, y );
+        }
+        return 0;
+    }
+    case WM_INPUT:
+    {
+        UINT dataSize;
+        GetRawInputData( reinterpret_cast<HRAWINPUT>( lParam ), RID_INPUT, NULL, &dataSize, sizeof( RAWINPUTHEADER ) );
+        if ( dataSize > 0 )
+        {
+            std::unique_ptr<BYTE[]> rawData = std::make_unique<BYTE[]>( dataSize );
+            if ( GetRawInputData( reinterpret_cast<HRAWINPUT>( lParam ), RID_INPUT, rawData.get(), &dataSize, sizeof( RAWINPUTHEADER ) ) == dataSize )
+            {
+                RAWINPUT* raw = reinterpret_cast<RAWINPUT*>( rawData.get() );
+                if ( raw->header.dwType == RIM_TYPEMOUSE )
+                {
+                    mouse.OnMouseMoveRaw( raw->data.mouse.lLastX, raw->data.mouse.lLastY );
+                }
+            }
+        }
+        return DefWindowProc( hWnd, uMsg, wParam, lParam );
+    }
+
     default:
-        return DefWindowProc( hWnd, message, wParam, lParam );
+        return DefWindowProc( hWnd, uMsg, wParam, lParam );
     }
 
     return 0;
@@ -538,9 +674,15 @@ void setupLightForRender()
     light.QuadraticAttenuation = 1.0f;
 
     // set up the light
-    DirectX::XMFLOAT4 LightPosition( g_EyePosition );
+    XMFLOAT4 eyePosition = { camera->GetPositionFloat3().x, camera->GetPositionFloat3().y, camera->GetPositionFloat3().z, 1.0f };
+    DirectX::XMFLOAT4 LightPosition( eyePosition );
     light.Position = LightPosition;
-    DirectX::XMVECTOR LightDirection = DirectX::XMVectorSet( -LightPosition.x, -LightPosition.y, -LightPosition.z, 0.0f );
+    DirectX::XMVECTOR LightDirection = DirectX::XMVectorSet(
+        camera->GetCameraTarget().x - LightPosition.x,
+        camera->GetCameraTarget().y - LightPosition.y,
+        camera->GetCameraTarget().z - LightPosition.z,
+        0.0f
+    );
     LightDirection = DirectX::XMVector3Normalize( LightDirection );
     DirectX::XMStoreFloat4( &light.Direction, LightDirection );
 
@@ -577,12 +719,57 @@ float calculateDeltaTime()
     return deltaTime;
 }
 
-// Render a frame
-void Render()
+void UpdateInput( float dt )
 {
+    // update camera orientation
+    while ( !mouse.EventBufferIsEmpty() )
+    {
+        Mouse::MouseEvent me = mouse.ReadEvent();
+        if ( mouse.IsRightDown() )
+        {
+            if ( me.GetType() == Mouse::MouseEvent::EventType::RawMove )
+            {
+                camera->AdjustRotation(
+                    static_cast<float>( me.GetPosY() ) * 0.005f,
+                    static_cast<float>( me.GetPosX() ) * 0.005f,
+                    0.0f
+                );
+            }
+        }
+    }
+
+    // camera speed
+    camera->SetCameraSpeed( 2.5f );
+    if ( keyboard.KeyIsPressed( VK_SHIFT ) )camera->UpdateCameraSpeed( 4.0f );
+
+    // camera movement
+    if ( keyboard.KeyIsPressed( 'W' ) ) camera->MoveForward( dt );
+    if ( keyboard.KeyIsPressed( 'A' ) ) camera->MoveLeft( dt );
+    if ( keyboard.KeyIsPressed( 'S' ) ) camera->MoveBackward( dt );
+    if ( keyboard.KeyIsPressed( 'D' ) ) camera->MoveRight( dt );
+
+    // x world collisions
+    //if ( camera->GetPositionFloat3().x <= -9.9f )
+    //    camera->SetPosition( -9.9f, camera->GetPositionFloat3().y, camera->GetPositionFloat3().z );
+    //if ( camera->GetPositionFloat3().x >= 9.9f )
+    //    camera->SetPosition( 9.9f, camera->GetPositionFloat3().y, camera->GetPositionFloat3().z );
+
+    // z world collisions
+    //if ( camera->GetPositionFloat3().z <= -4.9f )
+    //    camera->SetPosition( camera->GetPositionFloat3().x, camera->GetPositionFloat3().y, -4.9f );
+    //if ( camera->GetPositionFloat3().z >= 19.9f )
+    //    camera->SetPosition( camera->GetPositionFloat3().x, camera->GetPositionFloat3().y, 19.9f );
+}
+
+void Update()
+{
+    // Update
     float t = calculateDeltaTime(); // capped at 60 fps
-    if (t == 0.0f)
+    if ( t == 0.0f )
         return;
+
+    // Update camera input
+    UpdateInput( t );
 
     // Clear the back buffer
     g_pImmediateContext->ClearRenderTargetView( g_pRenderTargetView, DirectX::Colors::MidnightBlue );
@@ -590,17 +777,21 @@ void Render()
     // Clear the depth buffer to 1.0 (max depth)
     g_pImmediateContext->ClearDepthStencilView( g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
-	// Update the cube transform, material etc. 
-	g_GameObject.update( t, g_pImmediateContext );
+    // Update the cube transform, material etc. 
+    g_GameObject.update( t, g_pImmediateContext );
+}
 
+// Render a frame
+void Render()
+{
     // get the game object world transform
     DirectX::XMMATRIX mGO = XMLoadFloat4x4( g_GameObject.getTransform() );
 
     // store this and the view / projection in a constant buffer for the vertex shader to use
     ConstantBuffer cb1;
 	cb1.mWorld = DirectX::XMMatrixTranspose( mGO );
-	cb1.mView = DirectX::XMMatrixTranspose( g_View );
-	cb1.mProjection = DirectX::XMMatrixTranspose( g_Projection );
+	cb1.mView = DirectX::XMMatrixTranspose( camera->GetViewMatrix() );
+	cb1.mProjection = DirectX::XMMatrixTranspose( camera->GetProjectionMatrix() );
 	cb1.vOutputColor = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 0.0f );
 	g_pImmediateContext->UpdateSubresource( g_pConstantBuffer, 0u, nullptr, &cb1, 0u, 0u );
     
