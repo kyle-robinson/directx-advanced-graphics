@@ -747,18 +747,26 @@ void UpdateInput( float dt )
     if ( keyboard.KeyIsPressed( 'A' ) ) camera->MoveLeft( dt );
     if ( keyboard.KeyIsPressed( 'S' ) ) camera->MoveBackward( dt );
     if ( keyboard.KeyIsPressed( 'D' ) ) camera->MoveRight( dt );
+    if ( keyboard.KeyIsPressed( VK_SPACE ) ) camera->MoveUp( dt );
+    if ( keyboard.KeyIsPressed( VK_CONTROL ) ) camera->MoveDown( dt );
 
     // x world collisions
-    //if ( camera->GetPositionFloat3().x <= -9.9f )
-    //    camera->SetPosition( -9.9f, camera->GetPositionFloat3().y, camera->GetPositionFloat3().z );
-    //if ( camera->GetPositionFloat3().x >= 9.9f )
-    //    camera->SetPosition( 9.9f, camera->GetPositionFloat3().y, camera->GetPositionFloat3().z );
+    if ( camera->GetPositionFloat3().x <= -5.0f )
+        camera->SetPosition( -5.0f, camera->GetPositionFloat3().y, camera->GetPositionFloat3().z );
+    if ( camera->GetPositionFloat3().x >= 5.0f )
+        camera->SetPosition( 5.0f, camera->GetPositionFloat3().y, camera->GetPositionFloat3().z );
+
+    // y world collisions
+    if ( camera->GetPositionFloat3().y <= -5.0f )
+        camera->SetPosition( camera->GetPositionFloat3().x, -5.0f, camera->GetPositionFloat3().z );
+    if ( camera->GetPositionFloat3().y >= 5.0f )
+        camera->SetPosition( camera->GetPositionFloat3().x, 5.0f, camera->GetPositionFloat3().z );
 
     // z world collisions
-    //if ( camera->GetPositionFloat3().z <= -4.9f )
-    //    camera->SetPosition( camera->GetPositionFloat3().x, camera->GetPositionFloat3().y, -4.9f );
-    //if ( camera->GetPositionFloat3().z >= 19.9f )
-    //    camera->SetPosition( camera->GetPositionFloat3().x, camera->GetPositionFloat3().y, 19.9f );
+    if ( camera->GetPositionFloat3().z <= -5.0f )
+        camera->SetPosition( camera->GetPositionFloat3().x, camera->GetPositionFloat3().y, -5.0f );
+    if ( camera->GetPositionFloat3().z >= 5.0f )
+        camera->SetPosition( camera->GetPositionFloat3().x, camera->GetPositionFloat3().y, 5.0f );
 }
 
 void Update()
