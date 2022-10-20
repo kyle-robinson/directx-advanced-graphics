@@ -43,6 +43,7 @@ int g_viewHeight;
 
 Mouse mouse;
 Keyboard keyboard;
+ImGuiManager imgui;
 std::shared_ptr<Camera> camera;
 DrawableGameObject g_GameObject;
 
@@ -466,6 +467,9 @@ HRESULT InitWorld( int width, int height )
     keyboard.DisableAutoRepeatKeys();
     keyboard.DisableAutoRepeatChars();
 
+    // Initialize imgui
+    imgui.Initialize( g_hWnd, g_pd3dDevice, g_pImmediateContext );
+
 	return S_OK;
 }
 
@@ -815,6 +819,10 @@ void Render()
     g_pImmediateContext->PSSetConstantBuffers( 1u, 1u, &materialCB );
 
     g_GameObject.draw( g_pImmediateContext );
+
+    imgui.BeginRender();
+    imgui.SpawnInstructionWindow();
+    imgui.EndRender();
 
     // Present our back buffer to our front buffer
     g_pSwapChain->Present( 0u, 0u );

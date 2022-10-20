@@ -378,6 +378,7 @@
     <ClInclude Include="..\External\imgui\imstb_truetype.h" />
     <ClInclude Include="graphics\Camera.h" />
     <ClInclude Include="graphics\DrawableGameObject.h" />
+    <ClInclude Include="Graphics\ImGuiManager.h" />
     <ClInclude Include="Input\Keyboard.h" />
     <ClInclude Include="Input\Mouse.h" />
     <ClInclude Include="main.h" />
@@ -405,6 +406,7 @@
     <ClCompile Include="..\External\imgui\imgui_widgets.cpp" />
     <ClCompile Include="graphics\Camera.cpp" />
     <ClCompile Include="graphics\DrawableGameObject.cpp" />
+    <ClCompile Include="Graphics\ImGuiManager.cpp" />
     <ClCompile Include="Input\Keyboard.cpp" />
     <ClCompile Include="Input\Mouse.cpp" />
     <ClCompile Include="main.cpp" />

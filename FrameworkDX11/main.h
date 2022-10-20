@@ -14,6 +14,7 @@
 #include <iostream>
 #include <memory>
 
+#include "ImGuiManager.h"
 #include "ErrorLogger.h"
 #include "Keyboard.h"
 #include "Mouse.h"

@@ -58,6 +58,9 @@
     <ClInclude Include="..\External\imgui\imstb_truetype.h">
       <Filter>Resources\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\ImGuiManager.h">
+      <Filter>Headers\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -171,6 +174,9 @@
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_widgets.cpp">
       <Filter>Resources\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\ImGuiManager.cpp">
+      <Filter>Source\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
