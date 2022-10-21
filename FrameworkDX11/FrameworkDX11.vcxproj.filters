@@ -61,6 +61,12 @@
     <ClInclude Include="Graphics\ImGuiManager.h">
       <Filter>Headers\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\Shaders.h">
+      <Filter>Headers\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\stdafx.h">
+      <Filter>Headers\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -177,6 +183,12 @@
     </ClCompile>
     <ClCompile Include="Graphics\ImGuiManager.cpp">
       <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Shaders.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\stdafx.cpp">
+      <Filter>Source\Utility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

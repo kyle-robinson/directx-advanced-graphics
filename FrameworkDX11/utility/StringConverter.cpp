@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "StringConverter.h"
 
 std::wstring StringConverter::StringToWide( const std::string& narrow ) noexcept

@@ -1,4 +1,4 @@
-#define _XM_NO_INTRINSICS_
+#include "stdafx.h"
 #include "main.h"
 
 // Forward declarations
@@ -402,7 +402,7 @@ HRESULT InitMesh()
     UINT numElements = ARRAYSIZE(layout);
 
     // Create the input layout
-    hr = g_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &g_pVertexLayout);
+    hr = g_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &g_pVertexLayout );
     pVSBlob->Release();
     if (FAILED(hr))
         return hr;

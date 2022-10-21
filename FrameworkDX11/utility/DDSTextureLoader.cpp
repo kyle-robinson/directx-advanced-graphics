@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <memory>
 
+#include "stdafx.h"
 #include "DDSTextureLoader.h"
 
 #if !defined(NO_D3D11_DEBUG_NAME) && ( defined(_DEBUG) || defined(PROFILE) )

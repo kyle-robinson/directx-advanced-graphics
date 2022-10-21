@@ -1,8 +1,4 @@
-#include <memory>
-#include <d3d11_1.h>
-#include <Windows.h>
-#include <DirectXMath.h>
-#include <d3dcompiler.h>
+#include "stdafx.h"
 #include "Camera.h"
 
 Camera::Camera( const XMFLOAT3& initialPosition ) : position( initialPosition )

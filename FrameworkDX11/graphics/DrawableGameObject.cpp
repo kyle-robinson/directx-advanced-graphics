@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "DrawableGameObject.h"
 #define NUM_VERTICES 36
 

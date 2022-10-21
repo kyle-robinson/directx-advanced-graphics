@@ -174,6 +174,7 @@
       <SDLCheck>true</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -368,17 +369,34 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\External\imgui\imconfig.h" />
-    <ClInclude Include="..\External\imgui\imgui.h" />
-    <ClInclude Include="..\External\imgui\imgui_impl_dx11.h" />
-    <ClInclude Include="..\External\imgui\imgui_impl_win32.h" />
-    <ClInclude Include="..\External\imgui\imgui_internal.h" />
-    <ClInclude Include="..\External\imgui\imstb_rectpack.h" />
-    <ClInclude Include="..\External\imgui\imstb_textedit.h" />
-    <ClInclude Include="..\External\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\External\imgui\imconfig.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_impl_dx11.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_impl_win32.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_internal.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_rectpack.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_textedit.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_truetype.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="graphics\Camera.h" />
     <ClInclude Include="graphics\DrawableGameObject.h" />
     <ClInclude Include="Graphics\ImGuiManager.h" />
+    <ClInclude Include="Graphics\Shaders.h" />
     <ClInclude Include="Input\Keyboard.h" />
     <ClInclude Include="Input\Mouse.h" />
     <ClInclude Include="main.h" />
@@ -386,6 +404,7 @@
     <ClInclude Include="utility\COMException.h" />
     <ClInclude Include="utility\DDSTextureLoader.h" />
     <ClInclude Include="utility\ErrorLogger.h" />
+    <ClInclude Include="Utility\stdafx.h" />
     <ClInclude Include="utility\StringConverter.h" />
     <ClInclude Include="utility\structures.h" />
   </ItemGroup>
@@ -398,20 +417,42 @@
     <Image Include="Resources\Textures\stone.dds" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\External\imgui\imgui.cpp" />
-    <ClCompile Include="..\External\imgui\imgui_demo.cpp" />
-    <ClCompile Include="..\External\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\External\imgui\imgui_impl_dx11.cpp" />
-    <ClCompile Include="..\External\imgui\imgui_impl_win32.cpp" />
-    <ClCompile Include="..\External\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\External\imgui\imgui.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_demo.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_draw.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_impl_dx11.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_impl_win32.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_widgets.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="graphics\Camera.cpp" />
     <ClCompile Include="graphics\DrawableGameObject.cpp" />
     <ClCompile Include="Graphics\ImGuiManager.cpp" />
+    <ClCompile Include="Graphics\Shaders.cpp" />
     <ClCompile Include="Input\Keyboard.cpp" />
     <ClCompile Include="Input\Mouse.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="utility\DDSTextureLoader.cpp" />
     <ClCompile Include="utility\ErrorLogger.cpp" />
+    <ClCompile Include="Utility\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="utility\StringConverter.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -2,9 +2,6 @@
 #ifndef IMGUIMANAGER_H
 #define IMGUIMANAGER_H
 
-#include <vector>
-#include <iostream>
-
 /// <summary>
 /// The main manager class for setting up ImGui components.
 /// Contains a function to control the main graphical components of a scene from Graphics.h

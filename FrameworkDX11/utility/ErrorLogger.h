@@ -2,7 +2,6 @@
 #ifndef ERRORLOGGER_H
 #define ERRORLOGGER_H
 
-#include <Windows.h>
 #include "COMException.h"
 
 /// <summary>

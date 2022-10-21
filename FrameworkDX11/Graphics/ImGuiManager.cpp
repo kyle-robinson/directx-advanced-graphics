@@ -1,9 +1,4 @@
-#include <memory>
-#include <d3d11_1.h>
-#include <Windows.h>
-#include <DirectXMath.h>
-#include <d3dcompiler.h>
-
+#include "stdafx.h"
 #include "ImGuiManager.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_dx11.h"
