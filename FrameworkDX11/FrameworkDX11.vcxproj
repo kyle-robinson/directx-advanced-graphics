@@ -395,6 +395,7 @@
     </ClInclude>
     <ClInclude Include="Application.h" />
     <ClInclude Include="graphics\Camera.h" />
+    <ClInclude Include="Graphics\ConstantBuffer.h" />
     <ClInclude Include="Graphics\DepthStencil.h" />
     <ClInclude Include="graphics\DrawableGameObject.h" />
     <ClInclude Include="Graphics\Graphics.h" />

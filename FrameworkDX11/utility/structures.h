@@ -5,7 +5,7 @@
 using namespace DirectX;
 
 // Matrices
-struct ConstantBuffer
+struct Matrices
 {
 	XMMATRIX mWorld;
 	XMMATRIX mView;
@@ -14,9 +14,9 @@ struct ConstantBuffer
 };
 
 // Materials
-struct _Material
+struct Material
 {
-	_Material()
+	Material()
 		: Emissive( 0.0f, 0.0f, 0.0f, 1.0f )
 		, Ambient( 0.1f, 0.1f, 0.1f, 1.0f )
 		, Diffuse( 1.0f, 1.0f, 1.0f, 1.0f )
@@ -35,9 +35,9 @@ struct _Material
 	float Padding[2];
 };
 
-struct MaterialPropertiesConstantBuffer
+struct Material_CB
 {
-	_Material Material;
+	Material Material;
 };
 
 // Lights
@@ -77,9 +77,9 @@ struct Light
 };
 
 #define MAX_LIGHTS 1
-struct LightPropertiesConstantBuffer
+struct Light_CB
 {
-	LightPropertiesConstantBuffer()
+	Light_CB()
 		: EyePosition( 0.0f, 0.0f, 0.0f, 1.0f )
 		, GlobalAmbient( 0.2f, 0.2f, 0.8f, 1.0f )
 	{}

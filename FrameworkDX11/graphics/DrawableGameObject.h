@@ -7,9 +7,9 @@
 #include <directxcolors.h>
 #include <DirectXCollision.h>
 #include "DDSTextureLoader.h"
-#include "resource.h"
-#include <iostream>
+#include "Resource.h"
 #include "structures.h"
+#include "ConstantBuffer.h"
 
 struct SimpleVertex
 {
@@ -25,39 +25,34 @@ class DrawableGameObject
 public:
 	DrawableGameObject();
 	~DrawableGameObject();
-	void cleanup();
+	void Cleanup();
 
-	HRESULT initMesh( ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext );
-	void update( float t, ID3D11DeviceContext* pContext );
-	void draw( ID3D11DeviceContext* pContext );
+	HRESULT InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	void Update( float dt, ID3D11DeviceContext* pContext );
+	void Draw( ID3D11DeviceContext* pContext );
 
-	ID3D11Buffer* getVertexBuffer() { return m_pVertexBuffer; }
-	ID3D11Buffer* getIndexBuffer() { return m_pIndexBuffer; }
+	inline ID3D11Buffer* GetVertexBuffer() const noexcept { return m_pVertexBuffer; }
+	inline ID3D11Buffer* GetIndexBuffer() const noexcept { return m_pIndexBuffer; }
+	inline ID3D11Buffer* const* GetMaterialCB() const noexcept { return m_cbMaterial.GetAddressOf(); }
 
-	ID3D11ShaderResourceView** getTextureResourceView_Diff() { return &m_pTextureResourceView_Diff; }
-	ID3D11ShaderResourceView** getTextureResourceView_Norm() { return &m_pTextureResourceView_Norm; }
-	ID3D11ShaderResourceView** getTextureResourceView_Disp() { return &m_pTextureResourceView_Disp; }
+	//inline ID3D11ShaderResourceView** getTextureResourceView_Diff() noexcept { return m_pTextureDiffuse.GetAddressOf(); }
+	//inline ID3D11ShaderResourceView** getTextureResourceView_Norm() noexcept { return m_pTextureNormal.GetAddressOf(); }
+	//inline ID3D11ShaderResourceView** getTextureResourceView_Disp() noexcept { return m_pTextureDisplacement.GetAddressOf(); }
 
-	DirectX::XMFLOAT4X4* getTransform() { return &m_World; }
-	void setPosition( DirectX::XMFLOAT3 position );
-
-	ID3D11SamplerState** getTextureSamplerState() { return &m_pSamplerLinear; }
-	ID3D11Buffer* getMaterialConstantBuffer() { return m_pMaterialConstantBuffer;}
+	inline XMFLOAT4X4* GetTransform() noexcept { return &m_World; }
+	inline void SetPosition( DirectX::XMFLOAT3 position ) noexcept { m_position = position; }
 
 private:
-	DirectX::XMFLOAT4X4 m_World;
-	DirectX::XMFLOAT3 m_position;
+	XMFLOAT4X4 m_World;
+	XMFLOAT3 m_position;
 
 	ID3D11Buffer* m_pVertexBuffer;
 	ID3D11Buffer* m_pIndexBuffer;
-	ID3D11Buffer* m_pMaterialConstantBuffer;
+	ConstantBuffer<Material> m_cbMaterial;
 
-	ID3D11ShaderResourceView* m_pTextureResourceView_Diff;
-	ID3D11ShaderResourceView* m_pTextureResourceView_Norm;
-	ID3D11ShaderResourceView* m_pTextureResourceView_Disp;
-
-	ID3D11SamplerState* m_pSamplerLinear;
-	MaterialPropertiesConstantBuffer m_material;
+	ID3D11ShaderResourceView* m_pTextureDiffuse;
+	ID3D11ShaderResourceView* m_pTextureNormal;
+	ID3D11ShaderResourceView* m_pTextureDisplacement;
 };
 
 #endif

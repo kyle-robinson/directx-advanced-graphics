@@ -12,12 +12,17 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
     if ( !graphics.Initialize( renderWindow.GetHWND(), width, height ) )
 		return false;
 
-    if ( !InitializeDevice() )
-		return false;
+    // Initialize constant buffers
+    if ( !InitializeMesh() )
+        return false;
+
+    // Create game object
+	HRESULT hr = m_gameObject.InitializeMesh( graphics.GetDevice(), graphics.GetContext() );
+	COM_ERROR_IF_FAILED( hr, "Failed to initialize game object!" );
 
     // Initialize the camera
-    camera = std::make_shared<Camera>( XMFLOAT3( 0.0f, 0.0f, -3.0f ) );
-    camera->SetProjectionValues( 75.0f, static_cast<float>( width ) / static_cast<float>( height ), 0.01f, 100.0f );
+    m_pCamera = std::make_shared<Camera>( XMFLOAT3( 0.0f, 0.0f, -3.0f ) );
+    m_pCamera->SetProjectionValues( 75.0f, static_cast<float>( width ) / static_cast<float>( height ), 0.01f, 100.0f );
 
     // Update keyboard processing
     keyboard.DisableAutoRepeatKeys();
@@ -26,47 +31,14 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
     return true;
 }
 
-// Create device and swap chain
-bool Application::InitializeDevice()
-{
-	if ( !InitializeMesh() )
-        return false;
-
-	HRESULT hr = g_GameObject.initMesh( graphics.GetDevice(), graphics.GetContext() );
-	COM_ERROR_IF_FAILED( hr, "Failed to initialize game object!" );
-
-    return true;
-}
-
 // Initialize meshes
 bool Application::InitializeMesh()
 {
-	// Create the constant buffer
-    D3D11_BUFFER_DESC bd = {};
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(SimpleVertex) * 24;
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bd.CPUAccessFlags = 0;
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(WORD) * 36;        // 36 vertices needed for 12 triangles in a triangle list
-    bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bd.CPUAccessFlags = 0;
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(ConstantBuffer);
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
-	HRESULT hr = graphics.GetDevice()->CreateBuffer(&bd, nullptr, &g_pConstantBuffer);
-	if (FAILED(hr))
-		return false;
+    HRESULT hr = m_cbMatrices.Initialize( graphics.GetDevice(), graphics.GetContext() );
+	COM_ERROR_IF_FAILED( hr, "Failed to create 'Matrices' constant buffer!" );
 
-	// Create the light constant buffer
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(LightPropertiesConstantBuffer);
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
-	hr = graphics.GetDevice()->CreateBuffer(&bd, nullptr, &g_pLightConstantBuffer);
-	if (FAILED(hr))
-		return false;
+    hr = m_cbLight.Initialize( graphics.GetDevice(), graphics.GetContext() );
+    COM_ERROR_IF_FAILED( hr, "Failed to create 'Light' constant buffer!" );
 
 	return true;
 }
@@ -74,10 +46,7 @@ bool Application::InitializeMesh()
 // Cleanup pipeline
 void Application::CleanupDevice()
 {
-    g_GameObject.cleanup();
-
-    if (g_pLightConstantBuffer) g_pLightConstantBuffer->Release();
-    if( g_pConstantBuffer ) g_pConstantBuffer->Release();
+    m_gameObject.Cleanup();
 
     ID3D11Debug* debugDevice = nullptr;
     graphics.GetDevice()->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debugDevice));
@@ -102,22 +71,21 @@ void Application::setupLightForRender()
     light.QuadraticAttenuation = 1.0f;
 
     // set up the light
-    XMFLOAT4 eyePosition = { camera->GetPositionFloat3().x, camera->GetPositionFloat3().y, camera->GetPositionFloat3().z, 1.0f };
+    XMFLOAT4 eyePosition = { m_pCamera->GetPositionFloat3().x, m_pCamera->GetPositionFloat3().y, m_pCamera->GetPositionFloat3().z, 1.0f };
     DirectX::XMFLOAT4 LightPosition( eyePosition );
     light.Position = LightPosition;
     DirectX::XMVECTOR LightDirection = DirectX::XMVectorSet(
-        camera->GetCameraTarget().x - LightPosition.x,
-        camera->GetCameraTarget().y - LightPosition.y,
-        camera->GetCameraTarget().z - LightPosition.z,
+        m_pCamera->GetCameraTarget().x - LightPosition.x,
+        m_pCamera->GetCameraTarget().y - LightPosition.y,
+        m_pCamera->GetCameraTarget().z - LightPosition.z,
         0.0f
     );
     LightDirection = DirectX::XMVector3Normalize( LightDirection );
     DirectX::XMStoreFloat4( &light.Direction, LightDirection );
 
-    LightPropertiesConstantBuffer lightProperties;
-    lightProperties.EyePosition = LightPosition;
-    lightProperties.Lights[0] = light;
-    graphics.GetContext()->UpdateSubresource(g_pLightConstantBuffer, 0u, nullptr, &lightProperties, 0u, 0u);
+    m_cbLight.data.EyePosition = LightPosition;
+    m_cbLight.data.Lights[0] = light;
+    if ( !m_cbLight.ApplyChanges() ) return;
 }
 
 // Update program time
@@ -162,7 +130,7 @@ void Application::UpdateInput( float dt )
         {
             if ( me.GetType() == Mouse::MouseEvent::EventType::RawMove )
             {
-                camera->AdjustRotation(
+                m_pCamera->AdjustRotation(
                     static_cast<float>( me.GetPosY() ) * 0.005f,
                     static_cast<float>( me.GetPosX() ) * 0.005f,
                     0.0f
@@ -172,46 +140,46 @@ void Application::UpdateInput( float dt )
     }
 
     // camera speed
-    camera->SetCameraSpeed( 2.5f );
-    if ( keyboard.KeyIsPressed( VK_SHIFT ) )camera->UpdateCameraSpeed( 4.0f );
+    m_pCamera->SetCameraSpeed( 2.5f );
+    if ( keyboard.KeyIsPressed( VK_SHIFT ) ) m_pCamera->UpdateCameraSpeed( 4.0f );
 
     // camera movement
-    if ( keyboard.KeyIsPressed( 'W' ) ) camera->MoveForward( dt );
-    if ( keyboard.KeyIsPressed( 'A' ) ) camera->MoveLeft( dt );
-    if ( keyboard.KeyIsPressed( 'S' ) ) camera->MoveBackward( dt );
-    if ( keyboard.KeyIsPressed( 'D' ) ) camera->MoveRight( dt );
+    if ( keyboard.KeyIsPressed( 'W' ) ) m_pCamera->MoveForward( dt );
+    if ( keyboard.KeyIsPressed( 'A' ) ) m_pCamera->MoveLeft( dt );
+    if ( keyboard.KeyIsPressed( 'S' ) ) m_pCamera->MoveBackward( dt );
+    if ( keyboard.KeyIsPressed( 'D' ) ) m_pCamera->MoveRight( dt );
 
     // x world collisions
-    if ( camera->GetPositionFloat3().x <= -5.0f )
-        camera->SetPosition( -5.0f, camera->GetPositionFloat3().y, camera->GetPositionFloat3().z );
-    if ( camera->GetPositionFloat3().x >= 5.0f )
-        camera->SetPosition( 5.0f, camera->GetPositionFloat3().y, camera->GetPositionFloat3().z );
+    if ( m_pCamera->GetPositionFloat3().x <= -5.0f )
+        m_pCamera->SetPosition( -5.0f, m_pCamera->GetPositionFloat3().y, m_pCamera->GetPositionFloat3().z );
+    if ( m_pCamera->GetPositionFloat3().x >= 5.0f )
+        m_pCamera->SetPosition( 5.0f, m_pCamera->GetPositionFloat3().y, m_pCamera->GetPositionFloat3().z );
 
     // y world collisions
-    if ( camera->GetPositionFloat3().y <= -5.0f )
-        camera->SetPosition( camera->GetPositionFloat3().x, -5.0f, camera->GetPositionFloat3().z );
-    if ( camera->GetPositionFloat3().y >= 5.0f )
-        camera->SetPosition( camera->GetPositionFloat3().x, 5.0f, camera->GetPositionFloat3().z );
+    if ( m_pCamera->GetPositionFloat3().y <= -5.0f )
+        m_pCamera->SetPosition( m_pCamera->GetPositionFloat3().x, -5.0f, m_pCamera->GetPositionFloat3().z );
+    if ( m_pCamera->GetPositionFloat3().y >= 5.0f )
+        m_pCamera->SetPosition( m_pCamera->GetPositionFloat3().x, 5.0f, m_pCamera->GetPositionFloat3().z );
 
     // z world collisions
-    if ( camera->GetPositionFloat3().z <= -5.0f )
-        camera->SetPosition( camera->GetPositionFloat3().x, camera->GetPositionFloat3().y, -5.0f );
-    if ( camera->GetPositionFloat3().z >= 5.0f )
-        camera->SetPosition( camera->GetPositionFloat3().x, camera->GetPositionFloat3().y, 5.0f );
+    if ( m_pCamera->GetPositionFloat3().z <= -5.0f )
+        m_pCamera->SetPosition( m_pCamera->GetPositionFloat3().x, m_pCamera->GetPositionFloat3().y, -5.0f );
+    if ( m_pCamera->GetPositionFloat3().z >= 5.0f )
+        m_pCamera->SetPosition( m_pCamera->GetPositionFloat3().x, m_pCamera->GetPositionFloat3().y, 5.0f );
 }
 
 void Application::Update()
 {
     // Update
-    float t = calculateDeltaTime(); // capped at 60 fps
-    if ( t == 0.0f )
+    float dt = calculateDeltaTime(); // capped at 60 fps
+    if ( dt == 0.0f )
         return;
 
     // Update camera input
-    UpdateInput( t );
+    UpdateInput( dt );
 
     // Update the cube transform, material etc. 
-    g_GameObject.update( t, graphics.GetContext() );
+    m_gameObject.Update( dt, graphics.GetContext() );
 }
 
 // Render a frame
@@ -221,24 +189,22 @@ void Application::Render()
     graphics.BeginFrame();
 
     // get the game object world transform
-    DirectX::XMMATRIX mGO = XMLoadFloat4x4( g_GameObject.getTransform() );
+    DirectX::XMMATRIX mGO = XMLoadFloat4x4( m_gameObject.GetTransform() );
 
     // store this and the view / projection in a constant buffer for the vertex shader to use
-    ConstantBuffer cb1;
-	cb1.mWorld = DirectX::XMMatrixTranspose( mGO );
-	cb1.mView = DirectX::XMMatrixTranspose( camera->GetViewMatrix() );
-	cb1.mProjection = DirectX::XMMatrixTranspose( camera->GetProjectionMatrix() );
-	cb1.vOutputColor = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 0.0f );
-	graphics.GetContext()->UpdateSubresource(g_pConstantBuffer, 0u, nullptr, &cb1, 0u, 0u);
+	m_cbMatrices.data.mWorld = DirectX::XMMatrixTranspose( mGO );
+	m_cbMatrices.data.mView = DirectX::XMMatrixTranspose( m_pCamera->GetViewMatrix() );
+	m_cbMatrices.data.mProjection = DirectX::XMMatrixTranspose( m_pCamera->GetProjectionMatrix() );
+	m_cbMatrices.data.vOutputColor = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 0.0f );
+	if ( !m_cbMatrices.ApplyChanges() ) return;
     
     setupLightForRender();
 
     // Render objects
-    graphics.GetContext()->VSSetConstantBuffers(0u, 1u, &g_pConstantBuffer);
-    graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, &g_pLightConstantBuffer );
-    ID3D11Buffer* materialCB = g_GameObject.getMaterialConstantBuffer();
-    graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, &materialCB );
-    g_GameObject.draw( graphics.GetContext() );
+    graphics.GetContext()->VSSetConstantBuffers(0u, 1u, m_cbMatrices.GetAddressOf() );
+    graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_gameObject.GetMaterialCB() );
+    graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_cbLight.GetAddressOf() );
+    m_gameObject.Draw( graphics.GetContext() );
 
     // Present frame
     graphics.EndFrame();

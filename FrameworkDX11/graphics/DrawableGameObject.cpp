@@ -6,21 +6,18 @@ DrawableGameObject::DrawableGameObject()
 {
 	m_pVertexBuffer = nullptr;
 	m_pIndexBuffer = nullptr;
-	m_pTextureResourceView_Diff = nullptr;
-	m_pTextureResourceView_Norm = nullptr;
-	m_pTextureResourceView_Disp = nullptr;
-	m_pSamplerLinear = nullptr;
-	m_pMaterialConstantBuffer = nullptr;
+	m_pTextureDiffuse = nullptr;
+	m_pTextureNormal = nullptr;
+	m_pTextureDisplacement = nullptr;
 	DirectX::XMStoreFloat4x4( &m_World, DirectX::XMMatrixIdentity() );
 }
 
-
 DrawableGameObject::~DrawableGameObject()
 {
-	cleanup();
+	Cleanup();
 }
 
-void DrawableGameObject::cleanup()
+void DrawableGameObject::Cleanup()
 {
 	if (m_pVertexBuffer)
 		m_pVertexBuffer->Release();
@@ -30,28 +27,20 @@ void DrawableGameObject::cleanup()
 		m_pIndexBuffer->Release();
 	m_pIndexBuffer = nullptr;
 
-	if (m_pTextureResourceView_Diff)
-		m_pTextureResourceView_Diff->Release();
-	m_pTextureResourceView_Diff = nullptr;
+	if (m_pTextureDiffuse)
+		m_pTextureDiffuse->Release();
+	m_pTextureDiffuse = nullptr;
 
-	if (m_pTextureResourceView_Norm)
-		m_pTextureResourceView_Norm->Release();
-	m_pTextureResourceView_Norm = nullptr;
+	if (m_pTextureNormal)
+		m_pTextureNormal->Release();
+	m_pTextureNormal = nullptr;
 
-	if (m_pTextureResourceView_Disp)
-		m_pTextureResourceView_Disp->Release();
-	m_pTextureResourceView_Disp = nullptr;
-
-	if (m_pSamplerLinear)
-		m_pSamplerLinear->Release();
-	m_pSamplerLinear = nullptr;
-
-	if (m_pMaterialConstantBuffer)
-		m_pMaterialConstantBuffer->Release();
-	m_pMaterialConstantBuffer = nullptr;
+	if (m_pTextureDisplacement)
+		m_pTextureDisplacement->Release();
+	m_pTextureDisplacement = nullptr;
 }
 
-HRESULT DrawableGameObject::initMesh( ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext )
+HRESULT DrawableGameObject::InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
 	// Create vertex buffer
 	SimpleVertex vertices[] =
@@ -95,7 +84,7 @@ HRESULT DrawableGameObject::initMesh( ID3D11Device* pd3dDevice, ID3D11DeviceCont
 
 	D3D11_SUBRESOURCE_DATA InitData = {};
 	InitData.pSysMem = vertices;
-	HRESULT hr = pd3dDevice->CreateBuffer(&bd, &InitData, &m_pVertexBuffer);
+	HRESULT hr = pDevice->CreateBuffer(&bd, &InitData, &m_pVertexBuffer);
 	if (FAILED(hr))
 		return hr;
 
@@ -131,7 +120,7 @@ HRESULT DrawableGameObject::initMesh( ID3D11Device* pd3dDevice, ID3D11DeviceCont
 	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	InitData.pSysMem = indices;
-	hr = pd3dDevice->CreateBuffer(&bd, &InitData, &m_pIndexBuffer);
+	hr = pDevice->CreateBuffer(&bd, &InitData, &m_pIndexBuffer);
 	if (FAILED(hr))
 		return hr;
 
@@ -142,69 +131,43 @@ HRESULT DrawableGameObject::initMesh( ID3D11Device* pd3dDevice, ID3D11DeviceCont
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// load and setup textures
-	hr = DirectX::CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\bricks_TEX.dds", nullptr, &m_pTextureResourceView_Diff);
-	if (FAILED(hr))
-		return hr;
+	hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_TEX.dds", nullptr, &m_pTextureDiffuse );
+	COM_ERROR_IF_FAILED( hr, "Failed to create 'diffuse' texture!" );
 
-	hr = DirectX::CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\bricks_NORM.dds", nullptr, &m_pTextureResourceView_Norm);
-	if (FAILED(hr))
-		return hr;
+	hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_NORM.dds", nullptr, &m_pTextureNormal );
+	COM_ERROR_IF_FAILED( hr, "Failed to create 'normal' texture!" );
 
-	hr = DirectX::CreateDDSTextureFromFile(pd3dDevice, L"Resources\\Textures\\bricks_DISP.dds", nullptr, &m_pTextureResourceView_Disp);
-	if (FAILED(hr))
-		return hr;
+	hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_DISP.dds", nullptr, &m_pTextureDisplacement );
+	COM_ERROR_IF_FAILED( hr, "Failed to create 'displacement' texture!" );
 
-	D3D11_SAMPLER_DESC sampDesc;
-	ZeroMemory(&sampDesc, sizeof(sampDesc));
-	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	sampDesc.MinLOD = 0;
-	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	hr = pd3dDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
-
-	m_material.Material.Diffuse = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	m_material.Material.Specular = DirectX::XMFLOAT4(1.0f, 0.2f, 0.2f, 1.0f);
-	m_material.Material.SpecularPower = 32.0f;
-	m_material.Material.UseTexture = true;
-
-	// Create the material constant buffer
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(MaterialPropertiesConstantBuffer);
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
-	hr = pd3dDevice->CreateBuffer(&bd, nullptr, &m_pMaterialConstantBuffer);
-	if (FAILED(hr))
-		return hr;
+	// Setup constant buffer
+	hr = m_cbMaterial.Initialize( pDevice, pContext );
+	COM_ERROR_IF_FAILED( hr, "Failed to create 'Material' constant buffer!" );
 
 	return hr;
 }
 
-void DrawableGameObject::setPosition( DirectX::XMFLOAT3 position )
-{
-	m_position = position;
-}
-
-void DrawableGameObject::update( float t, ID3D11DeviceContext* pContext )
+void DrawableGameObject::Update( float dt, ID3D11DeviceContext* pContext )
 {
 	static float cummulativeTime = 0;
-	cummulativeTime += t;
+	cummulativeTime += dt;
 
 	DirectX::XMMATRIX mSpin = DirectX::XMMatrixRotationY( cummulativeTime );
 	DirectX::XMMATRIX mTranslate = DirectX::XMMatrixTranslation( 0.0f, 0.0f, 0.0f );
 	DirectX::XMMATRIX world = mTranslate * mSpin;
 	XMStoreFloat4x4( &m_World, world );
 
-	pContext->UpdateSubresource( m_pMaterialConstantBuffer, 0u, nullptr, &m_material, 0u, 0u );
+	m_cbMaterial.data.Diffuse = DirectX::XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f );
+	m_cbMaterial.data.Specular = DirectX::XMFLOAT4( 1.0f, 0.2f, 0.2f, 1.0f );
+	m_cbMaterial.data.SpecularPower = 32.0f;
+	m_cbMaterial.data.UseTexture = true;
+	if ( !m_cbMaterial.ApplyChanges() ) return;
 }
 
-void DrawableGameObject::draw( ID3D11DeviceContext* pContext )
+void DrawableGameObject::Draw( ID3D11DeviceContext* pContext )
 {
-	pContext->PSSetShaderResources( 0u, 1u, &m_pTextureResourceView_Diff );
-	pContext->PSSetShaderResources( 1u, 1u, &m_pTextureResourceView_Norm );
-	pContext->PSSetShaderResources( 2u, 1u, &m_pTextureResourceView_Disp );
-	pContext->PSSetSamplers( 0u, 1u, &m_pSamplerLinear );
+	pContext->PSSetShaderResources( 0u, 1u, &m_pTextureDiffuse );
+	pContext->PSSetShaderResources( 1u, 1u, &m_pTextureNormal );
+	pContext->PSSetShaderResources( 2u, 1u, &m_pTextureDisplacement );
 	pContext->DrawIndexed( NUM_VERTICES, 0, 0 );
 }
