@@ -12,35 +12,32 @@ void UpdateInput( float dt );
 void Update();
 void Render();
 
-HINSTANCE g_hInst = nullptr;
+// Window data
+int g_viewWidth;
+int g_viewHeight;
 HWND g_hWnd = nullptr;
+HINSTANCE g_hInst = nullptr;
 
-D3D_DRIVER_TYPE g_driverType = D3D_DRIVER_TYPE_NULL;
-D3D_FEATURE_LEVEL g_featureLevel = D3D_FEATURE_LEVEL_11_0;
+// Pipeline components
+std::shared_ptr<Bind::SwapChain> g_pSwapChain;
+Microsoft::WRL::ComPtr<ID3D11Device> g_pDevice;
+Microsoft::WRL::ComPtr<ID3D11DeviceContext> g_pContext;
 
-ID3D11Device* g_pd3dDevice = nullptr;
-ID3D11Device1* g_pd3dDevice1 = nullptr;
+std::shared_ptr<Bind::Viewport> g_pViewport;
+std::shared_ptr<Bind::DepthStencil> g_pDepthStencil;
+std::shared_ptr<Bind::RenderTarget> g_pRenderTarget;
+std::unordered_map<Bind::Sampler::Type, std::shared_ptr<Bind::Sampler>> g_pSamplerStates;
+std::unordered_map<Bind::Rasterizer::Type, std::shared_ptr<Bind::Rasterizer>> g_pRasterizerStates;
 
-ID3D11DeviceContext* g_pImmediateContext = nullptr;
-ID3D11DeviceContext1* g_pImmediateContext1 = nullptr;
+// Shaders
+VertexShader vertexShader;
+PixelShader pixelShader;
 
-IDXGISwapChain* g_pSwapChain = nullptr;
-IDXGISwapChain1* g_pSwapChain1 = nullptr;
-
-ID3D11RenderTargetView* g_pRenderTargetView = nullptr;
-ID3D11Texture2D* g_pDepthStencil = nullptr;
-ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
-
-ID3D11VertexShader* g_pVertexShader = nullptr;
-ID3D11PixelShader* g_pPixelShader = nullptr;
-ID3D11InputLayout* g_pVertexLayout = nullptr;
-
+// Constant buffers
 ID3D11Buffer* g_pConstantBuffer = nullptr;
 ID3D11Buffer* g_pLightConstantBuffer = nullptr;
 
-int g_viewWidth;
-int g_viewHeight;
-
+// Objects
 Mouse mouse;
 Keyboard keyboard;
 ImGuiManager imgui;
@@ -142,211 +139,24 @@ HRESULT InitWindow( HINSTANCE hInstance, int nCmdShow )
     return S_OK;
 }
 
-// Compile Shaders
-HRESULT CompileShaderFromFile(const WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut)
-{
-    HRESULT hr = S_OK;
-
-    DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-#ifdef _DEBUG
-    dwShaderFlags |= D3DCOMPILE_DEBUG;
-    dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
-    ID3DBlob* pErrorBlob = nullptr;
-    hr = D3DCompileFromFile(szFileName, nullptr, nullptr, szEntryPoint, szShaderModel,
-        dwShaderFlags, 0, ppBlobOut, &pErrorBlob);
-    if (FAILED(hr))
-    {
-        if (pErrorBlob)
-        {
-            OutputDebugStringA(reinterpret_cast<const char*>( pErrorBlob->GetBufferPointer() ));
-            pErrorBlob->Release();
-        }
-        return hr;
-    }
-    if (pErrorBlob) pErrorBlob->Release();
-
-    return S_OK;
-}
-
 // Create device and swap chain
 HRESULT InitDevice()
 {
-    HRESULT hr = S_OK;
+    g_pSwapChain = std::make_shared<Bind::SwapChain>( g_pContext.GetAddressOf(), g_pDevice.GetAddressOf(), g_hWnd, g_viewWidth, g_viewHeight );
+    g_pRenderTarget = std::make_shared<Bind::RenderTarget>( g_pDevice.Get(), g_pSwapChain->GetSwapChain() );
+    g_pDepthStencil = std::make_shared<Bind::DepthStencil>( g_pDevice.Get(), g_viewWidth, g_viewHeight );
+	g_pViewport = std::make_shared<Bind::Viewport>( g_pContext.Get(), g_viewWidth, g_viewHeight );
+    
+    g_pRasterizerStates.emplace( Bind::Rasterizer::Type::SOLID, std::make_shared<Bind::Rasterizer>( g_pDevice.Get(), Bind::Rasterizer::Type::SOLID ) );
+    g_pRasterizerStates.emplace( Bind::Rasterizer::Type::WIREFRAME, std::make_shared<Bind::Rasterizer>( g_pDevice.Get(), Bind::Rasterizer::Type::WIREFRAME ) );
 
-    RECT rc;
-    GetClientRect( g_hWnd, &rc );
-    UINT width = rc.right - rc.left;
-    UINT height = rc.bottom - rc.top;
+    g_pSamplerStates.emplace( Bind::Sampler::Type::ANISOTROPIC, std::make_shared<Bind::Sampler>( g_pDevice.Get(), Bind::Sampler::Type::ANISOTROPIC ) );
+	g_pSamplerStates.emplace( Bind::Sampler::Type::BILINEAR, std::make_shared<Bind::Sampler>( g_pDevice.Get(), Bind::Sampler::Type::BILINEAR ) );
+	g_pSamplerStates.emplace( Bind::Sampler::Type::POINT, std::make_shared<Bind::Sampler>( g_pDevice.Get(), Bind::Sampler::Type::POINT ) );
 
-    UINT createDeviceFlags = 0;
-#ifdef _DEBUG
-    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
+    g_pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
-    D3D_DRIVER_TYPE driverTypes[] =
-    {
-        D3D_DRIVER_TYPE_HARDWARE,
-        D3D_DRIVER_TYPE_WARP,
-        D3D_DRIVER_TYPE_REFERENCE,
-    };
-    UINT numDriverTypes = ARRAYSIZE( driverTypes );
-
-	D3D_FEATURE_LEVEL featureLevels[] =
-    {
-        D3D_FEATURE_LEVEL_11_1,
-        D3D_FEATURE_LEVEL_11_0,
-        D3D_FEATURE_LEVEL_10_1,
-        D3D_FEATURE_LEVEL_10_0,
-	};
-	UINT numFeatureLevels = ARRAYSIZE( featureLevels );
-
-    for( UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++ )
-    {
-        g_driverType = driverTypes[driverTypeIndex];
-        hr = D3D11CreateDevice( nullptr, g_driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
-                                D3D11_SDK_VERSION, &g_pd3dDevice, &g_featureLevel, &g_pImmediateContext );
-
-        if ( hr == E_INVALIDARG )
-        {
-            // DirectX 11.0 platforms will not recognize D3D_FEATURE_LEVEL_11_1 so we need to retry without it
-            hr = D3D11CreateDevice( nullptr, g_driverType, nullptr, createDeviceFlags, &featureLevels[1], numFeatureLevels - 1,
-                                    D3D11_SDK_VERSION, &g_pd3dDevice, &g_featureLevel, &g_pImmediateContext );
-        }
-
-        if( SUCCEEDED( hr ) )
-            break;
-    }
-    if( FAILED( hr ) )
-        return hr;
-
-    // Obtain DXGI factory from device (since we used nullptr for pAdapter above)
-    IDXGIFactory1* dxgiFactory = nullptr;
-    {
-        IDXGIDevice* dxgiDevice = nullptr;
-        hr = g_pd3dDevice->QueryInterface( __uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice) );
-        if (SUCCEEDED(hr))
-        {
-            IDXGIAdapter* adapter = nullptr;
-            hr = dxgiDevice->GetAdapter(&adapter);
-            if (SUCCEEDED(hr))
-            {
-                hr = adapter->GetParent( __uuidof(IDXGIFactory1), reinterpret_cast<void**>(&dxgiFactory) );
-                adapter->Release();
-            }
-            dxgiDevice->Release();
-        }
-    }
-    if (FAILED(hr))
-        return hr;
-
-    // Create swap chain
-    IDXGIFactory2* dxgiFactory2 = nullptr;
-    hr = dxgiFactory->QueryInterface( __uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2) );
-    if ( dxgiFactory2 )
-    {
-        // DirectX 11.1 or later
-        hr = g_pd3dDevice->QueryInterface( __uuidof(ID3D11Device1), reinterpret_cast<void**>(&g_pd3dDevice1) );
-        if (SUCCEEDED(hr))
-        {
-            (void) g_pImmediateContext->QueryInterface( __uuidof(ID3D11DeviceContext1), reinterpret_cast<void**>(&g_pImmediateContext1) );
-        }
-
-        DXGI_SWAP_CHAIN_DESC1 sd = {};
-        sd.Width = width;
-        sd.Height = height;
-		sd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;//  DXGI_FORMAT_R16G16B16A16_FLOAT;////DXGI_FORMAT_R8G8B8A8_UNORM;
-        sd.SampleDesc.Count = 1;
-        sd.SampleDesc.Quality = 0;
-        sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        sd.BufferCount = 1;
-
-        hr = dxgiFactory2->CreateSwapChainForHwnd( g_pd3dDevice, g_hWnd, &sd, nullptr, nullptr, &g_pSwapChain1 );
-        if (SUCCEEDED(hr))
-        {
-            hr = g_pSwapChain1->QueryInterface( __uuidof(IDXGISwapChain), reinterpret_cast<void**>(&g_pSwapChain) );
-        }
-
-        dxgiFactory2->Release();
-    }
-    else
-    {
-        // DirectX 11.0 systems
-        DXGI_SWAP_CHAIN_DESC sd = {};
-        sd.BufferCount = 1;
-        sd.BufferDesc.Width = width;
-        sd.BufferDesc.Height = height;
-        sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        sd.BufferDesc.RefreshRate.Numerator = 60;
-        sd.BufferDesc.RefreshRate.Denominator = 1;
-        sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        sd.OutputWindow = g_hWnd;
-        sd.SampleDesc.Count = 1;
-        sd.SampleDesc.Quality = 0;
-        sd.Windowed = TRUE;
-
-        hr = dxgiFactory->CreateSwapChain( g_pd3dDevice, &sd, &g_pSwapChain );
-    }
-
-    // Note this tutorial doesn't handle full-screen swapchains so we block the ALT+ENTER shortcut
-    dxgiFactory->MakeWindowAssociation( g_hWnd, DXGI_MWA_NO_ALT_ENTER );
-
-    dxgiFactory->Release();
-
-    if (FAILED(hr))
-        return hr;
-
-    // Create a render target view
-    ID3D11Texture2D* pBackBuffer = nullptr;
-    hr = g_pSwapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), reinterpret_cast<void**>( &pBackBuffer ) );
-    if( FAILED( hr ) )
-        return hr;
-
-    hr = g_pd3dDevice->CreateRenderTargetView( pBackBuffer, nullptr, &g_pRenderTargetView );
-    pBackBuffer->Release();
-    if( FAILED( hr ) )
-        return hr;
-
-    // Create depth stencil texture
-    D3D11_TEXTURE2D_DESC descDepth = {};
-    descDepth.Width = width;
-    descDepth.Height = height;
-    descDepth.MipLevels = 1;
-    descDepth.ArraySize = 1;
-    descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    descDepth.SampleDesc.Count = 1;
-    descDepth.SampleDesc.Quality = 0;
-    descDepth.Usage = D3D11_USAGE_DEFAULT;
-    descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-    descDepth.CPUAccessFlags = 0;
-    descDepth.MiscFlags = 0;
-    hr = g_pd3dDevice->CreateTexture2D( &descDepth, nullptr, &g_pDepthStencil );
-    if( FAILED( hr ) )
-        return hr;
-
-    // Create the depth stencil view
-    D3D11_DEPTH_STENCIL_VIEW_DESC descDSV = {};
-    descDSV.Format = descDepth.Format;
-    descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    descDSV.Texture2D.MipSlice = 0;
-    hr = g_pd3dDevice->CreateDepthStencilView( g_pDepthStencil, &descDSV, &g_pDepthStencilView );
-    if( FAILED( hr ) )
-        return hr;
-
-    g_pImmediateContext->OMSetRenderTargets( 1, &g_pRenderTargetView, g_pDepthStencilView );
-
-    // Setup the viewport
-    D3D11_VIEWPORT vp;
-    vp.Width = (FLOAT)width;
-    vp.Height = (FLOAT)height;
-    vp.MinDepth = 0.0f;
-    vp.MaxDepth = 1.0f;
-    vp.TopLeftX = 0;
-    vp.TopLeftY = 0;
-    g_pImmediateContext->RSSetViewports( 1, &vp );
-
-	hr = InitMesh();
+	HRESULT hr = InitMesh();
 	if (FAILED(hr))
 	{
 		MessageBox(nullptr,
@@ -354,7 +164,7 @@ HRESULT InitDevice()
 		return hr;
 	}
 
-	hr = InitWorld(width, height);
+	hr = InitWorld( g_viewWidth, g_viewHeight);
 	if (FAILED(hr))
 	{
 		MessageBox(nullptr,
@@ -362,7 +172,7 @@ HRESULT InitDevice()
 		return hr;
 	}
 
-	hr = g_GameObject.initMesh(g_pd3dDevice, g_pImmediateContext);
+	hr = g_GameObject.initMesh(g_pDevice.Get(), g_pContext.Get() );
 	if (FAILED(hr))
 		return hr;
 
@@ -372,24 +182,6 @@ HRESULT InitDevice()
 // Initialize meshes
 HRESULT InitMesh()
 {
-    // Compile the vertex shader
-    ID3DBlob* pVSBlob = nullptr;
-    HRESULT hr = CompileShaderFromFile(L"Resources\\Shaders\\shader.fx", "VS", "vs_4_0", &pVSBlob);
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr,
-            L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-        return hr;
-    }
-
-    // Create the vertex shader
-    hr = g_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &g_pVertexShader);
-    if (FAILED(hr))
-    {
-        pVSBlob->Release();
-        return hr;
-    }
-
     // Define the input layout
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
@@ -399,32 +191,15 @@ HRESULT InitMesh()
 		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
-    UINT numElements = ARRAYSIZE(layout);
 
-    // Create the input layout
-    hr = g_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &g_pVertexLayout );
-    pVSBlob->Release();
-    if (FAILED(hr))
-        return hr;
-
-    // Set the input layout
-    g_pImmediateContext->IASetInputLayout(g_pVertexLayout);
-
-	// Compile the pixel shader
-	ID3DBlob* pPSBlob = nullptr;
-	hr = CompileShaderFromFile(L"Resources\\Shaders\\shader.fx", "PS", "ps_4_0", &pPSBlob);
-	if (FAILED(hr))
-	{
-		MessageBox(nullptr,
-			L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-		return hr;
-	}
-
-	// Create the pixel shader
-	hr = g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &g_pPixelShader);
-	pPSBlob->Release();
-	if (FAILED(hr))
-		return hr;
+    // Create the shaders
+    HRESULT hr = vertexShader.Initialize( g_pDevice, L"Resources\\Shaders\\shader.fx", layout, ARRAYSIZE(layout));
+	COM_ERROR_IF_FAILED( hr, "Failed to create vertex shader!" );
+	hr = pixelShader.Initialize( g_pDevice, L"Resources\\Shaders\\shader.fx" );
+	COM_ERROR_IF_FAILED( hr, "Failed to create pixel shader!" );
+    
+    // Bind shaders to the pipeline
+    Shaders::BindShaders( g_pContext.Get(), vertexShader, pixelShader);
 
 	// Create the constant buffer
     D3D11_BUFFER_DESC bd = {};
@@ -440,7 +215,7 @@ HRESULT InitMesh()
 	bd.ByteWidth = sizeof(ConstantBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
-	hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pConstantBuffer);
+	hr = g_pDevice->CreateBuffer(&bd, nullptr, &g_pConstantBuffer);
 	if (FAILED(hr))
 		return hr;
 
@@ -449,7 +224,7 @@ HRESULT InitMesh()
 	bd.ByteWidth = sizeof(LightPropertiesConstantBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
-	hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pLightConstantBuffer);
+	hr = g_pDevice->CreateBuffer(&bd, nullptr, &g_pLightConstantBuffer);
 	if (FAILED(hr))
 		return hr;
 
@@ -468,7 +243,7 @@ HRESULT InitWorld( int width, int height )
     keyboard.DisableAutoRepeatChars();
 
     // Initialize imgui
-    imgui.Initialize( g_hWnd, g_pd3dDevice, g_pImmediateContext );
+    imgui.Initialize( g_hWnd, g_pDevice.Get(), g_pContext.Get() );
 
 	return S_OK;
 }
@@ -478,33 +253,11 @@ void CleanupDevice()
 {
     g_GameObject.cleanup();
 
-    // Remove any bound render target or depth/stencil buffer
-    ID3D11RenderTargetView* nullViews[] = { nullptr };
-    g_pImmediateContext->OMSetRenderTargets(_countof(nullViews), nullViews, nullptr);
-
-    if( g_pImmediateContext ) g_pImmediateContext->ClearState();
-    // Flush the immediate context to force cleanup
-    if (g_pImmediateContext1) g_pImmediateContext1->Flush();
-    g_pImmediateContext->Flush();
-
     if (g_pLightConstantBuffer) g_pLightConstantBuffer->Release();
-    if (g_pVertexLayout) g_pVertexLayout->Release();
     if( g_pConstantBuffer ) g_pConstantBuffer->Release();
-    if( g_pVertexShader ) g_pVertexShader->Release();
-    if( g_pPixelShader ) g_pPixelShader->Release();
-    if( g_pDepthStencil ) g_pDepthStencil->Release();
-    if( g_pDepthStencilView ) g_pDepthStencilView->Release();
-    if( g_pRenderTargetView ) g_pRenderTargetView->Release();
-    if( g_pSwapChain1 ) g_pSwapChain1->Release();
-    if( g_pSwapChain ) g_pSwapChain->Release();
-    if( g_pImmediateContext1 ) g_pImmediateContext1->Release();
-    if( g_pImmediateContext ) g_pImmediateContext->Release();
 
     ID3D11Debug* debugDevice = nullptr;
-    g_pd3dDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debugDevice));
-
-    if (g_pd3dDevice1) g_pd3dDevice1->Release();
-    if (g_pd3dDevice) g_pd3dDevice->Release();
+    g_pDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debugDevice));
 
     // handy for finding dx memory leaks
     debugDevice->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
@@ -693,7 +446,7 @@ void setupLightForRender()
     LightPropertiesConstantBuffer lightProperties;
     lightProperties.EyePosition = LightPosition;
     lightProperties.Lights[0] = light;
-    g_pImmediateContext->UpdateSubresource( g_pLightConstantBuffer, 0u, nullptr, &lightProperties, 0u, 0u );
+    g_pContext->UpdateSubresource( g_pLightConstantBuffer, 0u, nullptr, &lightProperties, 0u, 0u );
 }
 
 // Update program time
@@ -751,8 +504,6 @@ void UpdateInput( float dt )
     if ( keyboard.KeyIsPressed( 'A' ) ) camera->MoveLeft( dt );
     if ( keyboard.KeyIsPressed( 'S' ) ) camera->MoveBackward( dt );
     if ( keyboard.KeyIsPressed( 'D' ) ) camera->MoveRight( dt );
-    if ( keyboard.KeyIsPressed( VK_SPACE ) ) camera->MoveUp( dt );
-    if ( keyboard.KeyIsPressed( VK_CONTROL ) ) camera->MoveDown( dt );
 
     // x world collisions
     if ( camera->GetPositionFloat3().x <= -5.0f )
@@ -783,19 +534,25 @@ void Update()
     // Update camera input
     UpdateInput( t );
 
-    // Clear the back buffer
-    g_pImmediateContext->ClearRenderTargetView( g_pRenderTargetView, DirectX::Colors::MidnightBlue );
-
-    // Clear the depth buffer to 1.0 (max depth)
-    g_pImmediateContext->ClearDepthStencilView( g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
-
     // Update the cube transform, material etc. 
-    g_GameObject.update( t, g_pImmediateContext );
+    g_GameObject.update( t, g_pContext.Get() );
 }
 
 // Render a frame
 void Render()
 {
+    // clear render target/depth stencil
+    static float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    g_pRenderTarget->BindAsBuffer( g_pContext.Get(), g_pDepthStencil.get(), clearColor );
+    g_pDepthStencil->ClearDepthStencil( g_pContext.Get() );
+
+    // set render state
+    g_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( g_pContext.Get() );
+    g_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC]->Bind( g_pContext.Get() );
+
+    // bind shaders
+    Shaders::BindShaders( g_pContext.Get(), vertexShader, pixelShader );
+
     // get the game object world transform
     DirectX::XMMATRIX mGO = XMLoadFloat4x4( g_GameObject.getTransform() );
 
@@ -805,25 +562,29 @@ void Render()
 	cb1.mView = DirectX::XMMatrixTranspose( camera->GetViewMatrix() );
 	cb1.mProjection = DirectX::XMMatrixTranspose( camera->GetProjectionMatrix() );
 	cb1.vOutputColor = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 0.0f );
-	g_pImmediateContext->UpdateSubresource( g_pConstantBuffer, 0u, nullptr, &cb1, 0u, 0u );
+	g_pContext->UpdateSubresource( g_pConstantBuffer, 0u, nullptr, &cb1, 0u, 0u );
     
     setupLightForRender();
 
-    // Render the cube
-	g_pImmediateContext->VSSetShader( g_pVertexShader, nullptr, 0u );
-	g_pImmediateContext->VSSetConstantBuffers( 0u, 1u, &g_pConstantBuffer );
-
-    g_pImmediateContext->PSSetShader( g_pPixelShader, nullptr, 0u );
-	g_pImmediateContext->PSSetConstantBuffers( 2u, 1u, &g_pLightConstantBuffer );
+    // Render objects
+	g_pContext->VSSetConstantBuffers( 0u, 1u, &g_pConstantBuffer );
+	g_pContext->PSSetConstantBuffers( 2u, 1u, &g_pLightConstantBuffer );
     ID3D11Buffer* materialCB = g_GameObject.getMaterialConstantBuffer();
-    g_pImmediateContext->PSSetConstantBuffers( 1u, 1u, &materialCB );
+    g_pContext->PSSetConstantBuffers( 1u, 1u, &materialCB );
+    g_GameObject.draw( g_pContext.Get() );
 
-    g_GameObject.draw( g_pImmediateContext );
-
+    // Render imgui windows
     imgui.BeginRender();
     imgui.SpawnInstructionWindow();
     imgui.EndRender();
 
-    // Present our back buffer to our front buffer
-    g_pSwapChain->Present( 0u, 0u );
+    // Present frame
+	HRESULT hr = g_pSwapChain->GetSwapChain()->Present( 1u, NULL );
+	if ( FAILED( hr ) )
+	{
+		hr == DXGI_ERROR_DEVICE_REMOVED ?
+			ErrorLogger::Log( g_pDevice->GetDeviceRemovedReason(), "Swap Chain. Graphics device removed!" ) :
+			ErrorLogger::Log( hr, "Swap Chain failed to render frame!" );
+		exit( -1 );
+	}
 }

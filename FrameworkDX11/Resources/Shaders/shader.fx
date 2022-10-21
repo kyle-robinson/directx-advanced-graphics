@@ -362,11 +362,12 @@ float4 PS( PS_INPUT input ) : SV_TARGET
     LightingResult lit = ComputeLighting( input.WorldPosition, normalize( bumpNormal ), vertexToLight );
 
 	// texture/material
+    float intensity = 4.0f;
     float4 textureColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-	float4 emissive = Material.Emissive;
-	float4 ambient = Material.Ambient * GlobalAmbient;
-	float4 diffuse = Material.Diffuse * lit.Diffuse;
-	float4 specular = Material.Specular * lit.Specular;
+	float4 emissive = Material.Emissive * intensity;
+	float4 ambient = Material.Ambient * GlobalAmbient * intensity;
+	float4 diffuse = Material.Diffuse * lit.Diffuse * intensity;
+	float4 specular = Material.Specular * lit.Specular * intensity;
 
 	if ( Material.UseTexture )
         textureColor = textureDiffuse.Sample( samplerState, parallaxTex );
