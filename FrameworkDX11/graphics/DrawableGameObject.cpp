@@ -6,9 +6,6 @@ DrawableGameObject::DrawableGameObject()
 {
 	m_pVertexBuffer = nullptr;
 	m_pIndexBuffer = nullptr;
-	m_pTextureDiffuse = nullptr;
-	m_pTextureNormal = nullptr;
-	m_pTextureDisplacement = nullptr;
 	DirectX::XMStoreFloat4x4( &m_World, DirectX::XMMatrixIdentity() );
 }
 
@@ -26,18 +23,6 @@ void DrawableGameObject::Cleanup()
 	if (m_pIndexBuffer)
 		m_pIndexBuffer->Release();
 	m_pIndexBuffer = nullptr;
-
-	if (m_pTextureDiffuse)
-		m_pTextureDiffuse->Release();
-	m_pTextureDiffuse = nullptr;
-
-	if (m_pTextureNormal)
-		m_pTextureNormal->Release();
-	m_pTextureNormal = nullptr;
-
-	if (m_pTextureDisplacement)
-		m_pTextureDisplacement->Release();
-	m_pTextureDisplacement = nullptr;
 }
 
 HRESULT DrawableGameObject::InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
@@ -131,13 +116,13 @@ HRESULT DrawableGameObject::InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceC
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// load and setup textures
-	hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_TEX.dds", nullptr, &m_pTextureDiffuse );
+	hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_TEX.dds", nullptr, m_pTextureDiffuse.GetAddressOf() );
 	COM_ERROR_IF_FAILED( hr, "Failed to create 'diffuse' texture!" );
 
-	hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_NORM.dds", nullptr, &m_pTextureNormal );
+	hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_NORM.dds", nullptr, m_pTextureNormal.GetAddressOf() );
 	COM_ERROR_IF_FAILED( hr, "Failed to create 'normal' texture!" );
 
-	hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_DISP.dds", nullptr, &m_pTextureDisplacement );
+	hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_DISP.dds", nullptr, m_pTextureDisplacement.GetAddressOf() );
 	COM_ERROR_IF_FAILED( hr, "Failed to create 'displacement' texture!" );
 
 	// Setup constant buffer
@@ -166,8 +151,8 @@ void DrawableGameObject::Update( float dt, ID3D11DeviceContext* pContext )
 
 void DrawableGameObject::Draw( ID3D11DeviceContext* pContext )
 {
-	pContext->PSSetShaderResources( 0u, 1u, &m_pTextureDiffuse );
-	pContext->PSSetShaderResources( 1u, 1u, &m_pTextureNormal );
-	pContext->PSSetShaderResources( 2u, 1u, &m_pTextureDisplacement );
+	pContext->PSSetShaderResources( 0u, 1u, m_pTextureDiffuse.GetAddressOf() );
+	pContext->PSSetShaderResources( 1u, 1u, m_pTextureNormal.GetAddressOf() );
+	pContext->PSSetShaderResources( 2u, 1u, m_pTextureDisplacement.GetAddressOf() );
 	pContext->DrawIndexed( NUM_VERTICES, 0, 0 );
 }

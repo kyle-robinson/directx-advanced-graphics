@@ -35,12 +35,8 @@ public:
 	inline ID3D11Buffer* GetIndexBuffer() const noexcept { return m_pIndexBuffer; }
 	inline ID3D11Buffer* const* GetMaterialCB() const noexcept { return m_cbMaterial.GetAddressOf(); }
 
-	//inline ID3D11ShaderResourceView** getTextureResourceView_Diff() noexcept { return m_pTextureDiffuse.GetAddressOf(); }
-	//inline ID3D11ShaderResourceView** getTextureResourceView_Norm() noexcept { return m_pTextureNormal.GetAddressOf(); }
-	//inline ID3D11ShaderResourceView** getTextureResourceView_Disp() noexcept { return m_pTextureDisplacement.GetAddressOf(); }
-
-	inline XMFLOAT4X4* GetTransform() noexcept { return &m_World; }
 	inline void SetPosition( DirectX::XMFLOAT3 position ) noexcept { m_position = position; }
+	inline XMFLOAT4X4* GetTransform() noexcept { return &m_World; }
 
 private:
 	XMFLOAT4X4 m_World;
@@ -50,9 +46,9 @@ private:
 	ID3D11Buffer* m_pIndexBuffer;
 	ConstantBuffer<Material> m_cbMaterial;
 
-	ID3D11ShaderResourceView* m_pTextureDiffuse;
-	ID3D11ShaderResourceView* m_pTextureNormal;
-	ID3D11ShaderResourceView* m_pTextureDisplacement;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pTextureDiffuse;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pTextureNormal;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pTextureDisplacement;
 };
 
 #endif
