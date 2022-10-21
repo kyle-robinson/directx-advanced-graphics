@@ -97,7 +97,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
-    <IncludePath>$(IncludePath);$(VC_IncludePath);$(SolutionDir)/External;$(WindowsSDK_IncludePath);$(ProjectDir)/;$(ProjectDir)/Graphics;$(ProjectDir)/Input;$(ProjectDir)/Utility;$(ProjectDir)/Resources</IncludePath>
+    <IncludePath>$(IncludePath);$(VC_IncludePath);$(SolutionDir)/External;$(WindowsSDK_IncludePath);$(ProjectDir)/;$(ProjectDir)/Graphics;$(ProjectDir)/Input;$(ProjectDir)/Utility;$(ProjectDir)/Window;$(ProjectDir)/Resources</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)\External\lib;$(SolutionDir)\External\lib\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -393,6 +393,7 @@
     <ClInclude Include="..\External\imgui\imstb_truetype.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="Application.h" />
     <ClInclude Include="graphics\Camera.h" />
     <ClInclude Include="Graphics\DepthStencil.h" />
     <ClInclude Include="graphics\DrawableGameObject.h" />
@@ -405,7 +406,6 @@
     <ClInclude Include="Graphics\Viewport.h" />
     <ClInclude Include="Input\Keyboard.h" />
     <ClInclude Include="Input\Mouse.h" />
-    <ClInclude Include="main.h" />
     <ClInclude Include="Resources\Resource.h" />
     <ClInclude Include="utility\COMException.h" />
     <ClInclude Include="utility\DDSTextureLoader.h" />
@@ -413,6 +413,8 @@
     <ClInclude Include="Utility\stdafx.h" />
     <ClInclude Include="utility\StringConverter.h" />
     <ClInclude Include="utility\structures.h" />
+    <ClInclude Include="Window\RenderWindow.h" />
+    <ClInclude Include="Window\WindowContainer.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\directx.ico" />
@@ -447,19 +449,24 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Application.cpp" />
     <ClCompile Include="graphics\Camera.cpp" />
     <ClCompile Include="graphics\DrawableGameObject.cpp" />
     <ClCompile Include="Graphics\ImGuiManager.cpp" />
     <ClCompile Include="Graphics\Shaders.cpp" />
     <ClCompile Include="Input\Keyboard.cpp" />
     <ClCompile Include="Input\Mouse.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="main.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="utility\DDSTextureLoader.cpp" />
     <ClCompile Include="utility\ErrorLogger.cpp" />
     <ClCompile Include="Utility\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="utility\StringConverter.cpp" />
+    <ClCompile Include="Window\RenderWindow.cpp" />
+    <ClCompile Include="Window\WindowContainer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\shader.fx">
