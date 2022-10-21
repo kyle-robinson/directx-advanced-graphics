@@ -23,7 +23,7 @@
       <Filter>Headers\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Resources\Resource.h">
-      <Filter>Resources\Miscellaneous</Filter>
+      <Filter>Resources\Resources</Filter>
     </ClInclude>
     <ClInclude Include="Input\Keyboard.h">
       <Filter>Headers\Input</Filter>
@@ -91,6 +91,9 @@
     <ClInclude Include="Window\WindowContainer.h">
       <Filter>Headers\Window</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\Graphics.h">
+      <Filter>Headers\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -102,23 +105,8 @@
     <Filter Include="Resources">
       <UniqueIdentifier>{67cdca99-f288-49be-9daf-e00f5bde2f3f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resources\Shaders">
-      <UniqueIdentifier>{9a27f70a-f844-412d-9ce1-bb47abff26f4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resources\Textures">
       <UniqueIdentifier>{ca549a25-15a7-4c94-b484-7bded1559695}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resources\Cursors">
-      <UniqueIdentifier>{bdb809fc-b2ce-4333-9bcd-d7e1694cb1f0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resources\Fonts">
-      <UniqueIdentifier>{e9ff957c-ff73-486d-85a0-1aa6b791695f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resources\Miscellaneous">
-      <UniqueIdentifier>{1d8c2ef3-4f82-4770-b351-d61316d54cf2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resources\Icons">
-      <UniqueIdentifier>{3011bfb3-13ff-4e7b-82e5-8ff35513d213}</UniqueIdentifier>
     </Filter>
     <Filter Include="Headers\Graphics">
       <UniqueIdentifier>{fde589aa-46c2-4274-9d8c-c591790231ae}</UniqueIdentifier>
@@ -147,6 +135,9 @@
     <Filter Include="Headers\Window">
       <UniqueIdentifier>{afef2627-0e65-4b6e-a92d-797a774a7e44}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resources\Resources">
+      <UniqueIdentifier>{1d8c2ef3-4f82-4770-b351-d61316d54cf2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\alpha_mayoris.jpg">
@@ -165,7 +156,7 @@
       <Filter>Resources\Textures</Filter>
     </Image>
     <Image Include="Resources\directx.ico">
-      <Filter>Resources\Icons</Filter>
+      <Filter>Resources\Resources</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
@@ -229,26 +220,29 @@
     <ClCompile Include="Window\RenderWindow.cpp">
       <Filter>Source\Window</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Resources\Shaders\shader.fx">
-      <Filter>Resources\Shaders</Filter>
-    </FxCompile>
+    <ClCompile Include="Graphics\Graphics.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resources\Tutorial01.rc">
-      <Filter>Resources\Miscellaneous</Filter>
+      <Filter>Resources\Resources</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Fonts\open_sans_ms_16.spritefont">
+      <Filter>Resources\Resources</Filter>
+    </None>
     <None Include="Resources\Cursors\Link Select.ani">
-      <Filter>Resources\Cursors</Filter>
+      <Filter>Resources\Resources</Filter>
     </None>
     <None Include="Resources\Cursors\Normal Select.ani">
-      <Filter>Resources\Cursors</Filter>
+      <Filter>Resources\Resources</Filter>
     </None>
-    <None Include="Resources\Fonts\open_sans_ms_16.spritefont">
-      <Filter>Resources\Fonts</Filter>
-    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Resources\Shaders\shader.fx">
+      <Filter>Resources</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

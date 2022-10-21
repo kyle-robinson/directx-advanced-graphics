@@ -397,6 +397,7 @@
     <ClInclude Include="graphics\Camera.h" />
     <ClInclude Include="Graphics\DepthStencil.h" />
     <ClInclude Include="graphics\DrawableGameObject.h" />
+    <ClInclude Include="Graphics\Graphics.h" />
     <ClInclude Include="Graphics\ImGuiManager.h" />
     <ClInclude Include="Graphics\Rasterizer.h" />
     <ClInclude Include="Graphics\RenderTarget.h" />
@@ -452,6 +453,7 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="graphics\Camera.cpp" />
     <ClCompile Include="graphics\DrawableGameObject.cpp" />
+    <ClCompile Include="Graphics\Graphics.cpp" />
     <ClCompile Include="Graphics\ImGuiManager.cpp" />
     <ClCompile Include="Graphics\Shaders.cpp" />
     <ClCompile Include="Input\Keyboard.cpp" />

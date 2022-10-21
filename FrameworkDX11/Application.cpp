@@ -2,68 +2,45 @@
 #include "Application.h"
 
 // Register class and create window
-bool Application::InitWindow( HINSTANCE hInstance, int nCmdShow )
-{
-    if ( !renderWindow.Initialize( this, hInstance, "DirectX 11 Physics Framework", "TutorialWindowClass", 1280, 720 ) )
+bool Application::Initialize( HINSTANCE hInstance, int width, int height )
+{    
+    // Initialize window
+    if ( !renderWindow.Initialize( this, hInstance, "DirectX 11 Physics Framework", "TutorialWindowClass", width, height ) )
 		return false;
 
-    g_viewWidth = 1280;
-    g_viewHeight = 720;
+    // Initialize graphics
+    if ( !graphics.Initialize( renderWindow.GetHWND(), width, height ) )
+		return false;
 
-    return S_OK;
+    if ( !InitializeDevice() )
+		return false;
+
+    // Initialize the camera
+    camera = std::make_shared<Camera>( XMFLOAT3( 0.0f, 0.0f, -3.0f ) );
+    camera->SetProjectionValues( 75.0f, static_cast<float>( width ) / static_cast<float>( height ), 0.01f, 100.0f );
+
+    // Update keyboard processing
+    keyboard.DisableAutoRepeatKeys();
+    keyboard.DisableAutoRepeatChars();
+
+    return true;
 }
 
 // Create device and swap chain
-HRESULT Application::InitDevice()
+bool Application::InitializeDevice()
 {
-    g_pSwapChain = std::make_shared<Bind::SwapChain>( g_pContext.GetAddressOf(), g_pDevice.GetAddressOf(), renderWindow.GetHWND(), g_viewWidth, g_viewHeight);
-    g_pRenderTarget = std::make_shared<Bind::RenderTarget>( g_pDevice.Get(), g_pSwapChain->GetSwapChain() );
-    g_pDepthStencil = std::make_shared<Bind::DepthStencil>( g_pDevice.Get(), g_viewWidth, g_viewHeight );
-	g_pViewport = std::make_shared<Bind::Viewport>( g_pContext.Get(), g_viewWidth, g_viewHeight );
-    
-    g_pRasterizerStates.emplace( Bind::Rasterizer::Type::SOLID, std::make_shared<Bind::Rasterizer>( g_pDevice.Get(), Bind::Rasterizer::Type::SOLID ) );
-    g_pRasterizerStates.emplace( Bind::Rasterizer::Type::WIREFRAME, std::make_shared<Bind::Rasterizer>( g_pDevice.Get(), Bind::Rasterizer::Type::WIREFRAME ) );
+	if ( !InitializeMesh() )
+        return false;
 
-    g_pSamplerStates.emplace( Bind::Sampler::Type::ANISOTROPIC, std::make_shared<Bind::Sampler>( g_pDevice.Get(), Bind::Sampler::Type::ANISOTROPIC ) );
-	g_pSamplerStates.emplace( Bind::Sampler::Type::BILINEAR, std::make_shared<Bind::Sampler>( g_pDevice.Get(), Bind::Sampler::Type::BILINEAR ) );
-	g_pSamplerStates.emplace( Bind::Sampler::Type::POINT, std::make_shared<Bind::Sampler>( g_pDevice.Get(), Bind::Sampler::Type::POINT ) );
-
-    g_pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-
-	HRESULT hr = InitMesh();
-    COM_ERROR_IF_FAILED( hr, "Failed to initialize mesh!" );
-
-	hr = InitWorld( g_viewWidth, g_viewHeight);
-    COM_ERROR_IF_FAILED( hr, "Failed to initialize world!" );
-
-	hr = g_GameObject.initMesh(g_pDevice.Get(), g_pContext.Get() );
+	HRESULT hr = g_GameObject.initMesh( graphics.GetDevice(), graphics.GetContext() );
 	COM_ERROR_IF_FAILED( hr, "Failed to initialize game object!" );
 
-    return hr;
+    return true;
 }
 
 // Initialize meshes
-HRESULT Application::InitMesh()
+bool Application::InitializeMesh()
 {
-    // Define the input layout
-	D3D11_INPUT_ELEMENT_DESC layout[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    };
-
-    // Create the shaders
-    HRESULT hr = vertexShader.Initialize( g_pDevice, L"Resources\\Shaders\\shader.fx", layout, ARRAYSIZE(layout));
-	COM_ERROR_IF_FAILED( hr, "Failed to create vertex shader!" );
-	hr = pixelShader.Initialize( g_pDevice, L"Resources\\Shaders\\shader.fx" );
-	COM_ERROR_IF_FAILED( hr, "Failed to create pixel shader!" );
-    
-    // Bind shaders to the pipeline
-    Shaders::BindShaders( g_pContext.Get(), vertexShader, pixelShader);
-
 	// Create the constant buffer
     D3D11_BUFFER_DESC bd = {};
     bd.Usage = D3D11_USAGE_DEFAULT;
@@ -78,37 +55,20 @@ HRESULT Application::InitMesh()
 	bd.ByteWidth = sizeof(ConstantBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
-	hr = g_pDevice->CreateBuffer(&bd, nullptr, &g_pConstantBuffer);
+	HRESULT hr = graphics.GetDevice()->CreateBuffer(&bd, nullptr, &g_pConstantBuffer);
 	if (FAILED(hr))
-		return hr;
+		return false;
 
 	// Create the light constant buffer
 	bd.Usage = D3D11_USAGE_DEFAULT;
 	bd.ByteWidth = sizeof(LightPropertiesConstantBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
-	hr = g_pDevice->CreateBuffer(&bd, nullptr, &g_pLightConstantBuffer);
+	hr = graphics.GetDevice()->CreateBuffer(&bd, nullptr, &g_pLightConstantBuffer);
 	if (FAILED(hr))
-		return hr;
+		return false;
 
-	return hr;
-}
-
-// Initialize world matrices
-HRESULT Application::InitWorld( int width, int height )
-{
-    // Initialize the camera
-    camera = std::make_shared<Camera>( XMFLOAT3( 0.0f, 0.0f, -3.0f ) );
-    camera->SetProjectionValues( 75.0f, static_cast<float>( width ) / static_cast<float>( height ), 0.01f, 100.0f );
-
-    // Update keyboard processing
-    keyboard.DisableAutoRepeatKeys();
-    keyboard.DisableAutoRepeatChars();
-
-    // Initialize imgui
-    imgui.Initialize( renderWindow.GetHWND(), g_pDevice.Get(), g_pContext.Get());
-
-	return S_OK;
+	return true;
 }
 
 // Cleanup pipeline
@@ -120,7 +80,7 @@ void Application::CleanupDevice()
     if( g_pConstantBuffer ) g_pConstantBuffer->Release();
 
     ID3D11Debug* debugDevice = nullptr;
-    g_pDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debugDevice));
+    graphics.GetDevice()->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debugDevice));
 
     // handy for finding dx memory leaks
     debugDevice->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
@@ -157,7 +117,7 @@ void Application::setupLightForRender()
     LightPropertiesConstantBuffer lightProperties;
     lightProperties.EyePosition = LightPosition;
     lightProperties.Lights[0] = light;
-    g_pContext->UpdateSubresource( g_pLightConstantBuffer, 0u, nullptr, &lightProperties, 0u, 0u );
+    graphics.GetContext()->UpdateSubresource(g_pLightConstantBuffer, 0u, nullptr, &lightProperties, 0u, 0u);
 }
 
 // Update program time
@@ -251,23 +211,14 @@ void Application::Update()
     UpdateInput( t );
 
     // Update the cube transform, material etc. 
-    g_GameObject.update( t, g_pContext.Get() );
+    g_GameObject.update( t, graphics.GetContext() );
 }
 
 // Render a frame
 void Application::Render()
 {
-    // clear render target/depth stencil
-    static float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    g_pRenderTarget->BindAsBuffer( g_pContext.Get(), g_pDepthStencil.get(), clearColor );
-    g_pDepthStencil->ClearDepthStencil( g_pContext.Get() );
-
-    // set render state
-    g_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( g_pContext.Get() );
-    g_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC]->Bind( g_pContext.Get() );
-
-    // bind shaders
-    Shaders::BindShaders( g_pContext.Get(), vertexShader, pixelShader );
+    // Setup graphics
+    graphics.BeginFrame();
 
     // get the game object world transform
     DirectX::XMMATRIX mGO = XMLoadFloat4x4( g_GameObject.getTransform() );
@@ -278,29 +229,17 @@ void Application::Render()
 	cb1.mView = DirectX::XMMatrixTranspose( camera->GetViewMatrix() );
 	cb1.mProjection = DirectX::XMMatrixTranspose( camera->GetProjectionMatrix() );
 	cb1.vOutputColor = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 0.0f );
-	g_pContext->UpdateSubresource( g_pConstantBuffer, 0u, nullptr, &cb1, 0u, 0u );
+	graphics.GetContext()->UpdateSubresource(g_pConstantBuffer, 0u, nullptr, &cb1, 0u, 0u);
     
     setupLightForRender();
 
     // Render objects
-	g_pContext->VSSetConstantBuffers( 0u, 1u, &g_pConstantBuffer );
-	g_pContext->PSSetConstantBuffers( 2u, 1u, &g_pLightConstantBuffer );
+    graphics.GetContext()->VSSetConstantBuffers(0u, 1u, &g_pConstantBuffer);
+    graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, &g_pLightConstantBuffer );
     ID3D11Buffer* materialCB = g_GameObject.getMaterialConstantBuffer();
-    g_pContext->PSSetConstantBuffers( 1u, 1u, &materialCB );
-    g_GameObject.draw( g_pContext.Get() );
-
-    // Render imgui windows
-    imgui.BeginRender();
-    imgui.SpawnInstructionWindow();
-    imgui.EndRender();
+    graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, &materialCB );
+    g_GameObject.draw( graphics.GetContext() );
 
     // Present frame
-	HRESULT hr = g_pSwapChain->GetSwapChain()->Present( 1u, NULL );
-	if ( FAILED( hr ) )
-	{
-		hr == DXGI_ERROR_DEVICE_REMOVED ?
-			ErrorLogger::Log( g_pDevice->GetDeviceRemovedReason(), "Swap Chain. Graphics device removed!" ) :
-			ErrorLogger::Log( hr, "Swap Chain failed to render frame!" );
-		exit( -1 );
-	}
+    graphics.EndFrame();
 }

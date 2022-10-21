@@ -1,26 +1,20 @@
 #include "stdafx.h"
 #include "Application.h"
 
-// Functions
-int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
+int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
 {
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
+    UNREFERENCED_PARAMETER( hPrevInstance );
+    UNREFERENCED_PARAMETER( lpCmdLine );
+    UNREFERENCED_PARAMETER( nCmdShow );
 
     Application theApp;
-    theApp.InitWindow(hInstance, nCmdShow);
-
-    if (FAILED(theApp.InitDevice()))
+    if ( theApp.Initialize( hInstance, 1280, 720 ) )
     {
-        theApp.CleanupDevice();
-        return 0;
-    }
-
-    // Main message loop
-    while ( theApp.ProcessMessages() == true )
-    {
-        theApp.Update();
-        theApp.Render();
+        while ( theApp.ProcessMessages() == true )
+        {
+            theApp.Update();
+            theApp.Render();
+        }
     }
     theApp.CleanupDevice();
 
