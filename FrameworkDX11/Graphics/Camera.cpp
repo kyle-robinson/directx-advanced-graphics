@@ -1,12 +1,14 @@
 #include "stdafx.h"
 #include "Camera.h"
 
-Camera::Camera( const XMFLOAT3& initialPosition ) : position( initialPosition )
+void Camera::Initialize( const XMFLOAT3& initialPosition, int width, int height )
 {
+	position = initialPosition;
 	posVector = XMLoadFloat3( &position );
 	rotation = { 0.0f, 0.0f, 0.0f };
 	rotVector = XMLoadFloat3( &rotation );
 	UpdateMatrix();
+	SetProjectionValues( 75.0f, static_cast<float>( width ) / static_cast<float>( height ), 0.01f, 100.0f );
 }
 
 void Camera::SetProjectionValues( FLOAT fovDegrees, FLOAT aspectRatio, FLOAT nearZ, FLOAT farZ )

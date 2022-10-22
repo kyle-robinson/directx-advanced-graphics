@@ -10,7 +10,8 @@
 #include "structures.h"
 #include "DrawableGameObject.h"
 
-#include "Camera.h"
+#include "Input.h"
+#include "ImGuiManager.h"
 #include "WindowContainer.h"
 
 typedef std::vector<DrawableGameObject*> vecDrawables;
@@ -19,14 +20,12 @@ class Application : public WindowContainer
 {
 public:
 	bool Initialize( HINSTANCE hInstance, int width, int height );
-	bool InitializeMesh();
 	void CleanupDevice();
 
 	void setupLightForRender();
 	float calculateDeltaTime();
 
 	bool ProcessMessages() noexcept;
-	void UpdateInput( float dt );
 	void Update();
 	void Render();
 private:
@@ -35,8 +34,10 @@ private:
 	ConstantBuffer<Light_CB> m_cbLight;
 
 	// Objects
+	Input m_input;
+	Camera m_camera;
+	ImGuiManager m_imgui;
 	DrawableGameObject m_gameObject;
-	std::shared_ptr<Camera> m_pCamera;
 };
 
 #endif

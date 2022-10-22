@@ -7,7 +7,7 @@ using namespace DirectX;
 class Camera
 {
 public:
-	Camera( const XMFLOAT3& initialPosition );
+	void Initialize( const XMFLOAT3& initialPosition, int width, int height );
 	void SetProjectionValues( FLOAT fovDegrees,FLOAT aspectRatio, FLOAT nearZ, FLOAT farZ  );
 
 	inline const XMMATRIX& GetViewMatrix() const noexcept { return view; };

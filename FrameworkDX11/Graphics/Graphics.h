@@ -8,7 +8,6 @@
 #include "SwapChain.h"
 #include "Rasterizer.h"
 #include "DepthStencil.h"
-#include "ImGuiManager.h"
 #include "RenderTarget.h"
 
 class Graphics
@@ -18,9 +17,8 @@ public:
 	void BeginFrame();
 	void EndFrame();
 
-	inline UINT GetWidth() const noexcept { return m_viewWidth; };
-	inline UINT GetHeight() const noexcept { return m_viewHeight; };
-	inline ImGuiManager GetImGuiManager() const noexcept { return m_imgui; }
+	inline UINT GetWidth() const noexcept { return m_viewWidth; }
+	inline UINT GetHeight() const noexcept { return m_viewHeight; }
 	inline ID3D11Device* GetDevice() const noexcept { return m_pDevice.Get(); }
 	inline ID3D11DeviceContext* GetContext() const noexcept { return m_pContext.Get(); }
 private:
@@ -30,7 +28,6 @@ private:
 	// Window data
 	UINT m_viewWidth;
 	UINT m_viewHeight;
-	ImGuiManager m_imgui;
 
 	// Shaders
 	VertexShader m_vertexShader;

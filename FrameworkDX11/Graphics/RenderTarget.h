@@ -35,6 +35,13 @@ namespace Bind
 			context->OMSetRenderTargets( 1, backBuffer.GetAddressOf(), depthStencil->GetDepthStencilView() );
 			context->ClearRenderTargetView( backBuffer.Get(), clearColor );
 		}
+		void BindAsNull( ID3D11DeviceContext* context ) noexcept
+		{
+			Microsoft::WRL::ComPtr<ID3D11RenderTargetView> nullRenderTarget = nullptr;
+			context->OMSetRenderTargets( 1u, nullRenderTarget.GetAddressOf(), nullptr );
+			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> nullShaderResourceView = nullptr;
+			context->PSSetShaderResources( 0u, 1u, nullShaderResourceView.GetAddressOf() );
+		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> backBuffer;
 	};

@@ -97,6 +97,9 @@
     <ClInclude Include="Graphics\ConstantBuffer.h">
       <Filter>Headers\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Input\Input.h">
+      <Filter>Headers\Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -225,6 +228,9 @@
     </ClCompile>
     <ClCompile Include="Graphics\Graphics.cpp">
       <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\Input.cpp">
+      <Filter>Source\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

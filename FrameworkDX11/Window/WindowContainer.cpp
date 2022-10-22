@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <imgui/imgui.h>
 #include "WindowContainer.h"
 
 WindowContainer::WindowContainer()
@@ -171,4 +172,53 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     }
 
     return 0;
+}
+
+void WindowContainer::EnableCursor() noexcept
+{
+	cursorEnabled = true;
+	ShowCursor();
+	EnableImGuiMouse();
+	FreeCursor();
+}
+
+void WindowContainer::DisableCursor() noexcept
+{
+	cursorEnabled = false;
+	HideCursor();
+	DisableImGuiMouse();
+	ConfineCursor();
+}
+
+void WindowContainer::ConfineCursor() noexcept
+{
+	RECT rect;
+	GetClientRect( renderWindow.GetHWND(), &rect );
+	MapWindowPoints( renderWindow.GetHWND(), nullptr, reinterpret_cast<POINT*>( &rect ), 2 );
+	ClipCursor( &rect );
+}
+
+void WindowContainer::FreeCursor() noexcept
+{
+	ClipCursor( nullptr );
+}
+
+void WindowContainer::ShowCursor() noexcept
+{
+	while ( ::ShowCursor( TRUE ) < 0 );
+}
+
+void WindowContainer::HideCursor() noexcept
+{
+	while ( ::ShowCursor( FALSE ) >= 0 );
+}
+
+void WindowContainer::EnableImGuiMouse() noexcept
+{
+	ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+}
+
+void WindowContainer::DisableImGuiMouse() noexcept
+{
+	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
 }

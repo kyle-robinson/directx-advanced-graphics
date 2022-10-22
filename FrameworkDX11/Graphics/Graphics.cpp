@@ -7,8 +7,8 @@ bool Graphics::Initialize( HWND hWnd, UINT width, UINT height )
 	m_viewHeight = height;
 
 	InitializeDirectX( hWnd );
-	if ( !InitializeShaders() ) return false;
-	m_imgui.Initialize( hWnd, m_pDevice.Get(), m_pContext.Get() );
+	if ( !InitializeShaders() )
+		return false;
 	
 	return true;
 }
@@ -69,10 +69,8 @@ void Graphics::BeginFrame()
 
 void Graphics::EndFrame()
 {
-	// Render imgui windows
-	m_imgui.BeginRender();
-	m_imgui.SpawnInstructionWindow();
-	m_imgui.EndRender();
+	// Unbind render target
+	m_pRenderTarget->BindAsNull( m_pContext.Get() );
 
 	// Present frame
 	HRESULT hr = m_pSwapChain->GetSwapChain()->Present( 1u, NULL );
