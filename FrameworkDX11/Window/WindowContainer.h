@@ -26,6 +26,8 @@ protected:
 	void DisableImGuiMouse() noexcept;
 
 	bool cursorEnabled = true;
+	XMFLOAT2 windowSize;
+
 	RenderWindow renderWindow;
 	Graphics graphics;
 	Keyboard keyboard;

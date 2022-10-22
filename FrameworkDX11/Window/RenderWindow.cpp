@@ -13,6 +13,15 @@ bool RenderWindow::Initialize( WindowContainer* pWindowContainer, HINSTANCE hIns
 	this->windowClass = windowClass;
 	windowClass_Wide = StringConverter::StringToWide( windowClass );
 
+	cursors.emplace( Color::BLUE, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR1 ) );
+	cursors.emplace( Color::RED, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR2 ) );
+	cursors.emplace( Color::GRAY, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR3 ) );
+	cursors.emplace( Color::PURPLE, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR4 ) );
+	cursors.emplace( Color::ORANGE, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR5 ) );
+	cursors.emplace( Color::YELLOW, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR6 ) );
+	cursors.emplace( Color::GREEN, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR7 ) );
+	cursors.emplace( Color::PINK, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR8 ) );
+
 	RegisterWindowClass();
 
 	int centerScreenX = GetSystemMetrics( SM_CXSCREEN ) / 2 - width / 2;
@@ -135,7 +144,7 @@ void RenderWindow::RegisterWindowClass() noexcept
 	wc.cbWndExtra = 0;
 	wc.hInstance = hInstance;
 	wc.hIcon = static_cast<HICON>( LoadImage( hInstance, MAKEINTRESOURCE( IDI_TUTORIAL1 ), IMAGE_ICON, 32, 32, 0 ) );
-    wc.hCursor = LoadCursor( hInstance, IDC_ARROW );
+    wc.hCursor = cursors[Color::BLUE];
     wc.hbrBackground = (HBRUSH)( COLOR_WINDOW + 1 );
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = windowClass_Wide.c_str();
