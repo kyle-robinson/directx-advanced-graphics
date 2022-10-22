@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Application.h"
 
-// Register class and create window
 bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 {
     try
@@ -26,7 +25,7 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'Matrices' constant buffer!" );
 
         // Initialize game objects
-	    hr = m_gameObject.InitializeMesh( graphics.GetDevice(), graphics.GetContext() );
+	    hr = m_cube.InitializeMesh( graphics.GetDevice(), graphics.GetContext() );
         COM_ERROR_IF_FAILED(hr, "Failed to create 'cube' object!");
 
         hr = m_light.Initialize( graphics.GetDevice(), graphics.GetContext() );
@@ -43,8 +42,6 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 
 void Application::CleanupDevice()
 {
-    m_gameObject.Cleanup();
-
     // Usefult for finding dx memory leaks
     ID3D11Debug* debugDevice = nullptr;
     graphics.GetDevice()->QueryInterface( __uuidof(ID3D11Debug), reinterpret_cast<void**>( &debugDevice ) );
@@ -68,17 +65,16 @@ void Application::Update()
     m_input.Update( dt );
 
     // Update the cube transform, material etc. 
-    m_gameObject.Update( dt, graphics.GetContext() );
+    m_cube.Update( dt, graphics.GetContext() );
 }
 
-// Render a frame
 void Application::Render()
 {
     // Setup graphics
     graphics.BeginFrame();
 
     // Get the game object world transform
-    DirectX::XMMATRIX mGO = XMLoadFloat4x4( m_gameObject.GetTransform() );
+    DirectX::XMMATRIX mGO = XMLoadFloat4x4( m_cube.GetTransform() );
 
     // Store this and the view / projection in a constant buffer for the vertex shader to use
 	m_cbMatrices.data.mWorld = DirectX::XMMatrixTranspose( mGO );
@@ -92,9 +88,9 @@ void Application::Render()
 
     // Render objects
     graphics.GetContext()->VSSetConstantBuffers(0u, 1u, m_cbMatrices.GetAddressOf() );
-    graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_gameObject.GetMaterialCB() );
+    graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_cube.GetMaterialCB() );
     graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_light.GetLightCB() );
-    m_gameObject.Draw( graphics.GetContext() );
+    m_cube.Draw( graphics.GetContext() );
 
     // Render imgui windows
     m_imgui.BeginRender();

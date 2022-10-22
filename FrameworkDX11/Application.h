@@ -26,9 +26,9 @@ public:
 	void Render();
 private:
 	// Objects
+	Cube m_cube;
 	Light m_light;
 	Camera m_camera;
-	Cube m_gameObject;
 	ImGuiManager m_imgui;
 
 	// Program data

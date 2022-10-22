@@ -106,6 +106,12 @@
     <ClInclude Include="Objects\Light.h">
       <Filter>Headers\Objects</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\IndexBuffer.h">
+      <Filter>Headers\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\VertexBuffer.h">
+      <Filter>Headers\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
