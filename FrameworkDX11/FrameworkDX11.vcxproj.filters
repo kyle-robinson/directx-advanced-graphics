@@ -112,6 +112,12 @@
     <ClInclude Include="Graphics\VertexBuffer.h">
       <Filter>Headers\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\PostProcessing.h">
+      <Filter>Headers\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Quad.h">
+      <Filter>Headers\Objects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -256,6 +262,12 @@
     <ClCompile Include="Objects\Camera.cpp">
       <Filter>Source\Objects</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\PostProcessing.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Quad.cpp">
+      <Filter>Source\Objects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resources\Tutorial01.rc">
@@ -275,6 +287,9 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\shader.fx">
+      <Filter>Resources</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\shaderPP.fx">
       <Filter>Resources</Filter>
     </FxCompile>
   </ItemGroup>

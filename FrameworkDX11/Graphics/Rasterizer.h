@@ -34,6 +34,7 @@ namespace Bind
 
 				CD3D11_RASTERIZER_DESC rasterizerDesc = CD3D11_RASTERIZER_DESC( CD3D11_DEFAULT{} );
 				rasterizerDesc.MultisampleEnable = TRUE;
+				rasterizerDesc.AntialiasedLineEnable = TRUE;
 				rasterizerDesc.FillMode = isSolid ? D3D11_FILL_SOLID : D3D11_FILL_WIREFRAME;
 				rasterizerDesc.CullMode = isTwoSided ? D3D11_CULL_NONE : D3D11_CULL_BACK;
 				HRESULT hr = device->CreateRasterizerState( &rasterizerDesc, pRasterizer.GetAddressOf() );
@@ -53,13 +54,7 @@ namespace Bind
 		{
 			Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizer_Solid;
 			context->RSSetState( pRasterizer_Solid.Get() );
-			context->DrawIndexed( indexCount, 0, 0 );
-		}
-		static void DrawWireframe( ID3D11DeviceContext* context, UINT indexCount ) noexcept
-		{
-			Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizer_Wireframe;
-			context->RSSetState( pRasterizer_Wireframe.Get() );
-			context->DrawIndexed( indexCount, 0, 0 );
+			context->DrawIndexed( indexCount, 0u, 0u );
 		}
 	private:
 		bool isSolid;

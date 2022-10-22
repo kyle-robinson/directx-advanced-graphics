@@ -13,8 +13,9 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
         if ( !graphics.Initialize( renderWindow.GetHWND(), width, height ) )
 		    return false;
 
-        // Initialize imgui
+        // Initialize systems
         m_imgui.Initialize( renderWindow.GetHWND(), graphics.GetDevice(), graphics.GetContext() );
+        m_postProcessing.Initialize( graphics.GetDevice() );
 
         // Initialize input
         m_camera.Initialize( XMFLOAT3( 0.0f, 0.0f, -3.0f ), width, height );
@@ -92,9 +93,14 @@ void Application::Render()
     graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_light.GetLightCB() );
     m_cube.Draw( graphics.GetContext() );
 
+    // Render scene to texture
+    graphics.RenderSceneToTexture();
+    m_postProcessing.Bind( graphics.GetContext(), graphics.GetRenderTarget() );
+
     // Render imgui windows
     m_imgui.BeginRender();
     m_imgui.SpawnInstructionWindow();
+    m_postProcessing.SpawnControlWindow();
     m_imgui.EndRender();
 
     // Present frame

@@ -64,14 +64,11 @@ bool Cube::InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext 
 
 		// Create vertex buffer
 		HRESULT hr = m_vertexBuffer.Initialize( pDevice, vertices, ARRAYSIZE( vertices ) );
-        COM_ERROR_IF_FAILED( hr, "Failed to create vertex buffer!" );
-		UINT offset = 0;
-		pContext->IASetVertexBuffers( 0u, 1u, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.StridePtr(), &offset );
+        COM_ERROR_IF_FAILED( hr, "Failed to create cube vertex buffer!" );
 		
 		// Create index buffer
         hr = m_indexBuffer.Initialize( pDevice, indices, ARRAYSIZE( indices ) );
-        COM_ERROR_IF_FAILED( hr, "Failed to create index buffer!" );
-		pContext->IASetIndexBuffer( m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0 );
+        COM_ERROR_IF_FAILED( hr, "Failed to create cube index buffer!" );
 
 		// Load and setup textures
 		hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_TEX.dds", nullptr, m_pTextureDiffuse.GetAddressOf() );
@@ -115,6 +112,10 @@ void Cube::Update( float dt, ID3D11DeviceContext* pContext )
 
 void Cube::Draw( ID3D11DeviceContext* pContext )
 {
+	UINT offset = 0;
+	pContext->IASetVertexBuffers( 0u, 1u, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.StridePtr(), &offset );
+	pContext->IASetIndexBuffer( m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0 );
+
 	pContext->PSSetShaderResources( 0u, 1u, m_pTextureDiffuse.GetAddressOf() );
 	pContext->PSSetShaderResources( 1u, 1u, m_pTextureNormal.GetAddressOf() );
 	pContext->PSSetShaderResources( 2u, 1u, m_pTextureDisplacement.GetAddressOf() );

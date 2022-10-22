@@ -7,7 +7,11 @@ bool Graphics::Initialize( HWND hWnd, UINT width, UINT height )
 	m_viewHeight = height;
 
 	InitializeDirectX( hWnd );
+
 	if ( !InitializeShaders() )
+		return false;
+
+	if ( !InitializeRTT() )
 		return false;
 	
 	return true;
@@ -16,7 +20,8 @@ bool Graphics::Initialize( HWND hWnd, UINT width, UINT height )
 void Graphics::InitializeDirectX( HWND hWnd )
 {
 	m_pSwapChain = std::make_shared<Bind::SwapChain>( m_pContext.GetAddressOf(), m_pDevice.GetAddressOf(), hWnd, m_viewWidth, m_viewHeight);
-    m_pRenderTarget = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_pSwapChain->GetSwapChain() );
+    m_pBackBuffer = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_pSwapChain->GetSwapChain() );
+    m_pRenderTarget = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
     m_pDepthStencil = std::make_shared<Bind::DepthStencil>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
 	m_pViewport = std::make_shared<Bind::Viewport>( m_pContext.Get(), m_viewWidth, m_viewHeight );
     
@@ -34,7 +39,7 @@ bool Graphics::InitializeShaders()
 {
 	try
 	{
-		// Define the input layout
+		// Define input layout for cube
 		D3D11_INPUT_ELEMENT_DESC layout[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -44,14 +49,23 @@ bool Graphics::InitializeShaders()
 			{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		// Create the shaders
-		HRESULT hr = m_vertexShader.Initialize( m_pDevice, L"Resources\\Shaders\\shader.fx", layout, ARRAYSIZE(layout));
-		COM_ERROR_IF_FAILED( hr, "Failed to create vertex shader!" );
+		// Create the cube shaders
+		HRESULT hr = m_vertexShader.Initialize( m_pDevice, L"Resources\\Shaders\\shader.fx", layout, ARRAYSIZE( layout ) );
+		COM_ERROR_IF_FAILED( hr, "Failed to create cube vertex shader!" );
 		hr = m_pixelShader.Initialize( m_pDevice, L"Resources\\Shaders\\shader.fx" );
-		COM_ERROR_IF_FAILED( hr, "Failed to create pixel shader!" );
+		COM_ERROR_IF_FAILED( hr, "Failed to create cube pixel shader!" );
 
-		// Bind shaders to the pipeline
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader );
+		// Define input layout for quad
+		D3D11_INPUT_ELEMENT_DESC layoutPP[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		// Create the quad shaders
+		hr = m_vertexShaderPP.Initialize( m_pDevice, L"Resources\\Shaders\\shaderPP.fx", layoutPP, ARRAYSIZE( layoutPP ) );
+		COM_ERROR_IF_FAILED( hr, "Failed to create quad vertex shader!" );
+		hr = m_pixelShaderPP.Initialize( m_pDevice, L"Resources\\Shaders\\shaderPP.fx" );
+		COM_ERROR_IF_FAILED( hr, "Failed to create quad pixel shader!" );
 	}
 	catch ( COMException& exception )
 	{
@@ -62,25 +76,45 @@ bool Graphics::InitializeShaders()
 	return true;
 }
 
+bool Graphics::InitializeRTT()
+{
+	// Initialize quad for post-processing
+	if ( !m_quad.Initialize( m_pDevice.Get() ) )
+		return false;
+	return true;
+}
+
 void Graphics::BeginFrame()
 {
-	// clear render target/depth stencil
-    static float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    m_pRenderTarget->BindAsBuffer( m_pContext.Get(), m_pDepthStencil.get(), clearColor);
+	// Clear render target/depth stencil
+    m_pRenderTarget->BindAsTexture( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
     m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
 
-    // set render state
+    // Set render state
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
     m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC]->Bind( m_pContext.Get() );
 
-    // bind shaders
+    // Bind shaders
     Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader );
+}
+
+void Graphics::RenderSceneToTexture()
+{
+	// Bind new render target
+	m_pBackBuffer->BindAsBuffer( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
+
+	// Render fullscreen texture to new render target
+	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderPP, m_pixelShaderPP );
+	m_quad.SetupBuffers( m_pContext.Get() );
+	m_pContext->PSSetShaderResources( 0u, 1u, m_pRenderTarget->GetShaderResourceViewPtr() );
+	Bind::Rasterizer::DrawSolid( m_pContext.Get(), m_quad.m_indexBuffer.IndexCount() ); // always draw as solid
 }
 
 void Graphics::EndFrame()
 {
 	// Unbind render target
 	m_pRenderTarget->BindAsNull( m_pContext.Get() );
+	m_pBackBuffer->BindAsNull( m_pContext.Get() );
 
 	// Present frame
 	HRESULT hr = m_pSwapChain->GetSwapChain()->Present( 1u, NULL );

@@ -7,12 +7,12 @@
 #include "Resource.h"
 
 #include "Cube.h"
+#include "Input.h"
 #include "Timer.h"
 #include "Light.h"
 #include "Shaders.h"
-
-#include "Input.h"
 #include "ImGuiManager.h"
+#include "PostProcessing.h"
 #include "WindowContainer.h"
 
 class Application : public WindowContainer
@@ -31,9 +31,10 @@ private:
 	Camera m_camera;
 	ImGuiManager m_imgui;
 
-	// Program data
+	// Program data/systems
 	Timer m_timer;
 	Input m_input;
+	PostProcessing m_postProcessing;
 	ConstantBuffer<Matrices> m_cbMatrices;
 };
 
