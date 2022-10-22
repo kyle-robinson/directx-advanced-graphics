@@ -10,7 +10,6 @@ struct Matrices
 	XMMATRIX mWorld;
 	XMMATRIX mView;
 	XMMATRIX mProjection;
-	XMFLOAT4 vOutputColor;
 };
 
 // Materials

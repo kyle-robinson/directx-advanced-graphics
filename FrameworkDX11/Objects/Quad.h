@@ -15,9 +15,9 @@ class Quad
 public:
 	bool Initialize( ID3D11Device* device );
 	void SetupBuffers( ID3D11DeviceContext* context ) noexcept;
-	//inline IndexBuffer& GetIndexBuffer() noexcept { return m_indexBuffer; }
-	IndexBuffer m_indexBuffer;
+	inline IndexBuffer& GetIndexBuffer() noexcept { return m_indexBuffer; }
 private:
+	IndexBuffer m_indexBuffer;
 	VertexBuffer<VertexPP> m_vertexBuffer;
 };
 

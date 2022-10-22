@@ -50,7 +50,6 @@ cbuffer ConstantBuffer : register( b0 )
 	matrix World;
 	matrix View;
 	matrix Projection;
-	float4 vOutputColor;
 }
 
 cbuffer MaterialProperties : register( b1 )
@@ -377,10 +376,4 @@ float4 PS( PS_INPUT input ) : SV_TARGET
     float shadowFactor = ParallaxSelfShadowing( vertexToLightTS, parallaxTex, softShadow );
 	float4 finalColor = ( emissive + ambient + diffuse * shadowFactor + specular * shadowFactor ) * textureColor;
 	return finalColor;
-}
-
-// Pixel Shader Solid
-float4 PSSolid( PS_INPUT input ) : SV_Target
-{
-	return vOutputColor;
 }

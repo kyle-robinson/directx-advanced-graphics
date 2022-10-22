@@ -6,7 +6,7 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
     try
     {
         // Initialize window
-        if ( !renderWindow.Initialize( &m_input, hInstance, "DirectX 11 Physics Framework", "TutorialWindowClass", width, height ) )
+        if ( !renderWindow.Initialize( &m_input, hInstance, "DirectX 11 Advanced Graphics & Rendering", "TutorialWindowClass", width, height ) )
 		    return false;
 
         // Initialize graphics
@@ -31,6 +31,11 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 
         hr = m_light.Initialize( graphics.GetDevice(), graphics.GetContext() );
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'light' object!" );
+
+        // Initialize models
+        if ( !m_skysphere.Initialize( "Resources\\Models\\sphere.obj", graphics.GetDevice(), graphics.GetContext(), m_cbMatrices ) )
+		    return false;
+	    m_skysphere.SetInitialScale( 50.0f, 50.0f, 50.0f );
     }
     catch ( COMException& exception )
 	{
@@ -65,6 +70,9 @@ void Application::Update()
     // Update input
     m_input.Update( dt );
 
+    // Update skysphere position
+    m_skysphere.SetPosition( m_camera.GetPositionFloat3() );
+
     // Update the cube transform, material etc. 
     m_cube.Update( dt, graphics.GetContext() );
 }
@@ -74,14 +82,17 @@ void Application::Render()
     // Setup graphics
     graphics.BeginFrame();
 
+    // Render skyphere first
+    m_skysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+    graphics.UpdateRenderState();
+
     // Get the game object world transform
     DirectX::XMMATRIX mGO = XMLoadFloat4x4( m_cube.GetTransform() );
-
-    // Store this and the view / projection in a constant buffer for the vertex shader to use
 	m_cbMatrices.data.mWorld = DirectX::XMMatrixTranspose( mGO );
+    
+    // Store the view / projection in a constant buffer for the vertex shader to use
 	m_cbMatrices.data.mView = DirectX::XMMatrixTranspose( m_camera.GetViewMatrix() );
 	m_cbMatrices.data.mProjection = DirectX::XMMatrixTranspose( m_camera.GetProjectionMatrix() );
-	m_cbMatrices.data.vOutputColor = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 0.0f );
 	if ( !m_cbMatrices.ApplyChanges() ) return;
     
     // Update light constant buffer

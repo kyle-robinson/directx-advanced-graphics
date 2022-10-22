@@ -118,6 +118,27 @@
     <ClInclude Include="Objects\Quad.h">
       <Filter>Headers\Objects</Filter>
     </ClInclude>
+    <ClInclude Include="Model\Colour.h">
+      <Filter>Headers\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Mesh.h">
+      <Filter>Headers\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Model.h">
+      <Filter>Headers\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Texture.h">
+      <Filter>Headers\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\GameObject.h">
+      <Filter>Headers\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\GameObject3D.h">
+      <Filter>Headers\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\RenderableGameObject.h">
+      <Filter>Headers\Model</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -167,6 +188,12 @@
     </Filter>
     <Filter Include="Source\Objects">
       <UniqueIdentifier>{c8f76aa1-f083-418b-a1e0-fdcc172ac8b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Model">
+      <UniqueIdentifier>{b6bf4202-47b3-4d24-aa9a-3e6b8458d86f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Model">
+      <UniqueIdentifier>{35a9937b-0643-4ab7-9b18-ad85a069432f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -268,6 +295,27 @@
     <ClCompile Include="Objects\Quad.cpp">
       <Filter>Source\Objects</Filter>
     </ClCompile>
+    <ClCompile Include="Model\Texture.cpp">
+      <Filter>Source\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Model\Model.cpp">
+      <Filter>Source\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Model\Mesh.cpp">
+      <Filter>Source\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Model\Colour.cpp">
+      <Filter>Source\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Model\GameObject.cpp">
+      <Filter>Source\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Model\GameObject3D.cpp">
+      <Filter>Source\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Model\RenderableGameObject.cpp">
+      <Filter>Source\Model</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resources\Tutorial01.rc">
@@ -290,6 +338,9 @@
       <Filter>Resources</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\shaderPP.fx">
+      <Filter>Resources</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\shaderOBJ.fx">
       <Filter>Resources</Filter>
     </FxCompile>
   </ItemGroup>

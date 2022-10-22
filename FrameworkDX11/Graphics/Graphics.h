@@ -16,6 +16,7 @@ class Graphics
 public:
 	bool Initialize( HWND hWnd, UINT width, UINT height );
 	void BeginFrame();
+	void UpdateRenderState();
 	void RenderSceneToTexture();
 	void EndFrame();
 
@@ -23,8 +24,8 @@ public:
 	inline UINT GetHeight() const noexcept { return m_viewHeight; }
 	inline ID3D11Device* GetDevice() const noexcept { return m_pDevice.Get(); }
 	inline ID3D11DeviceContext* GetContext() const noexcept { return m_pContext.Get(); }
-	
 	inline Bind::RenderTarget* GetRenderTarget() const noexcept { return &*m_pRenderTarget; }
+
 private:
 	void InitializeDirectX( HWND hWnd );
 	bool InitializeShaders();
@@ -41,6 +42,8 @@ private:
 	PixelShader m_pixelShader;
 	VertexShader m_vertexShaderPP;
 	PixelShader m_pixelShaderPP;
+	VertexShader m_vertexShaderOBJ;
+	PixelShader m_pixelShaderOBJ;
 
 	// Pipeline components
 	std::shared_ptr<Bind::SwapChain> m_pSwapChain;

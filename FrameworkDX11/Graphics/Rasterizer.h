@@ -15,6 +15,7 @@ namespace Bind
 		enum class Type
 		{
 			SOLID,
+			SKYSPHERE,
 			WIREFRAME
 		};
 		Rasterizer( ID3D11Device* device, Type type ) : isSolid( isSolid ), isTwoSided( isTwoSided )
@@ -25,6 +26,11 @@ namespace Bind
 				{
 					isSolid = true;
 					isTwoSided = false;
+				}
+				else if ( type == Type::SKYSPHERE )
+				{
+					isSolid = true;
+					isTwoSided = true;
 				}
 				else if ( type == Type::WIREFRAME )
 				{

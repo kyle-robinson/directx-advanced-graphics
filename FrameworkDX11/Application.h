@@ -14,6 +14,7 @@
 #include "ImGuiManager.h"
 #include "PostProcessing.h"
 #include "WindowContainer.h"
+#include "RenderableGameObject.h"
 
 class Application : public WindowContainer
 {
@@ -30,6 +31,7 @@ private:
 	Light m_light;
 	Camera m_camera;
 	ImGuiManager m_imgui;
+	RenderableGameObject m_skysphere;
 
 	// Program data/systems
 	Timer m_timer;
