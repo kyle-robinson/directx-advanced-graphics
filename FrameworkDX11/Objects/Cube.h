@@ -1,6 +1,6 @@
 #pragma once
-#ifndef DRAWABLEGAMEOBJECT_H
-#define DRAWABLEGAMEOBJECT_H
+#ifndef CUBE_H
+#define CUBE_H
 
 #include <d3d11_1.h>
 #include <d3dcompiler.h>
@@ -20,14 +20,14 @@ struct SimpleVertex
 	XMFLOAT3 Binormal;
 };
 
-class DrawableGameObject
+class Cube
 {
 public:
-	DrawableGameObject();
-	~DrawableGameObject();
+	Cube();
+	~Cube();
 	void Cleanup();
 
-	HRESULT InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	bool InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 	void Update( float dt, ID3D11DeviceContext* pContext );
 	void Draw( ID3D11DeviceContext* pContext );
 
@@ -44,7 +44,7 @@ private:
 
 	ID3D11Buffer* m_pVertexBuffer;
 	ID3D11Buffer* m_pIndexBuffer;
-	ConstantBuffer<Material> m_cbMaterial;
+	ConstantBuffer<MaterialData> m_cbMaterial;
 
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pTextureDiffuse;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pTextureNormal;

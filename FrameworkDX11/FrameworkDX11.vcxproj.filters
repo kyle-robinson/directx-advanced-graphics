@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="graphics\DrawableGameObject.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="utility\structures.h">
       <Filter>Headers\Utility</Filter>
     </ClInclude>
@@ -18,9 +15,6 @@
     </ClInclude>
     <ClInclude Include="utility\StringConverter.h">
       <Filter>Headers\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="graphics\Camera.h">
-      <Filter>Headers\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Resources\Resource.h">
       <Filter>Resources\Resources</Filter>
@@ -103,6 +97,15 @@
     <ClInclude Include="Utility\Timer.h">
       <Filter>Headers\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="Objects\Camera.h">
+      <Filter>Headers\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Cube.h">
+      <Filter>Headers\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Light.h">
+      <Filter>Headers\Objects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -147,6 +150,12 @@
     <Filter Include="Resources\Resources">
       <UniqueIdentifier>{1d8c2ef3-4f82-4770-b351-d61316d54cf2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Objects">
+      <UniqueIdentifier>{3e222487-55a7-49ec-8de6-f96424054162}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Objects">
+      <UniqueIdentifier>{c8f76aa1-f083-418b-a1e0-fdcc172ac8b8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\alpha_mayoris.jpg">
@@ -169,9 +178,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="graphics\DrawableGameObject.cpp">
-      <Filter>Source\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -183,9 +189,6 @@
     </ClCompile>
     <ClCompile Include="utility\StringConverter.cpp">
       <Filter>Source\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="graphics\Camera.cpp">
-      <Filter>Source\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Input\Mouse.cpp">
       <Filter>Source\Input</Filter>
@@ -237,6 +240,15 @@
     </ClCompile>
     <ClCompile Include="Utility\Timer.cpp">
       <Filter>Source\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Light.cpp">
+      <Filter>Source\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Cube.cpp">
+      <Filter>Source\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Camera.cpp">
+      <Filter>Source\Objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

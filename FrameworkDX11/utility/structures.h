@@ -14,9 +14,9 @@ struct Matrices
 };
 
 // Materials
-struct Material
+struct MaterialData
 {
-	Material()
+	MaterialData()
 		: Emissive( 0.0f, 0.0f, 0.0f, 1.0f )
 		, Ambient( 0.1f, 0.1f, 0.1f, 1.0f )
 		, Diffuse( 1.0f, 1.0f, 1.0f, 1.0f )
@@ -37,7 +37,7 @@ struct Material
 
 struct Material_CB
 {
-	Material Material;
+	MaterialData Material;
 };
 
 // Lights
@@ -48,9 +48,9 @@ enum LightType
 	SpotLight = 2
 };
 
-struct Light
+struct LightData
 {
-	Light()
+	LightData()
 		: Position( 0.0f, 0.0f, 0.0f, 1.0f )
 		, Direction( 0.0f, 0.0f, 1.0f, 0.0f )
 		, Color( 1.0f, 1.0f, 1.0f, 1.0f )
@@ -86,7 +86,7 @@ struct Light_CB
 
 	XMFLOAT4 EyePosition;
 	XMFLOAT4 GlobalAmbient;
-	Light Lights[MAX_LIGHTS];
+	LightData Lights[MAX_LIGHTS];
 };
 
 #endif

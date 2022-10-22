@@ -6,16 +6,14 @@
 #include "DDSTextureLoader.h"
 #include "Resource.h"
 
+#include "Cube.h"
 #include "Timer.h"
+#include "Light.h"
 #include "Shaders.h"
-#include "structures.h"
-#include "DrawableGameObject.h"
 
 #include "Input.h"
 #include "ImGuiManager.h"
 #include "WindowContainer.h"
-
-typedef std::vector<DrawableGameObject*> vecDrawables;
 
 class Application : public WindowContainer
 {
@@ -23,23 +21,20 @@ public:
 	bool Initialize( HINSTANCE hInstance, int width, int height );
 	void CleanupDevice();
 
-	void setupLightForRender();
-	float calculateDeltaTime();
-
 	bool ProcessMessages() noexcept;
 	void Update();
 	void Render();
 private:
-	// Constant buffers
-	ConstantBuffer<Matrices> m_cbMatrices;
-	ConstantBuffer<Light_CB> m_cbLight;
-
 	// Objects
+	Light m_light;
+	Camera m_camera;
+	Cube m_gameObject;
+	ImGuiManager m_imgui;
+
+	// Program data
 	Timer m_timer;
 	Input m_input;
-	Camera m_camera;
-	ImGuiManager m_imgui;
-	DrawableGameObject m_gameObject;
+	ConstantBuffer<Matrices> m_cbMatrices;
 };
 
 #endif

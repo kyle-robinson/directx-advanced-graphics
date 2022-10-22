@@ -32,24 +32,34 @@ void Graphics::InitializeDirectX( HWND hWnd )
 
 bool Graphics::InitializeShaders()
 {
-	// Define the input layout
-	D3D11_INPUT_ELEMENT_DESC layout[] =
+	try
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    };
+		// Define the input layout
+		D3D11_INPUT_ELEMENT_DESC layout[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
 
-    // Create the shaders
-    HRESULT hr = m_vertexShader.Initialize( m_pDevice, L"Resources\\Shaders\\shader.fx", layout, ARRAYSIZE(layout));
-	COM_ERROR_IF_FAILED( hr, "Failed to create vertex shader!" );
-	hr = m_pixelShader.Initialize( m_pDevice, L"Resources\\Shaders\\shader.fx" );
-	COM_ERROR_IF_FAILED( hr, "Failed to create pixel shader!" );
-    
-    // Bind shaders to the pipeline
-    Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader );
+		// Create the shaders
+		HRESULT hr = m_vertexShader.Initialize( m_pDevice, L"Resources\\Shaders\\shader.fx", layout, ARRAYSIZE(layout));
+		COM_ERROR_IF_FAILED( hr, "Failed to create vertex shader!" );
+		hr = m_pixelShader.Initialize( m_pDevice, L"Resources\\Shaders\\shader.fx" );
+		COM_ERROR_IF_FAILED( hr, "Failed to create pixel shader!" );
+
+		// Bind shaders to the pipeline
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader );
+	}
+	catch ( COMException& exception )
+	{
+		ErrorLogger::Log( exception );
+		return false;
+	}
+
+	return true;
 }
 
 void Graphics::BeginFrame()
