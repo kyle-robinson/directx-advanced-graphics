@@ -9,7 +9,7 @@ void Input::Initialize( RenderWindow& window, Camera& pCamera )
 
     // Update keyboard processing
     keyboard.DisableAutoRepeatKeys();
-    //keyboard.DisableAutoRepeatChars();
+    keyboard.DisableAutoRepeatChars();
 }
 
 void Input::Update( float dt )

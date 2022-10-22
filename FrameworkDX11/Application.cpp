@@ -3,7 +3,7 @@
 
 // Register class and create window
 bool Application::Initialize( HINSTANCE hInstance, int width, int height )
-{    
+{
     // Initialize window
     if ( !renderWindow.Initialize( &m_input, hInstance, "DirectX 11 Physics Framework", "TutorialWindowClass", width, height ) )
 		return false;
@@ -80,33 +80,6 @@ void Application::setupLightForRender()
     if ( !m_cbLight.ApplyChanges() ) return;
 }
 
-// Update program time
-float Application::calculateDeltaTime()
-{
-    // Update our time
-    static float deltaTime = 0.0f;
-    static ULONGLONG timeStart = 0;
-    ULONGLONG timeCur = GetTickCount64();
-    if (timeStart == 0)
-        timeStart = timeCur;
-    deltaTime = (timeCur - timeStart) / 1000.0f;
-    timeStart = timeCur;
-
-    float FPS60 = 1.0f / 60.0f;
-    static float cummulativeTime = 0;
-
-    // cap the framerate at 60 fps 
-    cummulativeTime += deltaTime;
-    if (cummulativeTime >= FPS60) {
-        cummulativeTime = cummulativeTime - FPS60;
-    }
-    else {
-        return 0;
-    }
-
-    return deltaTime;
-}
-
 bool Application::ProcessMessages() noexcept
 {
 	return renderWindow.ProcessMessages();
@@ -114,10 +87,9 @@ bool Application::ProcessMessages() noexcept
 
 void Application::Update()
 {
-    // Update
-    float dt = calculateDeltaTime(); // capped at 60 fps
-    if ( dt == 0.0f )
-        return;
+    // Update delta time
+    float dt = m_timer.GetDeltaTime(); // capped at 60 fps
+    if ( dt == 0.0f ) return;
 
     // Update input
     m_input.Update( dt );

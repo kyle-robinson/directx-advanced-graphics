@@ -416,6 +416,7 @@
     <ClInclude Include="Utility\stdafx.h" />
     <ClInclude Include="utility\StringConverter.h" />
     <ClInclude Include="utility\structures.h" />
+    <ClInclude Include="Utility\Timer.h" />
     <ClInclude Include="Window\RenderWindow.h" />
     <ClInclude Include="Window\WindowContainer.h" />
   </ItemGroup>
@@ -470,6 +471,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="utility\StringConverter.cpp" />
+    <ClCompile Include="Utility\Timer.cpp" />
     <ClCompile Include="Window\RenderWindow.cpp" />
     <ClCompile Include="Window\WindowContainer.cpp" />
   </ItemGroup>

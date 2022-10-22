@@ -6,6 +6,7 @@
 #include "DDSTextureLoader.h"
 #include "Resource.h"
 
+#include "Timer.h"
 #include "Shaders.h"
 #include "structures.h"
 #include "DrawableGameObject.h"
@@ -34,6 +35,7 @@ private:
 	ConstantBuffer<Light_CB> m_cbLight;
 
 	// Objects
+	Timer m_timer;
 	Input m_input;
 	Camera m_camera;
 	ImGuiManager m_imgui;

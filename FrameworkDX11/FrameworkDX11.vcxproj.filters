@@ -100,6 +100,9 @@
     <ClInclude Include="Input\Input.h">
       <Filter>Headers\Input</Filter>
     </ClInclude>
+    <ClInclude Include="Utility\Timer.h">
+      <Filter>Headers\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -231,6 +234,9 @@
     </ClCompile>
     <ClCompile Include="Input\Input.cpp">
       <Filter>Source\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\Timer.cpp">
+      <Filter>Source\Utility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
