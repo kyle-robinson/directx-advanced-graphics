@@ -21,7 +21,7 @@ struct MaterialData
 		, Diffuse( 1.0f, 1.0f, 1.0f, 1.0f )
 		, Specular( 1.0f, 1.0f, 1.0f, 1.0f )
 		, SpecularPower( 128.0f )
-		, UseTexture( false )
+		, UseTexture( TRUE )
 	{}
 
 	XMFLOAT4 Emissive;
@@ -29,7 +29,7 @@ struct MaterialData
 	XMFLOAT4 Diffuse;
 	XMFLOAT4 Specular;
 	
-	float SpecularPower;
+	FLOAT SpecularPower;
 	BOOL UseTexture;
 	XMFLOAT2 Padding;
 };
@@ -57,18 +57,18 @@ struct LightData
 		, ConstantAttenuation( 1.0f )
 		, LinearAttenuation( 0.0f )
 		, QuadraticAttenuation( 0.0f )
-		, LightType( DirectionalLight )
-		, Enabled( 0 )
+		, LightType( PointLight )
+		, Enabled( TRUE )
 	{}
 
 	XMFLOAT4 Position;
 	XMFLOAT4 Direction;
 	XMFLOAT4 Color;
 
-	float SpotAngle;
-	float ConstantAttenuation;
-	float LinearAttenuation;
-	float QuadraticAttenuation;
+	FLOAT SpotAngle;
+	FLOAT ConstantAttenuation;
+	FLOAT LinearAttenuation;
+	FLOAT QuadraticAttenuation;
 
 	int LightType;
 	BOOL Enabled;

@@ -119,6 +119,7 @@ void Application::Render()
     m_imgui.SpawnInstructionWindow();
     m_postProcessing.SpawnControlWindow();
     m_mapping.SpawnControlWindow();
+    m_light.SpawnControlWindow();
     m_cube.SpawnControlWindow();
     m_imgui.EndRender();
 

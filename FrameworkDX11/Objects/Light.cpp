@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Light.h"
 #include "Camera.h"
+#include <imgui/imgui.h>
 
 bool Light::Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
@@ -19,36 +20,74 @@ bool Light::Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 
 void Light::UpdateCB( Camera& camera )
 {
-	// Setup light data
-    LightData light;
-    light.Enabled = static_cast<int>(true);
-    light.LightType = PointLight;
-    light.Color = DirectX::XMFLOAT4( DirectX::Colors::White );
-    light.SpotAngle = DirectX::XMConvertToRadians( 45.0f );
-    light.ConstantAttenuation = 1.0f;
-    light.LinearAttenuation = 1.0f;
-    light.QuadraticAttenuation = 1.0f;
-
-    // Setup light
-    XMFLOAT4 eyePosition = {
+    XMFLOAT4 cameraPosition =
+    {
         camera.GetPositionFloat3().x,
         camera.GetPositionFloat3().y,
         camera.GetPositionFloat3().z,
         1.0f
     };
-    DirectX::XMFLOAT4 LightPosition( eyePosition );
-    light.Position = LightPosition;
-    DirectX::XMVECTOR LightDirection = DirectX::XMVectorSet(
-        camera.GetCameraTarget().x - LightPosition.x,
-        camera.GetCameraTarget().y - LightPosition.y,
-        camera.GetCameraTarget().z - LightPosition.z,
+
+	// Setup light data
+    LightData light;
+    light.Enabled = TRUE;
+    light.LightType = PointLight;
+    light.Color = m_fColor;
+    light.SpotAngle = DirectX::XMConvertToRadians( m_fSpotAngle );
+    light.ConstantAttenuation = m_fConstantAttenuation;
+    light.LinearAttenuation = m_fLinearAttenuation;
+    light.QuadraticAttenuation = m_fQuadraticAttenuation;
+
+    // Setup light
+    if ( m_bAttachedToCamera )
+        m_fPosition = cameraPosition;
+    light.Position = m_fPosition;
+
+    DirectX::XMVECTOR lightDirection = DirectX::XMVectorSet(
+        camera.GetCameraTarget().x - m_fPosition.x,
+        camera.GetCameraTarget().y - m_fPosition.y,
+        camera.GetCameraTarget().z - m_fPosition.z,
         0.0f
     );
-    LightDirection = DirectX::XMVector3Normalize( LightDirection );
-    DirectX::XMStoreFloat4( &light.Direction, LightDirection );
+    lightDirection = DirectX::XMVector3Normalize( lightDirection );
+    DirectX::XMStoreFloat4( &light.Direction, lightDirection );
 
     // Add to constant buffer
-    m_cbLight.data.EyePosition = LightPosition;
+    m_cbLight.data.EyePosition = cameraPosition;
     m_cbLight.data.Lights[0] = light;
     if ( !m_cbLight.ApplyChanges() ) return;
+}
+
+void Light::SpawnControlWindow()
+{
+    if ( ImGui::Begin( "Light Data", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
+    {
+        ImGui::Checkbox( "Attached To Camera?", &m_bAttachedToCamera );
+        ImGui::NewLine();
+
+        if ( !m_bAttachedToCamera )
+        {
+            ImGui::Text( "Position" );
+		    ImGui::SliderFloat4( "##Position", &m_fPosition.x, -10.0f, 10.0f, "%.1f" );
+		    ImGui::NewLine();
+            ImGui::Separator();
+            ImGui::NewLine();
+        }
+
+        ImGui::Text( "Color" );
+		ImGui::SliderFloat4( "##Color", &m_fColor.x, 0.0f, 1.0f, "%.1f" );
+		ImGui::NewLine();
+
+        ImGui::Text( "Constant Attenuation" );
+		ImGui::SliderFloat( "##Constant", &m_fConstantAttenuation, 0.0f, 1.0f, "%.1f" );
+		ImGui::NewLine();
+
+        ImGui::Text( "Linear Attenuation" );
+		ImGui::SliderFloat( "##Linear", &m_fLinearAttenuation, 0.0f, 1.0f, "%.1f" );
+		ImGui::NewLine();
+
+        ImGui::Text( "Quadratic Attenuation" );
+		ImGui::SliderFloat( "##Quadratic", &m_fQuadraticAttenuation, 0.0f, 1.0f, "%.1f" );
+    }
+    ImGui::End();
 }
