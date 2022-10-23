@@ -32,6 +32,9 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
         hr = m_light.Initialize( graphics.GetDevice(), graphics.GetContext() );
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'light' object!" );
 
+        hr = m_mapping.Initialize( graphics.GetDevice(), graphics.GetContext() );
+	    COM_ERROR_IF_FAILED( hr, "Failed to create 'mapping' object!" );
+
         // Initialize models
         if ( !m_skysphere.Initialize( "Resources\\Models\\sphere.obj", graphics.GetDevice(), graphics.GetContext(), m_cbMatrices ) )
 		    return false;
@@ -96,12 +99,16 @@ void Application::Render()
 	if ( !m_cbMatrices.ApplyChanges() ) return;
     
     // Update light constant buffer
-    m_light.UpdateCB( graphics.GetContext(), m_camera );
+    m_light.UpdateCB( m_camera );
+
+    // Update texture mapping constant buffer
+    m_mapping.UpdateCB();
 
     // Render objects
-    graphics.GetContext()->VSSetConstantBuffers(0u, 1u, m_cbMatrices.GetAddressOf() );
+    graphics.GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
     graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_cube.GetMaterialCB() );
     graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_light.GetLightCB() );
+    graphics.GetContext()->PSSetConstantBuffers( 3u, 1u, m_mapping.GetMappingCB() );
     m_cube.Draw( graphics.GetContext() );
 
     // Render scene to texture
@@ -112,6 +119,7 @@ void Application::Render()
     m_imgui.BeginRender();
     m_imgui.SpawnInstructionWindow();
     m_postProcessing.SpawnControlWindow();
+    m_mapping.SpawnControlWindow();
     m_imgui.EndRender();
 
     // Present frame

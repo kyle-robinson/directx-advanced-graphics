@@ -10,6 +10,7 @@
 #include "Input.h"
 #include "Timer.h"
 #include "Light.h"
+#include "Mapping.h"
 #include "Shaders.h"
 #include "ImGuiManager.h"
 #include "PostProcessing.h"
@@ -30,6 +31,7 @@ private:
 	Cube m_cube;
 	Light m_light;
 	Camera m_camera;
+	Mapping m_mapping;
 	ImGuiManager m_imgui;
 	RenderableGameObject m_skysphere;
 

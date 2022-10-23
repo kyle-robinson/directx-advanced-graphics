@@ -17,7 +17,7 @@ bool Light::Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 	return true;
 }
 
-void Light::UpdateCB( ID3D11DeviceContext* pContext, Camera& camera )
+void Light::UpdateCB( Camera& camera )
 {
 	// Setup light data
     LightData light;

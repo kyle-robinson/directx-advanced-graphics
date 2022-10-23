@@ -88,4 +88,31 @@ struct Light_CB
 	LightData Lights[MAX_LIGHTS];
 };
 
+// Texture Mapping
+struct MappingData
+{
+	MappingData()
+		: UseNormalMap( TRUE )
+		, UseParallaxMap( TRUE )
+		, UseParallaxOcclusion( TRUE )
+		, UseParallaxSelfShadowing( TRUE )
+		, UseSoftShadow( TRUE )
+		, HeightScale( 0.1f )
+	{}
+
+	BOOL UseNormalMap;
+	BOOL UseParallaxMap;
+	BOOL UseParallaxOcclusion;
+	BOOL UseParallaxSelfShadowing;
+
+	BOOL UseSoftShadow;
+	FLOAT HeightScale;
+	XMFLOAT2 Padding;
+};
+
+struct Mapping_CB
+{
+	MappingData MapData;
+};
+
 #endif

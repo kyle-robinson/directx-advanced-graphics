@@ -421,6 +421,7 @@
     <ClInclude Include="Objects\Cube.h" />
     <ClInclude Include="Objects\Light.h" />
     <ClInclude Include="Objects\Quad.h" />
+    <ClInclude Include="Objects\Mapping.h" />
     <ClInclude Include="Resources\Resource.h" />
     <ClInclude Include="utility\COMException.h" />
     <ClInclude Include="utility\DDSTextureLoader.h" />
@@ -487,6 +488,7 @@
     <ClCompile Include="Objects\Cube.cpp" />
     <ClCompile Include="Objects\Light.cpp" />
     <ClCompile Include="Objects\Quad.cpp" />
+    <ClCompile Include="Objects\Mapping.cpp" />
     <ClCompile Include="utility\DDSTextureLoader.cpp" />
     <ClCompile Include="utility\ErrorLogger.cpp" />
     <ClCompile Include="Utility\stdafx.cpp">

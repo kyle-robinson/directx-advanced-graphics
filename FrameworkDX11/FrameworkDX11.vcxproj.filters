@@ -139,6 +139,9 @@
     <ClInclude Include="Model\RenderableGameObject.h">
       <Filter>Headers\Model</Filter>
     </ClInclude>
+    <ClInclude Include="Objects\Mapping.h">
+      <Filter>Headers\Objects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -315,6 +318,9 @@
     </ClCompile>
     <ClCompile Include="Model\RenderableGameObject.cpp">
       <Filter>Source\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Mapping.cpp">
+      <Filter>Source\Objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
