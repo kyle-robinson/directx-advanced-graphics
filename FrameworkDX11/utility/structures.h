@@ -24,14 +24,14 @@ struct MaterialData
 		, UseTexture( false )
 	{}
 
-	DirectX::XMFLOAT4   Emissive;
-	DirectX::XMFLOAT4   Ambient;
-	DirectX::XMFLOAT4   Diffuse;
-	DirectX::XMFLOAT4   Specular;
+	XMFLOAT4 Emissive;
+	XMFLOAT4 Ambient;
+	XMFLOAT4 Diffuse;
+	XMFLOAT4 Specular;
 	
 	float SpecularPower;
-	int UseTexture;
-	float Padding[2];
+	BOOL UseTexture;
+	XMFLOAT2 Padding;
 };
 
 struct Material_CB
@@ -71,8 +71,8 @@ struct LightData
 	float QuadraticAttenuation;
 
 	int LightType;
-	int Enabled;
-	int Padding[2];
+	BOOL Enabled;
+	XMFLOAT2 Padding;
 };
 
 #define MAX_LIGHTS 1

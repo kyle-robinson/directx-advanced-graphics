@@ -245,7 +245,7 @@ float ParallaxSelfShadowing( float3 toLight, float2 texCoord, bool softShadow )
     float2 dx = ddx( texCoord );
     float2 dy = ddy( texCoord );
     float height = 1.0f - textureDisplacement.SampleGrad( samplerState, texCoord, dx, dy ).r;
-    float parallaxScale = Mapping.HeightScale * (1.0f - height );
+    float parallaxScale = Mapping.HeightScale * ( 1.0f - height );
 
     if ( dot( float3( 0.0f, 0.0f, 1.0f ), toLight ) > 0.0f )
     {

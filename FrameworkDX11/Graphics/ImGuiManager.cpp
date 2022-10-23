@@ -50,7 +50,7 @@ void ImGuiManager::SpawnInstructionWindow() const noexcept
             ImGui::Text( "CTRL              Down" );
             ImGui::Text( "Hold RMB          Rotate Camera" );
 		}
-		if ( ImGui::CollapsingHeader( "Miscellaneous Controls" ) )
+		if ( ImGui::CollapsingHeader( "Miscellaneous Controls", ImGuiTreeNodeFlags_DefaultOpen ) )
 		{
 			ImGui::Text( "HOME              Enable Mouse" );
 			ImGui::Text( "END               Disable Mouse" );

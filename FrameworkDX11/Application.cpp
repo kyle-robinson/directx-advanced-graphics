@@ -98,11 +98,10 @@ void Application::Render()
 	m_cbMatrices.data.mProjection = DirectX::XMMatrixTranspose( m_camera.GetProjectionMatrix() );
 	if ( !m_cbMatrices.ApplyChanges() ) return;
     
-    // Update light constant buffer
+    // Update constant buffers
     m_light.UpdateCB( m_camera );
-
-    // Update texture mapping constant buffer
     m_mapping.UpdateCB();
+    m_cube.UpdateCB();
 
     // Render objects
     graphics.GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
@@ -120,6 +119,7 @@ void Application::Render()
     m_imgui.SpawnInstructionWindow();
     m_postProcessing.SpawnControlWindow();
     m_mapping.SpawnControlWindow();
+    m_cube.SpawnControlWindow();
     m_imgui.EndRender();
 
     // Present frame
