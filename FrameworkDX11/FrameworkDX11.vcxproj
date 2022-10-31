@@ -514,8 +514,14 @@
     <ResourceCompile Include="Resources\Tutorial01.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Cursors\Link Select.ani" />
-    <None Include="Resources\Cursors\Normal Select.ani" />
+    <None Include="Resources\Cursors\cur116.cur" />
+    <None Include="Resources\Cursors\cur117.cur" />
+    <None Include="Resources\Cursors\cur118.cur" />
+    <None Include="Resources\Cursors\cur119.cur" />
+    <None Include="Resources\Cursors\cur220.cur" />
+    <None Include="Resources\Cursors\cur221.cur" />
+    <None Include="Resources\Cursors\cur222.cur" />
+    <None Include="Resources\Cursors\cur223.cur" />
     <None Include="Resources\Fonts\open_sans_ms_16.spritefont" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

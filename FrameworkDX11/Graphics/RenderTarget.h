@@ -41,8 +41,8 @@ namespace Bind
 				textureDesc.MipLevels = 1;
 				textureDesc.ArraySize = 1;
 				textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				textureDesc.SampleDesc.Count = 1;
-				textureDesc.SampleDesc.Quality = 0;
+				textureDesc.SampleDesc.Count = 1u;
+				textureDesc.SampleDesc.Quality = 0u;
 				textureDesc.Usage = D3D11_USAGE_DEFAULT;
 				textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 				textureDesc.CPUAccessFlags = 0;

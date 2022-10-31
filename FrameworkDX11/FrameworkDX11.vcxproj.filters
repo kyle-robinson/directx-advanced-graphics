@@ -198,6 +198,9 @@
     <Filter Include="Source\Model">
       <UniqueIdentifier>{35a9937b-0643-4ab7-9b18-ad85a069432f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resources\Cursors">
+      <UniqueIdentifier>{5c306b27-5e77-4121-9e73-e7947d13bb4e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\alpha_mayoris.jpg">
@@ -332,11 +335,29 @@
     <None Include="Resources\Fonts\open_sans_ms_16.spritefont">
       <Filter>Resources\Resources</Filter>
     </None>
-    <None Include="Resources\Cursors\Link Select.ani">
-      <Filter>Resources\Resources</Filter>
+    <None Include="Resources\Cursors\cur116.cur">
+      <Filter>Resources\Cursors</Filter>
     </None>
-    <None Include="Resources\Cursors\Normal Select.ani">
-      <Filter>Resources\Resources</Filter>
+    <None Include="Resources\Cursors\cur117.cur">
+      <Filter>Resources\Cursors</Filter>
+    </None>
+    <None Include="Resources\Cursors\cur118.cur">
+      <Filter>Resources\Cursors</Filter>
+    </None>
+    <None Include="Resources\Cursors\cur119.cur">
+      <Filter>Resources\Cursors</Filter>
+    </None>
+    <None Include="Resources\Cursors\cur220.cur">
+      <Filter>Resources\Cursors</Filter>
+    </None>
+    <None Include="Resources\Cursors\cur221.cur">
+      <Filter>Resources\Cursors</Filter>
+    </None>
+    <None Include="Resources\Cursors\cur222.cur">
+      <Filter>Resources\Cursors</Filter>
+    </None>
+    <None Include="Resources\Cursors\cur223.cur">
+      <Filter>Resources\Cursors</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
