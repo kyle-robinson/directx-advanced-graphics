@@ -29,16 +29,16 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 	    hr = m_cube.InitializeMesh( graphics.GetDevice(), graphics.GetContext() );
         COM_ERROR_IF_FAILED(hr, "Failed to create 'cube' object!");
 
-        hr = m_light.Initialize( graphics.GetDevice(), graphics.GetContext() );
+        hr = m_light.Initialize( graphics.GetDevice(), graphics.GetContext(), m_cbMatrices );
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'light' object!" );
 
         hr = m_mapping.Initialize( graphics.GetDevice(), graphics.GetContext() );
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'mapping' object!" );
 
         // Initialize models
-        if ( !m_skysphere.Initialize( "Resources\\Models\\sphere.obj", graphics.GetDevice(), graphics.GetContext(), m_cbMatrices ) )
+        if ( !m_objSkysphere.Initialize( "Resources\\Models\\sphere.obj", graphics.GetDevice(), graphics.GetContext(), m_cbMatrices ) )
 		    return false;
-	    m_skysphere.SetInitialScale( 50.0f, 50.0f, 50.0f );
+        m_objSkysphere.SetInitialScale( 50.0f, 50.0f, 50.0f );
     }
     catch ( COMException& exception )
 	{
@@ -74,7 +74,7 @@ void Application::Update()
     m_input.Update( dt );
 
     // Update skysphere position
-    m_skysphere.SetPosition( m_camera.GetPositionFloat3() );
+    m_objSkysphere.SetPosition( m_camera.GetPositionFloat3() );
 
     // Update the cube transform, material etc. 
     m_cube.Update( dt, graphics.GetContext() );
@@ -86,7 +86,7 @@ void Application::Render()
     graphics.BeginFrame();
 
     // Render skyphere first
-    m_skysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+    m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
     graphics.UpdateRenderState();
 
     // Get the game object world transform
@@ -109,6 +109,9 @@ void Application::Render()
     graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_light.GetLightCB() );
     graphics.GetContext()->PSSetConstantBuffers( 3u, 1u, m_mapping.GetMappingCB() );
     m_cube.Draw( graphics.GetContext() );
+
+    graphics.UpdateRenderStateTexture();
+    m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
 
     // Render scene to texture
     graphics.RenderSceneToTexture();

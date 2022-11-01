@@ -33,7 +33,7 @@ private:
 	Camera m_camera;
 	Mapping m_mapping;
 	ImGuiManager m_imgui;
-	RenderableGameObject m_skysphere;
+	RenderableGameObject m_objSkysphere;
 
 	// Program data/systems
 	Timer m_timer;

@@ -17,6 +17,8 @@ public:
 	bool Initialize( HWND hWnd, UINT width, UINT height );
 	void BeginFrame();
 	void UpdateRenderState();
+	void UpdateRenderStateObject();
+	void UpdateRenderStateTexture();
 	void RenderSceneToTexture();
 	void EndFrame();
 
@@ -42,6 +44,8 @@ private:
 	PixelShader m_pixelShader;
 	VertexShader m_vertexShaderPP;
 	PixelShader m_pixelShaderPP;
+	VertexShader m_vertexShaderTEX;
+	PixelShader m_pixelShaderTEX;
 	VertexShader m_vertexShaderOBJ;
 	PixelShader m_pixelShaderOBJ;
 

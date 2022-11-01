@@ -66,9 +66,22 @@ bool Graphics::InitializeShaders()
 
 		// Create the model shaders
 		hr = m_vertexShaderOBJ.Initialize( m_pDevice, L"Resources\\Shaders\\shaderOBJ.fx", layoutOBJ, ARRAYSIZE( layoutOBJ ) );
-		COM_ERROR_IF_FAILED( hr, "Failed to create skysphere vertex shader!" );
+		COM_ERROR_IF_FAILED( hr, "Failed to create model vertex shader!" );
 		hr = m_pixelShaderOBJ.Initialize( m_pDevice, L"Resources\\Shaders\\shaderOBJ.fx" );
-		COM_ERROR_IF_FAILED( hr, "Failed to create skysphere pixel shader!" );
+		COM_ERROR_IF_FAILED( hr, "Failed to create model pixel shader!" );
+
+		// Define input layout for textures
+		D3D11_INPUT_ELEMENT_DESC layoutTEX[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		};
+
+		// Create the color shaders
+		hr = m_vertexShaderTEX.Initialize( m_pDevice, L"Resources\\Shaders\\shaderTEX.fx", layoutTEX, ARRAYSIZE( layoutTEX ) );
+		COM_ERROR_IF_FAILED( hr, "Failed to create texture vertex shader!" );
+		hr = m_pixelShaderTEX.Initialize( m_pDevice, L"Resources\\Shaders\\shaderTEX.fx" );
+		COM_ERROR_IF_FAILED( hr, "Failed to create texture pixel shader!" );
 
 		// Define input layout for quad
 		D3D11_INPUT_ELEMENT_DESC layoutPP[] =
@@ -113,9 +126,23 @@ void Graphics::BeginFrame()
 
 void Graphics::UpdateRenderState()
 {
-	// Set render state
+	// Set default render state for cubes
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
     Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader );
+}
+
+void Graphics::UpdateRenderStateObject()
+{
+	// Set default render state for objects
+    m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
+    Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
+}
+
+void Graphics::UpdateRenderStateTexture()
+{
+	// Set default render state for objects
+    m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
+    Shaders::BindShaders( m_pContext.Get(), m_vertexShaderTEX, m_pixelShaderTEX );
 }
 
 void Graphics::RenderSceneToTexture()
