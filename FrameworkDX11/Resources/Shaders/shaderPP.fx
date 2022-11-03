@@ -25,7 +25,7 @@ struct PS_INPUT
     float2 TexCoord : TEXCOORD;
 };
 
-Texture2DMS<float4, 2> textureQuad : register( t0 );
+Texture2DMS<float4, 4> textureQuad : register( t0 );
 SamplerState samplerState : register( s0 );
 
 float4 PS( PS_INPUT input ) : SV_TARGET
@@ -35,7 +35,7 @@ float4 PS( PS_INPUT input ) : SV_TARGET
     float4 textureColor = { 0.0f, 0.0f, 0.0f, 1.0f };
     [unroll]
     for ( int i = 0; i < 4; i++ )
-        textureColor += textureQuad.Load( input.TexCoord, i );
+        textureColor += textureQuad.Load( input.Position, i );
     textureColor = textureColor / 4;
     return textureColor;
     

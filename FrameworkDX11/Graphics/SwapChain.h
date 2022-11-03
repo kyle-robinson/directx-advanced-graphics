@@ -8,7 +8,7 @@
 #include "ErrorLogger.h"
 
 static UINT MAX_QUALITY = 0u;
-static UINT SAMPLE_COUNT = 2u;
+static UINT SAMPLE_COUNT = 4u;
 
 namespace Bind
 {
@@ -42,18 +42,18 @@ namespace Bind
 
                 // First pass just to create device and context
                 HRESULT hr = D3D11CreateDeviceAndSwapChain(
-                    nullptr,                    // IDXGI Adapter
-                    D3D_DRIVER_TYPE_HARDWARE,   // Driver Type
-                    nullptr,                    // Software Module
-                    createDeviceFlags,          // Flags for Runtime Layers
-                    nullptr,                    // Feature Levels Array
-                    0,                          // No. of Feature Levels
-                    D3D11_SDK_VERSION,          // SDK Version
-                    nullptr,                    // Swap Chain Description
-                    nullptr,                    // Swap Chain Address
-                    device,                     // Device Address
-                    nullptr,                    // Ptr to Feature Level
-                    context                     // Context Address
+                    nullptr,                        // IDXGI Adapter
+                    D3D_DRIVER_TYPE_HARDWARE,       // Driver Type
+                    nullptr,                        // Software Module
+                    createDeviceFlags,              // Flags for Runtime Layers
+                    nullptr,                        // Feature Levels Array
+                    0,                              // No. of Feature Levels
+                    D3D11_SDK_VERSION,              // SDK Version
+                    &sd,                            // Swap Chain Description
+                    swapChain.GetAddressOf(),       // Swap Chain Address
+                    device,                         // Device Address
+                    nullptr,                        // Ptr to Feature Level
+                    context                         // Context Address
                 );
                 COM_ERROR_IF_FAILED( hr, "Failed to create Device and Swap Chain: 1st Pass!" );
 
@@ -64,18 +64,18 @@ namespace Bind
 
                 // Second pass to create swap chain with updated quality
                 hr = D3D11CreateDeviceAndSwapChain(
-                    nullptr,                    // IDXGI Adapter
-                    D3D_DRIVER_TYPE_HARDWARE,   // Driver Type
-                    nullptr,                    // Software Module
-                    createDeviceFlags,          // Flags for Runtime Layers
-                    nullptr,                    // Feature Levels Array
-                    0,                          // No. of Feature Levels
-                    D3D11_SDK_VERSION,          // SDK Version
-                    &sd,                        // Swap Chain Description
-                    swapChain.GetAddressOf(),   // Swap Chain Address
-                    device,                     // Device Address
-                    nullptr,                    // Ptr to Feature Level
-                    context                     // Context Address
+                    nullptr,                        // IDXGI Adapter
+                    D3D_DRIVER_TYPE_HARDWARE,       // Driver Type
+                    nullptr,                        // Software Module
+                    createDeviceFlags,              // Flags for Runtime Layers
+                    nullptr,                        // Feature Levels Array
+                    0,                              // No. of Feature Levels
+                    D3D11_SDK_VERSION,              // SDK Version
+                    &sd,                            // Swap Chain Description
+                    swapChain.GetAddressOf(),       // Swap Chain Address
+                    device,                         // Device Address
+                    nullptr,                        // Ptr to Feature Level
+                    context                         // Context Address
                 );
                 COM_ERROR_IF_FAILED( hr, "Failed to create Device and Swap Chain: 2nd Pass!" );
 			}

@@ -150,6 +150,13 @@ void Graphics::UpdateRenderStateTexture()
 
 void Graphics::RenderSceneToTexture()
 {
+	// Copy msaa render target to non-msaa back buffer
+	ID3D11Resource* bbResource = nullptr;
+	m_pBackBuffer->GetBackBuffer()->GetResource( &bbResource );
+	ID3D11Resource* rtResource = nullptr;
+	m_pRenderTarget->GetRenderTarget()->GetResource( &rtResource );
+	m_pContext->ResolveSubresource( bbResource, D3D11CalcSubresource( 0u, 0u, 1u ), rtResource, D3D11CalcSubresource( 0u, 0u, 1u ), DXGI_FORMAT_R8G8B8A8_UNORM );
+
 	// Bind new render target
 	m_pBackBuffer->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
 
@@ -158,22 +165,6 @@ void Graphics::RenderSceneToTexture()
 	m_quad.SetupBuffers( m_pContext.Get() );
 	m_pContext->PSSetShaderResources( 0u, 1u, m_pRenderTarget->GetShaderResourceViewPtr() );
 	Bind::Rasterizer::DrawSolid( m_pContext.Get(), m_quad.GetIndexBuffer().IndexCount() ); // always draw as solid
-
-	ID3D11Resource* bbResource = nullptr;
-	m_pBackBuffer->GetBackBuffer()->GetResource( &bbResource );
-	ID3D11Resource* rtResource = nullptr;
-	m_pRenderTarget->GetRenderTarget()->GetResource( &rtResource );
-	m_pContext->ResolveSubresource( bbResource, 0u, rtResource, 0u, DXGI_FORMAT_R8G8B8A8_UNORM );
-	//m_pContext->CopyResource( bbResource, rtResource );
-
-	//if (m_bEnable4xMsaa)
-	//{
-	//	m_pContext->ResolveSubresource( m_pOffScreenTex, 0u, m_pTempBackBufferRT, 0u, DXGI_FORMAT_R8G8B8A8_UNORM );
-	//}
-	//else
-	//{
-	//	m_pContext->CopyResource( m_pOffScreenTex, m_pTempBackBufferRT );
-	//}
 }
 
 void Graphics::EndFrame()
