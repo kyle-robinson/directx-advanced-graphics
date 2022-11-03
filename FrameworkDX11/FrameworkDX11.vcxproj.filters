@@ -112,9 +112,6 @@
     <ClInclude Include="Graphics\VertexBuffer.h">
       <Filter>Headers\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\PostProcessing.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Objects\Quad.h">
       <Filter>Headers\Objects</Filter>
     </ClInclude>
@@ -139,8 +136,14 @@
     <ClInclude Include="Model\RenderableGameObject.h">
       <Filter>Headers\Model</Filter>
     </ClInclude>
-    <ClInclude Include="Objects\Mapping.h">
-      <Filter>Headers\Objects</Filter>
+    <ClInclude Include="Systems\Mapping.h">
+      <Filter>Headers\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\PostProcessing.h">
+      <Filter>Headers\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\MotionBlur.h">
+      <Filter>Headers\Systems</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -200,6 +203,12 @@
     </Filter>
     <Filter Include="Resources\Cursors">
       <UniqueIdentifier>{5c306b27-5e77-4121-9e73-e7947d13bb4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Systems">
+      <UniqueIdentifier>{e67b8696-6b51-422c-ac79-1bc08e1edc1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Systems">
+      <UniqueIdentifier>{3eacb0cf-b452-431e-a3e2-2e15e8ee0b8c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -295,9 +304,6 @@
     <ClCompile Include="Objects\Camera.cpp">
       <Filter>Source\Objects</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\PostProcessing.cpp">
-      <Filter>Source\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Objects\Quad.cpp">
       <Filter>Source\Objects</Filter>
     </ClCompile>
@@ -322,8 +328,14 @@
     <ClCompile Include="Model\RenderableGameObject.cpp">
       <Filter>Source\Model</Filter>
     </ClCompile>
-    <ClCompile Include="Objects\Mapping.cpp">
-      <Filter>Source\Objects</Filter>
+    <ClCompile Include="Systems\PostProcessing.cpp">
+      <Filter>Source\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\MotionBlur.cpp">
+      <Filter>Source\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\Mapping.cpp">
+      <Filter>Source\Systems</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

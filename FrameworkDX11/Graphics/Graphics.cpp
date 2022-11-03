@@ -84,17 +84,17 @@ bool Graphics::InitializeShaders()
 		hr = m_pixelShaderTEX.Initialize( m_pDevice, L"Resources\\Shaders\\shaderTEX.fx" );
 		COM_ERROR_IF_FAILED( hr, "Failed to create texture pixel shader!" );
 
-		// Define input layout for quad
+		// Define input layout for RTT
 		D3D11_INPUT_ELEMENT_DESC layoutPP[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		// Create the quad shaders
+		// Create the RTT shaders
 		hr = m_vertexShaderPP.Initialize( m_pDevice, L"Resources\\Shaders\\shaderPP.fx", layoutPP, ARRAYSIZE( layoutPP ) );
-		COM_ERROR_IF_FAILED( hr, "Failed to create quad vertex shader!" );
+		COM_ERROR_IF_FAILED( hr, "Failed to create RTT vertex shader!" );
 		hr = m_pixelShaderPP.Initialize( m_pDevice, L"Resources\\Shaders\\shaderPP.fx" );
-		COM_ERROR_IF_FAILED( hr, "Failed to create quad pixel shader!" );
+		COM_ERROR_IF_FAILED( hr, "Failed to create RTT pixel shader!" );
 	}
 	catch ( COMException& exception )
 	{
@@ -148,15 +148,20 @@ void Graphics::UpdateRenderStateTexture()
     Shaders::BindShaders( m_pContext.Get(), m_vertexShaderTEX, m_pixelShaderTEX );
 }
 
-void Graphics::RenderSceneToTexture()
+void Graphics::BeginRenderSceneToTexture()
 {
 	// Bind new render target
 	m_pBackBuffer->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
+}
 
+void Graphics::RenderSceneToTexture( ID3D11Buffer* const* cb )
+{
 	// Render fullscreen texture to new render target
 	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderPP, m_pixelShaderPP );
+	m_pContext->PSSetConstantBuffers( 0u, 1u, cb );
 	m_quad.SetupBuffers( m_pContext.Get() );
 	m_pContext->PSSetShaderResources( 0u, 1u, m_pRenderTarget->GetShaderResourceViewPtr() );
+	m_pContext->PSSetShaderResources( 1u, 1u, m_pDepthStencil->GetShaderResourceViewPtr() );
 	Bind::Rasterizer::DrawSolid( m_pContext.Get(), m_quad.GetIndexBuffer().IndexCount() ); // always draw as solid
 }
 
@@ -165,13 +170,6 @@ void Graphics::EndFrame()
 	// Unbind render target
 	m_pRenderTarget->BindNull( m_pContext.Get() );
 	m_pBackBuffer->BindNull( m_pContext.Get() );
-
-	// Copy msaa render target to non-msaa back buffer
-	ID3D11Resource* bbResource = nullptr;
-	m_pBackBuffer->GetBackBuffer()->GetResource( &bbResource );
-	ID3D11Resource* rtResource = nullptr;
-	m_pRenderTarget->GetRenderTarget()->GetResource( &rtResource );
-	m_pContext->ResolveSubresource( rtResource, D3D11CalcSubresource( 0u, 0u, 1u ), bbResource, D3D11CalcSubresource( 0u, 0u, 1u ), DXGI_FORMAT_R8G8B8A8_UNORM );
 
 	// Present frame
 	HRESULT hr = m_pSwapChain->GetSwapChain()->Present( 1u, NULL );

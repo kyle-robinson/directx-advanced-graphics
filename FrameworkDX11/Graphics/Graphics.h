@@ -16,11 +16,14 @@ class Graphics
 public:
 	bool Initialize( HWND hWnd, UINT width, UINT height );
 	void BeginFrame();
+	
 	void UpdateRenderStateSkysphere();
 	void UpdateRenderStateCube();
 	void UpdateRenderStateObject();
 	void UpdateRenderStateTexture();
-	void RenderSceneToTexture();
+	
+	void BeginRenderSceneToTexture();
+	void RenderSceneToTexture( ID3D11Buffer* const* cb );
 	void EndFrame();
 
 	inline UINT GetWidth() const noexcept { return m_viewWidth; }

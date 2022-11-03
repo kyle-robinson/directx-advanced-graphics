@@ -12,8 +12,9 @@
 #include "Light.h"
 #include "Mapping.h"
 #include "Shaders.h"
+#include "MotionBlur.h"
 #include "ImGuiManager.h"
-//#include "PostProcessing.h"
+#include "PostProcessing.h"
 #include "WindowContainer.h"
 #include "RenderableGameObject.h"
 
@@ -31,14 +32,18 @@ private:
 	Cube m_cube;
 	Light m_light;
 	Camera m_camera;
-	Mapping m_mapping;
 	ImGuiManager m_imgui;
 	RenderableGameObject m_objSkysphere;
+	
+	// Systems
+	Mapping m_mapping;
+	MotionBlur m_motionBlur;
+	PostProcessing m_postProcessing;
 
-	// Program data/systems
+	// Data
 	Timer m_timer;
 	Input m_input;
-	//PostProcessing m_postProcessing;
+	XMFLOAT4X4 m_previousViewProjection;
 	ConstantBuffer<Matrices> m_cbMatrices;
 };
 

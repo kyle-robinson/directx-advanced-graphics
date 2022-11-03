@@ -19,17 +19,48 @@ namespace Bind
 		{
 			try
 			{
-				CD3D11_TEXTURE2D_DESC depthStencilDesc( DXGI_FORMAT_D24_UNORM_S8_UINT, static_cast<UINT>( width ), static_cast<UINT>( height ) );
-				depthStencilDesc.MipLevels = 1u;
-				depthStencilDesc.SampleDesc.Count = SAMPLE_COUNT;
-				depthStencilDesc.SampleDesc.Quality = MAX_QUALITY;
-				depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+				// create texture resource
+				D3D11_TEXTURE2D_DESC textureDesc = { 0 };
+				textureDesc.Width = width;
+				textureDesc.Height = height;
+				textureDesc.MipLevels = 1u;
+				textureDesc.ArraySize = 1u;
+				textureDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+				textureDesc.SampleDesc.Count = SAMPLE_COUNT;
+				textureDesc.SampleDesc.Quality = MAX_QUALITY;
+				textureDesc.Usage = D3D11_USAGE_DEFAULT;
+				textureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+				textureDesc.CPUAccessFlags = 0u;
+				textureDesc.MiscFlags = 0u;
 
+				// create resource data
+				uint32_t* initData = new uint32_t[width * height];
+				ZeroMemory(initData, sizeof(uint32_t) * width * height);
+
+				D3D11_SUBRESOURCE_DATA data;
+				ZeroMemory(&data, sizeof(D3D11_SUBRESOURCE_DATA));
+				data.pSysMem = initData;
+				data.SysMemPitch = sizeof(uint32_t) * width;
+				data.SysMemSlicePitch = 0;
+
+				// create texture
 				Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilBuffer;
-				HRESULT hr = device->CreateTexture2D( &depthStencilDesc, NULL, depthStencilBuffer.GetAddressOf() );
+				HRESULT hr = device->CreateTexture2D( &textureDesc, &data, depthStencilBuffer.GetAddressOf() );
 				COM_ERROR_IF_FAILED( hr, "Failed to create depth stencil texture!" );
 
-				CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc( D3D11_DSV_DIMENSION_TEXTURE2DMS );
+				// create resource view on texture
+				D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+				srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+				srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+				srvDesc.Texture2D.MostDetailedMip = 0u;
+				srvDesc.Texture2D.MipLevels = 1u;
+				hr = device->CreateShaderResourceView( depthStencilBuffer.Get(), &srvDesc, shaderResourceView.GetAddressOf() );
+				COM_ERROR_IF_FAILED( hr, "Failed to create Shader Resource View!" );
+
+				// create depth stencil view
+				D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+				depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+				depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 				hr = device->CreateDepthStencilView( depthStencilBuffer.Get(), &depthStencilViewDesc, depthStencilView.GetAddressOf() );
 				COM_ERROR_IF_FAILED( hr, "Failed to create depth stencil view!" );
 			}
@@ -47,8 +78,21 @@ namespace Bind
 		{
 			return depthStencilView.Get();
 		}
+		inline ID3D11DepthStencilView** GetDepthStencilViewPtr() noexcept
+		{
+			return depthStencilView.GetAddressOf();
+		}
+		inline ID3D11ShaderResourceView* GetShaderResourceView() noexcept
+		{
+			return shaderResourceView.Get();
+		}
+		inline ID3D11ShaderResourceView** GetShaderResourceViewPtr() noexcept
+		{
+			return shaderResourceView.GetAddressOf();
+		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> shaderResourceView;
 	};
 }
 
