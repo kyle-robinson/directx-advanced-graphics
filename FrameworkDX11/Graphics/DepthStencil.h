@@ -29,7 +29,7 @@ namespace Bind
 				HRESULT hr = device->CreateTexture2D( &depthStencilDesc, NULL, depthStencilBuffer.GetAddressOf() );
 				COM_ERROR_IF_FAILED( hr, "Failed to create depth stencil texture!" );
 
-				CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc( D3D11_DSV_DIMENSION_TEXTURE2DMS );
+				CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc( D3D11_DSV_DIMENSION_TEXTURE2D );
 				hr = device->CreateDepthStencilView( depthStencilBuffer.Get(), &depthStencilViewDesc, depthStencilView.GetAddressOf() );
 				COM_ERROR_IF_FAILED( hr, "Failed to create depth stencil view!" );
 			}

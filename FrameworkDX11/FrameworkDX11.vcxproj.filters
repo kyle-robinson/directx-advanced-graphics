@@ -373,5 +373,8 @@
     <FxCompile Include="Resources\Shaders\shaderTEX.fx">
       <Filter>Resources</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\shaderDOF.fx">
+      <Filter>Resources</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

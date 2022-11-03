@@ -26,7 +26,7 @@ namespace Bind
 				HRESULT hr = swapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), ( LPVOID* )pBackBuffer.GetAddressOf() );
 				COM_ERROR_IF_FAILED( hr, "Failed to create swap chain!" );
 
-				CD3D11_RENDER_TARGET_VIEW_DESC rtvDesc( D3D11_RTV_DIMENSION_TEXTURE2DMS, DXGI_FORMAT_R8G8B8A8_UNORM );
+				CD3D11_RENDER_TARGET_VIEW_DESC rtvDesc( D3D11_RTV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R8G8B8A8_UNORM );
 				hr = device->CreateRenderTargetView( pBackBuffer.Get(), &rtvDesc, backBuffer.GetAddressOf() );
 				COM_ERROR_IF_FAILED( hr, "Failed to create render target view!" );
 			}
@@ -63,6 +63,12 @@ namespace Bind
 	class RenderTarget
 	{
 	public:
+		enum class Type
+		{
+			DEFAULT,
+			BLUR,
+			DEPTH
+		};
 		RenderTarget( ID3D11Device* device, int width, int height )
 		{
 			try
@@ -87,7 +93,7 @@ namespace Bind
 				// create resource view on texture
 				D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 				srvDesc.Format = textureDesc.Format;
-				srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+				srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 				srvDesc.Texture2D.MostDetailedMip = 0u;
 				srvDesc.Texture2D.MipLevels = 1u;
 				hr = device->CreateShaderResourceView( pTexture.Get(), &srvDesc, shaderResourceView.GetAddressOf() );
@@ -96,7 +102,7 @@ namespace Bind
 				// create the target view on the texture
 				D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
 				rtvDesc.Format = textureDesc.Format;
-				rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
+				rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 				hr = device->CreateRenderTargetView( pTexture.Get(), &rtvDesc, renderTargetView.GetAddressOf() );
 				COM_ERROR_IF_FAILED( hr, "Failed to create Render Target View with Texture!" );
 			}

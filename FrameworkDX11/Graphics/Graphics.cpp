@@ -21,8 +21,12 @@ void Graphics::InitializeDirectX( HWND hWnd )
 {
 	m_pSwapChain = std::make_shared<Bind::SwapChain>( m_pContext.GetAddressOf(), m_pDevice.GetAddressOf(), hWnd, m_viewWidth, m_viewHeight );
     m_pBackBuffer = std::make_shared<Bind::BackBuffer>( m_pDevice.Get(), m_pSwapChain->GetSwapChain() );
-    m_pRenderTarget = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
-    m_pDepthStencil = std::make_shared<Bind::DepthStencil>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
+	
+	m_pRenderTargets.emplace( Bind::RenderTarget::Type::DEFAULT, std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight ) );
+	m_pRenderTargets.emplace( Bind::RenderTarget::Type::BLUR, std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight ) );
+	m_pRenderTargets.emplace( Bind::RenderTarget::Type::DEPTH, std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight ) );
+    
+	m_pDepthStencil = std::make_shared<Bind::DepthStencil>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
 	m_pViewport = std::make_shared<Bind::Viewport>( m_pContext.Get(), m_viewWidth, m_viewHeight );
     
     m_pRasterizerStates.emplace( Bind::Rasterizer::Type::SOLID, std::make_shared<Bind::Rasterizer>( m_pDevice.Get(), Bind::Rasterizer::Type::SOLID ) );
@@ -116,8 +120,19 @@ bool Graphics::InitializeRTT()
 void Graphics::BeginFrame()
 {
 	// Clear render target/depth stencil
-    m_pRenderTarget->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
-    m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
+	switch ( m_renderIndex )
+	{
+	case 0u:
+		m_pRenderTargets[Bind::RenderTarget::Type::DEFAULT]->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
+		m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
+		break;
+	case 1u:
+		m_pRenderTargets[Bind::RenderTarget::Type::BLUR]->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
+		break;
+	case 2u:
+		m_pRenderTargets[Bind::RenderTarget::Type::DEPTH]->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
+		break;
+	}
 }
 
 void Graphics::UpdateRenderStateSkysphere()
@@ -154,24 +169,26 @@ void Graphics::RenderSceneToTexture()
 	m_pBackBuffer->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
 
 	// Render fullscreen texture to new render target
-	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderPP, m_pixelShaderPP );
+	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDOF, m_pixelShaderDOF );
 	m_quad.SetupBuffers( m_pContext.Get() );
-	m_pContext->PSSetShaderResources( 0u, 1u, m_pRenderTarget->GetShaderResourceViewPtr() );
+	m_pContext->PSSetShaderResources( 0u, 1u, m_pRenderTargets[Bind::RenderTarget::Type::DEFAULT]->GetShaderResourceViewPtr() );
+	m_pContext->PSSetShaderResources( 1u, 1u, m_pRenderTargets[Bind::RenderTarget::Type::BLUR]->GetShaderResourceViewPtr() );
+	m_pContext->PSSetShaderResources( 2u, 1u, m_pRenderTargets[Bind::RenderTarget::Type::DEPTH]->GetShaderResourceViewPtr() );
 	Bind::Rasterizer::DrawSolid( m_pContext.Get(), m_quad.GetIndexBuffer().IndexCount() ); // always draw as solid
 }
 
 void Graphics::EndFrame()
 {
 	// Unbind render target
-	m_pRenderTarget->BindNull( m_pContext.Get() );
+	m_pRenderTargets[Bind::RenderTarget::Type::DEFAULT]->BindNull( m_pContext.Get() );
 	m_pBackBuffer->BindNull( m_pContext.Get() );
 
 	// Copy msaa render target to non-msaa back buffer
-	ID3D11Resource* bbResource = nullptr;
-	m_pBackBuffer->GetBackBuffer()->GetResource( &bbResource );
-	ID3D11Resource* rtResource = nullptr;
-	m_pRenderTarget->GetRenderTarget()->GetResource( &rtResource );
-	m_pContext->ResolveSubresource( rtResource, D3D11CalcSubresource( 0u, 0u, 1u ), bbResource, D3D11CalcSubresource( 0u, 0u, 1u ), DXGI_FORMAT_R8G8B8A8_UNORM );
+	//ID3D11Resource* bbResource = nullptr;
+	//m_pBackBuffer->GetBackBuffer()->GetResource( &bbResource );
+	//ID3D11Resource* rtResource = nullptr;
+	//m_pRenderTargets[Bind::RenderTarget::Type::DEFAULT]->GetRenderTarget()->GetResource( &rtResource );
+	//m_pContext->ResolveSubresource( rtResource, D3D11CalcSubresource( 0u, 0u, 1u ), bbResource, D3D11CalcSubresource( 0u, 0u, 1u ), DXGI_FORMAT_R8G8B8A8_UNORM );
 
 	// Present frame
 	HRESULT hr = m_pSwapChain->GetSwapChain()->Present( 1u, NULL );

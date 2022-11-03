@@ -8,7 +8,7 @@
 #include "ErrorLogger.h"
 
 static UINT MAX_QUALITY = 0u;
-static UINT SAMPLE_COUNT = 4u;
+static UINT SAMPLE_COUNT = 1u;
 
 namespace Bind
 {
@@ -41,7 +41,7 @@ namespace Bind
                 sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
                 // First pass just to create device and context
-                HRESULT hr = D3D11CreateDeviceAndSwapChain(
+                /*HRESULT hr = D3D11CreateDeviceAndSwapChain(
                     nullptr,                        // IDXGI Adapter
                     D3D_DRIVER_TYPE_HARDWARE,       // Driver Type
                     nullptr,                        // Software Module
@@ -60,10 +60,10 @@ namespace Bind
                 hr = ( *device )->CheckMultisampleQualityLevels( sd.BufferDesc.Format, sd.SampleDesc.Count, &MAX_QUALITY );
                 if ( MAX_QUALITY > 0u )
                     MAX_QUALITY--;
-                sd.SampleDesc.Quality = MAX_QUALITY;
+                sd.SampleDesc.Quality = MAX_QUALITY;*/
 
                 // Second pass to create swap chain with updated quality
-                hr = D3D11CreateDeviceAndSwapChain(
+                HRESULT hr = D3D11CreateDeviceAndSwapChain(
                     nullptr,                        // IDXGI Adapter
                     D3D_DRIVER_TYPE_HARDWARE,       // Driver Type
                     nullptr,                        // Software Module
