@@ -19,8 +19,8 @@ public:
 private:
 	XMFLOAT4X4 m_ViewProjInv;
 	XMFLOAT4X4 m_PrevViewProj;
-	BOOL m_bUseMotionBlur = TRUE;
-	int m_numSamples = 4;
+	BOOL m_bUseMotionBlur = FALSE;
+	int m_numSamples = 2;
 	ConstantBuffer<MotionBlur_CB> m_cbMotionBlur;
 };
 

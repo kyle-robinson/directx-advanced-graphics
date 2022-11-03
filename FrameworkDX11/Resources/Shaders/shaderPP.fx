@@ -66,7 +66,7 @@ float4 PS( PS_INPUT input ) : SV_TARGET
         // Convert to nonhomogeneous points [-1,1] by dividing by w.
         previousPos /= previousPos.w;
         // Use this frame's position and last frame's to compute the pixel    // velocity.
-        float2 velocity = ( currentPos - previousPos ) / 2.f;
+        float2 velocity = ( currentPos - previousPos ) / 8.f;
 
         // Get the initial color at this pixel.
         float4 color = textureQuad.Sample( samplerState, input.TexCoord );

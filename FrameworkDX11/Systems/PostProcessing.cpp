@@ -59,9 +59,9 @@ void PostProcessing::Bind( ID3D11DeviceContext* pContext, Bind::RenderTarget* pR
 	}
 }
 
-void PostProcessing::SpawnControlWindow()
+void PostProcessing::SpawnControlWindow( bool usingMotionBlur )
 {
-	if ( ImGui::Begin( "Post-Processing", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
+	if ( !usingMotionBlur )
 	{
 		// Switch between basic/tone map post-process options
 		ImGui::Text( "Post-Process Type:" );

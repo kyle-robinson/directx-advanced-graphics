@@ -126,16 +126,16 @@ void Application::Render()
     m_motionBlur.UpdateCB();
 
     // Render scene to texture
+    graphics.BeginRenderSceneToTexture();
     m_motionBlur.IsActive() ?
-        graphics.BeginRenderSceneToTexture(), graphics.RenderSceneToTexture( m_motionBlur.GetCB() ) :
+        graphics.RenderSceneToTexture( m_motionBlur.GetCB() ) :
         m_postProcessing.Bind( graphics.GetContext(), graphics.GetRenderTarget() );
 
     // Render imgui windows
     m_imgui.BeginRender();
     m_imgui.SpawnInstructionWindow();
-    m_motionBlur.IsActive() ?
-        m_motionBlur.SpawnControlWindow() :
-        m_postProcessing.SpawnControlWindow();
+    m_motionBlur.SpawnControlWindow();
+    m_postProcessing.SpawnControlWindow( m_motionBlur.IsActive() );
     m_mapping.SpawnControlWindow();
     m_light.SpawnControlWindow();
     m_cube.SpawnControlWindow();

@@ -33,14 +33,15 @@ void MotionBlur::UpdateCB()
 
 void MotionBlur::SpawnControlWindow()
 {
-	if ( ImGui::Begin( "Motion Blur", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
-	{
-		static bool useMotionBlur = m_bUseMotionBlur;
-		ImGui::Checkbox( "Use Motion Blur?", &useMotionBlur );
-		m_bUseMotionBlur = useMotionBlur;
+	ImGui::Begin( "Post-Processing", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove );
+	
+	static bool useMotionBlur = m_bUseMotionBlur;
+	ImGui::Checkbox( "Use Motion Blur?", &useMotionBlur );
+	m_bUseMotionBlur = useMotionBlur;
 
+	if ( m_bUseMotionBlur )
+	{
 		ImGui::Text( "No. Of Samples" );
-		ImGui::SliderInt( "##No. Of Samples", &m_numSamples, 1, 4 );
+		ImGui::SliderInt( "##No. Of Samples", &m_numSamples, 1, 10 );
 	}
-	ImGui::End();
 }

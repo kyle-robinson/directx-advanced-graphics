@@ -16,8 +16,8 @@ struct Matrices
 struct MotionBlurData
 {
 	MotionBlurData()
-		: UseMotionBlur( TRUE )
-		, NumSamples( 4 )
+		: UseMotionBlur( FALSE )
+		, NumSamples( 2 )
 	{}
 
 	XMMATRIX mViewProjectionInverse;
