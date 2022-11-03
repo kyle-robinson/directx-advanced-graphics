@@ -13,7 +13,7 @@
 #include "Mapping.h"
 #include "Shaders.h"
 #include "ImGuiManager.h"
-#include "PostProcessing.h"
+//#include "PostProcessing.h"
 #include "WindowContainer.h"
 #include "RenderableGameObject.h"
 
@@ -38,7 +38,7 @@ private:
 	// Program data/systems
 	Timer m_timer;
 	Input m_input;
-	PostProcessing m_postProcessing;
+	//PostProcessing m_postProcessing;
 	ConstantBuffer<Matrices> m_cbMatrices;
 };
 
