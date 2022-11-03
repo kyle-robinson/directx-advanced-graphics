@@ -14,7 +14,6 @@ public:
 	void Draw( const XMMATRIX& view, const XMMATRIX& projection );
 	
 	void UpdateCB( Camera& camera );
-	void UpdateModelCB();
 	void SpawnControlWindow();
 
 	inline ID3D11Buffer* const* GetLightCB() const noexcept { return m_cbLight.GetAddressOf(); }

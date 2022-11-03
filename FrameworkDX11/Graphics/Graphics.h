@@ -16,7 +16,8 @@ class Graphics
 public:
 	bool Initialize( HWND hWnd, UINT width, UINT height );
 	void BeginFrame();
-	void UpdateRenderState();
+	void UpdateRenderStateSkysphere();
+	void UpdateRenderStateCube();
 	void UpdateRenderStateObject();
 	void UpdateRenderStateTexture();
 	void RenderSceneToTexture();
@@ -55,7 +56,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pContext;
 
 	std::shared_ptr<Bind::Viewport> m_pViewport;
-	std::shared_ptr<Bind::RenderTarget> m_pBackBuffer;
+	std::shared_ptr<Bind::BackBuffer> m_pBackBuffer;
 	std::shared_ptr<Bind::RenderTarget> m_pRenderTarget;
 	std::shared_ptr<Bind::DepthStencil> m_pDepthStencil;
 	std::unordered_map<Bind::Sampler::Type, std::shared_ptr<Bind::Sampler>> m_pSamplerStates;

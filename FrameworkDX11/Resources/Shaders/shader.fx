@@ -136,21 +136,21 @@ LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye )
 	LightingResult totalResult = { { 0, 0, 0, 0 },{ 0, 0, 0, 0 } };
 
 	[unroll]
-	for (int i = 0; i < MAX_LIGHTS; ++i)
+	for ( int i = 0; i < MAX_LIGHTS; ++i )
 	{
 		LightingResult result = { { 0, 0, 0, 0 },{ 0, 0, 0, 0 } };
 
-		if (!Lights[i].Enabled) 
+		if ( !Lights[i].Enabled ) 
 			continue;
 		
-		result = DoPointLight(Lights[i], vertexToEye, vertexPos, N);
+		result = DoPointLight( Lights[i], vertexToEye, vertexPos, N );
 		
 		totalResult.Diffuse += result.Diffuse;
 		totalResult.Specular += result.Specular;
 	}
 
-	totalResult.Diffuse = saturate(totalResult.Diffuse);
-	totalResult.Specular = saturate(totalResult.Specular);
+	totalResult.Diffuse = saturate( totalResult.Diffuse );
+	totalResult.Specular = saturate( totalResult.Specular );
 
 	return totalResult;
 }
@@ -369,7 +369,7 @@ float4 PS( PS_INPUT input ) : SV_TARGET
         else
             input.TexCoord = SimpleParallax( input.TexCoord, vertexToEyeTS );
         
-        if ( input.TexCoord.x > 1.0 || input.TexCoord.y > 1.0 || input.TexCoord.x < 0.0 || input.TexCoord.y < 0.0 )
+        if ( input.TexCoord.x > 1.0f || input.TexCoord.y > 1.0f || input.TexCoord.x < 0.0f || input.TexCoord.y < 0.0f )
             discard;
     }
 	
@@ -389,7 +389,13 @@ float4 PS( PS_INPUT input ) : SV_TARGET
 	float4 specular = Material.Specular * lit.Specular * intensity;
 
 	if ( Material.UseTexture )
+    {
         textureColor = textureDiffuse.Sample( samplerState, input.TexCoord );
+        //[unroll]
+        //for ( int i = 0; i < 4; i++ )
+        //    textureColor[i] = textureDiffuse.Load( input.TexCoord, i );
+        //textureColor = textureColor / 4;
+    }
 
     // self-shadowing
     float shadowFactor = 1.0f;

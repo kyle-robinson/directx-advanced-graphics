@@ -15,7 +15,7 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 
         // Initialize systems
         m_imgui.Initialize( renderWindow.GetHWND(), graphics.GetDevice(), graphics.GetContext() );
-        m_postProcessing.Initialize( graphics.GetDevice() );
+        //m_postProcessing.Initialize( graphics.GetDevice() );
 
         // Initialize input
         m_camera.Initialize( XMFLOAT3( 0.0f, 0.0f, -3.0f ), width, height );
@@ -86,8 +86,8 @@ void Application::Render()
     graphics.BeginFrame();
 
     // Render skyphere first
+    graphics.UpdateRenderStateSkysphere();
     m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
-    graphics.UpdateRenderState();
 
     // Get the game object world transform
     DirectX::XMMATRIX mGO = XMLoadFloat4x4( m_cube.GetTransform() );
@@ -104,6 +104,7 @@ void Application::Render()
     m_cube.UpdateCB();
 
     // Render objects
+    graphics.UpdateRenderStateCube();
     graphics.GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
     graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_cube.GetMaterialCB() );
     graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_light.GetLightCB() );
@@ -115,12 +116,12 @@ void Application::Render()
 
     // Render scene to texture
     graphics.RenderSceneToTexture();
-    m_postProcessing.Bind( graphics.GetContext(), graphics.GetRenderTarget() );
+    //m_postProcessing.Bind( graphics.GetContext(), graphics.GetRenderTarget() );
 
     // Render imgui windows
     m_imgui.BeginRender();
     m_imgui.SpawnInstructionWindow();
-    m_postProcessing.SpawnControlWindow();
+    //m_postProcessing.SpawnControlWindow();
     m_mapping.SpawnControlWindow();
     m_light.SpawnControlWindow();
     m_cube.SpawnControlWindow();

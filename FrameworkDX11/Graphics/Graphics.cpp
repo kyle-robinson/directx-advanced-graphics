@@ -20,7 +20,7 @@ bool Graphics::Initialize( HWND hWnd, UINT width, UINT height )
 void Graphics::InitializeDirectX( HWND hWnd )
 {
 	m_pSwapChain = std::make_shared<Bind::SwapChain>( m_pContext.GetAddressOf(), m_pDevice.GetAddressOf(), hWnd, m_viewWidth, m_viewHeight );
-    m_pBackBuffer = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_pSwapChain->GetSwapChain() );
+    m_pBackBuffer = std::make_shared<Bind::BackBuffer>( m_pDevice.Get(), m_pSwapChain->GetSwapChain() );
     m_pRenderTarget = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
     m_pDepthStencil = std::make_shared<Bind::DepthStencil>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
 	m_pViewport = std::make_shared<Bind::Viewport>( m_pContext.Get(), m_viewWidth, m_viewHeight );
@@ -33,6 +33,7 @@ void Graphics::InitializeDirectX( HWND hWnd )
 	m_pSamplerStates.emplace( Bind::Sampler::Type::BILINEAR, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::BILINEAR ) );
 	m_pSamplerStates.emplace( Bind::Sampler::Type::POINT, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::POINT ) );
 
+	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC]->Bind( m_pContext.Get() );
     m_pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 }
 
@@ -115,16 +116,18 @@ bool Graphics::InitializeRTT()
 void Graphics::BeginFrame()
 {
 	// Clear render target/depth stencil
-    m_pRenderTarget->BindAsTexture( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
+    m_pRenderTarget->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
     m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
-
-    // Set render state for skysphere
-    m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC]->Bind( m_pContext.Get() );
-    m_pRasterizerStates[Bind::Rasterizer::Type::SKYSPHERE]->Bind( m_pContext.Get() );
-	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );    
 }
 
-void Graphics::UpdateRenderState()
+void Graphics::UpdateRenderStateSkysphere()
+{
+	// Set render state for skysphere
+    m_pRasterizerStates[Bind::Rasterizer::Type::SKYSPHERE]->Bind( m_pContext.Get() );
+	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
+}
+
+void Graphics::UpdateRenderStateCube()
 {
 	// Set default render state for cubes
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
@@ -148,20 +151,36 @@ void Graphics::UpdateRenderStateTexture()
 void Graphics::RenderSceneToTexture()
 {
 	// Bind new render target
-	m_pBackBuffer->BindAsBuffer( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
+	m_pBackBuffer->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
 
 	// Render fullscreen texture to new render target
 	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderPP, m_pixelShaderPP );
 	m_quad.SetupBuffers( m_pContext.Get() );
 	m_pContext->PSSetShaderResources( 0u, 1u, m_pRenderTarget->GetShaderResourceViewPtr() );
 	Bind::Rasterizer::DrawSolid( m_pContext.Get(), m_quad.GetIndexBuffer().IndexCount() ); // always draw as solid
+
+	ID3D11Resource* bbResource = nullptr;
+	m_pBackBuffer->GetBackBuffer()->GetResource( &bbResource );
+	ID3D11Resource* rtResource = nullptr;
+	m_pRenderTarget->GetRenderTarget()->GetResource( &rtResource );
+	m_pContext->ResolveSubresource( bbResource, 0u, rtResource, 0u, DXGI_FORMAT_R8G8B8A8_UNORM );
+	//m_pContext->CopyResource( bbResource, rtResource );
+
+	//if (m_bEnable4xMsaa)
+	//{
+	//	m_pContext->ResolveSubresource( m_pOffScreenTex, 0u, m_pTempBackBufferRT, 0u, DXGI_FORMAT_R8G8B8A8_UNORM );
+	//}
+	//else
+	//{
+	//	m_pContext->CopyResource( m_pOffScreenTex, m_pTempBackBufferRT );
+	//}
 }
 
 void Graphics::EndFrame()
 {
 	// Unbind render target
-	m_pRenderTarget->BindAsNull( m_pContext.Get() );
-	m_pBackBuffer->BindAsNull( m_pContext.Get() );
+	m_pRenderTarget->BindNull( m_pContext.Get() );
+	m_pBackBuffer->BindNull( m_pContext.Get() );
 
 	// Present frame
 	HRESULT hr = m_pSwapChain->GetSwapChain()->Present( 1u, NULL );
