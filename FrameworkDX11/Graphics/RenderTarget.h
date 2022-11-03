@@ -97,7 +97,6 @@ namespace Bind
 				D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
 				rtvDesc.Format = textureDesc.Format;
 				rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
-				rtvDesc.Texture2DMS = D3D11_TEX2DMS_RTV{ 0 };
 				hr = device->CreateRenderTargetView( pTexture.Get(), &rtvDesc, renderTargetView.GetAddressOf() );
 				COM_ERROR_IF_FAILED( hr, "Failed to create Render Target View with Texture!" );
 			}

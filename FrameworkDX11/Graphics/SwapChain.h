@@ -49,8 +49,8 @@ namespace Bind
                     nullptr,                        // Feature Levels Array
                     0,                              // No. of Feature Levels
                     D3D11_SDK_VERSION,              // SDK Version
-                    &sd,                            // Swap Chain Description
-                    swapChain.GetAddressOf(),       // Swap Chain Address
+                    nullptr,                        // Swap Chain Description
+                    nullptr,                        // Swap Chain Address
                     device,                         // Device Address
                     nullptr,                        // Ptr to Feature Level
                     context                         // Context Address
