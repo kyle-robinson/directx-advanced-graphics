@@ -15,7 +15,7 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 
         // Initialize systems
         m_imgui.Initialize( renderWindow.GetHWND(), graphics.GetDevice(), graphics.GetContext() );
-        //m_postProcessing.Initialize( graphics.GetDevice() );
+        m_postProcessing.Initialize( graphics.GetDevice() );
 
         // Initialize input
         m_camera.Initialize( XMFLOAT3( 0.0f, 0.0f, -3.0f ), width, height );
@@ -32,8 +32,12 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
         hr = m_light.Initialize( graphics.GetDevice(), graphics.GetContext(), m_cbMatrices );
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'light' object!" );
 
+        // Initialize systems
         hr = m_mapping.Initialize( graphics.GetDevice(), graphics.GetContext() );
-	    COM_ERROR_IF_FAILED( hr, "Failed to create 'mapping' object!" );
+	    COM_ERROR_IF_FAILED( hr, "Failed to create 'mapping' system!" );
+
+        hr = m_motionBlur.Initialize( graphics.GetDevice(), graphics.GetContext() );
+	    COM_ERROR_IF_FAILED( hr, "Failed to create 'motion blur' system!" );
 
         // Initialize models
         if ( !m_objSkysphere.Initialize( "Resources\\Models\\sphere.obj", graphics.GetDevice(), graphics.GetContext(), m_cbMatrices ) )
@@ -90,12 +94,12 @@ void Application::Render()
     m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
 
     // Get the game object world transform
-    DirectX::XMMATRIX mGO = XMLoadFloat4x4( m_cube.GetTransform() );
-	m_cbMatrices.data.mWorld = DirectX::XMMatrixTranspose( mGO );
+    XMMATRIX mGO = XMLoadFloat4x4( m_cube.GetTransform() );
+	m_cbMatrices.data.mWorld = XMMatrixTranspose( mGO );
     
     // Store the view / projection in a constant buffer for the vertex shader to use
-	m_cbMatrices.data.mView = DirectX::XMMatrixTranspose( m_camera.GetViewMatrix() );
-	m_cbMatrices.data.mProjection = DirectX::XMMatrixTranspose( m_camera.GetProjectionMatrix() );
+	m_cbMatrices.data.mView = XMMatrixTranspose( m_camera.GetViewMatrix() );
+	m_cbMatrices.data.mProjection = XMMatrixTranspose( m_camera.GetProjectionMatrix() );
 	if ( !m_cbMatrices.ApplyChanges() ) return;
     
     // Update constant buffers
@@ -106,22 +110,32 @@ void Application::Render()
     // Render objects
     graphics.UpdateRenderStateCube();
     graphics.GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
-    graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_cube.GetMaterialCB() );
-    graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_light.GetLightCB() );
-    graphics.GetContext()->PSSetConstantBuffers( 3u, 1u, m_mapping.GetMappingCB() );
+    graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_cube.GetCB() );
+    graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_light.GetCB() );
+    graphics.GetContext()->PSSetConstantBuffers( 3u, 1u, m_mapping.GetCB() );
     m_cube.Draw( graphics.GetContext() );
 
     graphics.UpdateRenderStateTexture();
     m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
 
+    // Setup motion blur
+    XMMATRIX viewProjInv = XMMatrixInverse( nullptr, XMMatrixTranspose( m_camera.GetViewMatrix() ) * XMMatrixTranspose( m_camera.GetProjectionMatrix() ) );
+    m_motionBlur.SetViewProjInv( viewProjInv );
+    XMMATRIX prevViewProj = XMLoadFloat4x4( &m_previousViewProjection );
+    m_motionBlur.SetPrevViewProj( prevViewProj );
+    m_motionBlur.UpdateCB();
+
     // Render scene to texture
-    graphics.RenderSceneToTexture();
-    //m_postProcessing.Bind( graphics.GetContext(), graphics.GetRenderTarget() );
+    m_motionBlur.IsActive() ?
+        graphics.BeginRenderSceneToTexture(), graphics.RenderSceneToTexture( m_motionBlur.GetCB() ) :
+        m_postProcessing.Bind( graphics.GetContext(), graphics.GetRenderTarget() );
 
     // Render imgui windows
     m_imgui.BeginRender();
     m_imgui.SpawnInstructionWindow();
-    //m_postProcessing.SpawnControlWindow();
+    m_motionBlur.IsActive() ?
+        m_motionBlur.SpawnControlWindow() :
+        m_postProcessing.SpawnControlWindow();
     m_mapping.SpawnControlWindow();
     m_light.SpawnControlWindow();
     m_cube.SpawnControlWindow();
@@ -129,4 +143,9 @@ void Application::Render()
 
     // Present frame
     graphics.EndFrame();
+
+    // Store current viewProj for next render pass
+     XMStoreFloat4x4( &m_previousViewProjection,
+        XMMatrixTranspose( m_camera.GetViewMatrix() ) *
+        XMMatrixTranspose( m_camera.GetProjectionMatrix() ) );
 }

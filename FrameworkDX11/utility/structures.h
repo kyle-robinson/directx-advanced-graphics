@@ -12,6 +12,27 @@ struct Matrices
 	XMMATRIX mProjection;
 };
 
+// Motion Blur
+struct MotionBlurData
+{
+	MotionBlurData()
+		: UseMotionBlur( TRUE )
+		, NumSamples( 4 )
+	{}
+
+	XMMATRIX mViewProjectionInverse;
+	XMMATRIX mPreviousViewProjection;
+
+	BOOL UseMotionBlur;
+	int NumSamples;
+	XMFLOAT2 Padding;
+};
+
+struct MotionBlur_CB
+{
+	MotionBlurData MotionBlur;
+};
+
 // Materials
 struct MaterialData
 {

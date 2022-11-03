@@ -28,7 +28,7 @@ public:
 	void Draw( ID3D11DeviceContext* pContext );
 	void SpawnControlWindow();
 
-	inline ID3D11Buffer* const* GetMaterialCB() const noexcept { return m_cbMaterial.GetAddressOf(); }
+	inline ID3D11Buffer* const* GetCB() const noexcept { return m_cbMaterial.GetAddressOf(); }
 	inline void SetPosition( DirectX::XMFLOAT3 position ) noexcept { m_position = position; }
 	inline XMFLOAT4X4* GetTransform() noexcept { return &m_World; }
 
