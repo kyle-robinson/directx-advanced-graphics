@@ -31,11 +31,18 @@ void MotionBlur::UpdateCB()
     if ( !m_cbMotionBlur.ApplyChanges() ) return;
 }
 
-void MotionBlur::SpawnControlWindow()
+void MotionBlur::SpawnControlWindow( bool usingFXAA )
 {
 	ImGui::Begin( "Post-Processing", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove );
 	
 	static bool useMotionBlur = m_bUseMotionBlur;
+	if ( usingFXAA )
+	{
+		useMotionBlur = false;
+		m_bUseMotionBlur = useMotionBlur;
+		return;
+	}
+
 	ImGui::Checkbox( "Use Motion Blur?", &useMotionBlur );
 	m_bUseMotionBlur = useMotionBlur;
 

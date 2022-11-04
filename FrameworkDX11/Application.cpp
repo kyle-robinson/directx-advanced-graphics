@@ -39,6 +39,9 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
         hr = m_motionBlur.Initialize( graphics.GetDevice(), graphics.GetContext() );
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'motion blur' system!" );
 
+        hr = m_fxaa.Initialize( graphics.GetDevice(), graphics.GetContext() );
+	    COM_ERROR_IF_FAILED( hr, "Failed to create 'FXAA' system!" );
+
         // Initialize models
         if ( !m_objSkysphere.Initialize( "Resources\\Models\\sphere.obj", graphics.GetDevice(), graphics.GetContext(), m_cbMatrices ) )
 		    return false;
@@ -125,17 +128,22 @@ void Application::Render()
     m_motionBlur.SetPrevViewProj( prevViewProj );
     m_motionBlur.UpdateCB();
 
+    // Setup FXAA
+    m_fxaa.UpdateCB( graphics.GetWidth(), graphics.GetHeight() );
+
     // Render scene to texture
     graphics.BeginRenderSceneToTexture();
-    m_motionBlur.IsActive() ?
-        graphics.RenderSceneToTexture( m_motionBlur.GetCB() ) :
+    ( m_motionBlur.IsActive() || m_fxaa.IsActive() ) ?
+        graphics.RenderSceneToTexture( m_motionBlur.GetCB(), m_fxaa.GetCB() ) :
         m_postProcessing.Bind( graphics.GetContext(), graphics.GetRenderTarget() );
 
     // Render imgui windows
     m_imgui.BeginRender();
     m_imgui.SpawnInstructionWindow();
-    m_motionBlur.SpawnControlWindow();
-    m_postProcessing.SpawnControlWindow( m_motionBlur.IsActive() );
+    m_motionBlur.SpawnControlWindow( m_fxaa.IsActive() );
+    m_fxaa.SpawnControlWindow( m_motionBlur.IsActive() );
+    m_postProcessing.SpawnControlWindow(
+        m_motionBlur.IsActive(), m_fxaa.IsActive() );
     m_mapping.SpawnControlWindow();
     m_light.SpawnControlWindow();
     m_cube.SpawnControlWindow();

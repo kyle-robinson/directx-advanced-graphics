@@ -23,7 +23,7 @@ public:
 	void UpdateRenderStateTexture();
 	
 	void BeginRenderSceneToTexture();
-	void RenderSceneToTexture( ID3D11Buffer* const* cb );
+	void RenderSceneToTexture( ID3D11Buffer* const* cbMotionBlur, ID3D11Buffer* const* cbFXAA );
 	void EndFrame();
 
 	inline UINT GetWidth() const noexcept { return m_viewWidth; }

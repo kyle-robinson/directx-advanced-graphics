@@ -7,6 +7,7 @@
 #include "Resource.h"
 
 #include "Cube.h"
+#include "FXAA.h"
 #include "Input.h"
 #include "Timer.h"
 #include "Light.h"
@@ -36,6 +37,7 @@ private:
 	RenderableGameObject m_objSkysphere;
 	
 	// Systems
+	FXAA m_fxaa;
 	Mapping m_mapping;
 	MotionBlur m_motionBlur;
 	PostProcessing m_postProcessing;

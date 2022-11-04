@@ -59,9 +59,9 @@ void PostProcessing::Bind( ID3D11DeviceContext* pContext, Bind::RenderTarget* pR
 	}
 }
 
-void PostProcessing::SpawnControlWindow( bool usingMotionBlur )
+void PostProcessing::SpawnControlWindow( bool usingMotionBlur, bool usingFXAA )
 {
-	if ( !usingMotionBlur )
+	if ( !usingMotionBlur && !usingFXAA )
 	{
 		// Switch between basic/tone map post-process options
 		ImGui::Text( "Post-Process Type:" );

@@ -61,7 +61,7 @@ bool Cube::InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext 
 	try
 	{
 		// Set position to world origin
-		DirectX::XMStoreFloat4x4( &m_World, DirectX::XMMatrixIdentity() );
+		XMStoreFloat4x4( &m_World, XMMatrixIdentity() );
 
 		// Create vertex buffer
 		HRESULT hr = m_vertexBuffer.Initialize( pDevice, vertices, ARRAYSIZE( vertices ) );
@@ -99,9 +99,9 @@ void Cube::Update( float dt, ID3D11DeviceContext* pContext )
 	static float cummulativeTime = 0;
 	cummulativeTime += dt;
 
-	DirectX::XMMATRIX mSpin = DirectX::XMMatrixRotationY( cummulativeTime );
-	DirectX::XMMATRIX mTranslate = DirectX::XMMatrixTranslation( 0.0f, 0.0f, 0.0f );
-	DirectX::XMMATRIX world = mTranslate;// * mSpin;
+	XMMATRIX mSpin = DirectX::XMMatrixRotationY( cummulativeTime );
+	XMMATRIX mTranslate = DirectX::XMMatrixTranslation( 0.0f, 0.0f, 0.0f );
+	XMMATRIX world = mTranslate;// * mSpin;
 	XMStoreFloat4x4( &m_World, world );
 }
 
