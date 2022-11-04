@@ -123,7 +123,7 @@ void Application::Render()
     m_motionBlur.SetViewProjInv( viewProjInv );
     XMMATRIX prevViewProj = XMLoadFloat4x4( &m_previousViewProjection );
     m_motionBlur.SetPrevViewProj( prevViewProj );
-    m_motionBlur.UpdateCB();
+    m_motionBlur.UpdateCB( graphics.GetWidth(), graphics.GetHeight() );
 
     // Render scene to texture
     graphics.BeginRenderSceneToTexture();

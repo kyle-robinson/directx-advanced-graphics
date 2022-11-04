@@ -158,7 +158,7 @@ void Graphics::RenderSceneToTexture( ID3D11Buffer* const* cb )
 {
 	// Render fullscreen texture to new render target
 	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderPP, m_pixelShaderPP );
-	m_pContext->PSSetConstantBuffers( 0u, 1u, cb );
+	m_pContext->PSSetConstantBuffers( 0u, 1u, cb );	
 	m_quad.SetupBuffers( m_pContext.Get() );
 	m_pContext->PSSetShaderResources( 0u, 1u, m_pRenderTarget->GetShaderResourceViewPtr() );
 	m_pContext->PSSetShaderResources( 1u, 1u, m_pDepthStencil->GetShaderResourceViewPtr() );

@@ -10,7 +10,8 @@ struct _MotionBlur
 
     bool UseMotionBlur;
     int NumSamples;
-    float2 Padding;
+    float2 TextureSizeInverse;
+    //float2 Padding;
 };
 
 // Constant Buffers
@@ -48,7 +49,7 @@ struct PS_INPUT
 
 float4 PS( PS_INPUT input ) : SV_TARGET
 {
-    if ( MotionBlur.UseMotionBlur )
+    /*if ( MotionBlur.UseMotionBlur )
     {
         //Get the depth buffer value at this pixel.
         float zOverW = textureDepth.Sample( samplerState, input.TexCoord );
@@ -85,10 +86,48 @@ float4 PS( PS_INPUT input ) : SV_TARGET
 
         // Average all of the samples to get the final blur color.
         return color / MotionBlur.NumSamples;
-    }
+    }*/
+
+    float3 luma = { 0.299f, 0.587f, 0.114f };
+    float lumaTL = dot( luma, textureQuad.Sample( samplerState, input.TexCoord + ( float2( -1.0f,  1.0f ) * MotionBlur.TextureSizeInverse ) ) );
+    float lumaTR = dot( luma, textureQuad.Sample( samplerState, input.TexCoord + ( float2(  1.0f,  1.0f ) * MotionBlur.TextureSizeInverse ) ) );
+    float lumaBL = dot( luma, textureQuad.Sample( samplerState, input.TexCoord + ( float2( -1.0f, -1.0f ) * MotionBlur.TextureSizeInverse ) ) );
+    float lumaBR = dot( luma, textureQuad.Sample( samplerState, input.TexCoord + ( float2(  1.0f, -1.0f ) * MotionBlur.TextureSizeInverse ) ) );
+    float lumaM = dot( luma, textureQuad.Sample( samplerState, input.TexCoord ) );
+
+    float2 dir;
+	dir.x = ( ( lumaTL + lumaTR ) - ( lumaBL + lumaBR ) );
+	dir.y = ( ( lumaTL + lumaBL ) - ( lumaTR + lumaBR ) );
+
+    float fxaaSpanMax = 8.0f;
+    float fxaaReduceMin = 1.0f / 128.0f;
+    float fxaaReduceMul = 1.0f / 8.0f;
+
+    float dirReduce = max( ( lumaTL + lumaTR + lumaBL + lumaBR ) * ( fxaaReduceMul * 0.25f ), fxaaReduceMin );
+	float inverseDirAdjustment = 1.0f / ( min( abs( dir.x ), abs( dir.y ) ) + dirReduce );
+
+	dir.x = min( float2( fxaaSpanMax, fxaaSpanMax ), max( float2( -fxaaSpanMax, -fxaaSpanMax ), dir * inverseDirAdjustment ) ) * MotionBlur.TextureSizeInverse;
+	dir.y = min( float2( fxaaSpanMax, fxaaSpanMax ), max( float2( -fxaaSpanMax, -fxaaSpanMax ), dir * inverseDirAdjustment ) ) * MotionBlur.TextureSizeInverse;
+
+	float3 result1 = ( 1.0f / 2.0f ) * (
+		textureQuad.Sample( samplerState, input.TexCoord + ( dir * float2( 1.0f / 3.0f - 0.5f, 1.0f / 3.0f - 0.5f ) ) ) +
+		textureQuad.Sample( samplerState, input.TexCoord + ( dir * float2( 2.0f / 3.0f - 0.5f, 2.0f / 3.0f - 0.5f ) ) ) );
+
+	float3 result2 = result1 * ( 1.0f / 2.0f ) + ( 1.0f / 4.0f ) * (
+		textureQuad.Sample( samplerState, input.TexCoord + ( dir * float2( 0.0f / 3.0f - 0.5f, 0.0f / 3.0f - 0.5f ) ) ) +
+		textureQuad.Sample( samplerState, input.TexCoord + ( dir * float2( 3.0f / 3.0f - 0.5f, 3.0f / 3.0f - 0.5f ) ) ) );
+
+	float lumaMin = min( lumaM, min( min( lumaTL, lumaTR ), min( lumaBL, lumaBR ) ) );
+	float lumaMax = max( lumaM, max( max( lumaTL, lumaTR ), max( lumaBL, lumaBR ) ) );
+	float lumaResult2 = dot( luma, result2 );
+	
+	if ( lumaResult2 < lumaMin || lumaResult2 > lumaMax )
+		return float4( result1.x, result1.y, result1.z, 1.0f );
+	else
+		return float4( result2.x, result2.y, result2.z, 1.0f );
 
     // Sample from render target texture
-    return saturate( textureQuad.Sample( samplerState, input.TexCoord ).rgba );
+    //return saturate( textureQuad.Sample( samplerState, input.TexCoord ).rgba );
     
     // Samples from MSAA texture
     //float4 textureColor = { 0.0f, 0.0f, 0.0f, 1.0f };

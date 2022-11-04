@@ -17,7 +17,7 @@ bool MotionBlur::Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
 	return true;
 }
 
-void MotionBlur::UpdateCB()
+void MotionBlur::UpdateCB( int width, int height )
 {
 	// Setup mapping data
 	MotionBlurData mbData;
@@ -25,6 +25,7 @@ void MotionBlur::UpdateCB()
 	mbData.mPreviousViewProjection = XMLoadFloat4x4( &m_PrevViewProj );
 	mbData.UseMotionBlur = m_bUseMotionBlur;
 	mbData.NumSamples = m_numSamples;
+	mbData.TextureSizeInverse = XMFLOAT2( 1.0f / width, 1.0f / height );
 
 	// Add to constant buffer
 	m_cbMotionBlur.data.MotionBlur = mbData;

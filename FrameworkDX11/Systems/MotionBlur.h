@@ -9,7 +9,7 @@ class MotionBlur
 {
 public:
 	bool Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
-	void UpdateCB();
+	void UpdateCB( int width, int height );
 	void SpawnControlWindow();
 
 	inline bool IsActive() const noexcept { return m_bUseMotionBlur; }

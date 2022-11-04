@@ -25,7 +25,8 @@ struct MotionBlurData
 
 	BOOL UseMotionBlur;
 	int NumSamples;
-	XMFLOAT2 Padding;
+	XMFLOAT2 TextureSizeInverse;
+	//XMFLOAT2 Padding;
 };
 
 struct MotionBlur_CB
