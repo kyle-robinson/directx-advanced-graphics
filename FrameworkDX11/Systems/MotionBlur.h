@@ -9,8 +9,8 @@ class MotionBlur
 {
 public:
 	bool Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
-	void UpdateCB( int width, int height );
-	void SpawnControlWindow();
+	void UpdateCB();
+	void SpawnControlWindow( bool usingFXAA );
 
 	inline bool IsActive() const noexcept { return m_bUseMotionBlur; }
 	inline ID3D11Buffer* const* GetCB() const noexcept { return m_cbMotionBlur.GetAddressOf(); }

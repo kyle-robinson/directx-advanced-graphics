@@ -17,7 +17,7 @@ bool MotionBlur::Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
 	return true;
 }
 
-void MotionBlur::UpdateCB( int width, int height )
+void MotionBlur::UpdateCB()
 {
 	// Setup mapping data
 	MotionBlurData mbData;
@@ -25,18 +25,24 @@ void MotionBlur::UpdateCB( int width, int height )
 	mbData.mPreviousViewProjection = XMLoadFloat4x4( &m_PrevViewProj );
 	mbData.UseMotionBlur = m_bUseMotionBlur;
 	mbData.NumSamples = m_numSamples;
-	mbData.TextureSizeInverse = XMFLOAT2( 1.0f / width, 1.0f / height );
 
 	// Add to constant buffer
 	m_cbMotionBlur.data.MotionBlur = mbData;
     if ( !m_cbMotionBlur.ApplyChanges() ) return;
 }
 
-void MotionBlur::SpawnControlWindow()
+void MotionBlur::SpawnControlWindow( bool usingFXAA )
 {
 	ImGui::Begin( "Post-Processing", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove );
 	
 	static bool useMotionBlur = m_bUseMotionBlur;
+	if ( usingFXAA )
+	{
+		useMotionBlur = false;
+		m_bUseMotionBlur = useMotionBlur;
+		return;
+	}
+
 	ImGui::Checkbox( "Use Motion Blur?", &useMotionBlur );
 	m_bUseMotionBlur = useMotionBlur;
 

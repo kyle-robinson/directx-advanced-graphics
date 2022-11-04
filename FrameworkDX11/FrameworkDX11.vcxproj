@@ -421,6 +421,7 @@
     <ClInclude Include="Objects\Light.h" />
     <ClInclude Include="Objects\Quad.h" />
     <ClInclude Include="Resources\Resource.h" />
+    <ClInclude Include="Systems\FXAA.h" />
     <ClInclude Include="Systems\Mapping.h" />
     <ClInclude Include="Systems\MotionBlur.h" />
     <ClInclude Include="Systems\PostProcessing.h" />
@@ -488,6 +489,7 @@
     <ClCompile Include="Objects\Cube.cpp" />
     <ClCompile Include="Objects\Light.cpp" />
     <ClCompile Include="Objects\Quad.cpp" />
+    <ClCompile Include="Systems\FXAA.cpp" />
     <ClCompile Include="Systems\Mapping.cpp" />
     <ClCompile Include="Systems\MotionBlur.cpp" />
     <ClCompile Include="Systems\PostProcessing.cpp" />
