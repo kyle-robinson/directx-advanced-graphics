@@ -340,14 +340,10 @@ float4 PS( PS_INPUT input ) : SV_TARGET
 	float4 diffuse = Material.Diffuse * lit.Diffuse * Lights[0].Intensity;
 	float4 specular = Material.Specular * lit.Specular * Lights[0].Intensity;
 
-	if ( Material.UseTexture )
-    {
+    if ( Material.UseTexture )
         textureColor = textureDiffuse.Sample( samplerState, input.TexCoord );
-        //[unroll]
-        //for ( int i = 0; i < 4; i++ )
-        //    textureColor += textureDiffuse.Load( input.TexCoord, i );
-        //textureColor = textureColor / 4;
-    }
+    else
+        textureColor = float4( 1.0f, 1.0f, 1.0f, 1.0f );
 
     // self-shadowing
     float shadowFactor = 1.0f;
