@@ -10,7 +10,7 @@ class Camera;
 class Light
 {
 public:
-	bool Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext , ConstantBuffer<Matrices>& cb_vs_vertexshader );
+	bool Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ConstantBuffer<Matrices>& cb_vs_vertexshader );
 	void Draw( const XMMATRIX& view, const XMMATRIX& projection );
 	
 	void UpdateCB( Camera& camera );
