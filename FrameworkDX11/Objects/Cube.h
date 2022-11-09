@@ -2,6 +2,7 @@
 #ifndef CUBE_H
 #define CUBE_H
 
+class Camera;
 #include "Resource.h"
 #include "DDSTextureLoader.h"
 
@@ -25,6 +26,7 @@ public:
 	bool InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 	void Update( float dt, ID3D11DeviceContext* pContext );
 	void UpdateCB();
+	void UpdateBuffers( ConstantBuffer<Matrices>& cb_vs_matrices, Camera& pCamera );
 	void Draw( ID3D11DeviceContext* pContext );
 	void SpawnControlWindow();
 

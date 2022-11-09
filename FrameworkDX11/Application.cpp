@@ -94,15 +94,6 @@ void Application::Render()
     // Render skyphere first
     graphics.UpdateRenderStateSkysphere();
     m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
-
-    // Get the game object world transform
-    XMMATRIX mGO = XMLoadFloat4x4( m_cube.GetTransform() );
-	m_cbMatrices.data.mWorld = XMMatrixTranspose( mGO );
-    
-    // Store the view / projection in a constant buffer for the vertex shader to use
-	m_cbMatrices.data.mView = XMMatrixTranspose( m_camera.GetViewMatrix() );
-	m_cbMatrices.data.mProjection = XMMatrixTranspose( m_camera.GetProjectionMatrix() );
-	if ( !m_cbMatrices.ApplyChanges() ) return;
     
     // Update constant buffers
     m_light.UpdateCB( m_camera );
@@ -111,6 +102,7 @@ void Application::Render()
 
     // Render objects
     graphics.UpdateRenderStateCube();
+    m_cube.UpdateBuffers( m_cbMatrices, m_camera );
     graphics.GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
     graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_cube.GetCB() );
     graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_light.GetCB() );
