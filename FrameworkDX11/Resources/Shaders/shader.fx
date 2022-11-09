@@ -33,9 +33,10 @@ struct Light
     float LinearAttenuation;
     float QuadraticAttenuation;
     
+    float Intensity;
     int LightType;
     bool Enabled;
-    int2 Padding;
+    float Padding;
 };
 
 struct LightingResult
@@ -381,12 +382,11 @@ float4 PS( PS_INPUT input ) : SV_TARGET
     LightingResult lit = ComputeLighting( input.WorldPosition, normalize( input.Normal ), vertexToLight );
 
 	// texture/material
-    float intensity = 4.0f;
     float4 textureColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-	float4 emissive = Material.Emissive * intensity;
-	float4 ambient = Material.Ambient * GlobalAmbient * intensity;
-	float4 diffuse = Material.Diffuse * lit.Diffuse * intensity;
-	float4 specular = Material.Specular * lit.Specular * intensity;
+	float4 emissive = Material.Emissive * Lights[0].Intensity;
+	float4 ambient = Material.Ambient * GlobalAmbient * Lights[0].Intensity;
+	float4 diffuse = Material.Diffuse * lit.Diffuse * Lights[0].Intensity;
+	float4 specular = Material.Specular * lit.Specular * Lights[0].Intensity;
 
 	if ( Material.UseTexture )
     {

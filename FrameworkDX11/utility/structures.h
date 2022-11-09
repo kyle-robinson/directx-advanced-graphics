@@ -57,7 +57,6 @@ struct FXAA_CB
 	FXAAData FXAA;
 };
 
-
 // Materials
 struct MaterialData
 {
@@ -103,6 +102,7 @@ struct LightData
 		, ConstantAttenuation( 1.0f )
 		, LinearAttenuation( 0.0f )
 		, QuadraticAttenuation( 0.0f )
+		, Intensity( 4.0f )
 		, LightType( PointLight )
 		, Enabled( TRUE )
 	{}
@@ -116,9 +116,10 @@ struct LightData
 	FLOAT LinearAttenuation;
 	FLOAT QuadraticAttenuation;
 
+	FLOAT Intensity;
 	int LightType;
 	BOOL Enabled;
-	XMFLOAT2 Padding;
+	FLOAT Padding;
 };
 
 #define MAX_LIGHTS 1

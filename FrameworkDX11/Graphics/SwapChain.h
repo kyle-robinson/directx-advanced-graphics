@@ -40,7 +40,6 @@ namespace Bind
                 sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
                 sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
-                // Second pass to create swap chain with updated quality
                 HRESULT hr = D3D11CreateDeviceAndSwapChain(
                     nullptr,                        // IDXGI Adapter
                     D3D_DRIVER_TYPE_HARDWARE,       // Driver Type
