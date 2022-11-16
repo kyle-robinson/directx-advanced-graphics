@@ -13,17 +13,17 @@ bool SSAO::Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 
 		// Generate the sample kernel
 		srand( static_cast<unsigned>( time( 0 ) ) );
-		for ( uint32_t i = 0u; i < 16u; i++ )
+		for ( uint32_t i = 0u; i < m_kernelSize; i++ )
 		{
 			XMFLOAT3 sample;
 			sample.x = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2.0f - 1.0f;
 			sample.y = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2.0f - 1.0f;
 			sample.z = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX );
 
-			float scale = (float)i / m_fKernelSize;
+			float scale = (float)i / (float)m_kernelSize;
 			std::function<float( float, float, float )> lerp =
 				[]( float a, float b, float f ) -> float { return a + f * ( b - a ); };
-			scale = lerp( 0.1f, 1.0f, m_fKernelSize * m_fKernelSize );
+			scale = lerp( 0.1f, 1.0f, (float)m_kernelSize * (float)m_kernelSize );
 			sample.x *= scale;
 			sample.y *= scale;
 			sample.z *= scale;
@@ -85,15 +85,15 @@ void SSAO::UpdateCB( int width, int height, const Camera& pCamera )
 	m_fScreenSize = XMFLOAT2( width, height );
 	ssaoData.ScreenSize = m_fScreenSize;
 
-	m_fNoiseScale = XMFLOAT2( width / 4.0f, height / 4.0f ); // 4.0f == noise size
+	m_fNoiseScale = XMFLOAT2( width / m_fNoiseSize, height / m_fNoiseSize );
 	ssaoData.NoiseScale = m_fNoiseScale;
 
 	ssaoData.Radius = m_fRadius;
 	ssaoData.Power = m_fPower;
-	ssaoData.KernelSize = m_fKernelSize;
+	ssaoData.KernelSize = m_kernelSize;
 	ssaoData.UseSSAO = m_bUseSSAO;
 
-	for ( uint32_t i = 0u; i < 16u; i++ )
+	for ( int i = 0; i < m_kernelSize; i++ )
 		ssaoData.KernelOffsets[i] = m_fKernelOffsets[i];
 
 	// Add to constant buffer
@@ -101,16 +101,30 @@ void SSAO::UpdateCB( int width, int height, const Camera& pCamera )
     if ( !m_cbSSAO.ApplyChanges() ) return;
 }
 
-void SSAO::SpawnControlWindow()
+void SSAO::SpawnControlWindow( bool usingMotionBlur, bool usingFXAA )
 {
 	ImGui::SameLine();
 
 	static bool useSSAO = m_bUseSSAO;
+	if ( usingMotionBlur || usingFXAA )
+	{
+		useSSAO = false;
+		m_bUseSSAO = useSSAO;
+		return;
+	}
+
 	ImGui::Checkbox( "Use SSAO?", &useSSAO );
 	m_bUseSSAO = useSSAO;
 
 	if ( m_bUseSSAO )
 	{
-		
+		ImGui::Text( "Occlusion Radius" );
+		ImGui::SliderFloat( "##Occlusion Radius", &m_fRadius, 0.1f, 1.0f, "%.1f" );
+
+		ImGui::Text( "Occlusion Power" );
+		ImGui::SliderFloat( "##Occlusion Power", &m_fPower, 1.0f, 4.0f, "%1.f" );
+
+		ImGui::Text( "Noise Size" );
+		ImGui::SliderFloat( "##Noise Size", &m_fNoiseSize, 1.0f, 10.0f, "%1.f" );
 	}
 }

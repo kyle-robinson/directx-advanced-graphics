@@ -10,7 +10,7 @@ class PostProcessing
 public:
 	void Initialize( ID3D11Device* pDevice );
 	void Bind( ID3D11DeviceContext* pContext, Bind::RenderTarget* pRenderTarget ) noexcept;
-	void SpawnControlWindow( bool usingMotionBlur, bool usingFXAA );
+	void SpawnControlWindow( bool usingMotionBlur, bool usingFXAA, bool usingSSAO );
 	
 	inline void BindMonochrome() noexcept { basicEffect = BasicPostProcess::Effect::Monochrome; }
 	inline void BindSepia() noexcept { basicEffect = BasicPostProcess::Effect::Sepia; }

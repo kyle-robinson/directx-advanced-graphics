@@ -32,12 +32,12 @@ void FXAA::UpdateCB( int width, int height )
     if ( !m_cbFXAA.ApplyChanges() ) return;
 }
 
-void FXAA::SpawnControlWindow( bool usingMotionBlur )
+void FXAA::SpawnControlWindow( bool usingMotionBlur, bool usingSSAO )
 {
 	ImGui::SameLine();
 
 	static bool useFXAA = m_bUseFXAA;
-	if ( usingMotionBlur )
+	if ( usingMotionBlur || usingSSAO )
 	{
 		useFXAA = false;
 		m_bUseFXAA = useFXAA;

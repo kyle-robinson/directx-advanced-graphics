@@ -9,7 +9,7 @@ class FXAA
 public:
 	bool Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 	void UpdateCB( int width, int height );
-	void SpawnControlWindow( bool usingMotionBlur );
+	void SpawnControlWindow( bool usingMotionBlur, bool usingSSAO );
 
 	inline bool IsActive() const noexcept { return m_bUseFXAA; }
 	inline ID3D11Buffer* const* GetCB() const noexcept { return m_cbFXAA.GetAddressOf(); }
