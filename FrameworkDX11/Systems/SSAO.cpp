@@ -118,9 +118,6 @@ void SSAO::SpawnControlWindow( bool usingMotionBlur, bool usingFXAA )
 
 	if ( m_bUseSSAO )
 	{
-		ImGui::Text( "Occlusion Radius" );
-		ImGui::SliderFloat( "##Occlusion Radius", &m_fRadius, 0.1f, 1.0f, "%.1f" );
-
 		ImGui::Text( "Occlusion Power" );
 		ImGui::SliderFloat( "##Occlusion Power", &m_fPower, 1.0f, 4.0f, "%1.f" );
 
