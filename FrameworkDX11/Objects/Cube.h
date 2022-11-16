@@ -26,7 +26,7 @@ public:
 	bool InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 	void Update( float dt, ID3D11DeviceContext* pContext );
 	void UpdateCB();
-	void UpdateBuffers( ConstantBuffer<Matrices>& cb_vs_matrices, Camera& pCamera );
+	void UpdateBuffers( ConstantBuffer<Matrices>& cb_vs_matrices, const Camera& pCamera );
 	void Draw( ID3D11DeviceContext* pContext );
 	void SpawnControlWindow();
 

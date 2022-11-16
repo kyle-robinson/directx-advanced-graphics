@@ -15,26 +15,28 @@ namespace Bind
 	public:
 		enum class Type
 		{
-			ANISOTROPIC,
+			ANISOTROPIC_WRAP,
+			ANISOTROPIC_CLAMP,
 			BILINEAR,
 			POINT
 		};
-		Sampler( ID3D11Device* device, Type type, bool reflect = false, UINT slot = 0u ) : type( type ), reflect( reflect ), slot( slot )
+		Sampler( ID3D11Device* device, Type type, bool clamp = false, UINT slot = 0u ) : type( type ), clamp( clamp ), slot( slot )
 		{
 			try
 			{
 				CD3D11_SAMPLER_DESC samplerDesc( CD3D11_DEFAULT{} );
-				samplerDesc.Filter = [type]() mutable {
+				samplerDesc.Filter = [type]() mutable
+				{
 					switch ( type )
 					{
-					case Type::ANISOTROPIC: return D3D11_FILTER_ANISOTROPIC;
+					case Type::ANISOTROPIC_WRAP: case Type::ANISOTROPIC_CLAMP: return D3D11_FILTER_ANISOTROPIC;
 					case Type::POINT: return D3D11_FILTER_MIN_MAG_MIP_POINT;
 					default:
 					case Type::BILINEAR: return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 					}
 				}();
-				samplerDesc.AddressU = reflect ? D3D11_TEXTURE_ADDRESS_MIRROR : D3D11_TEXTURE_ADDRESS_WRAP;
-				samplerDesc.AddressV = reflect ? D3D11_TEXTURE_ADDRESS_MIRROR : D3D11_TEXTURE_ADDRESS_WRAP;
+				samplerDesc.AddressU = clamp ? D3D11_TEXTURE_ADDRESS_CLAMP : D3D11_TEXTURE_ADDRESS_WRAP;
+				samplerDesc.AddressV = clamp ? D3D11_TEXTURE_ADDRESS_CLAMP : D3D11_TEXTURE_ADDRESS_WRAP;
 				samplerDesc.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY;
 
 				HRESULT hr = device->CreateSamplerState( &samplerDesc, pSampler.GetAddressOf() );
@@ -53,7 +55,7 @@ namespace Bind
 	private:
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> pSampler;
 		Type type;
-		bool reflect;
+		bool clamp;
 		UINT slot;
 	};
 }

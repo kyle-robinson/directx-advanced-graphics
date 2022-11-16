@@ -22,6 +22,9 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
         HRESULT hr = m_cbMatrices.Initialize( graphics.GetDevice(), graphics.GetContext() );
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'Matrices' constant buffer!" );
 
+        hr = m_cbMatricesNormalDepth.Initialize( graphics.GetDevice(), graphics.GetContext() );
+	    COM_ERROR_IF_FAILED( hr, "Failed to create 'Matrices Normal Depth' constant buffer!" );
+
         // Initialize game objects
 	    hr = m_cube.InitializeMesh( graphics.GetDevice(), graphics.GetContext() );
         COM_ERROR_IF_FAILED(hr, "Failed to create 'cube' object!");
@@ -40,6 +43,9 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 
         hr = m_fxaa.Initialize( graphics.GetDevice(), graphics.GetContext() );
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'FXAA' system!" );
+
+        hr = m_ssao.Initialize( graphics.GetDevice(), graphics.GetContext() );
+	    COM_ERROR_IF_FAILED( hr, "Failed to create 'SSAO' system!" );
 
         // Initialize models
         if ( !m_objSkysphere.Initialize( "Resources\\Models\\sphere.obj", graphics.GetDevice(), graphics.GetContext(), m_cbMatrices ) )
@@ -88,7 +94,45 @@ void Application::Update()
 
 void Application::Render()
 {
-    // Setup graphics
+#pragma region NORMAL_DEPTH_PASS
+    // Normal pass
+    graphics.BeginFrameNormal();
+    // Render skyphere first
+    graphics.UpdateRenderStateSkysphere();
+    m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+    
+    // Update constant buffers
+    m_light.UpdateCB( m_camera );
+    m_mapping.UpdateCB();
+    m_cube.UpdateCB();
+
+    // Render objects
+    graphics.UpdateRenderStateCube();
+    m_cube.UpdateBuffers( m_cbMatrices, m_camera );
+    graphics.GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
+    graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_cube.GetCB() );
+    graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_light.GetCB() );
+    graphics.GetContext()->PSSetConstantBuffers( 3u, 1u, m_mapping.GetCB() );
+    m_cube.Draw( graphics.GetContext() );
+
+    graphics.UpdateRenderStateTexture();
+    m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+
+    // Update normal/depth constant buffer
+    MatricesNormalDepth mndData;
+    mndData.mWorld = XMMatrixIdentity();
+    mndData.mView = XMMatrixTranspose( m_camera.GetViewMatrix() );
+    mndData.mProjection = XMMatrixTranspose( m_camera.GetProjectionMatrix() );
+    mndData.mWorldInvTransposeView = XMMatrixTranspose( XMMatrixInverse( nullptr, mndData.mWorld ) ) * mndData.mView;
+
+    // Add to constant buffer
+    m_cbMatricesNormalDepth.data = mndData;
+    if ( !m_cbMatricesNormalDepth.ApplyChanges() ) return;
+    graphics.RenderSceneToTextureNormalDepth( m_cbMatricesNormalDepth.GetAddressOf() );
+#pragma endregion
+
+#pragma MAIN_RENDER_PASS
+    // Standard pass
     graphics.BeginFrame();
 
     // Render skyphere first
@@ -111,7 +155,9 @@ void Application::Render()
 
     graphics.UpdateRenderStateTexture();
     m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+#pragma endregion
 
+#pragma region POST_PROCESSING
     // Setup motion blur
     XMMATRIX viewProjInv = XMMatrixInverse( nullptr, XMMatrixTranspose( m_camera.GetViewMatrix() ) * XMMatrixTranspose( m_camera.GetProjectionMatrix() ) );
     m_motionBlur.SetViewProjInv( viewProjInv );
@@ -122,10 +168,13 @@ void Application::Render()
     // Setup FXAA
     m_fxaa.UpdateCB( graphics.GetWidth(), graphics.GetHeight() );
 
+    // Setup SSAO
+    m_ssao.UpdateCB( graphics.GetWidth(), graphics.GetHeight(), m_camera );
+
     // Render scene to texture
     graphics.BeginRenderSceneToTexture();
-    ( m_motionBlur.IsActive() || m_fxaa.IsActive() ) ?
-        graphics.RenderSceneToTexture( m_motionBlur.GetCB(), m_fxaa.GetCB() ) :
+    ( m_motionBlur.IsActive() || m_fxaa.IsActive() || m_ssao.IsActive() ) ?
+        graphics.RenderSceneToTexture( m_motionBlur.GetCB(), m_fxaa.GetCB(), m_ssao.GetCB(), m_ssao.GetNoiseTexture() ) :
         m_postProcessing.Bind( graphics.GetContext(), graphics.GetRenderTarget() );
 
     // Render imgui windows
@@ -133,6 +182,7 @@ void Application::Render()
     m_imgui.SpawnInstructionWindow();
     m_motionBlur.SpawnControlWindow( m_fxaa.IsActive() );
     m_fxaa.SpawnControlWindow( m_motionBlur.IsActive() );
+    m_ssao.SpawnControlWindow();
     m_postProcessing.SpawnControlWindow(
         m_motionBlur.IsActive(), m_fxaa.IsActive() );
     m_mapping.SpawnControlWindow();
@@ -147,4 +197,5 @@ void Application::Render()
      XMStoreFloat4x4( &m_previousViewProjection,
         XMMatrixTranspose( m_camera.GetViewMatrix() ) *
         XMMatrixTranspose( m_camera.GetProjectionMatrix() ) );
+#pragma endregion
 }

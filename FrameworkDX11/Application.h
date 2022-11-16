@@ -8,6 +8,7 @@
 
 #include "Cube.h"
 #include "FXAA.h"
+#include "SSAO.h"
 #include "Input.h"
 #include "Timer.h"
 #include "Light.h"
@@ -38,6 +39,7 @@ private:
 	
 	// Systems
 	FXAA m_fxaa;
+	SSAO m_ssao;
 	Mapping m_mapping;
 	MotionBlur m_motionBlur;
 	PostProcessing m_postProcessing;
@@ -47,6 +49,7 @@ private:
 	Input m_input;
 	XMFLOAT4X4 m_previousViewProjection;
 	ConstantBuffer<Matrices> m_cbMatrices;
+	ConstantBuffer<MatricesNormalDepth> m_cbMatricesNormalDepth;
 };
 
 #endif

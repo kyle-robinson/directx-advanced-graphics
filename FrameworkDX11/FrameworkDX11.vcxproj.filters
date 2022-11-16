@@ -148,6 +148,12 @@
     <ClInclude Include="Systems\FXAA.h">
       <Filter>Headers\Systems</Filter>
     </ClInclude>
+    <ClInclude Include="Systems\SSAO.h">
+      <Filter>Headers\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\BackBuffer.h">
+      <Filter>Headers\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -238,7 +244,7 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="WinMain.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="utility\DDSTextureLoader.cpp">
@@ -346,6 +352,9 @@
     <ClCompile Include="Systems\FXAA.cpp">
       <Filter>Source\Systems</Filter>
     </ClCompile>
+    <ClCompile Include="Systems\SSAO.cpp">
+      <Filter>Source\Systems</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resources\Tutorial01.rc">
@@ -404,6 +413,12 @@
       <Filter>Resources\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\shaderTEX_VS.hlsl">
+      <Filter>Resources\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\shaderNRM_PS.hlsl">
+      <Filter>Resources\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\shaderNRM_VS.hlsl">
       <Filter>Resources\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

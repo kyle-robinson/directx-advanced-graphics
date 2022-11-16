@@ -8,6 +8,7 @@
 #include "Viewport.h"
 #include "SwapChain.h"
 #include "Rasterizer.h"
+#include "BackBuffer.h"
 #include "DepthStencil.h"
 #include "RenderTarget.h"
 
@@ -16,14 +17,20 @@ class Graphics
 public:
 	bool Initialize( HWND hWnd, UINT width, UINT height );
 	void BeginFrame();
+	void BeginFrameNormal();
 	
-	void UpdateRenderStateSkysphere();
-	void UpdateRenderStateCube();
-	void UpdateRenderStateObject();
-	void UpdateRenderStateTexture();
+	void UpdateRenderStateSkysphere( bool isNormalPass = false );
+	void UpdateRenderStateCube( bool isNormalPass = false );
+	void UpdateRenderStateObject( bool isNormalPass = false );
+	void UpdateRenderStateTexture( bool isNormalPass = false );
 	
 	void BeginRenderSceneToTexture();
-	void RenderSceneToTexture( ID3D11Buffer* const* cbMotionBlur, ID3D11Buffer* const* cbFXAA );
+	void RenderSceneToTexture(
+		ID3D11Buffer* const* cbMotionBlur,
+		ID3D11Buffer* const* cbFXAA,
+		ID3D11Buffer* const* cbSSAO,
+		ID3D11ShaderResourceView* const* pNoiseTexture );
+	void RenderSceneToTextureNormalDepth( ID3D11Buffer* const* cbMatrices );
 	void EndFrame();
 
 	inline UINT GetWidth() const noexcept { return m_viewWidth; }
@@ -46,10 +53,16 @@ private:
 	// Shaders
 	VertexShader m_vertexShader;
 	PixelShader m_pixelShader;
+
 	VertexShader m_vertexShaderPP;
 	PixelShader m_pixelShaderPP;
+
+	VertexShader m_vertexShaderNRM;
+	PixelShader m_pixelShaderNRM;
+
 	VertexShader m_vertexShaderTEX;
 	PixelShader m_pixelShaderTEX;
+
 	VertexShader m_vertexShaderOBJ;
 	PixelShader m_pixelShaderOBJ;
 
@@ -62,6 +75,7 @@ private:
 	std::shared_ptr<Bind::BackBuffer> m_pBackBuffer;
 	std::shared_ptr<Bind::RenderTarget> m_pRenderTarget;
 	std::shared_ptr<Bind::DepthStencil> m_pDepthStencil;
+	std::shared_ptr<Bind::RenderTarget> m_pRenderTargetNormalDepth;
 	std::unordered_map<Bind::Sampler::Type, std::shared_ptr<Bind::Sampler>> m_pSamplerStates;
 	std::unordered_map<Bind::Rasterizer::Type, std::shared_ptr<Bind::Rasterizer>> m_pRasterizerStates;
 };

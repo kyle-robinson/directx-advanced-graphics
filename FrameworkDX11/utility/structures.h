@@ -12,6 +12,14 @@ struct Matrices
 	XMMATRIX mProjection;
 };
 
+struct MatricesNormalDepth
+{
+	XMMATRIX mWorld;
+	XMMATRIX mView;
+	XMMATRIX mProjection;
+	XMMATRIX mWorldInvTransposeView;
+};
+
 // Motion Blur
 struct MotionBlurData
 {
@@ -55,6 +63,45 @@ struct FXAAData
 struct FXAA_CB
 {
 	FXAAData FXAA;
+};
+
+// Screen-Space Ambient Occlusion
+struct SSAOData
+{
+	SSAOData()
+		: Radius( 0.5f )
+		, Power( 2.0f )
+		, KernelSize( 16 )
+		, UseSSAO( FALSE )
+	{
+		srand( static_cast<unsigned>( time( 0 ) ) );
+		for ( uint32_t i = 0u; i < 16u; i++ )
+		{
+			XMFLOAT3 sample;
+			sample.x = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2.0f - 1.0f;
+			sample.y = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2.0f - 1.0f;
+			sample.z = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX );
+			KernelOffsets[i] = sample;
+		}
+	}
+
+	XMMATRIX ProjectionMatrix;
+
+	XMFLOAT2 ScreenSize;
+	XMFLOAT2 NoiseScale;
+
+	FLOAT Radius;
+	FLOAT Power;
+	int KernelSize;
+	BOOL UseSSAO;
+
+	XMFLOAT3 KernelOffsets[16];
+	FLOAT Padding;
+};
+
+struct SSAO_CB
+{
+	SSAOData SSAO;
 };
 
 // Materials

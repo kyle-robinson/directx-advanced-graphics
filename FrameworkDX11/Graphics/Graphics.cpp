@@ -21,19 +21,23 @@ void Graphics::InitializeDirectX( HWND hWnd )
 {
 	m_pSwapChain = std::make_shared<Bind::SwapChain>( m_pContext.GetAddressOf(), m_pDevice.GetAddressOf(), hWnd, m_viewWidth, m_viewHeight );
     m_pBackBuffer = std::make_shared<Bind::BackBuffer>( m_pDevice.Get(), m_pSwapChain->GetSwapChain() );
-    m_pRenderTarget = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
     m_pDepthStencil = std::make_shared<Bind::DepthStencil>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
 	m_pViewport = std::make_shared<Bind::Viewport>( m_pContext.Get(), m_viewWidth, m_viewHeight );
+    
+	m_pRenderTarget = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
+	m_pRenderTargetNormalDepth = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
     
     m_pRasterizerStates.emplace( Bind::Rasterizer::Type::SOLID, std::make_shared<Bind::Rasterizer>( m_pDevice.Get(), Bind::Rasterizer::Type::SOLID ) );
     m_pRasterizerStates.emplace( Bind::Rasterizer::Type::SKYSPHERE, std::make_shared<Bind::Rasterizer>( m_pDevice.Get(), Bind::Rasterizer::Type::SKYSPHERE ) );
     m_pRasterizerStates.emplace( Bind::Rasterizer::Type::WIREFRAME, std::make_shared<Bind::Rasterizer>( m_pDevice.Get(), Bind::Rasterizer::Type::WIREFRAME ) );
 
-    m_pSamplerStates.emplace( Bind::Sampler::Type::ANISOTROPIC, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::ANISOTROPIC ) );
+    m_pSamplerStates.emplace( Bind::Sampler::Type::ANISOTROPIC_WRAP, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::ANISOTROPIC_WRAP, false, 0u ) );
+	m_pSamplerStates.emplace( Bind::Sampler::Type::ANISOTROPIC_CLAMP, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::ANISOTROPIC_CLAMP, true, 1u ) );
 	m_pSamplerStates.emplace( Bind::Sampler::Type::BILINEAR, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::BILINEAR ) );
 	m_pSamplerStates.emplace( Bind::Sampler::Type::POINT, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::POINT ) );
 
-	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC]->Bind( m_pContext.Get() );
+	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
+	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_CLAMP]->Bind( m_pContext.Get() );
     m_pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 }
 
@@ -85,6 +89,19 @@ bool Graphics::InitializeShaders()
 		COM_ERROR_IF_FAILED( hr, "Failed to create texture pixel shader!" );
 
 		// Define input layout for RTT
+		D3D11_INPUT_ELEMENT_DESC layoutNRM[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+		
+		// Create the normal/depth pass shaders
+		hr = m_vertexShaderNRM.Initialize( m_pDevice, L"Resources\\Shaders\\shaderNRM_VS.hlsl", layoutNRM, ARRAYSIZE( layoutNRM ) );
+		COM_ERROR_IF_FAILED( hr, "Failed to create normal/depth vertex shader!" );
+		hr = m_pixelShaderNRM.Initialize( m_pDevice, L"Resources\\Shaders\\shaderNRM_PS.hlsl" );
+		COM_ERROR_IF_FAILED( hr, "Failed to create normal/depth pixel shader!" );
+
+		// Define input layout for RTT
 		D3D11_INPUT_ELEMENT_DESC layoutPP[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -120,32 +137,47 @@ void Graphics::BeginFrame()
     m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
 }
 
-void Graphics::UpdateRenderStateSkysphere()
+void Graphics::BeginFrameNormal()
+{
+	// Clear render target/depth stencil
+	m_pRenderTargetNormalDepth->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
+	m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
+}
+
+void Graphics::UpdateRenderStateSkysphere( bool isNormalPass )
 {
 	// Set render state for skysphere
     m_pRasterizerStates[Bind::Rasterizer::Type::SKYSPHERE]->Bind( m_pContext.Get() );
-	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
+	isNormalPass ?
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderNRM, m_pixelShaderNRM ) :
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
 }
 
-void Graphics::UpdateRenderStateCube()
+void Graphics::UpdateRenderStateCube( bool isNormalPass )
 {
 	// Set default render state for cubes
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
-    Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader );
+	isNormalPass ?
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderNRM, m_pixelShaderNRM ) :
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader );
 }
 
-void Graphics::UpdateRenderStateObject()
+void Graphics::UpdateRenderStateObject( bool isNormalPass )
 {
 	// Set default render state for objects
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
-    Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
+    isNormalPass ?
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderNRM, m_pixelShaderNRM ) :
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
 }
 
-void Graphics::UpdateRenderStateTexture()
+void Graphics::UpdateRenderStateTexture( bool isNormalPass )
 {
 	// Set default render state for objects
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
-    Shaders::BindShaders( m_pContext.Get(), m_vertexShaderTEX, m_pixelShaderTEX );
+	isNormalPass ?
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderNRM, m_pixelShaderNRM ) :
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderTEX, m_pixelShaderTEX );
 }
 
 void Graphics::BeginRenderSceneToTexture()
@@ -154,22 +186,41 @@ void Graphics::BeginRenderSceneToTexture()
 	m_pBackBuffer->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
 }
 
-void Graphics::RenderSceneToTexture( ID3D11Buffer* const* cbMotionBlur, ID3D11Buffer* const* cbFXAA )
+void Graphics::RenderSceneToTexture(
+	ID3D11Buffer* const* cbMotionBlur,
+	ID3D11Buffer* const* cbFXAA,
+	ID3D11Buffer* const* cbSSAO,
+	ID3D11ShaderResourceView* const* pNoiseTexture )
 {
 	// Render fullscreen texture to new render target
 	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderPP, m_pixelShaderPP );
-	m_pContext->PSSetConstantBuffers( 0u, 1u, cbMotionBlur );	
+	m_pContext->PSSetConstantBuffers( 0u, 1u, cbMotionBlur );
 	m_pContext->PSSetConstantBuffers( 1u, 1u, cbFXAA );	
+	m_pContext->PSSetConstantBuffers( 2u, 1u, cbSSAO );	
 	m_quad.SetupBuffers( m_pContext.Get() );
 	m_pContext->PSSetShaderResources( 0u, 1u, m_pRenderTarget->GetShaderResourceViewPtr() );
 	m_pContext->PSSetShaderResources( 1u, 1u, m_pDepthStencil->GetShaderResourceViewPtr() );
+	m_pContext->PSSetShaderResources( 2u, 1u, m_pRenderTargetNormalDepth->GetShaderResourceViewPtr() );
+	m_pContext->PSSetShaderResources( 3u, 1u, pNoiseTexture );
 	Bind::Rasterizer::DrawSolid( m_pContext.Get(), m_quad.GetIndexBuffer().IndexCount() ); // always draw as solid
+	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
+}
+
+void Graphics::RenderSceneToTextureNormalDepth( ID3D11Buffer* const* cbMatrices )
+{
+	// Render fullscreen texture to new render target
+	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderNRM, m_pixelShaderNRM );
+	m_pContext->PSSetConstantBuffers( 0u, 1u, cbMatrices );
+	m_quad.SetupBuffers( m_pContext.Get() );
+	Bind::Rasterizer::DrawSolid( m_pContext.Get(), m_quad.GetIndexBuffer().IndexCount() ); // always draw as solid
+	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
 }
 
 void Graphics::EndFrame()
 {
 	// Unbind render target
 	m_pRenderTarget->BindNull( m_pContext.Get() );
+	m_pRenderTargetNormalDepth->BindNull( m_pContext.Get() );
 	m_pBackBuffer->BindNull( m_pContext.Get() );
 
 	// Present frame

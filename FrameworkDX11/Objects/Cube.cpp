@@ -122,7 +122,7 @@ void Cube::UpdateCB()
 	if ( !m_cbMaterial.ApplyChanges() ) return;
 }
 
-void Cube::UpdateBuffers( ConstantBuffer<Matrices>& cb_vs_matrices, Camera& pCamera )
+void Cube::UpdateBuffers( ConstantBuffer<Matrices>& cb_vs_matrices, const Camera& pCamera )
 {
 	// Get the game object world transform
     XMMATRIX mGO = XMLoadFloat4x4( &m_World );
