@@ -94,67 +94,53 @@ void Application::Update()
 
 void Application::Render()
 {
-#pragma region NORMAL_DEPTH_PASS
-    // Normal pass
-    graphics.BeginFrameNormal();
-    // Render skyphere first
-    graphics.UpdateRenderStateSkysphere();
-    m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+#pragma RENDER_PASSES
+    std::function<void()> RenderScene = [&]() -> void
+    {
+        // Render skyphere first
+        graphics.UpdateRenderStateSkysphere();
+        m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
     
-    // Update constant buffers
-    m_light.UpdateCB( m_camera );
-    m_mapping.UpdateCB();
-    m_cube.UpdateCB();
+        // Update constant buffers
+        m_light.UpdateCB( m_camera );
+        m_mapping.UpdateCB();
+        m_cube.UpdateCB();
 
-    // Render objects
-    graphics.UpdateRenderStateCube();
-    m_cube.UpdateBuffers( m_cbMatrices, m_camera );
-    graphics.GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
-    graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_cube.GetCB() );
-    graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_light.GetCB() );
-    graphics.GetContext()->PSSetConstantBuffers( 3u, 1u, m_mapping.GetCB() );
-    m_cube.Draw( graphics.GetContext() );
+        // Render objects
+        graphics.UpdateRenderStateCube();
+        m_cube.UpdateBuffers( m_cbMatrices, m_camera );
+        graphics.GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
+        graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_cube.GetCB() );
+        graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_light.GetCB() );
+        graphics.GetContext()->PSSetConstantBuffers( 3u, 1u, m_mapping.GetCB() );
+        m_cube.Draw( graphics.GetContext() );
 
-    graphics.UpdateRenderStateTexture();
-    m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+        graphics.UpdateRenderStateTexture();
+        m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+    };
 
-    // Update normal/depth constant buffer
-    MatricesNormalDepth mndData;
-    mndData.mWorld = XMMatrixIdentity();
-    mndData.mView = XMMatrixTranspose( m_camera.GetViewMatrix() );
-    mndData.mProjection = XMMatrixTranspose( m_camera.GetProjectionMatrix() );
-    mndData.mWorldInvTransposeView = XMMatrixTranspose( XMMatrixInverse( nullptr, mndData.mWorld ) ) * mndData.mView;
+    if ( m_ssao.IsActive() )
+    {
+        // Normal pass
+        graphics.BeginFrameNormal();
+        RenderScene();
 
-    // Add to constant buffer
-    m_cbMatricesNormalDepth.data = mndData;
-    if ( !m_cbMatricesNormalDepth.ApplyChanges() ) return;
-    graphics.RenderSceneToTextureNormalDepth( m_cbMatricesNormalDepth.GetAddressOf() );
-#pragma endregion
+        // Update normal/depth constant buffer
+        MatricesNormalDepth mndData;
+        mndData.mWorld = XMMatrixIdentity();
+        mndData.mView = XMMatrixTranspose( m_camera.GetViewMatrix() );
+        mndData.mProjection = XMMatrixTranspose( m_camera.GetProjectionMatrix() );
+        mndData.mWorldInvTransposeView = XMMatrixTranspose( XMMatrixInverse( nullptr, mndData.mWorld ) ) * mndData.mView;
 
-#pragma MAIN_RENDER_PASS
+        // Add to constant buffer
+        m_cbMatricesNormalDepth.data = mndData;
+        if ( !m_cbMatricesNormalDepth.ApplyChanges() ) return;
+        graphics.RenderSceneToTextureNormalDepth( m_cbMatricesNormalDepth.GetAddressOf() );
+    }
+
     // Standard pass
     graphics.BeginFrame();
-
-    // Render skyphere first
-    graphics.UpdateRenderStateSkysphere();
-    m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
-    
-    // Update constant buffers
-    m_light.UpdateCB( m_camera );
-    m_mapping.UpdateCB();
-    m_cube.UpdateCB();
-
-    // Render objects
-    graphics.UpdateRenderStateCube();
-    m_cube.UpdateBuffers( m_cbMatrices, m_camera );
-    graphics.GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
-    graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_cube.GetCB() );
-    graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_light.GetCB() );
-    graphics.GetContext()->PSSetConstantBuffers( 3u, 1u, m_mapping.GetCB() );
-    m_cube.Draw( graphics.GetContext() );
-
-    graphics.UpdateRenderStateTexture();
-    m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+    RenderScene();
 #pragma endregion
 
 #pragma region POST_PROCESSING
