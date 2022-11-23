@@ -3,6 +3,8 @@ Texture2D textureQuad : register( t0 );
 Texture2D textureDepth : register( t1 );
 Texture2D textureNormalDepth : register( t2 );
 Texture2D textureRandom : register( t3 );
+Texture2D texturePosition : register( t4 );
+Texture2D textureAlbedo : register( t5 );
 
 SamplerState samplerWrap : register( s0 );
 SamplerState samplerClamp : register( s1 );
@@ -45,6 +47,12 @@ struct _SSAO
     float Padding;
 };
 
+struct _Deferred
+{
+    bool UseDeferredShading;
+    float3 Padding;
+};
+
 // Constant Buffers
 cbuffer MotionBlurData : register( b0 )
 {
@@ -61,10 +69,66 @@ cbuffer SSAOData : register( b2 )
     _SSAO SSAO;
 }
 
-// Functions
+cbuffer DeferredData : register( b3 )
+{
+    _Deferred Deferred;
+}
+
+// Math Functions
+float3 DecodeSphereMap( float2 e )
+{
+    float2 tmp = e - e * e;
+    float f = tmp.x + tmp.y;
+    float m = sqrt( 4.0f * f - 1.0f );
+
+    float3 n;
+    n.xy = m * ( e * 4.0f - 2.0f );
+    n.z = 3.0f - 8.0f * f;
+    return n;
+}
+
+float3 ComputePositionViewFromZ( uint2 coords, float zbuffer )
+{
+    float2 screenPixelOffset = float2( 2.0f, -2.0f ) / float2( SSAO.ScreenSize.x, SSAO.ScreenSize.y );
+    float2 positionScreen = ( float2( coords.xy ) + 0.5f ) * screenPixelOffset.xy + float2( -1.0f, 1.0f );
+    float viewSpaceZ = SSAO.ProjectionMatrix._43 / ( zbuffer - SSAO.ProjectionMatrix._33 );
+
+    float2 screenSpaceRay = float2( positionScreen.x / SSAO.ProjectionMatrix._11, positionScreen.y / SSAO.ProjectionMatrix._22 );
+    float3 positionView;
+    positionView.z = viewSpaceZ;
+    positionView.xy = screenSpaceRay.xy * positionView.z;
+
+    return positionView;
+}
+
+// Effects Functions
+float4 DoDeferredShading( float4 pos, float2 texCoord, float4 posView )
+{
+    //float4 finalColor = float4( 0.0f, 0.0f, 0.0f, 0.0f );
+
+    // Generate the position texture
+    //float4 position = texturePosition.Sample( samplerWrap, texCoord );
+
+    // Generate normal texture
+    float centerZBuffer = textureNormalDepth.Sample( samplerClamp, texCoord ).w;
+    float3 centerDepthPos = ComputePositionViewFromZ( uint2( posView.xy ), centerZBuffer );
+    float3 normal = DecodeSphereMap( textureNormalDepth.Sample( samplerClamp, texCoord ).xy );
+    
+    // Generate the depth texture
+    //float zOverW = textureDepth.Sample( samplerWrap, texCoord ); // get from cube and skybox
+    
+    // Generate the colour textures
+    //float4 ambient = textureAlbedo.Sample( samplerWrap, texCoord ) * 0.1f;
+    //float3 diffuse = textureAlbedo.Sample( samplerWrap, texCoord ).rgb;
+    //float specular = textureAlbedo.Sample( samplerWrap, texCoord ).a;
+    
+    return float4( normal, 1.0f );
+    //return float4( diffuse, 1.0f );
+}
+
 float4 DoMotionBlur( float2 texCoord )
 {
-    //Get the depth buffer value at this pixel.
+    // Get the depth buffer value at this pixel.
     float zOverW = textureDepth.Sample( samplerWrap, texCoord );
     // H is the viewport position at this pixel in the range -1 to 1.
     float4 H = float4( texCoord.x * 2 - 1, ( 1 - texCoord.y ) * 2 - 1, zOverW, 1 );
@@ -104,11 +168,11 @@ float4 DoMotionBlur( float2 texCoord )
 float4 DoFXAA( float2 texCoord )
 {
     float3 luma = { 0.299f, 0.587f, 0.114f };
-    float lumaTL = dot( luma, textureQuad.Sample( samplerWrap, texCoord + ( float2( -1.0f,  1.0f ) * FXAA.TextureSizeInverse ) ) );
-    float lumaTR = dot( luma, textureQuad.Sample( samplerWrap, texCoord + ( float2(  1.0f,  1.0f ) * FXAA.TextureSizeInverse ) ) );
-    float lumaBL = dot( luma, textureQuad.Sample( samplerWrap, texCoord + ( float2( -1.0f, -1.0f ) * FXAA.TextureSizeInverse ) ) );
-    float lumaBR = dot( luma, textureQuad.Sample( samplerWrap, texCoord + ( float2(  1.0f, -1.0f ) * FXAA.TextureSizeInverse ) ) );
-    float lumaM = dot( luma, textureQuad.Sample( samplerWrap, texCoord ) );
+    float lumaTL = dot( luma, (float3)textureQuad.Sample( samplerWrap, texCoord + ( float2( -1.0f,  1.0f ) * FXAA.TextureSizeInverse ) ) );
+    float lumaTR = dot( luma, (float3)textureQuad.Sample( samplerWrap, texCoord + ( float2(  1.0f,  1.0f ) * FXAA.TextureSizeInverse ) ) );
+    float lumaBL = dot( luma, (float3)textureQuad.Sample( samplerWrap, texCoord + ( float2( -1.0f, -1.0f ) * FXAA.TextureSizeInverse ) ) );
+    float lumaBR = dot( luma, (float3)textureQuad.Sample( samplerWrap, texCoord + ( float2(  1.0f, -1.0f ) * FXAA.TextureSizeInverse ) ) );
+    float lumaM = dot( luma, (float3)textureQuad.Sample( samplerWrap, texCoord ) );
 
     float2 dir;
 	dir.x = ( ( lumaTL + lumaTR ) - ( lumaBL + lumaBR ) );
@@ -125,8 +189,8 @@ float4 DoFXAA( float2 texCoord )
 		textureQuad.Sample( samplerWrap, texCoord + ( dir * float2( 2.0f / 3.0f - 0.5f, 2.0f / 3.0f - 0.5f ) ) ) );
 
 	float3 result2 = result1 * ( 1.0f / 2.0f ) + ( 1.0f / 4.0f ) * (
-		textureQuad.Sample( samplerWrap, texCoord + ( dir * float2( 0.0f / 3.0f - 0.5f, 0.0f / 3.0f - 0.5f ) ) ) +
-		textureQuad.Sample( samplerWrap, texCoord + ( dir * float2( 3.0f / 3.0f - 0.5f, 3.0f / 3.0f - 0.5f ) ) ) );
+		(float3)textureQuad.Sample( samplerWrap, texCoord + ( dir * float2( 0.0f / 3.0f - 0.5f, 0.0f / 3.0f - 0.5f ) ) ) +
+		(float3)textureQuad.Sample( samplerWrap, texCoord + ( dir * float2( 3.0f / 3.0f - 0.5f, 3.0f / 3.0f - 0.5f ) ) ) );
 
 	float lumaMin = min( lumaM, min( min( lumaTL, lumaTR ), min( lumaBL, lumaBR ) ) );
 	float lumaMax = max( lumaM, max( max( lumaTL, lumaTR ), max( lumaBL, lumaBR ) ) );
@@ -136,32 +200,6 @@ float4 DoFXAA( float2 texCoord )
 		return float4( result1.x, result1.y, result1.z, 1.0f );
 	else
 		return float4( result2.x, result2.y, result2.z, 1.0f );
-}
-
-float3 DecodeSphereMap( float2 e )
-{
-    float2 tmp = e - e * e;
-    float f = tmp.x + tmp.y;
-    float m = sqrt( 4.0f * f - 1.0f );
-
-    float3 n;
-    n.xy = m * ( e * 4.0f - 2.0f );
-    n.z = 3.0f - 8.0f * f;
-    return n;
-}
-
-float3 ComputePositionViewFromZ( uint2 coords, float zbuffer )
-{
-    float2 screenPixelOffset = float2( 2.0f, -2.0f ) / float2( SSAO.ScreenSize.x, SSAO.ScreenSize.y );
-    float2 positionScreen = ( float2( coords.xy ) + 0.5f ) * screenPixelOffset.xy + float2( -1.0f, 1.0f );
-    float viewSpaceZ = SSAO.ProjectionMatrix._43 / ( zbuffer - SSAO.ProjectionMatrix._33 );
-
-    float2 screenSpaceRay = float2( positionScreen.x / SSAO.ProjectionMatrix._11, positionScreen.y / SSAO.ProjectionMatrix._22 );
-    float3 positionView;
-    positionView.z = viewSpaceZ;
-    positionView.xy = screenSpaceRay.xy * positionView.z;
-
-    return positionView;
 }
 
 float4 DoSSAO( float2 texCoord, float4 posView )
@@ -210,6 +248,10 @@ struct PS_INPUT
 
 float4 PS( PS_INPUT input ) : SV_TARGET
 {
+    //if ( Deferred.UseDeferredShading )
+    //if ( SSAO.UseSSAO )
+    //    return DoDeferredShading( input.Position, input.TexCoord, input.PositionV );
+
     if ( MotionBlur.UseMotionBlur )
         return DoMotionBlur( input.TexCoord );
 

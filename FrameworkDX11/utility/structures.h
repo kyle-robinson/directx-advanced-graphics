@@ -192,6 +192,7 @@ struct MappingData
 		, UseParallaxSelfShadowing( TRUE )
 		, UseSoftShadow( TRUE )
 		, HeightScale( 0.1f )
+		, UseDeferredShading( TRUE )
 	{}
 
 	BOOL UseNormalMap;
@@ -201,7 +202,8 @@ struct MappingData
 
 	BOOL UseSoftShadow;
 	FLOAT HeightScale;
-	XMFLOAT2 Padding;
+	BOOL UseDeferredShading;
+	FLOAT Padding;
 };
 
 struct Mapping_CB

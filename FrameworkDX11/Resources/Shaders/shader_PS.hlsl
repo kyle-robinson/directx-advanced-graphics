@@ -5,6 +5,8 @@
 Texture2D textureDiffuse : register( t0 );
 Texture2D textureNormal : register( t1 );
 Texture2D textureDisplacement : register( t2 );
+Texture2D textureAlbedo : register( t3 );
+//Texture2D textureNormalDefer : register( t4 );
 SamplerState samplerState : register( s0 );
 
 // Structs
@@ -52,23 +54,24 @@ struct _Mapping
 
     bool UseSoftShadow;
     float HeightScale;
-    float2 Padding;
+    bool UseDeferredShading;
+    float Padding;
 };
 
 // Constant Buffers
-cbuffer MaterialProperties : register( b1 )
+cbuffer MaterialProperties : register( b0 )
 {
 	_Material Material;
 };
 
-cbuffer LightProperties : register( b2 )
+cbuffer LightProperties : register( b1 )
 {
     float4 CameraPosition;
     float4 GlobalAmbient;
     Light Lights[MAX_LIGHTS];
 };
 
-cbuffer MappingProperties : register( b3 )
+cbuffer MappingProperties : register( b2 )
 {
     _Mapping Mapping;
 }
@@ -125,12 +128,12 @@ LightingResult DoPointLight( Light light, float3 vertexToEye, float4 vertexPos, 
 
 LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye )
 {
-	LightingResult totalResult = { { 0, 0, 0, 0 },{ 0, 0, 0, 0 } };
+	LightingResult totalResult = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
 
 	[unroll]
 	for ( int i = 0; i < MAX_LIGHTS; ++i )
 	{
-		LightingResult result = { { 0, 0, 0, 0 },{ 0, 0, 0, 0 } };
+		LightingResult result = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
 
 		if ( !Lights[i].Enabled ) 
 			continue;
@@ -151,7 +154,7 @@ LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye )
 float3x3 computeTBNMatrix( float3 unitNormal, float3 tangent )
 {
     float3 N = unitNormal;
-    float3 T = normalize( tangent - dot( tangent, N ) * N);
+    float3 T = normalize( tangent - dot( tangent, N ) * N );
     float3 B = cross( T, N );
     return float3x3( T, B, N );
 }
@@ -230,7 +233,7 @@ float2 ParallaxOcclusion( float2 texCoord, float3 normal, float3 toEye )
 
 float ParallaxSelfShadowing( float3 toLight, float2 texCoord, bool softShadow )
 {
-    float shadowFactor = 1;
+    float shadowFactor = 1.0f;
     int minLayers = 15;
     int maxLayers = 30;
 
@@ -250,11 +253,11 @@ float ParallaxSelfShadowing( float3 toLight, float2 texCoord, bool softShadow )
 
         float currLayerHeight = height - layerHeight;
         float2 currTexCoord = texCoord + texStep;
-        float heightFromTex = 1.0 - textureDisplacement.SampleGrad( samplerState, currTexCoord, dx, dy ).r;
+        float heightFromTex = 1.0f - textureDisplacement.SampleGrad( samplerState, currTexCoord, dx, dy ).r;
         int stepIndex = 1;
         int numIter = 0;
 
-        while ( currLayerHeight > 0 )
+        while ( currLayerHeight > 0.0f )
         {
             if ( heightFromTex < currLayerHeight )
             {
@@ -302,9 +305,12 @@ struct PS_INPUT
 };
 
 float4 PS( PS_INPUT input ) : SV_TARGET
-{
+{    
 	// vector/matrix setup
-    input.Normal = normalize( input.Normal );
+    //if ( Mapping.UseDeferredShading )
+    //    input.Normal = textureNormalDefer.Sample( samplerState, input.TexCoord ).rgb;
+    //else
+        input.Normal = normalize( input.Normal );
 	
 	//float3x3 TBN = computeTBNMatrix( input.Normal, input.Tangent );
     float3x3 TBN = computeTBNMatrixB( input.Normal, input.Tangent, input.Binormal );
@@ -336,12 +342,23 @@ float4 PS( PS_INPUT input ) : SV_TARGET
 	// texture/material
     float4 textureColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 	float4 emissive = Material.Emissive * Lights[0].Intensity;
+    
 	float4 ambient = Material.Ambient * GlobalAmbient * Lights[0].Intensity;
-	float4 diffuse = Material.Diffuse * lit.Diffuse * Lights[0].Intensity;
+    //if ( Mapping.UseDeferredShading ) ambient = textureDiffuse.Sample( samplerState, input.TexCoord ) * 0.5f;
+	
+    float4 diffuse = Material.Diffuse * lit.Diffuse * Lights[0].Intensity;
+    //if ( useDeferred ) diffuse = textureDiffuse.Sample( samplerState, input.TexCoord );
+    
 	float4 specular = Material.Specular * lit.Specular * Lights[0].Intensity;
+    //if ( useDeferred ) specular = float4( textureDiffuse.Sample( samplerState, input.TexCoord ).a );
 
     if ( Material.UseTexture )
-        textureColor = textureDiffuse.Sample( samplerState, input.TexCoord );
+    {
+        if ( Mapping.UseDeferredShading )
+            textureColor = textureAlbedo.Sample( samplerState, input.TexCoord );
+        else
+            textureColor = textureDiffuse.Sample( samplerState, input.TexCoord );
+    }
     else
         textureColor = float4( 1.0f, 1.0f, 1.0f, 1.0f );
 
@@ -353,4 +370,53 @@ float4 PS( PS_INPUT input ) : SV_TARGET
     // final colour
 	float4 finalColor = ( emissive + ambient + diffuse * shadowFactor + specular * shadowFactor ) * textureColor;
 	return finalColor;
+    
+    ////////////////////////////////////////////////////////////////////////////////////
+    
+    // render depth
+    //float zValue = input.Position.z / input.Position.w;
+    //float zValue = input.ViewPosition.z / input.ViewPosition.w;
+    //float zValue = textureNormalDepth.Sample( samplerState, input.TexCoord ).w;
+    //return float4( zValue, zValue, zValue, 1.0f );
+    
+    // render normals
+    //float3 normals = textureNormalDepth.Sample( samplerState, input.TexCoord ).rgb;
+    //return float4( normals, 1.0f );
+    
+    // render position
+    //float4 position = texturePosition.Sample( samplerState, input.TexCoord );
+    //return position;
+    
+    // render albedo
+    //float4 albedo = textureAlbedo.Sample( samplerState, input.TexCoord );
+    //return albedo;
+    
+    /*float3 normal = textureNormalDepth.Sample( samplerState, input.TexCoord ).rgb;
+    float3 dif = textureAlbedo.Sample( samplerState, input.TexCoord ).rgb;
+
+    if (length(normal) > 0.0f)
+    {
+        float3 lightDir = normalize(float3(1.0f, 1.0f, 1.0f));
+        //float3 position = float3( gView._41, gView._42, gView._43);
+        float3 position = texturePosition.Sample( samplerState, input.TexCoord );
+
+        float lambertian = max(dot(lightDir, normal), 0.0f);
+        float spec = 0.0f;
+
+		[flatten]
+        if (lambertian > 0.0f)
+        {
+            float3 viewDir = normalize(-position);
+            float3 halfDir = normalize(lightDir + viewDir);
+            float specAngle = max(dot(halfDir, normal), 0.0f);
+            spec = pow(specAngle, 100.0f);
+        }
+
+        float3 colorLinear = lambertian * dif + spec * float3(1.0f, 1.0f, 1.0f);
+        float4 color = float4(pow(colorLinear, float3(1.0f / 2.2f, 1.0f / 2.2f, 1.0f / 2.2f)), 1.0f);
+        return color;
+    }
+
+    return float4( dif, 1.0f);*/
+
 }

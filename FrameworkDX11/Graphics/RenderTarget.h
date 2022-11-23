@@ -17,7 +17,14 @@ namespace Bind
 	class RenderTarget
 	{
 	public:
-		RenderTarget( ID3D11Device* device, int width, int height )
+		enum class Type
+		{
+			DEFAULT = -1,
+			POSITION,
+			ALBEDO,
+			NORMAL
+		};
+		RenderTarget( ID3D11Device* device, int width, int height, Type type = Type::DEFAULT )
 		{
 			try
 			{
@@ -27,7 +34,13 @@ namespace Bind
 				textureDesc.Height = height;
 				textureDesc.MipLevels = 1u;
 				textureDesc.ArraySize = 1u;
-				textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				switch ( type )
+				{
+					case Type::POSITION: textureDesc.Format = DXGI_FORMAT_B8G8R8X8_UNORM/*DXGI_FORMAT_R32G32B32A32_FLOAT*/; break;
+					case Type::ALBEDO: textureDesc.Format = DXGI_FORMAT_B8G8R8X8_UNORM; break;
+					case Type::NORMAL: textureDesc.Format = DXGI_FORMAT_B8G8R8X8_UNORM/*DXGI_FORMAT_R16G16B16A16_FLOAT*/; break;
+					case Type::DEFAULT: textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; break;
+				}
 				textureDesc.SampleDesc.Count = SAMPLE_COUNT;
 				textureDesc.SampleDesc.Quality = MAX_QUALITY;
 				textureDesc.Usage = D3D11_USAGE_DEFAULT;

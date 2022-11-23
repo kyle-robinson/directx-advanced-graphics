@@ -11,6 +11,7 @@ public:
 	bool Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 	void UpdateCB();
 	void SpawnControlWindow();
+	inline bool IsDeferredActive() const noexcept { return m_bUseDeferredShading; }
 	inline ID3D11Buffer* const* GetCB() const noexcept { return m_cbMapping.GetAddressOf(); }
 private:
 	BOOL m_bUseNormalMap = TRUE;
@@ -19,6 +20,7 @@ private:
 	BOOL m_bUseParallaxSelfShadowing = TRUE;
 	BOOL m_bUseSoftShadow = TRUE;
 	FLOAT m_fHeightScale = 0.1f;
+	BOOL m_bUseDeferredShading = TRUE;
 	ConstantBuffer<Mapping_CB> m_cbMapping;
 };
 

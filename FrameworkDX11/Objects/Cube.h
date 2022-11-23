@@ -28,6 +28,12 @@ public:
 	void UpdateCB();
 	void UpdateBuffers( ConstantBuffer<Matrices>& cb_vs_matrices, const Camera& pCamera );
 	void Draw( ID3D11DeviceContext* pContext );
+	void DrawDeferred(
+		ID3D11DeviceContext* pContext,
+		//ID3D11ShaderResourceView** position,
+		ID3D11ShaderResourceView** albedo
+		//ID3D11ShaderResourceView** normal
+	);
 	void SpawnControlWindow();
 
 	inline ID3D11Buffer* const* GetCB() const noexcept { return m_cbMaterial.GetAddressOf(); }

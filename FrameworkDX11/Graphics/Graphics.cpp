@@ -26,6 +26,8 @@ void Graphics::InitializeDirectX( HWND hWnd )
     
 	m_pRenderTarget = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
 	m_pRenderTargetNormalDepth = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
+	for ( uint32_t i = 0u; i < BUFFER_COUNT; i++ )
+		m_pRenderTargetsDeferred.emplace( (Bind::RenderTarget::Type)i, std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight, (Bind::RenderTarget::Type)i ) );
     
     m_pRasterizerStates.emplace( Bind::Rasterizer::Type::SOLID, std::make_shared<Bind::Rasterizer>( m_pDevice.Get(), Bind::Rasterizer::Type::SOLID ) );
     m_pRasterizerStates.emplace( Bind::Rasterizer::Type::SKYSPHERE, std::make_shared<Bind::Rasterizer>( m_pDevice.Get(), Bind::Rasterizer::Type::SKYSPHERE ) );
@@ -60,6 +62,20 @@ bool Graphics::InitializeShaders()
 		COM_ERROR_IF_FAILED( hr, "Failed to create cube vertex shader!" );
 		hr = m_pixelShader.Initialize( m_pDevice, L"Resources\\Shaders\\shader_PS.hlsl" );
 		COM_ERROR_IF_FAILED( hr, "Failed to create cube pixel shader!" );
+
+		// Define input layout for normal/depth pass
+		D3D11_INPUT_ELEMENT_DESC layoutDR[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		// Create the cube shaders
+		hr = m_vertexShaderDR.Initialize( m_pDevice, L"Resources\\Shaders\\shaderDR_VS.hlsl", layoutDR, ARRAYSIZE( layoutDR ) );
+		COM_ERROR_IF_FAILED( hr, "Failed to create deferred vertex shader!" );
+		hr = m_pixelShaderDR.Initialize( m_pDevice, L"Resources\\Shaders\\shaderDR_PS.hlsl" );
+		COM_ERROR_IF_FAILED( hr, "Failed to create deferred pixel shader!" );
 
 		// Define input layout for models
 		D3D11_INPUT_ELEMENT_DESC layoutOBJ[] =
@@ -144,39 +160,54 @@ void Graphics::BeginFrameNormal()
 	m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
 }
 
-void Graphics::UpdateRenderStateSkysphere( bool isNormalPass )
+void Graphics::BeginFrameDeferred()
+{
+	// Clear render target/depth stencil
+	ID3D11RenderTargetView* renderTargets[] = {
+		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::POSITION]->GetRenderTarget(),
+		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::ALBEDO]->GetRenderTarget(),
+		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMAL]->GetRenderTarget()
+	};
+	m_pContext->OMSetRenderTargets( BUFFER_COUNT, renderTargets, m_pDepthStencil->GetDepthStencilView() );
+	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::POSITION]->GetRenderTarget(), m_clearColor );
+	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::ALBEDO]->GetRenderTarget(), m_clearColor );
+	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMAL]->GetRenderTarget(), m_clearColor );
+	m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
+}
+
+void Graphics::UpdateRenderStateSkysphere( bool isDeferred )
 {
 	// Set render state for skysphere
     m_pRasterizerStates[Bind::Rasterizer::Type::SKYSPHERE]->Bind( m_pContext.Get() );
-	isNormalPass ?
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderNRM, m_pixelShaderNRM ) :
+	isDeferred ?
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR ) :
 		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
 }
 
-void Graphics::UpdateRenderStateCube( bool isNormalPass )
+void Graphics::UpdateRenderStateCube( bool isDeferred )
 {
 	// Set default render state for cubes
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
-	isNormalPass ?
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderNRM, m_pixelShaderNRM ) :
+	isDeferred ?
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR ) :
 		Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader );
 }
 
-void Graphics::UpdateRenderStateObject( bool isNormalPass )
+void Graphics::UpdateRenderStateObject( bool isDeferred )
 {
 	// Set default render state for objects
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
-    isNormalPass ?
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderNRM, m_pixelShaderNRM ) :
+	isDeferred ?
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR ) :
 		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
 }
 
-void Graphics::UpdateRenderStateTexture( bool isNormalPass )
+void Graphics::UpdateRenderStateTexture( bool isDeferred )
 {
 	// Set default render state for objects
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
-	isNormalPass ?
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderNRM, m_pixelShaderNRM ) :
+	isDeferred ?
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR ) :
 		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderTEX, m_pixelShaderTEX );
 }
 
@@ -198,10 +229,12 @@ void Graphics::RenderSceneToTexture(
 	m_pContext->PSSetConstantBuffers( 1u, 1u, cbFXAA );	
 	m_pContext->PSSetConstantBuffers( 2u, 1u, cbSSAO );	
 	m_quad.SetupBuffers( m_pContext.Get() );
+
 	m_pContext->PSSetShaderResources( 0u, 1u, m_pRenderTarget->GetShaderResourceViewPtr() );
 	m_pContext->PSSetShaderResources( 1u, 1u, m_pDepthStencil->GetShaderResourceViewPtr() );
 	m_pContext->PSSetShaderResources( 2u, 1u, m_pRenderTargetNormalDepth->GetShaderResourceViewPtr() );
 	m_pContext->PSSetShaderResources( 3u, 1u, pNoiseTexture );
+
 	Bind::Rasterizer::DrawSolid( m_pContext.Get(), m_quad.GetIndexBuffer().IndexCount() ); // always draw as solid
 	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
 }
@@ -221,6 +254,8 @@ void Graphics::EndFrame()
 	// Unbind render target
 	m_pRenderTarget->BindNull( m_pContext.Get() );
 	m_pRenderTargetNormalDepth->BindNull( m_pContext.Get() );
+	for ( uint32_t i = 0u; i < BUFFER_COUNT; i++ )
+		m_pRenderTargetsDeferred[(Bind::RenderTarget::Type)i]->BindNull( m_pContext.Get() );
 	m_pBackBuffer->BindNull( m_pContext.Get() );
 
 	// Present frame

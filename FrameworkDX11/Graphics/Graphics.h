@@ -12,17 +12,20 @@
 #include "DepthStencil.h"
 #include "RenderTarget.h"
 
+static UINT BUFFER_COUNT = 3u;
+
 class Graphics
 {
 public:
 	bool Initialize( HWND hWnd, UINT width, UINT height );
 	void BeginFrame();
 	void BeginFrameNormal();
+	void BeginFrameDeferred();
 	
-	void UpdateRenderStateSkysphere( bool isNormalPass = false );
-	void UpdateRenderStateCube( bool isNormalPass = false );
-	void UpdateRenderStateObject( bool isNormalPass = false );
-	void UpdateRenderStateTexture( bool isNormalPass = false );
+	void UpdateRenderStateSkysphere( bool isDeferred = false );
+	void UpdateRenderStateCube( bool isDeferred = false );
+	void UpdateRenderStateObject( bool isDeferred = false );
+	void UpdateRenderStateTexture( bool isDeferred = false );
 	
 	void BeginRenderSceneToTexture();
 	void RenderSceneToTexture(
@@ -38,6 +41,7 @@ public:
 	inline ID3D11Device* GetDevice() const noexcept { return m_pDevice.Get(); }
 	inline ID3D11DeviceContext* GetContext() const noexcept { return m_pContext.Get(); }
 	inline Bind::RenderTarget* GetRenderTarget() const noexcept { return &*m_pRenderTarget; }
+	inline Bind::RenderTarget* GetDeferredRenderTarget( Bind::RenderTarget::Type type ) const noexcept { return &*m_pRenderTargetsDeferred.at( type ); }
 
 private:
 	void InitializeDirectX( HWND hWnd );
@@ -57,6 +61,9 @@ private:
 	VertexShader m_vertexShaderPP;
 	PixelShader m_pixelShaderPP;
 
+	VertexShader m_vertexShaderDR;
+	PixelShader m_pixelShaderDR;
+
 	VertexShader m_vertexShaderNRM;
 	PixelShader m_pixelShaderNRM;
 
@@ -71,11 +78,13 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Device> m_pDevice;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pContext;
 
-	std::shared_ptr<Bind::Viewport> m_pViewport;
-	std::shared_ptr<Bind::BackBuffer> m_pBackBuffer;
 	std::shared_ptr<Bind::RenderTarget> m_pRenderTarget;
 	std::shared_ptr<Bind::DepthStencil> m_pDepthStencil;
 	std::shared_ptr<Bind::RenderTarget> m_pRenderTargetNormalDepth;
+	std::unordered_map<Bind::RenderTarget::Type, std::shared_ptr<Bind::RenderTarget>> m_pRenderTargetsDeferred;
+
+	std::shared_ptr<Bind::Viewport> m_pViewport;
+	std::shared_ptr<Bind::BackBuffer> m_pBackBuffer;
 	std::unordered_map<Bind::Sampler::Type, std::shared_ptr<Bind::Sampler>> m_pSamplerStates;
 	std::unordered_map<Bind::Rasterizer::Type, std::shared_ptr<Bind::Rasterizer>> m_pRasterizerStates;
 };

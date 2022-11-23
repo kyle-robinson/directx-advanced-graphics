@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Application.h"
+#include <imgui/imgui.h>
 
 bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 {
@@ -63,9 +64,9 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 
 void Application::CleanupDevice()
 {
-    // Usefult for finding dx memory leaks
+    // Useful for finding dx memory leaks
     ID3D11Debug* debugDevice = nullptr;
-    graphics.GetDevice()->QueryInterface( __uuidof(ID3D11Debug), reinterpret_cast<void**>( &debugDevice ) );
+    graphics.GetDevice()->QueryInterface( __uuidof( ID3D11Debug ), reinterpret_cast<void**>( &debugDevice ) );
     debugDevice->ReportLiveDeviceObjects( D3D11_RLDO_DETAIL );
     if ( debugDevice ) debugDevice->Release();
 }
@@ -95,10 +96,10 @@ void Application::Update()
 void Application::Render()
 {
 #pragma RENDER_PASSES
-    std::function<void()> RenderScene = [&]() -> void
+    std::function<void( bool useGBuffer )> RenderScene = [&]( bool useGBuffer ) -> void
     {
         // Render skyphere first
-        graphics.UpdateRenderStateSkysphere();
+        graphics.UpdateRenderStateSkysphere( useGBuffer );
         m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
     
         // Update constant buffers
@@ -107,23 +108,36 @@ void Application::Render()
         m_cube.UpdateCB();
 
         // Render objects
-        graphics.UpdateRenderStateCube();
+        graphics.UpdateRenderStateCube( useGBuffer );
         m_cube.UpdateBuffers( m_cbMatrices, m_camera );
         graphics.GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
-        graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_cube.GetCB() );
-        graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_light.GetCB() );
-        graphics.GetContext()->PSSetConstantBuffers( 3u, 1u, m_mapping.GetCB() );
-        m_cube.Draw( graphics.GetContext() );
+        //graphics.GetContext()->VSSetConstantBuffers( 1u, 1u, m_mapping.GetCB() );
+        graphics.GetContext()->PSSetConstantBuffers( 0u, 1u, m_cube.GetCB() );
+        graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_light.GetCB() );
+        graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_mapping.GetCB() );
+        useGBuffer ?
+            m_cube.DrawDeferred( graphics.GetContext(),
+                //graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::POSITION )->GetShaderResourceViewPtr(),
+                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::ALBEDO )->GetShaderResourceViewPtr() ) :
+                //graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr() ) :
+            m_cube.Draw( graphics.GetContext() );
 
-        graphics.UpdateRenderStateTexture();
+        graphics.UpdateRenderStateTexture( useGBuffer );
         m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
     };
+
+    if ( m_mapping.IsDeferredActive() )
+    {
+        // Normal pass
+        graphics.BeginFrameDeferred();
+        RenderScene( false );
+    }
 
     if ( m_ssao.IsActive() )
     {
         // Normal pass
         graphics.BeginFrameNormal();
-        RenderScene();
+        RenderScene( m_mapping.IsDeferredActive() );
 
         // Update normal/depth constant buffer
         MatricesNormalDepth mndData;
@@ -140,7 +154,7 @@ void Application::Render()
 
     // Standard pass
     graphics.BeginFrame();
-    RenderScene();
+    RenderScene( m_mapping.IsDeferredActive() );
 #pragma endregion
 
 #pragma region POST_PROCESSING

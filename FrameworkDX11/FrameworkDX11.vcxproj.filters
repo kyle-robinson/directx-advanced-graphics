@@ -222,6 +222,12 @@
     <Filter Include="Resources\Shaders">
       <UniqueIdentifier>{ba39053a-3e2c-43a4-a9bb-1617ff9fc9d9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resources\Shaders\Vertex">
+      <UniqueIdentifier>{82577194-8e3b-4a33-81bd-46125700bca8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Shaders\Pixel">
+      <UniqueIdentifier>{ec8f9c54-f45f-4500-a970-94483dac5ae7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\alpha_mayoris.jpg">
@@ -391,35 +397,41 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Resources\Shaders\shader_PS.hlsl">
-      <Filter>Resources\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shader_VS.hlsl">
-      <Filter>Resources\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderOBJ_PS.hlsl">
-      <Filter>Resources\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderOBJ_VS.hlsl">
-      <Filter>Resources\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderPP_PS.hlsl">
-      <Filter>Resources\Shaders</Filter>
+    <FxCompile Include="Resources\Shaders\shaderTEX_VS.hlsl">
+      <Filter>Resources\Shaders\Vertex</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\shaderPP_VS.hlsl">
-      <Filter>Resources\Shaders</Filter>
+      <Filter>Resources\Shaders\Vertex</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderTEX_PS.hlsl">
-      <Filter>Resources\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderTEX_VS.hlsl">
-      <Filter>Resources\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderNRM_PS.hlsl">
-      <Filter>Resources\Shaders</Filter>
+    <FxCompile Include="Resources\Shaders\shaderOBJ_VS.hlsl">
+      <Filter>Resources\Shaders\Vertex</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\shaderNRM_VS.hlsl">
-      <Filter>Resources\Shaders</Filter>
+      <Filter>Resources\Shaders\Vertex</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\shaderDR_VS.hlsl">
+      <Filter>Resources\Shaders\Vertex</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\shader_VS.hlsl">
+      <Filter>Resources\Shaders\Vertex</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\shader_PS.hlsl">
+      <Filter>Resources\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\shaderDR_PS.hlsl">
+      <Filter>Resources\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\shaderNRM_PS.hlsl">
+      <Filter>Resources\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\shaderOBJ_PS.hlsl">
+      <Filter>Resources\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\shaderPP_PS.hlsl">
+      <Filter>Resources\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\shaderTEX_PS.hlsl">
+      <Filter>Resources\Shaders\Pixel</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>
