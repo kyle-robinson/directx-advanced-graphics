@@ -164,51 +164,72 @@ void Graphics::BeginFrameDeferred()
 {
 	// Clear render target/depth stencil
 	ID3D11RenderTargetView* renderTargets[] = {
-		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::POSITION]->GetRenderTarget(),
+		//m_pRenderTargetsDeferred[Bind::RenderTarget::Type::POSITION]->GetRenderTarget(),
 		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::ALBEDO]->GetRenderTarget(),
 		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMAL]->GetRenderTarget()
 	};
 	m_pContext->OMSetRenderTargets( BUFFER_COUNT, renderTargets, m_pDepthStencil->GetDepthStencilView() );
-	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::POSITION]->GetRenderTarget(), m_clearColor );
+	//m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::POSITION]->GetRenderTarget(), m_clearColor );
 	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::ALBEDO]->GetRenderTarget(), m_clearColor );
 	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMAL]->GetRenderTarget(), m_clearColor );
 	m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
 }
 
-void Graphics::UpdateRenderStateSkysphere( bool isDeferred )
+void Graphics::UpdateRenderStateSkysphere( bool useDeferred, bool useGBuffer )
 {
 	// Set render state for skysphere
     m_pRasterizerStates[Bind::Rasterizer::Type::SKYSPHERE]->Bind( m_pContext.Get() );
-	isDeferred ?
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR ) :
+	if ( useDeferred )
+	{
+		useGBuffer ?
+			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ ) :
+			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR );
+	}
+	else
+	{
 		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
+	}
 }
 
-void Graphics::UpdateRenderStateCube( bool isDeferred )
+void Graphics::UpdateRenderStateCube( bool useDeferred, bool useGBuffer )
 {
 	// Set default render state for cubes
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
-	isDeferred ?
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR ) :
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader );
+	useGBuffer ?
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader ) :
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR );
 }
 
-void Graphics::UpdateRenderStateObject( bool isDeferred )
+void Graphics::UpdateRenderStateObject( bool useDeferred, bool useGBuffer )
 {
 	// Set default render state for objects
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
-	isDeferred ?
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR ) :
+	if ( useDeferred )
+	{
+		useGBuffer ?
+			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ ) :
+			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR );
+	}
+	else
+	{
 		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
+	}
 }
 
-void Graphics::UpdateRenderStateTexture( bool isDeferred )
+void Graphics::UpdateRenderStateTexture( bool useDeferred, bool useGBuffer )
 {
 	// Set default render state for objects
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
-	isDeferred ?
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR ) :
+	if ( useDeferred )
+	{
+		useGBuffer ?
+			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderTEX, m_pixelShaderTEX ) :
+			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR );
+	}
+	else
+	{
 		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderTEX, m_pixelShaderTEX );
+	}
 }
 
 void Graphics::BeginRenderSceneToTexture()

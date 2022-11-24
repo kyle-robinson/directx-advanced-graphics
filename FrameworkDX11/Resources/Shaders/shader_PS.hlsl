@@ -6,7 +6,7 @@ Texture2D textureDiffuse : register( t0 );
 Texture2D textureNormal : register( t1 );
 Texture2D textureDisplacement : register( t2 );
 Texture2D textureAlbedo : register( t3 );
-//Texture2D textureNormalDefer : register( t4 );
+Texture2D textureNormalDefer : register( t4 );
 SamplerState samplerState : register( s0 );
 
 // Structs
@@ -169,7 +169,11 @@ float3x3 computeTBNMatrixB( float3 unitNormal, float3 tangent, float3 binorm )
 
 float3 NormalMapping( float2 texCoord, float3x3 TBN )
 {
-    float3 texNormal = textureNormal.Sample( samplerState, texCoord ).rgb;
+    float3 texNormal;
+    //if ( Mapping.UseDeferredShading )
+    //    texNormal = textureNormalDefer.Sample( samplerState, texCoord ).rgb;
+    //else
+        texNormal = textureNormal.Sample( samplerState, texCoord ).rgb;
     float3 texNorm = 2.0f * texNormal - 1.0f;
     return mul( texNorm, TBN );
 }
@@ -305,71 +309,96 @@ struct PS_INPUT
 };
 
 float4 PS( PS_INPUT input ) : SV_TARGET
-{    
-	// vector/matrix setup
-    //if ( Mapping.UseDeferredShading )
-    //    input.Normal = textureNormalDefer.Sample( samplerState, input.TexCoord ).rgb;
-    //else
-        input.Normal = normalize( input.Normal );
-	
-	//float3x3 TBN = computeTBNMatrix( input.Normal, input.Tangent );
-    float3x3 TBN = computeTBNMatrixB( input.Normal, input.Tangent, input.Binormal );
-
-    float3 vertexToLight = normalize( Lights[0].Position - input.WorldPosition ).xyz;
-    float3 vertexToEye = normalize( CameraPosition - input.WorldPosition ).xyz;
-    float3 vertexToLightTS = mul( vertexToLight, TBN );
-    float3 vertexToEyeTS = mul( vertexToEye, TBN );
-	
-	// parallax
-    if ( Mapping.UseParallaxMap )
+{   
+    if ( Mapping.UseDeferredShading )
     {
-        if ( Mapping.UseParallaxOcclusion )
-            input.TexCoord = ParallaxOcclusion( input.TexCoord, input.Normal, vertexToEyeTS );
-        else
-            input.TexCoord = SimpleParallax( input.TexCoord, vertexToEyeTS );
-        
-        if ( input.TexCoord.x > 1.0f || input.TexCoord.y > 1.0f || input.TexCoord.x < 0.0f || input.TexCoord.y < 0.0f )
-            discard;
-    }
-	
-	// normal
-    if ( Mapping.UseNormalMap )
-        input.Normal = NormalMapping( input.TexCoord, TBN );
-	
-	// lighting
-    LightingResult lit = ComputeLighting( input.WorldPosition, normalize( input.Normal ), vertexToLight );
+        float3 normal = textureNormalDefer.Sample( samplerState, input.TexCoord ).rgb;
+        float3 dif = textureAlbedo.Sample( samplerState, input.TexCoord ).rgb;
+        float3 vertexToLight = normalize( Lights[0].Position - input.WorldPosition ).xyz;
 
-	// texture/material
-    float4 textureColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-	float4 emissive = Material.Emissive * Lights[0].Intensity;
-    
-	float4 ambient = Material.Ambient * GlobalAmbient * Lights[0].Intensity;
-    //if ( Mapping.UseDeferredShading ) ambient = textureDiffuse.Sample( samplerState, input.TexCoord ) * 0.5f;
-	
-    float4 diffuse = Material.Diffuse * lit.Diffuse * Lights[0].Intensity;
-    //if ( useDeferred ) diffuse = textureDiffuse.Sample( samplerState, input.TexCoord );
-    
-	float4 specular = Material.Specular * lit.Specular * Lights[0].Intensity;
-    //if ( useDeferred ) specular = float4( textureDiffuse.Sample( samplerState, input.TexCoord ).a );
+        // lighting
+        LightingResult lit = ComputeLighting( input.WorldPosition, normalize( input.Normal ), vertexToLight );
 
-    if ( Material.UseTexture )
-    {
-        if ( Mapping.UseDeferredShading )
+	    // texture/material
+        float4 textureColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+	    float4 emissive = Material.Emissive * Lights[0].Intensity;
+	    float4 ambient = Material.Ambient * GlobalAmbient * Lights[0].Intensity;	
+        float4 diffuse = Material.Diffuse * lit.Diffuse * Lights[0].Intensity;    
+	    float4 specular = Material.Specular * lit.Specular * Lights[0].Intensity;
+
+        if ( Material.UseTexture )
             textureColor = textureAlbedo.Sample( samplerState, input.TexCoord );
         else
-            textureColor = textureDiffuse.Sample( samplerState, input.TexCoord );
+            textureColor = float4( 1.0f, 1.0f, 1.0f, 1.0f );
+	
+        // final colour
+	    float4 finalColor = ( emissive + ambient + diffuse + specular ) * textureColor;
+	    return finalColor;
     }
     else
-        textureColor = float4( 1.0f, 1.0f, 1.0f, 1.0f );
-
-    // self-shadowing
-    float shadowFactor = 1.0f;
-    if ( Mapping.UseParallaxSelfShadowing )
-        shadowFactor = ParallaxSelfShadowing( vertexToLightTS, input.TexCoord, Mapping.UseSoftShadow );
+    {
+        //if ( Mapping.UseDeferredShading )
+        //    return float4( 1.0f, 0.5f, 0.2f, 1.0f );
+    
+	    // vector/matrix setup
+        //if ( Mapping.UseDeferredShading )
+        //    input.Normal = textureNormalDefer.Sample( samplerState, input.TexCoord ).rgb;
+        //else
+            input.Normal = normalize( input.Normal );
 	
-    // final colour
-	float4 finalColor = ( emissive + ambient + diffuse * shadowFactor + specular * shadowFactor ) * textureColor;
-	return finalColor;
+	    //float3x3 TBN = computeTBNMatrix( input.Normal, input.Tangent );
+        float3x3 TBN = computeTBNMatrixB( input.Normal, input.Tangent, input.Binormal );
+
+        float3 vertexToLight = normalize( Lights[0].Position - input.WorldPosition ).xyz;
+        float3 vertexToEye = normalize( CameraPosition - input.WorldPosition ).xyz;
+        float3 vertexToLightTS = mul( vertexToLight, TBN );
+        float3 vertexToEyeTS = mul( vertexToEye, TBN );
+	
+	    // parallax
+        if ( Mapping.UseParallaxMap )
+        {
+            if ( Mapping.UseParallaxOcclusion )
+                input.TexCoord = ParallaxOcclusion( input.TexCoord, input.Normal, vertexToEyeTS );
+            else
+                input.TexCoord = SimpleParallax( input.TexCoord, vertexToEyeTS );
+        
+            if ( input.TexCoord.x > 1.0f || input.TexCoord.y > 1.0f || input.TexCoord.x < 0.0f || input.TexCoord.y < 0.0f )
+                discard;
+        }
+	
+	    // normal
+        if ( Mapping.UseNormalMap )
+            input.Normal = NormalMapping( input.TexCoord, TBN );
+	
+	    // lighting
+        LightingResult lit = ComputeLighting( input.WorldPosition, normalize( input.Normal ), vertexToLight );
+
+	    // texture/material
+        float4 textureColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+	    float4 emissive = Material.Emissive * Lights[0].Intensity;
+	    float4 ambient = Material.Ambient * GlobalAmbient * Lights[0].Intensity;	
+        float4 diffuse = Material.Diffuse * lit.Diffuse * Lights[0].Intensity;    
+	    float4 specular = Material.Specular * lit.Specular * Lights[0].Intensity;
+
+        if ( Material.UseTexture )
+        {
+            //if ( Mapping.UseDeferredShading )
+            //    textureColor = textureAlbedo.Sample( samplerState, input.TexCoord );
+            //else
+                textureColor = textureDiffuse.Sample( samplerState, input.TexCoord );
+        }
+        else
+            textureColor = float4( 1.0f, 1.0f, 1.0f, 1.0f );
+
+        // self-shadowing
+        float shadowFactor = 1.0f;
+        if ( Mapping.UseParallaxSelfShadowing )
+            shadowFactor = ParallaxSelfShadowing( vertexToLightTS, input.TexCoord, Mapping.UseSoftShadow );
+	
+        // final colour
+	    float4 finalColor = ( emissive + ambient + diffuse * shadowFactor + specular * shadowFactor ) * textureColor;
+	    return finalColor;
+    }
     
     ////////////////////////////////////////////////////////////////////////////////////
     
@@ -390,33 +419,4 @@ float4 PS( PS_INPUT input ) : SV_TARGET
     // render albedo
     //float4 albedo = textureAlbedo.Sample( samplerState, input.TexCoord );
     //return albedo;
-    
-    /*float3 normal = textureNormalDepth.Sample( samplerState, input.TexCoord ).rgb;
-    float3 dif = textureAlbedo.Sample( samplerState, input.TexCoord ).rgb;
-
-    if (length(normal) > 0.0f)
-    {
-        float3 lightDir = normalize(float3(1.0f, 1.0f, 1.0f));
-        //float3 position = float3( gView._41, gView._42, gView._43);
-        float3 position = texturePosition.Sample( samplerState, input.TexCoord );
-
-        float lambertian = max(dot(lightDir, normal), 0.0f);
-        float spec = 0.0f;
-
-		[flatten]
-        if (lambertian > 0.0f)
-        {
-            float3 viewDir = normalize(-position);
-            float3 halfDir = normalize(lightDir + viewDir);
-            float specAngle = max(dot(halfDir, normal), 0.0f);
-            spec = pow(specAngle, 100.0f);
-        }
-
-        float3 colorLinear = lambertian * dif + spec * float3(1.0f, 1.0f, 1.0f);
-        float4 color = float4(pow(colorLinear, float3(1.0f / 2.2f, 1.0f / 2.2f, 1.0f / 2.2f)), 1.0f);
-        return color;
-    }
-
-    return float4( dif, 1.0f);*/
-
 }

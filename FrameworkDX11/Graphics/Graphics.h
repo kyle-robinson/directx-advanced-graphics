@@ -12,7 +12,7 @@
 #include "DepthStencil.h"
 #include "RenderTarget.h"
 
-static UINT BUFFER_COUNT = 3u;
+static UINT BUFFER_COUNT = 2u;
 
 class Graphics
 {
@@ -22,10 +22,10 @@ public:
 	void BeginFrameNormal();
 	void BeginFrameDeferred();
 	
-	void UpdateRenderStateSkysphere( bool isDeferred = false );
-	void UpdateRenderStateCube( bool isDeferred = false );
-	void UpdateRenderStateObject( bool isDeferred = false );
-	void UpdateRenderStateTexture( bool isDeferred = false );
+	void UpdateRenderStateSkysphere( bool useDeferred = false, bool useGBuffer = false );
+	void UpdateRenderStateCube( bool useDeferred = false, bool useGBuffer = false );
+	void UpdateRenderStateObject( bool useDeferred = false, bool useGBuffer = false );
+	void UpdateRenderStateTexture( bool useDeferred = false, bool useGBuffer = false );
 	
 	void BeginRenderSceneToTexture();
 	void RenderSceneToTexture(

@@ -96,11 +96,14 @@ void Application::Update()
 void Application::Render()
 {
 #pragma RENDER_PASSES
-    std::function<void( bool useGBuffer )> RenderScene = [&]( bool useGBuffer ) -> void
+    std::function<void( bool useDeferred, bool useGBuffer )> RenderScene = [&]( bool useDeferred, bool useGBuffer ) -> void
     {
         // Render skyphere first
-        graphics.UpdateRenderStateSkysphere( useGBuffer );
-        m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+        if ( !useDeferred )
+        {
+            graphics.UpdateRenderStateSkysphere( useDeferred, useGBuffer );
+            m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+        }
     
         // Update constant buffers
         m_light.UpdateCB( m_camera );
@@ -108,36 +111,39 @@ void Application::Render()
         m_cube.UpdateCB();
 
         // Render objects
-        graphics.UpdateRenderStateCube( useGBuffer );
+        graphics.UpdateRenderStateCube( useDeferred, useGBuffer );
         m_cube.UpdateBuffers( m_cbMatrices, m_camera );
         graphics.GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
         //graphics.GetContext()->VSSetConstantBuffers( 1u, 1u, m_mapping.GetCB() );
         graphics.GetContext()->PSSetConstantBuffers( 0u, 1u, m_cube.GetCB() );
         graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_light.GetCB() );
         graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_mapping.GetCB() );
-        useGBuffer ?
+        ( useDeferred && useGBuffer ) ?
             m_cube.DrawDeferred( graphics.GetContext(),
                 //graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::POSITION )->GetShaderResourceViewPtr(),
-                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::ALBEDO )->GetShaderResourceViewPtr() ) :
-                //graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr() ) :
+                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::ALBEDO )->GetShaderResourceViewPtr(),
+                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr() ) :
             m_cube.Draw( graphics.GetContext() );
 
-        graphics.UpdateRenderStateTexture( useGBuffer );
-        m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+        if ( !useDeferred )
+        {
+            graphics.UpdateRenderStateTexture( useDeferred, useGBuffer );
+            m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+        }
     };
 
     if ( m_mapping.IsDeferredActive() )
     {
         // Normal pass
         graphics.BeginFrameDeferred();
-        RenderScene( false );
+        RenderScene( true, false );
     }
 
     if ( m_ssao.IsActive() )
     {
         // Normal pass
         graphics.BeginFrameNormal();
-        RenderScene( m_mapping.IsDeferredActive() );
+        RenderScene( m_mapping.IsDeferredActive(), true );
 
         // Update normal/depth constant buffer
         MatricesNormalDepth mndData;
@@ -154,7 +160,7 @@ void Application::Render()
 
     // Standard pass
     graphics.BeginFrame();
-    RenderScene( m_mapping.IsDeferredActive() );
+    RenderScene( m_mapping.IsDeferredActive(), true );
 #pragma endregion
 
 #pragma region POST_PROCESSING

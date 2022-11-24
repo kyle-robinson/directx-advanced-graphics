@@ -1,21 +1,3 @@
-// Resources
-//Texture2D texturePosition : register( t0 );
-//SamplerState samplerState : register( s0 );
-
-// Structs
-//struct _Mapping
-//{
-//    bool UseNormalMap;
-//    bool UseParallaxMap;
-//    bool UseParallaxOcclusion;
-//    bool UseParallaxSelfShadowing;
-//
-//    bool UseSoftShadow;
-//    float HeightScale;
-//    bool UseDeferredShading;
-//    float Padding;
-//};
-
 // Constant Buffers
 cbuffer ConstantBuffer : register( b0 )
 {
@@ -23,11 +5,6 @@ cbuffer ConstantBuffer : register( b0 )
 	matrix View;
 	matrix Projection;
 }
-
-//cbuffer MappingProperties : register( b1 )
-//{
-//    _Mapping Mapping;
-//}
 
 // Vertex Shader
 struct VS_INPUT
@@ -53,9 +30,6 @@ struct VS_OUTPUT
 VS_OUTPUT VS( VS_INPUT input )
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-    
-    //if ( Mapping.UseDeferredShading )
-    //    input.Position = texturePosition.Load( float3( input.TexCoord, 0.0f ), float2( 0.0f, 0.0f ) );
     
     output.Position = mul( input.Position, World );
 	output.WorldPosition = output.Position;

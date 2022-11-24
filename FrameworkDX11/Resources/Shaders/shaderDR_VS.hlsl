@@ -33,8 +33,8 @@ VS_OUTPUT VS( VS_INPUT input )
     
     //output.PositionV = output.Position;
     
-    output.Normal = mul( input.Normal, (float3x3)World );
-    //output.Normal = mul( float4( input.Normal, 1.0f ), World );
+    //output.Normal = mul( input.Normal, (float3x3)World );
+    output.Normal = mul( float4( input.Normal, 1.0f ), World ).xyz;
     output.TexCoord = input.TexCoord;
     
     return output;
