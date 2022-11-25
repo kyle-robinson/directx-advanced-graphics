@@ -153,7 +153,8 @@ void Cube::DrawDeferred(
 	ID3D11ShaderResourceView** albedo,
 	ID3D11ShaderResourceView** normal,
 	ID3D11ShaderResourceView** tangent,
-	ID3D11ShaderResourceView** binormal )
+	ID3D11ShaderResourceView** binormal,
+	ID3D11ShaderResourceView** normalMap )
 {
 	UINT offset = 0;
 	pContext->IASetVertexBuffers( 0u, 1u, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.StridePtr(), &offset );
@@ -167,6 +168,7 @@ void Cube::DrawDeferred(
 	pContext->PSSetShaderResources( 5u, 1u, position );
 	pContext->PSSetShaderResources( 6u, 1u, tangent );
 	pContext->PSSetShaderResources( 7u, 1u, binormal );
+	pContext->PSSetShaderResources( 8u, 1u, normalMap );
 
 	pContext->DrawIndexed( m_indexBuffer.IndexCount(), 0u, 0u );
 }

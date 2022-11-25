@@ -10,6 +10,7 @@ Texture2D textureNormalDefer : register( t4 );
 Texture2D texturePosition : register( t5 );
 Texture2D textureTangentDefer : register( t6 );
 Texture2D textureBinormalDefer : register( t7 );
+Texture2D textureNormalMapDefer : register( t8 );
 SamplerState samplerState : register( s0 );
 
 // Structs
@@ -172,7 +173,11 @@ float3x3 computeTBNMatrixB( float3 unitNormal, float3 tangent, float3 binorm )
 
 float3 NormalMapping( float2 texCoord, float3x3 TBN )
 {
-    float3 texNormal = textureNormal.Sample( samplerState, texCoord ).rgb;
+    float3 texNormal;
+    if ( Mapping.UseDeferredShading )
+        texNormal = textureNormalMapDefer.Sample( samplerState, texCoord ).rgb;
+    else
+        texNormal = textureNormal.Sample( samplerState, texCoord ).rgb;
     float3 texNorm = 2.0f * texNormal - 1.0f;
     return mul( texNorm, TBN );
 }
@@ -316,17 +321,16 @@ float4 PS( PS_INPUT input ) : SV_TARGET
         float3 vertexToLight = normalize( Lights[0].Position - position ).xyz;
         //float3 vertexToEye = normalize( CameraPosition - position ).xyz;
         
-        //float3 normal = textureNormalDefer.Sample( samplerState, input.TexCoord ).rgb;
-        float3 normal = normalize( input.Normal );
+        float3 normal = textureNormalDefer.Sample( samplerState, input.TexCoord ).rgb;
         //normal = ( 2.0f * normal ) - 1.0f;
         
-        //float3 tangent = textureTangentDefer.Sample( samplerState, input.TexCoord ).rgb;
+        float3 tangent = textureTangentDefer.Sample( samplerState, input.TexCoord ).rgb;
         //tangent = ( 2.0f * tangent ) - 1.0f;
         
-        //float3 binormal = textureBinormalDefer.Sample( samplerState, input.TexCoord ).rgb;
+        float3 binormal = textureBinormalDefer.Sample( samplerState, input.TexCoord ).rgb;
         //binormal = ( 2.0f * binormal ) - 1.0f;
         
-        //float3x3 TBN = computeTBNMatrixB( normal, tangent, binormal );
+        float3x3 TBN = computeTBNMatrixB( normal, tangent, binormal );
         //float3 vertexToLightTS = mul( vertexToLight, TBN );
         //float3 vertexToEyeTS = mul( vertexToEye, TBN );
         
@@ -341,8 +345,8 @@ float4 PS( PS_INPUT input ) : SV_TARGET
         //        discard;
         //}
         
-        //if ( Mapping.UseNormalMap )
-        //    normal = NormalMapping( input.TexCoord, TBN );
+        if ( Mapping.UseNormalMap )
+            normal = NormalMapping( input.TexCoord, TBN );
         
         float4 albedo = textureAlbedo.Sample( samplerState, input.TexCoord );
         if ( !Material.UseTexture )

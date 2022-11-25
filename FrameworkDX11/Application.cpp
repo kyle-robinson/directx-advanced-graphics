@@ -123,7 +123,8 @@ void Application::Render()
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::ALBEDO )->GetShaderResourceViewPtr(),
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr(),
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::TANGENT )->GetShaderResourceViewPtr(),
-                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::BINORMAL )->GetShaderResourceViewPtr() ) :
+                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::BINORMAL )->GetShaderResourceViewPtr(),
+                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMALMAP )->GetShaderResourceViewPtr() ) :
             m_cube.Draw( graphics.GetContext() );
 
         //if ( !useDeferred )

@@ -34,7 +34,8 @@ public:
 		ID3D11ShaderResourceView** albedo,
 		ID3D11ShaderResourceView** normal,
 		ID3D11ShaderResourceView** tangent,
-		ID3D11ShaderResourceView** binormal
+		ID3D11ShaderResourceView** binormal,
+		ID3D11ShaderResourceView** normalMap
 	);
 	void SpawnControlWindow();
 
