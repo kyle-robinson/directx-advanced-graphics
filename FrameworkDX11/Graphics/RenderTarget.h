@@ -41,12 +41,13 @@ namespace Bind
 					/*DXGI_FORMAT_R32G32B32A32_FLOAT*/
 					/*DXGI_FORMAT_R16G16B16A16_FLOAT*/
 					/*DXGI_FORMAT_B8G8R8X8_UNORM*/
-					case Type::POSITION: textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; break;
-					case Type::ALBEDO: textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; break;
-					case Type::NORMAL: textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; break;
-					case Type::TANGENT: textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; break;
-					case Type::BINORMAL: textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; break;
-					case Type::DEFAULT: textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; break;
+					/*DXGI_FORMAT_R8G8B8A8_UNORM*/
+					case Type::POSITION: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
+					case Type::ALBEDO: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
+					case Type::NORMAL: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
+					case Type::TANGENT: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
+					case Type::BINORMAL: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
+					case Type::DEFAULT: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
 				}
 				textureDesc.SampleDesc.Count = SAMPLE_COUNT;
 				textureDesc.SampleDesc.Quality = MAX_QUALITY;

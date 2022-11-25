@@ -6,6 +6,7 @@ SamplerState samplerState : register( s0 );
 struct PS_INPUT
 {
     float4 Position : SV_POSITION;
+    float4 PositionW : POS_WORLD;
     float3 Normal : NORMAL;
     float2 TexCoord : TEXCOORD0;
     float3 Tangent : TANGENT;
@@ -24,8 +25,8 @@ struct PS_OUTPUT
 PS_OUTPUT PS( PS_INPUT input )
 {
     PS_OUTPUT output;
-    output.Position = input.Position;
-    output.Albedo = textureObj.Sample( samplerState, input.TexCoord );
+    output.Position = input.PositionW;
+    output.Albedo = textureObj.Sample( samplerState, input.TexCoord ); // TODO : Maybe try sending back texcoords instead of texture, and do the texture later in the other shader
     output.Normal = float4( normalize( input.Normal ), 1.0f );
     output.Tangent = float4( normalize( input.Tangent ), 1.0f );
     output.Binormal = float4( normalize( input.Binormal ), 1.0f );

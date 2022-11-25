@@ -99,11 +99,11 @@ void Application::Render()
     std::function<void( bool useDeferred, bool useGBuffer )> RenderScene = [&]( bool useDeferred, bool useGBuffer ) -> void
     {
         // Render skyphere first
-        if ( !useDeferred )
-        {
+        //if ( !useDeferred )
+        //{
             graphics.UpdateRenderStateSkysphere( useDeferred, useGBuffer );
             m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
-        }
+        //}
     
         // Update constant buffers
         m_light.UpdateCB( m_camera );
@@ -124,15 +124,13 @@ void Application::Render()
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr(),
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::TANGENT )->GetShaderResourceViewPtr(),
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::BINORMAL )->GetShaderResourceViewPtr() ) :
-                //graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::TANGENT )->GetShaderResourceViewPtr(),
-                //graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::BINORMAL )->GetShaderResourceViewPtr() ) :
             m_cube.Draw( graphics.GetContext() );
 
-        if ( !useDeferred )
-        {
+        //if ( !useDeferred )
+        //{
             graphics.UpdateRenderStateTexture( useDeferred, useGBuffer );
             m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
-        }
+        //}
     };
 
     if ( m_mapping.IsDeferredActive() )
