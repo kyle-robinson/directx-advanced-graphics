@@ -1,6 +1,7 @@
 // Resources
 Texture2D textureObj : register( t0 );
 Texture2D textureNrm : register( t1 );
+Texture2D textureDisp : register( t2 );
 SamplerState samplerState : register( s0 );
 
 // Pixel Shader
@@ -22,6 +23,7 @@ struct PS_OUTPUT
     float4 Tangent : SV_TARGET3;
     float4 Binormal : SV_TARGET4;
     float4 NormalMap : SV_TARGET5;
+    float4 DisplacementMap : SV_TARGET6;
 };
 
 PS_OUTPUT PS( PS_INPUT input )
@@ -33,5 +35,6 @@ PS_OUTPUT PS( PS_INPUT input )
     output.Tangent = float4( normalize( input.Tangent ), 1.0f );
     output.Binormal = float4( normalize( input.Binormal ), 1.0f );
     output.NormalMap = textureNrm.Sample( samplerState, input.TexCoord );
+    output.DisplacementMap = textureDisp.Sample( samplerState, input.TexCoord );
     return output;
 }

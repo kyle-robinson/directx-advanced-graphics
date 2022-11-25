@@ -25,7 +25,8 @@ namespace Bind
 			NORMAL,
 			TANGENT,
 			BINORMAL,
-			NORMALMAP
+			NORMALMAP,
+			DISPLACEMENTMAP
 		};
 		RenderTarget( ID3D11Device* device, int width, int height, Type type = Type::DEFAULT )
 		{
@@ -49,6 +50,7 @@ namespace Bind
 					case Type::TANGENT: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
 					case Type::BINORMAL: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
 					case Type::NORMALMAP: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
+					case Type::DISPLACEMENTMAP: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
 					case Type::DEFAULT: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
 				}
 				textureDesc.SampleDesc.Count = SAMPLE_COUNT;

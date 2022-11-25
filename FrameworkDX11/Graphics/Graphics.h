@@ -12,7 +12,7 @@
 #include "DepthStencil.h"
 #include "RenderTarget.h"
 
-static UINT BUFFER_COUNT = 6u;
+static UINT BUFFER_COUNT = 7u;
 
 class Graphics
 {

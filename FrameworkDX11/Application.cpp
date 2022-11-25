@@ -124,7 +124,8 @@ void Application::Render()
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr(),
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::TANGENT )->GetShaderResourceViewPtr(),
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::BINORMAL )->GetShaderResourceViewPtr(),
-                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMALMAP )->GetShaderResourceViewPtr() ) :
+                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMALMAP )->GetShaderResourceViewPtr(),
+                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::DISPLACEMENTMAP )->GetShaderResourceViewPtr() ) :
             m_cube.Draw( graphics.GetContext() );
 
         //if ( !useDeferred )

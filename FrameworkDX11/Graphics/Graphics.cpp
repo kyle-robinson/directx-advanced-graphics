@@ -171,7 +171,8 @@ void Graphics::BeginFrameDeferred()
 		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMAL]->GetRenderTarget(),
 		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::TANGENT]->GetRenderTarget(),
 		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::BINORMAL]->GetRenderTarget(),
-		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMALMAP]->GetRenderTarget()
+		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMALMAP]->GetRenderTarget(),
+		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::DISPLACEMENTMAP]->GetRenderTarget()
 	};
 	m_pContext->OMSetRenderTargets( BUFFER_COUNT, renderTargets, m_pDepthStencil->GetDepthStencilView() );
 	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::POSITION]->GetRenderTarget(), m_clearColor );
@@ -180,6 +181,7 @@ void Graphics::BeginFrameDeferred()
 	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::TANGENT]->GetRenderTarget(), m_clearColor );
 	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::BINORMAL]->GetRenderTarget(), m_clearColor );
 	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMALMAP]->GetRenderTarget(), m_clearColor );
+	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::DISPLACEMENTMAP]->GetRenderTarget(), m_clearColor );
 	m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
 }
 
