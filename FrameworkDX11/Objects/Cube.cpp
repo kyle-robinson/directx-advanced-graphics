@@ -63,6 +63,9 @@ bool Cube::InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext 
 	{
 		// Set position to world origin
 		XMStoreFloat4x4( &m_World, XMMatrixIdentity() );
+		m_position = { 0.0f, 0.0f, 0.0f };
+		m_rotation = { 0.0f, 0.0f, 0.0f };
+		m_scale = { 1.0f, 1.0f, 1.0f };
 
 		// Create vertex buffer
 		HRESULT hr = m_vertexBuffer.Initialize( pDevice, vertices, ARRAYSIZE( vertices ) );
@@ -95,14 +98,19 @@ bool Cube::InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext 
 	return true;
 }
 
-void Cube::Update( float dt, ID3D11DeviceContext* pContext )
+void Cube::Update( float dt )
 {
 	static float cummulativeTime = 0;
 	cummulativeTime += dt;
 
-	XMMATRIX mSpin = DirectX::XMMatrixRotationY( cummulativeTime );
-	XMMATRIX mTranslate = DirectX::XMMatrixTranslation( 0.0f, 0.0f, 0.0f );
-	XMMATRIX world = mTranslate;// * mSpin;
+	//XMMATRIX mSpin = DirectX::XMMatrixRotationY( cummulativeTime );
+	//XMMATRIX mTranslate = DirectX::XMMatrixTranslation( 0.0f, 0.0f, 0.0f );
+	//XMMATRIX world = mTranslate;// * mSpin;
+
+	XMMATRIX world = XMMatrixScaling( m_scale.x, m_scale.y, m_scale.y ) *
+		XMMatrixRotationRollPitchYaw( m_rotation.x, m_rotation.y, m_rotation.z ) *
+		XMMatrixTranslation( m_position.x, m_position.y, m_position.z );
+
 	XMStoreFloat4x4( &m_World, world );
 }
 
@@ -120,6 +128,14 @@ void Cube::UpdateCB()
 	// Add to constant buffer
 	m_cbMaterial.data.Material = materialData;
 	if ( !m_cbMaterial.ApplyChanges() ) return;
+}
+
+void Cube::UpdateMatrix()
+{
+	XMMATRIX world = XMMatrixScaling( m_scale.x, m_scale.y, m_scale.y ) *
+		XMMatrixRotationRollPitchYaw( m_rotation.x, m_rotation.y, m_rotation.z ) *
+		XMMatrixTranslation( m_position.x, m_position.y, m_position.z );
+	XMStoreFloat4x4( &m_World, world );
 }
 
 void Cube::UpdateBuffers( ConstantBuffer<Matrices>& cb_vs_matrices, const Camera& pCamera )

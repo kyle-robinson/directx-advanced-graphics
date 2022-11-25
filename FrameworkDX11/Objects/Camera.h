@@ -14,6 +14,9 @@ public:
 	inline const XMMATRIX& GetProjectionMatrix() const noexcept { return projection; };
 	inline const XMMATRIX& GetViewProjectionMatrix() const noexcept { return view * projection; };
 
+	inline const XMFLOAT3& GetStartPositionFloat3() const noexcept { return startPosition; }
+	inline const XMFLOAT3& GetStartRotationFloat3() const noexcept { return startRotation; }
+
 	inline const XMFLOAT3& GetPositionFloat3() const noexcept { return position; };
 	inline const XMVECTOR& GetPositionVector() const noexcept { return posVector; }
 	inline const XMFLOAT3& GetRotationFloat3() const noexcept { return rotation; };
@@ -26,6 +29,7 @@ public:
 	const XMVECTOR& GetRightVector( BOOL omitY = true ) noexcept;
 	const XMVECTOR& GetUpVector() noexcept;
 
+	void ResetPosition() noexcept;
 	void SetPosition( const XMFLOAT3& pos ) noexcept;
 	void SetPosition( const XMVECTOR& pos ) noexcept;
 	void SetPosition( FLOAT x, FLOAT y, FLOAT z ) noexcept;
@@ -33,6 +37,7 @@ public:
 	void AdjustPosition( const XMVECTOR& pos ) noexcept;
 	void AdjustPosition( FLOAT x, FLOAT y, FLOAT z ) noexcept;
 
+	void ResetRotation() noexcept;
 	void SetRotation( const XMFLOAT3& rot ) noexcept;
 	void SetRotation( const XMVECTOR& rot ) noexcept;
 	void SetRotation( FLOAT x, FLOAT y, FLOAT z ) noexcept;
@@ -47,6 +52,9 @@ public:
 	void UpdateMatrix();
 
 	// CAMERA MOVEMENT
+	inline void EnableMovement() noexcept {  }
+	inline void DisableMovement() noexcept {  }
+
 	inline const FLOAT& GetCameraSpeed() const noexcept { return cameraSpeed; };
 	inline void SetCameraSpeed( FLOAT newSpeed ) noexcept { cameraSpeed = newSpeed; };
 	inline void UpdateCameraSpeed( FLOAT updateSpeed ) noexcept { cameraSpeed += updateSpeed; };
@@ -68,8 +76,10 @@ private:
 	XMVECTOR vec_forward, vec_left, vec_right, vec_backward;
 	XMVECTOR vec_forward_noY, vec_left_noY, vec_right_noY, vec_backward_noY;
 
+	bool canMove = true;
 	XMMATRIX view, projection;
 	XMVECTOR posVector, rotVector;
+	XMFLOAT3 startPosition, startRotation;
 	XMFLOAT3 position, rotation, cameraTarget;
 	FLOAT fovDegrees, aspectRatio, nearZ, farZ, cameraSpeed;
 };

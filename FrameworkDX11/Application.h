@@ -2,6 +2,8 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
+#include <dxtk/SpriteFont.h>
+#include <dxtk/SpriteBatch.h>
 #include <DirectXCollision.h>
 #include "DDSTextureLoader.h"
 #include "Resource.h"
@@ -51,6 +53,8 @@ private:
 	Input m_input;
 	XMFLOAT4X4 m_previousViewProjection;
 	ConstantBuffer<Matrices> m_cbMatrices;
+	std::unique_ptr<SpriteFont> m_spriteFont;
+	std::unique_ptr<SpriteBatch> m_spriteBatch;
 	ConstantBuffer<MatricesNormalDepth> m_cbMatricesNormalDepth;
 };
 

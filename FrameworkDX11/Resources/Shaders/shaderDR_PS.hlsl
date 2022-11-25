@@ -30,7 +30,7 @@ PS_OUTPUT PS( PS_INPUT input )
 {
     PS_OUTPUT output;
     output.Position = input.PositionW;
-    output.Albedo = textureObj.Sample( samplerState, input.TexCoord ); // TODO : Maybe try sending back texcoords instead of texture, and do the texture later in the other shader
+    output.Albedo = textureObj.Sample( samplerState, input.TexCoord );
     output.Normal = float4( normalize( input.Normal ), 1.0f );
     output.Tangent = float4( normalize( input.Tangent ), 1.0f );
     output.Binormal = float4( normalize( input.Binormal ), 1.0f );

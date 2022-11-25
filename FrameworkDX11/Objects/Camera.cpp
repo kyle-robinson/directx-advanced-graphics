@@ -3,9 +3,9 @@
 
 void Camera::Initialize( const XMFLOAT3& initialPosition, int width, int height )
 {
-	position = initialPosition;
+	position = startPosition = initialPosition;
 	posVector = XMLoadFloat3( &position );
-	rotation = { 0.0f, 0.0f, 0.0f };
+	rotation = startRotation = { 0.0f, 0.0f, 0.0f };
 	rotVector = XMLoadFloat3( &rotation );
 	UpdateMatrix();
 	SetProjectionValues( 75.0f, static_cast<float>( width ) / static_cast<float>( height ), 0.01f, 100.0f );
@@ -78,6 +78,11 @@ void Camera::MoveDown( FLOAT dt ) noexcept
 }
 
 // CAMERA POSITION
+void Camera::ResetPosition() noexcept
+{
+	SetPosition( startPosition );
+}
+
 void Camera::SetPosition( FLOAT x, FLOAT y, FLOAT z ) noexcept
 {
 	SetPosition( XMFLOAT3( x, y, z ) );
@@ -119,6 +124,11 @@ void Camera::AdjustPosition( const XMFLOAT3& pos ) noexcept
 }
 
 // CAMERA ROTATION
+void Camera::ResetRotation() noexcept
+{
+	SetRotation( startRotation );
+}
+
 void Camera::SetRotation( FLOAT x, FLOAT y, FLOAT z ) noexcept
 {
 	SetRotation( XMFLOAT3( x, y, z ) );
@@ -169,18 +179,21 @@ void Camera::AdjustRotation( const XMFLOAT3& rot ) noexcept
 // UPDATE MATRICES
 void Camera::UpdateMatrix()
 {
-	// Update Camera Target
-	XMMATRIX cameraRotation = XMMatrixRotationRollPitchYaw( rotation.x, rotation.y, rotation.z );
-	XMVECTOR camTarget = XMVector3TransformCoord( DEFAULT_FORWARD_VECTOR, cameraRotation );
-	camTarget += posVector;
+	if ( canMove )
+	{
+		// Update Camera Target
+		XMMATRIX cameraRotation = XMMatrixRotationRollPitchYaw( rotation.x, rotation.y, rotation.z );
+		XMVECTOR camTarget = XMVector3TransformCoord( DEFAULT_FORWARD_VECTOR, cameraRotation );
+		camTarget += posVector;
 
-	// Store camera target
-	cameraTarget = { XMVectorGetX( camTarget ), XMVectorGetY( camTarget ), XMVectorGetZ( camTarget ) };
+		// Store camera target
+		cameraTarget = { XMVectorGetX( camTarget ), XMVectorGetY( camTarget ), XMVectorGetZ( camTarget ) };
 
-	XMVECTOR upDir = XMVector3TransformCoord( DEFAULT_UP_VECTOR, cameraRotation );
-	view = XMMatrixLookAtLH( posVector, camTarget, upDir );
+		XMVECTOR upDir = XMVector3TransformCoord( DEFAULT_UP_VECTOR, cameraRotation );
+		view = XMMatrixLookAtLH( posVector, camTarget, upDir );
 
-	UpdateDirectionVectors();
+		UpdateDirectionVectors();
+	}
 }
 
 void Camera::UpdateDirectionVectors()

@@ -33,7 +33,7 @@ void Deferred::UpdateCB()
 
 void Deferred::SpawnControlWindow()
 {
-	if ( ImGui::Begin( "Deferred Rendering", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+	if ( ImGui::Begin( "Deferred Rendering", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
 	{
 		static bool useDeferred = m_bUseDeferredShading;
 	    ImGui::Checkbox( "Use Deferred Shading?", &useDeferred );

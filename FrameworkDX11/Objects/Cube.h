@@ -24,7 +24,7 @@ class Cube
 {
 public:
 	bool InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
-	void Update( float dt, ID3D11DeviceContext* pContext );
+	void Update( float dt );
 	void UpdateCB();
 	void UpdateBuffers( ConstantBuffer<Matrices>& cb_vs_matrices, const Camera& pCamera );
 	void Draw( ID3D11DeviceContext* pContext );
@@ -41,12 +41,24 @@ public:
 	void SpawnControlWindow();
 
 	inline ID3D11Buffer* const* GetCB() const noexcept { return m_cbMaterial.GetAddressOf(); }
-	inline void SetPosition( DirectX::XMFLOAT3 position ) noexcept { m_position = position; }
 	inline XMFLOAT4X4* GetTransform() noexcept { return &m_World; }
+	
+	inline void SetPosition( XMFLOAT3 position ) { m_position = position; UpdateMatrix(); }
+	inline XMFLOAT3 GetPosition() const noexcept { return m_position; }
+
+	inline void SetRotation( XMFLOAT3 rotation ) { m_rotation = rotation; UpdateMatrix(); }
+	inline XMFLOAT3 GetRotation() const noexcept { return m_rotation; }
+	
+	inline void SetScale( XMFLOAT3 scale ) { m_scale = scale; UpdateMatrix(); };
+	inline XMFLOAT3 GetScale() const noexcept { return m_scale; }
 
 private:
+	void UpdateMatrix();
+
 	XMFLOAT4X4 m_World;
 	XMFLOAT3 m_position;
+	XMFLOAT3 m_rotation;
+	XMFLOAT3 m_scale;
 
 	XMFLOAT4 m_fEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
 	XMFLOAT4 m_fAmbient = { 0.1f, 0.1f, 0.1f, 1.0f };

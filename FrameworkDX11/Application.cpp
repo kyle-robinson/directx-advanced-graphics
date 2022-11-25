@@ -34,6 +34,8 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'light' object!" );
 
         // Initialize systems
+        m_spriteFont = std::make_unique<SpriteFont>( graphics.GetDevice(), L"Resources\\Fonts\\open_sans_ms_16_bold.spritefont" );
+        m_spriteBatch = std::make_unique<SpriteBatch>( graphics.GetContext() );
         m_postProcessing.Initialize( graphics.GetDevice() );
 
         hr = m_mapping.Initialize( graphics.GetDevice(), graphics.GetContext() );
@@ -93,7 +95,7 @@ void Application::Update()
     m_objSkysphere.SetPosition( m_camera.GetPositionFloat3() );
 
     // Update the cube transform, material etc. 
-    m_cube.Update( dt, graphics.GetContext() );
+    m_cube.Update( dt );
 }
 
 void Application::Render()
@@ -102,17 +104,30 @@ void Application::Render()
     std::function<void( bool useDeferred, bool useGBuffer )> RenderScene = [&]( bool useDeferred, bool useGBuffer ) -> void
     {
         // Render skyphere first
-        //if ( !useDeferred )
-        //{
-            graphics.UpdateRenderStateSkysphere( useDeferred, useGBuffer );
-            m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
-        //}
+        graphics.UpdateRenderStateSkysphere( useDeferred, useGBuffer );
+        m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
     
         // Update constant buffers
         m_light.UpdateCB( m_camera );
         m_deferred.UpdateCB();
         m_mapping.UpdateCB();
         m_cube.UpdateCB();
+
+        // Update cube scaling/positioning
+        if ( useDeferred && !useGBuffer )
+	    {
+            m_cube.SetPosition( XMFLOAT3(
+                0.0f + m_camera.GetPositionFloat3().x,
+                0.0f + m_camera.GetPositionFloat3().y,
+                3.0f + m_camera.GetPositionFloat3().z
+            ) );
+		    m_cube.SetScale( XMFLOAT3( 2.33f, 1.33f, 1.66f ) );
+	    }
+	    else
+	    {
+		    m_cube.SetPosition( XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
+		    m_cube.SetScale( XMFLOAT3( 1.0f, 1.0f, 1.0f ) );
+	    }
 
         // Render objects
         graphics.UpdateRenderStateCube( useDeferred, useGBuffer );
@@ -133,18 +148,23 @@ void Application::Render()
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::DISPLACEMENTMAP )->GetShaderResourceViewPtr() ) :
             m_cube.Draw( graphics.GetContext() );
 
-        //if ( !useDeferred )
-        //{
-            graphics.UpdateRenderStateTexture( useDeferred, useGBuffer );
-            m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
-        //}
+        graphics.UpdateRenderStateTexture( useDeferred, useGBuffer );
+        m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
     };
 
     if ( m_deferred.IsActive() )
     {
+        m_camera.ResetPosition();
+        m_camera.ResetRotation();
+        m_camera.DisableMovement();
+
         // Normal pass
         graphics.BeginFrameDeferred();
         RenderScene( true, false );
+    }
+    else
+    {
+        m_camera.EnableMovement();
     }
 
     if ( m_ssao.IsActive() )
@@ -184,6 +204,37 @@ void Application::Render()
 
     // Setup SSAO
     m_ssao.UpdateCB( graphics.GetWidth(), graphics.GetHeight(), m_camera );
+
+    // Render text
+    m_spriteBatch->Begin();
+    static XMFLOAT2 textPosition = { graphics.GetWidth() * 0.5f, graphics.GetHeight() * 0.96f };
+    std::function<XMFLOAT2( const wchar_t* text )> DrawOutline = [&]( const wchar_t* text ) mutable -> XMFLOAT2
+    {
+        XMFLOAT2 originF = XMFLOAT2( 1.0f, 1.0f );
+        XMVECTOR origin = m_spriteFont->MeasureString( text ) / 2.0f;
+        XMStoreFloat2( &originF, origin );
+
+        // Draw outline
+        m_spriteFont->DrawString( m_spriteBatch.get(), text,
+            XMFLOAT2( textPosition.x + 1.0f, textPosition.y + 1.0f ), Colors::Black, 0.0f, originF );
+        m_spriteFont->DrawString( m_spriteBatch.get(), text,
+            XMFLOAT2( textPosition.x - 1.0f, textPosition.y + 1.0f ), Colors::Black, 0.0f, originF );
+        m_spriteFont->DrawString( m_spriteBatch.get(), text,
+            XMFLOAT2( textPosition.x - 1.0f, textPosition.y - 1.0f ), Colors::Black, 0.0f, originF );
+        m_spriteFont->DrawString( m_spriteBatch.get(), text,
+            XMFLOAT2( textPosition.x + 1.0f, textPosition.y - 1.0f ), Colors::Black, 0.0f, originF );
+
+        return originF;
+    };
+    const wchar_t* text;
+    if ( m_deferred.IsActive() )
+        text = L"Camera movement disabled while using deferred rendering!";
+    else
+        text = L"Camera movement enabled while using forward rendering!";
+    XMFLOAT2 originF = DrawOutline( text );
+    m_spriteFont->DrawString( m_spriteBatch.get(), text, textPosition,
+        m_deferred.IsActive() ? Colors::Red : Colors::Green, 0.0f, originF, XMFLOAT2( 1.0f, 1.0f ) );
+    m_spriteBatch->End();
 
     // Render scene to texture
     graphics.BeginRenderSceneToTexture();
