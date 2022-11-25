@@ -30,9 +30,11 @@ public:
 	void Draw( ID3D11DeviceContext* pContext );
 	void DrawDeferred(
 		ID3D11DeviceContext* pContext,
-		//ID3D11ShaderResourceView** position,
+		ID3D11ShaderResourceView** position,
 		ID3D11ShaderResourceView** albedo,
-		ID3D11ShaderResourceView** normal
+		ID3D11ShaderResourceView** normal,
+		ID3D11ShaderResourceView** tangent,
+		ID3D11ShaderResourceView** binormal
 	);
 	void SpawnControlWindow();
 

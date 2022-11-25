@@ -41,6 +41,7 @@ void Mapping::SpawnControlWindow()
 		static bool useDeferred = m_bUseDeferredShading;
 	    ImGui::Checkbox( "Use Deferred Shading?", &useDeferred );
 		m_bUseDeferredShading = useDeferred;
+		ImGui::NewLine();
 
 		// normal & parallax mapping
 		static int activeMappingTechnique = 2;

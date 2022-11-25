@@ -7,6 +7,9 @@ Texture2D textureNormal : register( t1 );
 Texture2D textureDisplacement : register( t2 );
 Texture2D textureAlbedo : register( t3 );
 Texture2D textureNormalDefer : register( t4 );
+Texture2D texturePosition : register( t5 );
+Texture2D textureTangentDefer : register( t6 );
+Texture2D textureBinormalDefer : register( t7 );
 SamplerState samplerState : register( s0 );
 
 // Structs
@@ -313,11 +316,25 @@ float4 PS( PS_INPUT input ) : SV_TARGET
     if ( Mapping.UseDeferredShading )
     {
         float3 normal = textureNormalDefer.Sample( samplerState, input.TexCoord ).rgb;
-        float3 dif = textureAlbedo.Sample( samplerState, input.TexCoord ).rgb;
-        float3 vertexToLight = normalize( Lights[0].Position - input.WorldPosition ).xyz;
+        normal = ( 2.0f * normal ) - 1.0f;
+        
+        float3 tangent = textureTangentDefer.Sample( samplerState, input.TexCoord ).rgb;
+        tangent = ( 2.0f * tangent ) - 1.0f;
+        
+        float3 binormal = textureBinormalDefer.Sample( samplerState, input.TexCoord ).rgb;
+        binormal = ( 2.0f * binormal ) - 1.0f;
+        
+        float3x3 TBN = computeTBNMatrixB( normal, tangent, binormal );
+        if ( Mapping.UseNormalMap )
+            normal = NormalMapping( input.TexCoord, TBN );
+        
+        float4 albedo = textureAlbedo.Sample( samplerState, input.TexCoord );
+        float4 position = texturePosition.Sample( samplerState, input.TexCoord );
+        //float4 position = float4( input.TexCoord, 0.0f, 1.0f );
+        float3 vertexToLight = normalize( Lights[0].Position - position ).xyz;
 
         // lighting
-        LightingResult lit = ComputeLighting( input.WorldPosition, normalize( input.Normal ), vertexToLight );
+        LightingResult lit = ComputeLighting( position, normal, vertexToLight );
 
 	    // texture/material
         float4 textureColor = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -326,25 +343,16 @@ float4 PS( PS_INPUT input ) : SV_TARGET
         float4 diffuse = Material.Diffuse * lit.Diffuse * Lights[0].Intensity;    
 	    float4 specular = Material.Specular * lit.Specular * Lights[0].Intensity;
 
-        if ( Material.UseTexture )
-            textureColor = textureAlbedo.Sample( samplerState, input.TexCoord );
-        else
-            textureColor = float4( 1.0f, 1.0f, 1.0f, 1.0f );
+        if ( !Material.UseTexture )
+            albedo = float4( 1.0f, 1.0f, 1.0f, 1.0f );
 	
         // final colour
-	    float4 finalColor = ( emissive + ambient + diffuse + specular ) * textureColor;
+	    float4 finalColor = ( emissive + ambient + diffuse + specular ) * albedo;
 	    return finalColor;
     }
     else
     {
-        //if ( Mapping.UseDeferredShading )
-        //    return float4( 1.0f, 0.5f, 0.2f, 1.0f );
-    
-	    // vector/matrix setup
-        //if ( Mapping.UseDeferredShading )
-        //    input.Normal = textureNormalDefer.Sample( samplerState, input.TexCoord ).rgb;
-        //else
-            input.Normal = normalize( input.Normal );
+        input.Normal = normalize( input.Normal );
 	
 	    //float3x3 TBN = computeTBNMatrix( input.Normal, input.Tangent );
         float3x3 TBN = computeTBNMatrixB( input.Normal, input.Tangent, input.Binormal );
@@ -381,12 +389,7 @@ float4 PS( PS_INPUT input ) : SV_TARGET
 	    float4 specular = Material.Specular * lit.Specular * Lights[0].Intensity;
 
         if ( Material.UseTexture )
-        {
-            //if ( Mapping.UseDeferredShading )
-            //    textureColor = textureAlbedo.Sample( samplerState, input.TexCoord );
-            //else
-                textureColor = textureDiffuse.Sample( samplerState, input.TexCoord );
-        }
+            textureColor = textureDiffuse.Sample( samplerState, input.TexCoord );
         else
             textureColor = float4( 1.0f, 1.0f, 1.0f, 1.0f );
 
@@ -399,24 +402,4 @@ float4 PS( PS_INPUT input ) : SV_TARGET
 	    float4 finalColor = ( emissive + ambient + diffuse * shadowFactor + specular * shadowFactor ) * textureColor;
 	    return finalColor;
     }
-    
-    ////////////////////////////////////////////////////////////////////////////////////
-    
-    // render depth
-    //float zValue = input.Position.z / input.Position.w;
-    //float zValue = input.ViewPosition.z / input.ViewPosition.w;
-    //float zValue = textureNormalDepth.Sample( samplerState, input.TexCoord ).w;
-    //return float4( zValue, zValue, zValue, 1.0f );
-    
-    // render normals
-    //float3 normals = textureNormalDepth.Sample( samplerState, input.TexCoord ).rgb;
-    //return float4( normals, 1.0f );
-    
-    // render position
-    //float4 position = texturePosition.Sample( samplerState, input.TexCoord );
-    //return position;
-    
-    // render albedo
-    //float4 albedo = textureAlbedo.Sample( samplerState, input.TexCoord );
-    //return albedo;
 }

@@ -69,6 +69,8 @@ bool Graphics::InitializeShaders()
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
 		// Create the cube shaders
@@ -164,14 +166,18 @@ void Graphics::BeginFrameDeferred()
 {
 	// Clear render target/depth stencil
 	ID3D11RenderTargetView* renderTargets[] = {
-		//m_pRenderTargetsDeferred[Bind::RenderTarget::Type::POSITION]->GetRenderTarget(),
+		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::POSITION]->GetRenderTarget(),
 		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::ALBEDO]->GetRenderTarget(),
-		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMAL]->GetRenderTarget()
+		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMAL]->GetRenderTarget(),
+		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::TANGENT]->GetRenderTarget(),
+		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::BINORMAL]->GetRenderTarget()
 	};
 	m_pContext->OMSetRenderTargets( BUFFER_COUNT, renderTargets, m_pDepthStencil->GetDepthStencilView() );
-	//m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::POSITION]->GetRenderTarget(), m_clearColor );
+	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::POSITION]->GetRenderTarget(), m_clearColor );
 	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::ALBEDO]->GetRenderTarget(), m_clearColor );
 	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMAL]->GetRenderTarget(), m_clearColor );
+	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::TANGENT]->GetRenderTarget(), m_clearColor );
+	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::BINORMAL]->GetRenderTarget(), m_clearColor );
 	m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
 }
 
@@ -195,9 +201,16 @@ void Graphics::UpdateRenderStateCube( bool useDeferred, bool useGBuffer )
 {
 	// Set default render state for cubes
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
-	useGBuffer ?
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader ) :
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR );
+	if ( useDeferred )
+	{
+		useGBuffer ?
+			Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader ) :
+			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR );
+	}
+	else
+	{
+		Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader );
+	}
 }
 
 void Graphics::UpdateRenderStateObject( bool useDeferred, bool useGBuffer )

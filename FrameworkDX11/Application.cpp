@@ -114,15 +114,18 @@ void Application::Render()
         graphics.UpdateRenderStateCube( useDeferred, useGBuffer );
         m_cube.UpdateBuffers( m_cbMatrices, m_camera );
         graphics.GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
-        //graphics.GetContext()->VSSetConstantBuffers( 1u, 1u, m_mapping.GetCB() );
         graphics.GetContext()->PSSetConstantBuffers( 0u, 1u, m_cube.GetCB() );
         graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_light.GetCB() );
         graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_mapping.GetCB() );
         ( useDeferred && useGBuffer ) ?
             m_cube.DrawDeferred( graphics.GetContext(),
-                //graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::POSITION )->GetShaderResourceViewPtr(),
+                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::POSITION )->GetShaderResourceViewPtr(),
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::ALBEDO )->GetShaderResourceViewPtr(),
-                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr() ) :
+                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr(),
+                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::TANGENT )->GetShaderResourceViewPtr(),
+                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::BINORMAL )->GetShaderResourceViewPtr() ) :
+                //graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::TANGENT )->GetShaderResourceViewPtr(),
+                //graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::BINORMAL )->GetShaderResourceViewPtr() ) :
             m_cube.Draw( graphics.GetContext() );
 
         if ( !useDeferred )

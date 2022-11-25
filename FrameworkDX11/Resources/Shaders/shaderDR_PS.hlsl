@@ -6,29 +6,28 @@ SamplerState samplerState : register( s0 );
 struct PS_INPUT
 {
     float4 Position : SV_POSITION;
-    //float4 PositionV : POS_VIEW;
     float3 Normal : NORMAL;
     float2 TexCoord : TEXCOORD0;
+    float3 Tangent : TANGENT;
+    float3 Binormal : BINORMAL;
 };
 
 struct PS_OUTPUT
 {
-    //float4 Position : SV_TARGET0;
-    float4 Albedo : SV_TARGET0;
-    float4 Normal : SV_TARGET1;
+    float4 Position : SV_TARGET0;
+    float4 Albedo : SV_TARGET1;
+    float4 Normal : SV_TARGET2;
+    float4 Tangent : SV_TARGET3;
+    float4 Binormal : SV_TARGET4;
 };
 
 PS_OUTPUT PS( PS_INPUT input )
 {
     PS_OUTPUT output;
-    
-    //output.Position = input.Position;
-    //output.NormalD.w = input.PositionV.z / input.PositionV.w;
-    
+    output.Position = input.Position;
     output.Albedo = textureObj.Sample( samplerState, input.TexCoord );
-    //output.Albedo = float4( 1.0f, 0.5f, 0.2, 1.0f );
     output.Normal = float4( normalize( input.Normal ), 1.0f );
-    //output.Normal = normalize( input.Normal );
-    
+    output.Tangent = float4( normalize( input.Tangent ), 1.0f );
+    output.Binormal = float4( normalize( input.Binormal ), 1.0f );
     return output;
 }

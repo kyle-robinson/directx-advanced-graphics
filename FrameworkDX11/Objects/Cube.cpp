@@ -149,20 +149,24 @@ void Cube::Draw( ID3D11DeviceContext* pContext )
 
 void Cube::DrawDeferred(
 	ID3D11DeviceContext* pContext,
-	//ID3D11ShaderResourceView** position,
+	ID3D11ShaderResourceView** position,
 	ID3D11ShaderResourceView** albedo,
-	ID3D11ShaderResourceView** normal )
+	ID3D11ShaderResourceView** normal,
+	ID3D11ShaderResourceView** tangent,
+	ID3D11ShaderResourceView** binormal )
 {
 	UINT offset = 0;
 	pContext->IASetVertexBuffers( 0u, 1u, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.StridePtr(), &offset );
 	pContext->IASetIndexBuffer( m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0 );
 
-	//pContext->VSSetShaderResources( 0u, 1u, position );
 	pContext->PSSetShaderResources( 0u, 1u, m_pTextureDiffuse.GetAddressOf() );
 	pContext->PSSetShaderResources( 1u, 1u, m_pTextureNormal.GetAddressOf() );
 	pContext->PSSetShaderResources( 2u, 1u, m_pTextureDisplacement.GetAddressOf() );
 	pContext->PSSetShaderResources( 3u, 1u, albedo );
 	pContext->PSSetShaderResources( 4u, 1u, normal );
+	pContext->PSSetShaderResources( 5u, 1u, position );
+	pContext->PSSetShaderResources( 6u, 1u, tangent );
+	pContext->PSSetShaderResources( 7u, 1u, binormal );
 
 	pContext->DrawIndexed( m_indexBuffer.IndexCount(), 0u, 0u );
 }
