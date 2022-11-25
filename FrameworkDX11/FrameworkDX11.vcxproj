@@ -469,6 +469,7 @@
     <ClInclude Include="Objects\Light.h" />
     <ClInclude Include="Objects\Quad.h" />
     <ClInclude Include="Resources\Resource.h" />
+    <ClInclude Include="Systems\Deferred.h" />
     <ClInclude Include="Systems\FXAA.h" />
     <ClInclude Include="Systems\Mapping.h" />
     <ClInclude Include="Systems\MotionBlur.h" />
@@ -548,6 +549,7 @@
     <ClCompile Include="Input\Input.cpp" />
     <ClCompile Include="Input\Keyboard.cpp" />
     <ClCompile Include="Input\Mouse.cpp" />
+    <ClCompile Include="Systems\Deferred.cpp" />
     <ClCompile Include="Systems\SSAO.cpp" />
     <ClCompile Include="WinMain.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>

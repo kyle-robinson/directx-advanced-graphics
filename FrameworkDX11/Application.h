@@ -14,6 +14,7 @@
 #include "Light.h"
 #include "Mapping.h"
 #include "Shaders.h"
+#include "Deferred.h"
 #include "MotionBlur.h"
 #include "ImGuiManager.h"
 #include "PostProcessing.h"
@@ -41,6 +42,7 @@ private:
 	FXAA m_fxaa;
 	SSAO m_ssao;
 	Mapping m_mapping;
+	Deferred m_deferred;
 	MotionBlur m_motionBlur;
 	PostProcessing m_postProcessing;
 

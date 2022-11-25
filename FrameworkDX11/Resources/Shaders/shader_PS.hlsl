@@ -59,8 +59,15 @@ struct _Mapping
 
     bool UseSoftShadow;
     float HeightScale;
-    bool UseDeferredShading;
-    float Padding;
+    float2 Padding;
+};
+
+struct _Deferred
+{
+	bool UseDeferredShading;
+	bool OnlyPositions;
+	bool OnlyAlbedo;
+	bool OnlyNormals;
 };
 
 // Constant Buffers
@@ -79,6 +86,11 @@ cbuffer LightProperties : register( b1 )
 cbuffer MappingProperties : register( b2 )
 {
     _Mapping Mapping;
+}
+
+cbuffer DeferredProperties : register( b3 )
+{
+    _Deferred Deferred;
 }
 
 // Lighting Functions
@@ -175,7 +187,7 @@ float3x3 computeTBNMatrixB( float3 unitNormal, float3 tangent, float3 binorm )
 float3 NormalMapping( float2 texCoord, float3x3 TBN )
 {
     float3 texNormal;
-    if ( Mapping.UseDeferredShading )
+    if ( Deferred.UseDeferredShading )
         texNormal = textureNormalMapDefer.Sample( samplerState, texCoord ).rgb;
     else
         texNormal = textureNormal.Sample( samplerState, texCoord ).rgb;
@@ -186,7 +198,7 @@ float3 NormalMapping( float2 texCoord, float3x3 TBN )
 float2 SimpleParallax( float2 texCoord, float3 toEye )
 {
     float height;
-    if ( Mapping.UseDeferredShading )
+    if ( Deferred.UseDeferredShading )
         height = textureDisplacementMapDefer.Sample( samplerState, texCoord ).r;
     else
         height = textureDisplacement.Sample( samplerState, texCoord ).r;
@@ -221,7 +233,7 @@ float2 ParallaxOcclusion( float2 texCoord, float3 normal, float3 toEye )
 
     while ( currSample < numSamples + 1 )
     {
-        if ( Mapping.UseDeferredShading )
+        if ( Deferred.UseDeferredShading )
             currHeight = textureDisplacementMapDefer.SampleGrad( samplerState, texCoord + currParallax, dx, dy ).r;
         else
             currHeight = textureDisplacement.SampleGrad( samplerState, texCoord + currParallax, dx, dy ).r;
@@ -256,7 +268,7 @@ float ParallaxSelfShadowing( float3 toLight, float2 texCoord, bool softShadow )
     float2 dx = ddx( texCoord );
     float2 dy = ddy( texCoord );
     float height;
-    if ( Mapping.UseDeferredShading )
+    if ( Deferred.UseDeferredShading )
         height = 1.0f - textureDisplacementMapDefer.SampleGrad( samplerState, texCoord, dx, dy ).r;
     else
         height = 1.0f - textureDisplacement.SampleGrad( samplerState, texCoord, dx, dy ).r;
@@ -274,7 +286,7 @@ float ParallaxSelfShadowing( float3 toLight, float2 texCoord, bool softShadow )
         float currLayerHeight = height - layerHeight;
         float2 currTexCoord = texCoord + texStep;
         float heightFromTex;
-        if ( Mapping.UseDeferredShading )
+        if ( Deferred.UseDeferredShading )
             heightFromTex = 1.0f - textureDisplacementMapDefer.SampleGrad( samplerState, currTexCoord, dx, dy ).r;
         else
             heightFromTex = 1.0f - textureDisplacement.SampleGrad( samplerState, currTexCoord, dx, dy ).r;
@@ -293,7 +305,7 @@ float ParallaxSelfShadowing( float3 toLight, float2 texCoord, bool softShadow )
             stepIndex += 1;
             currLayerHeight -= layerHeight;
             currTexCoord += texStep;
-            if ( Mapping.UseDeferredShading )
+            if ( Deferred.UseDeferredShading )
                 heightFromTex = textureDisplacementMapDefer.SampleGrad( samplerState, currTexCoord, dx, dy ).r;
             else
                 heightFromTex = textureDisplacement.SampleGrad( samplerState, currTexCoord, dx, dy ).r;
@@ -333,7 +345,7 @@ struct PS_INPUT
 
 float4 PS( PS_INPUT input ) : SV_TARGET
 {   
-    if ( Mapping.UseDeferredShading )
+    if ( Deferred.UseDeferredShading )
     {
         float4 position = texturePosition.Sample( samplerState, input.TexCoord );
         float3 vertexToLight = normalize( Lights[0].Position - position ).xyz;
@@ -364,6 +376,16 @@ float4 PS( PS_INPUT input ) : SV_TARGET
         float4 albedo = textureAlbedo.Sample( samplerState, input.TexCoord );
         if ( !Material.UseTexture )
             albedo = float4( 1.0f, 1.0f, 1.0f, 1.0f );
+        
+        // determine whether to only show one texture
+        if ( Deferred.OnlyPositions )
+            return position;
+        
+        if ( Deferred.OnlyAlbedo )
+            return albedo;
+        
+        if ( Deferred.OnlyNormals )
+            return float4( normal, 1.0f );
 
         // lighting
         LightingResult lit = ComputeLighting( position, normal, vertexToLight );

@@ -48,6 +48,9 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
         hr = m_ssao.Initialize( graphics.GetDevice(), graphics.GetContext() );
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'SSAO' system!" );
 
+        hr = m_deferred.Initialize( graphics.GetDevice(), graphics.GetContext() );
+	    COM_ERROR_IF_FAILED( hr, "Failed to create 'deferred' system!" );
+
         // Initialize models
         if ( !m_objSkysphere.Initialize( "Resources\\Models\\sphere.obj", graphics.GetDevice(), graphics.GetContext(), m_cbMatrices ) )
 		    return false;
@@ -107,6 +110,7 @@ void Application::Render()
     
         // Update constant buffers
         m_light.UpdateCB( m_camera );
+        m_deferred.UpdateCB();
         m_mapping.UpdateCB();
         m_cube.UpdateCB();
 
@@ -117,6 +121,7 @@ void Application::Render()
         graphics.GetContext()->PSSetConstantBuffers( 0u, 1u, m_cube.GetCB() );
         graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_light.GetCB() );
         graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_mapping.GetCB() );
+        graphics.GetContext()->PSSetConstantBuffers( 3u, 1u, m_deferred.GetCB() );
         ( useDeferred && useGBuffer ) ?
             m_cube.DrawDeferred( graphics.GetContext(),
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::POSITION )->GetShaderResourceViewPtr(),
@@ -135,7 +140,7 @@ void Application::Render()
         //}
     };
 
-    if ( m_mapping.IsDeferredActive() )
+    if ( m_deferred.IsActive() )
     {
         // Normal pass
         graphics.BeginFrameDeferred();
@@ -146,7 +151,7 @@ void Application::Render()
     {
         // Normal pass
         graphics.BeginFrameNormal();
-        RenderScene( m_mapping.IsDeferredActive(), true );
+        RenderScene( m_deferred.IsActive(), true );
 
         // Update normal/depth constant buffer
         MatricesNormalDepth mndData;
@@ -163,7 +168,7 @@ void Application::Render()
 
     // Standard pass
     graphics.BeginFrame();
-    RenderScene( m_mapping.IsDeferredActive(), true );
+    RenderScene( m_deferred.IsActive(), true );
 #pragma endregion
 
 #pragma region POST_PROCESSING
@@ -196,6 +201,7 @@ void Application::Render()
         m_motionBlur.IsActive(),
         m_fxaa.IsActive(),
         m_ssao.IsActive() );
+    m_deferred.SpawnControlWindow();
     m_mapping.SpawnControlWindow();
     m_light.SpawnControlWindow();
     m_cube.SpawnControlWindow();

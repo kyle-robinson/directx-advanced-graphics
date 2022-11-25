@@ -27,7 +27,6 @@ void Mapping::UpdateCB()
 	mapData.UseParallaxSelfShadowing = m_bUseParallaxSelfShadowing;
 	mapData.UseSoftShadow = m_bUseSoftShadow;
 	mapData.HeightScale = m_fHeightScale;
-	mapData.UseDeferredShading = m_bUseDeferredShading;
 
 	// Add to constant buffer
 	m_cbMapping.data.MapData = mapData;
@@ -38,11 +37,6 @@ void Mapping::SpawnControlWindow()
 {
 	if ( ImGui::Begin( "Texture Mapping", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
 	{
-		static bool useDeferred = m_bUseDeferredShading;
-	    ImGui::Checkbox( "Use Deferred Shading?", &useDeferred );
-		m_bUseDeferredShading = useDeferred;
-		ImGui::NewLine();
-
 		// normal & parallax mapping
 		static int activeMappingTechnique = 2;
 		static bool selectedMappingTechnique[3];

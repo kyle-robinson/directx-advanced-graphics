@@ -154,6 +154,9 @@
     <ClInclude Include="Graphics\BackBuffer.h">
       <Filter>Headers\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Systems\Deferred.h">
+      <Filter>Headers\Systems</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -359,6 +362,9 @@
       <Filter>Source\Systems</Filter>
     </ClCompile>
     <ClCompile Include="Systems\SSAO.cpp">
+      <Filter>Source\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\Deferred.cpp">
       <Filter>Source\Systems</Filter>
     </ClCompile>
   </ItemGroup>

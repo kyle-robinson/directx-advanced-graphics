@@ -192,7 +192,6 @@ struct MappingData
 		, UseParallaxSelfShadowing( TRUE )
 		, UseSoftShadow( TRUE )
 		, HeightScale( 0.1f )
-		, UseDeferredShading( TRUE )
 	{}
 
 	BOOL UseNormalMap;
@@ -202,13 +201,33 @@ struct MappingData
 
 	BOOL UseSoftShadow;
 	FLOAT HeightScale;
-	BOOL UseDeferredShading;
-	FLOAT Padding;
+	XMFLOAT2 Padding;
 };
 
 struct Mapping_CB
 {
 	MappingData MapData;
+};
+
+// Deferred Rendering
+struct DeferredData
+{
+	DeferredData()
+		: UseDeferredShading( TRUE )
+		, OnlyPositions( FALSE )
+		, OnlyAlbedo( FALSE )
+		, OnlyNormals( FALSE )
+	{}
+
+	BOOL UseDeferredShading;
+	BOOL OnlyPositions;
+	BOOL OnlyAlbedo;
+	BOOL OnlyNormals;
+};
+
+struct Deferred_CB
+{
+	DeferredData Deferred;
 };
 
 #endif
