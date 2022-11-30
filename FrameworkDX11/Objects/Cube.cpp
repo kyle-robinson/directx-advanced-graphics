@@ -100,18 +100,15 @@ bool Cube::InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext 
 
 void Cube::Update( float dt )
 {
-	static float cummulativeTime = 0;
-	cummulativeTime += dt;
+	if ( m_bEnableSpin )
+	{
+		if ( m_bReverseSpin )
+			m_rotation.y -= dt;
+		else
+			m_rotation.y += dt;
+	}
 
-	//XMMATRIX mSpin = DirectX::XMMatrixRotationY( cummulativeTime );
-	//XMMATRIX mTranslate = DirectX::XMMatrixTranslation( 0.0f, 0.0f, 0.0f );
-	//XMMATRIX world = mTranslate;// * mSpin;
-
-	XMMATRIX world = XMMatrixScaling( m_scale.x, m_scale.y, m_scale.y ) *
-		XMMatrixRotationRollPitchYaw( m_rotation.x, m_rotation.y, m_rotation.z ) *
-		XMMatrixTranslation( m_position.x, m_position.y, m_position.z );
-
-	XMStoreFloat4x4( &m_World, world );
+	UpdateMatrix();
 }
 
 void Cube::UpdateCB()
@@ -132,7 +129,7 @@ void Cube::UpdateCB()
 
 void Cube::UpdateMatrix()
 {
-	XMMATRIX world = XMMatrixScaling( m_scale.x, m_scale.y, m_scale.y ) *
+	XMMATRIX world = XMMatrixScaling( m_scale.x, m_scale.y, m_scale.z ) *
 		XMMatrixRotationRollPitchYaw( m_rotation.x, m_rotation.y, m_rotation.z ) *
 		XMMatrixTranslation( m_position.x, m_position.y, m_position.z );
 	XMStoreFloat4x4( &m_World, world );
@@ -191,8 +188,22 @@ void Cube::DrawDeferred(
 	pContext->DrawIndexed( m_indexBuffer.IndexCount(), 0u, 0u );
 }
 
-void Cube::SpawnControlWindow()
+void Cube::SpawnControlWindows()
 {
+	if ( ImGui::Begin( "Cube Data", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+	{
+		ImGui::Checkbox( "Rotate Cube?", &m_bEnableSpin );
+		ImGui::Checkbox( "Reverse?", &m_bReverseSpin );
+		if ( ImGui::Checkbox( "Reset?", &m_bResetSpin ) )
+		{
+			m_rotation.y = 0.0f;
+			m_bResetSpin = false;
+			m_bEnableSpin = false;
+			m_bReverseSpin = false;
+		}
+	}
+	ImGui::End();
+
 	if ( ImGui::Begin( "Material Data", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
 	{
 		ImGui::Text( "Emission Color" );

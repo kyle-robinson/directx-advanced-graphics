@@ -36,5 +36,13 @@ PS_OUTPUT PS( PS_INPUT input )
     output.Binormal = float4( normalize( input.Binormal ), 1.0f );
     output.NormalMap = textureNrm.Sample( samplerState, input.TexCoord );
     output.DisplacementMap = textureDisp.Sample( samplerState, input.TexCoord );
+
+    float3 N = input.Normal;
+    float3 T = normalize( input.Tangent - N  * dot( input.Tangent, N ) );
+    float3 B = cross( T, N );
+    float3x3 TBN = float3x3( T, B, N );
+    float3 normalFromMap = textureNrm.Sample( samplerState, input.TexCoord ) * 2.0f - 1.0f;
+    input.Normal = normalize( mul( normalFromMap, TBN ) );
+    output.Normal = float4( input.Normal, 1.0f );
     return output;
 }

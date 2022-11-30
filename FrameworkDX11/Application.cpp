@@ -101,7 +101,7 @@ void Application::Update()
 void Application::Render()
 {
 #pragma RENDER_PASSES
-    std::function<void( bool useDeferred, bool useGBuffer )> RenderScene = [&]( bool useDeferred, bool useGBuffer ) -> void
+    std::function<void( bool, bool )> RenderScene = [&]( bool useDeferred, bool useGBuffer ) -> void
     {
         // Render skyphere first
         graphics.UpdateRenderStateSkysphere( useDeferred, useGBuffer );
@@ -114,20 +114,31 @@ void Application::Render()
         m_cube.UpdateCB();
 
         // Update cube scaling/positioning
-        if ( useDeferred && !useGBuffer )
+        /*if ( useDeferred && !useGBuffer )
 	    {
             m_cube.SetPosition( XMFLOAT3(
                 0.0f + m_camera.GetPositionFloat3().x,
                 0.0f + m_camera.GetPositionFloat3().y,
                 3.0f + m_camera.GetPositionFloat3().z
             ) );
-		    m_cube.SetScale( XMFLOAT3( 2.33f, 1.33f, 1.66f ) );
+           m_cube.SetRotation( XMFLOAT3(
+               m_camera.GetRotationFloat3().x * 2.33f,
+               m_camera.GetRotationFloat3().y * 1.33f,
+               m_camera.GetRotationFloat3().z * 1.33f
+           ) );
+		    m_cube.SetScale( XMFLOAT3( 2.33f, 1.33f, 1.33f ) );
 	    }
 	    else
 	    {
 		    m_cube.SetPosition( XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
+		    m_cube.SetRotation( XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
+            m_cube.SetRotation( XMFLOAT3(
+                m_camera.GetRotationFloat3().x * 1.0f,
+                m_camera.GetRotationFloat3().y * 1.0f,
+                m_camera.GetRotationFloat3().z * 1.0f
+            ) );
 		    m_cube.SetScale( XMFLOAT3( 1.0f, 1.0f, 1.0f ) );
-	    }
+	    }*/
 
         // Render objects
         graphics.UpdateRenderStateCube( useDeferred, useGBuffer );
@@ -154,9 +165,9 @@ void Application::Render()
 
     if ( m_deferred.IsActive() )
     {
-        m_camera.ResetPosition();
-        m_camera.ResetRotation();
-        m_camera.DisableMovement();
+        //m_camera.ResetPosition();
+        //m_camera.ResetRotation();
+        //m_camera.DisableMovement();
 
         // Normal pass
         graphics.BeginFrameDeferred();
@@ -208,7 +219,7 @@ void Application::Render()
     // Render text
     m_spriteBatch->Begin();
     static XMFLOAT2 textPosition = { graphics.GetWidth() * 0.5f, graphics.GetHeight() * 0.96f };
-    std::function<XMFLOAT2( const wchar_t* text )> DrawOutline = [&]( const wchar_t* text ) mutable -> XMFLOAT2
+    std::function<XMFLOAT2( const wchar_t* )> DrawOutline = [&]( const wchar_t* text ) mutable -> XMFLOAT2
     {
         XMFLOAT2 originF = XMFLOAT2( 1.0f, 1.0f );
         XMVECTOR origin = m_spriteFont->MeasureString( text ) / 2.0f;
@@ -255,7 +266,7 @@ void Application::Render()
     m_deferred.SpawnControlWindow();
     m_mapping.SpawnControlWindow();
     m_light.SpawnControlWindow();
-    m_cube.SpawnControlWindow();
+    m_cube.SpawnControlWindows();
     m_imgui.EndRender();
 
     // Present frame

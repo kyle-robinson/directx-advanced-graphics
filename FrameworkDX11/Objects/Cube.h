@@ -38,7 +38,7 @@ public:
 		ID3D11ShaderResourceView** normalMap,
 		ID3D11ShaderResourceView** displacementMap
 	);
-	void SpawnControlWindow();
+	void SpawnControlWindows();
 
 	inline ID3D11Buffer* const* GetCB() const noexcept { return m_cbMaterial.GetAddressOf(); }
 	inline XMFLOAT4X4* GetTransform() noexcept { return &m_World; }
@@ -66,6 +66,10 @@ private:
 	XMFLOAT4 m_fSpecular = { 1.0f, 1.0f, 1.0f, 1.0f };
 	FLOAT m_fSpecularPower = 128.0f;
 	BOOL m_bUseTexture = TRUE;
+	
+	bool m_bResetSpin = false;
+	bool m_bEnableSpin = false;
+	bool m_bReverseSpin = false;
 
 	IndexBuffer m_indexBuffer;
 	VertexBuffer<Vertex> m_vertexBuffer;

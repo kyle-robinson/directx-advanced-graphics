@@ -84,7 +84,7 @@ void Light::SpawnControlWindow()
         if ( !m_bAttachedToCamera )
         {
             ImGui::Text( "Position" );
-		    ImGui::SliderFloat4( "##Position", &m_fPosition.x, -10.0f, 10.0f, "%.1f" );
+		    ImGui::SliderFloat4( "##Light Position", &m_fPosition.x, -10.0f, 10.0f, "%.1f" );
 		    ImGui::NewLine();
             ImGui::Separator();
             ImGui::NewLine();
