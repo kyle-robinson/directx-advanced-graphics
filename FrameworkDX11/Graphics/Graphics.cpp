@@ -74,9 +74,9 @@ bool Graphics::InitializeShaders()
 
 		// Create the cube shaders
 		hr = m_vertexShaderGB.Initialize( m_pDevice, L"Resources\\Shaders\\shaderGB_VS.hlsl", layoutGB, ARRAYSIZE( layoutGB ) );
-		COM_ERROR_IF_FAILED( hr, "Failed to create deferred vertex shader!" );
+		COM_ERROR_IF_FAILED( hr, "Failed to create gbuffer vertex shader!" );
 		hr = m_pixelShaderGB.Initialize( m_pDevice, L"Resources\\Shaders\\shaderGB_PS.hlsl" );
-		COM_ERROR_IF_FAILED( hr, "Failed to create deferred pixel shader!" );
+		COM_ERROR_IF_FAILED( hr, "Failed to create gbuffer pixel shader!" );
 
 		// Define input layout for models
 		D3D11_INPUT_ELEMENT_DESC layoutOBJ[] =
@@ -91,6 +91,19 @@ bool Graphics::InitializeShaders()
 		COM_ERROR_IF_FAILED( hr, "Failed to create model vertex shader!" );
 		hr = m_pixelShaderOBJ.Initialize( m_pDevice, L"Resources\\Shaders\\shaderOBJ_PS.hlsl" );
 		COM_ERROR_IF_FAILED( hr, "Failed to create model pixel shader!" );
+
+		// Define input layout for deferred rendering
+		D3D11_INPUT_ELEMENT_DESC layoutDR[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		// Create the cube shaders
+		hr = m_vertexShaderDR.Initialize( m_pDevice, L"Resources\\Shaders\\shaderDR_VS.hlsl", layoutDR, ARRAYSIZE( layoutDR ) );
+		COM_ERROR_IF_FAILED( hr, "Failed to create deferred cube vertex shader!" );
+		hr = m_pixelShaderDR.Initialize( m_pDevice, L"Resources\\Shaders\\shaderDR_PS.hlsl" );
+		COM_ERROR_IF_FAILED( hr, "Failed to create deferred cube pixel shader!" );
 
 		// Define input layout for textures
 		D3D11_INPUT_ELEMENT_DESC layoutTEX[] =
@@ -176,20 +189,11 @@ void Graphics::BeginFrameDeferred()
 	m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
 }
 
-void Graphics::UpdateRenderStateSkysphere( bool useDeferred, bool useGBuffer )
+void Graphics::UpdateRenderStateSkysphere()
 {
 	// Set render state for skysphere
     m_pRasterizerStates[Bind::Rasterizer::Type::SKYSPHERE]->Bind( m_pContext.Get() );
-	if ( useDeferred )
-	{
-		useGBuffer ?
-			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ ) :
-			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderGB, m_pixelShaderGB );
-	}
-	else
-	{
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
-	}
+	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
 }
 
 void Graphics::UpdateRenderStateCube( bool useDeferred, bool useGBuffer )
@@ -199,7 +203,7 @@ void Graphics::UpdateRenderStateCube( bool useDeferred, bool useGBuffer )
 	if ( useDeferred )
 	{
 		useGBuffer ?
-			Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader ) :
+			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR ) :
 			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderGB, m_pixelShaderGB );
 	}
 	else
@@ -208,36 +212,18 @@ void Graphics::UpdateRenderStateCube( bool useDeferred, bool useGBuffer )
 	}
 }
 
-void Graphics::UpdateRenderStateObject( bool useDeferred, bool useGBuffer )
+void Graphics::UpdateRenderStateObject()
 {
 	// Set default render state for objects
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
-	if ( useDeferred )
-	{
-		useGBuffer ?
-			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ ) :
-			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderGB, m_pixelShaderGB );
-	}
-	else
-	{
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
-	}
+	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
 }
 
-void Graphics::UpdateRenderStateTexture( bool useDeferred, bool useGBuffer )
+void Graphics::UpdateRenderStateTexture()
 {
 	// Set default render state for objects
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
-	if ( useDeferred )
-	{
-		useGBuffer ?
-			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderTEX, m_pixelShaderTEX ) :
-			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderGB, m_pixelShaderGB );
-	}
-	else
-	{
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderTEX, m_pixelShaderTEX );
-	}
+	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderTEX, m_pixelShaderTEX );
 }
 
 void Graphics::BeginRenderSceneToTexture()

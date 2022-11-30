@@ -3,8 +3,6 @@ Texture2D textureQuad : register( t0 );
 Texture2D textureDepth : register( t1 );
 Texture2D textureNormalDepth : register( t2 );
 Texture2D textureRandom : register( t3 );
-Texture2D texturePosition : register( t4 );
-Texture2D textureAlbedo : register( t5 );
 
 SamplerState samplerWrap : register( s0 );
 SamplerState samplerClamp : register( s1 );
@@ -47,12 +45,6 @@ struct _SSAO
     float Padding;
 };
 
-struct _Deferred
-{
-    bool UseDeferredShading;
-    float3 Padding;
-};
-
 // Constant Buffers
 cbuffer MotionBlurData : register( b0 )
 {
@@ -67,11 +59,6 @@ cbuffer FXAAData : register( b1 )
 cbuffer SSAOData : register( b2 )
 {
     _SSAO SSAO;
-}
-
-cbuffer DeferredData : register( b3 )
-{
-    _Deferred Deferred;
 }
 
 // Math Functions
@@ -102,30 +89,6 @@ float3 ComputePositionViewFromZ( uint2 coords, float zbuffer )
 }
 
 // Effects Functions
-float4 DoDeferredShading( float4 pos, float2 texCoord, float4 posView )
-{
-    //float4 finalColor = float4( 0.0f, 0.0f, 0.0f, 0.0f );
-
-    // Generate the position texture
-    //float4 position = texturePosition.Sample( samplerWrap, texCoord );
-
-    // Generate normal texture
-    float centerZBuffer = textureNormalDepth.Sample( samplerClamp, texCoord ).w;
-    float3 centerDepthPos = ComputePositionViewFromZ( uint2( posView.xy ), centerZBuffer );
-    float3 normal = DecodeSphereMap( textureNormalDepth.Sample( samplerClamp, texCoord ).xy );
-    
-    // Generate the depth texture
-    //float zOverW = textureDepth.Sample( samplerWrap, texCoord ); // get from cube and skybox
-    
-    // Generate the colour textures
-    //float4 ambient = textureAlbedo.Sample( samplerWrap, texCoord ) * 0.1f;
-    //float3 diffuse = textureAlbedo.Sample( samplerWrap, texCoord ).rgb;
-    //float specular = textureAlbedo.Sample( samplerWrap, texCoord ).a;
-    
-    return float4( normal, 1.0f );
-    //return float4( diffuse, 1.0f );
-}
-
 float4 DoMotionBlur( float2 texCoord )
 {
     // Get the depth buffer value at this pixel.
@@ -248,10 +211,6 @@ struct PS_INPUT
 
 float4 PS( PS_INPUT input ) : SV_TARGET
 {
-    //if ( Deferred.UseDeferredShading )
-    //if ( SSAO.UseSSAO )
-    //    return DoDeferredShading( input.Position, input.TexCoord, input.PositionV );
-
     if ( MotionBlur.UseMotionBlur )
         return DoMotionBlur( input.TexCoord );
 

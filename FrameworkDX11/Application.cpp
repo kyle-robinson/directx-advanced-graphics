@@ -104,7 +104,7 @@ void Application::Render()
     std::function<void( bool, bool )> RenderScene = [&]( bool useDeferred, bool useGBuffer ) -> void
     {
         // Render skyphere first
-        graphics.UpdateRenderStateSkysphere( useDeferred, useGBuffer );
+        graphics.UpdateRenderStateSkysphere();
         m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
     
         // Update constant buffers
@@ -120,7 +120,8 @@ void Application::Render()
         graphics.GetContext()->PSSetConstantBuffers( 0u, 1u, m_cube.GetCB() );
         graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_light.GetCB() );
         graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_mapping.GetCB() );
-        graphics.GetContext()->PSSetConstantBuffers( 3u, 1u, m_deferred.GetCB() );
+        if ( useDeferred && useGBuffer )
+            graphics.GetContext()->PSSetConstantBuffers( 3u, 1u, m_deferred.GetCB() );
         ( useDeferred && useGBuffer ) ?
             m_cube.DrawDeferred( graphics.GetContext(),
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::POSITION )->GetShaderResourceViewPtr(),
@@ -128,7 +129,7 @@ void Application::Render()
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr() ) :
             m_cube.Draw( graphics.GetContext() );
 
-        graphics.UpdateRenderStateTexture( useDeferred, useGBuffer );
+        graphics.UpdateRenderStateTexture();
         m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
     };
 

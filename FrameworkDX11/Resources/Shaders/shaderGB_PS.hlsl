@@ -34,6 +34,7 @@ PS_OUTPUT PS( PS_INPUT input )
     float3x3 TBN = float3x3( T, B, N );
     
     float3 normalFromMap = textureNrm.Sample( samplerState, input.TexCoord ) * 2.0f - 1.0f;
+    normalFromMap.y = -normalFromMap.y;
     input.Normal = normalize( mul( normalFromMap, TBN ) );
     output.Normal = float4( input.Normal, 1.0f );
     

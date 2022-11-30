@@ -170,12 +170,9 @@ void Cube::DrawDeferred(
 	pContext->IASetVertexBuffers( 0u, 1u, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.StridePtr(), &offset );
 	pContext->IASetIndexBuffer( m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0 );
 
-	pContext->PSSetShaderResources( 0u, 1u, m_pTextureDiffuse.GetAddressOf() );
-	pContext->PSSetShaderResources( 1u, 1u, m_pTextureNormal.GetAddressOf() );
-	pContext->PSSetShaderResources( 2u, 1u, m_pTextureDisplacement.GetAddressOf() );
-	pContext->PSSetShaderResources( 3u, 1u, albedo );
-	pContext->PSSetShaderResources( 4u, 1u, normal );
-	pContext->PSSetShaderResources( 5u, 1u, position );
+	pContext->PSSetShaderResources( 0u, 1u, position );
+	pContext->PSSetShaderResources( 1u, 1u, albedo );
+	pContext->PSSetShaderResources( 2u, 1u, normal );
 
 	pContext->DrawIndexed( m_indexBuffer.IndexCount(), 0u, 0u );
 }

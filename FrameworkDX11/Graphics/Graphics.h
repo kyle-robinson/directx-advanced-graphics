@@ -22,10 +22,13 @@ public:
 	void BeginFrameNormal();
 	void BeginFrameDeferred();
 	
-	void UpdateRenderStateSkysphere( bool useDeferred = false, bool useGBuffer = false );
-	void UpdateRenderStateCube( bool useDeferred = false, bool useGBuffer = false );
-	void UpdateRenderStateObject( bool useDeferred = false, bool useGBuffer = false );
-	void UpdateRenderStateTexture( bool useDeferred = false, bool useGBuffer = false );
+	void UpdateRenderStateSkysphere();
+	void UpdateRenderStateCube(
+		bool useDeferred = false,
+		bool useGBuffer = false
+	);
+	void UpdateRenderStateObject();
+	void UpdateRenderStateTexture();
 	
 	void BeginRenderSceneToTexture();
 	void RenderSceneToTexture(
@@ -60,6 +63,9 @@ private:
 
 	VertexShader m_vertexShaderPP;
 	PixelShader m_pixelShaderPP;
+
+	VertexShader m_vertexShaderDR;
+	PixelShader m_pixelShaderDR;
 
 	VertexShader m_vertexShaderGB;
 	PixelShader m_pixelShaderGB;

@@ -439,5 +439,11 @@
     <FxCompile Include="Resources\Shaders\shaderTEX_PS.hlsl">
       <Filter>Resources\Shaders\Pixel</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\shaderDR_PS.hlsl">
+      <Filter>Resources\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\shaderDR_VS.hlsl">
+      <Filter>Resources\Shaders\Vertex</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
