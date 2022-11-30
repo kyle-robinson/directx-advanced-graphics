@@ -113,33 +113,6 @@ void Application::Render()
         m_mapping.UpdateCB();
         m_cube.UpdateCB();
 
-        // Update cube scaling/positioning
-        /*if ( useDeferred && !useGBuffer )
-	    {
-            m_cube.SetPosition( XMFLOAT3(
-                0.0f + m_camera.GetPositionFloat3().x,
-                0.0f + m_camera.GetPositionFloat3().y,
-                3.0f + m_camera.GetPositionFloat3().z
-            ) );
-           m_cube.SetRotation( XMFLOAT3(
-               m_camera.GetRotationFloat3().x * 2.33f,
-               m_camera.GetRotationFloat3().y * 1.33f,
-               m_camera.GetRotationFloat3().z * 1.33f
-           ) );
-		    m_cube.SetScale( XMFLOAT3( 2.33f, 1.33f, 1.33f ) );
-	    }
-	    else
-	    {
-		    m_cube.SetPosition( XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
-		    m_cube.SetRotation( XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
-            m_cube.SetRotation( XMFLOAT3(
-                m_camera.GetRotationFloat3().x * 1.0f,
-                m_camera.GetRotationFloat3().y * 1.0f,
-                m_camera.GetRotationFloat3().z * 1.0f
-            ) );
-		    m_cube.SetScale( XMFLOAT3( 1.0f, 1.0f, 1.0f ) );
-	    }*/
-
         // Render objects
         graphics.UpdateRenderStateCube( useDeferred, useGBuffer );
         m_cube.UpdateBuffers( m_cbMatrices, m_camera );
@@ -152,11 +125,7 @@ void Application::Render()
             m_cube.DrawDeferred( graphics.GetContext(),
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::POSITION )->GetShaderResourceViewPtr(),
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::ALBEDO )->GetShaderResourceViewPtr(),
-                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr(),
-                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::TANGENT )->GetShaderResourceViewPtr(),
-                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::BINORMAL )->GetShaderResourceViewPtr(),
-                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMALMAP )->GetShaderResourceViewPtr(),
-                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::DISPLACEMENTMAP )->GetShaderResourceViewPtr() ) :
+                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr() ) :
             m_cube.Draw( graphics.GetContext() );
 
         graphics.UpdateRenderStateTexture( useDeferred, useGBuffer );
@@ -165,10 +134,6 @@ void Application::Render()
 
     if ( m_deferred.IsActive() )
     {
-        //m_camera.ResetPosition();
-        //m_camera.ResetRotation();
-        //m_camera.DisableMovement();
-
         // Normal pass
         graphics.BeginFrameDeferred();
         RenderScene( true, false );

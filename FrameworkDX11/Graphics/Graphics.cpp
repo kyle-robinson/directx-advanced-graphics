@@ -64,19 +64,18 @@ bool Graphics::InitializeShaders()
 		COM_ERROR_IF_FAILED( hr, "Failed to create cube pixel shader!" );
 
 		// Define input layout for normal/depth pass
-		D3D11_INPUT_ELEMENT_DESC layoutDR[] =
+		D3D11_INPUT_ELEMENT_DESC layoutGB[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
 		// Create the cube shaders
-		hr = m_vertexShaderDR.Initialize( m_pDevice, L"Resources\\Shaders\\shaderDR_VS.hlsl", layoutDR, ARRAYSIZE( layoutDR ) );
+		hr = m_vertexShaderGB.Initialize( m_pDevice, L"Resources\\Shaders\\shaderGB_VS.hlsl", layoutGB, ARRAYSIZE( layoutGB ) );
 		COM_ERROR_IF_FAILED( hr, "Failed to create deferred vertex shader!" );
-		hr = m_pixelShaderDR.Initialize( m_pDevice, L"Resources\\Shaders\\shaderDR_PS.hlsl" );
+		hr = m_pixelShaderGB.Initialize( m_pDevice, L"Resources\\Shaders\\shaderGB_PS.hlsl" );
 		COM_ERROR_IF_FAILED( hr, "Failed to create deferred pixel shader!" );
 
 		// Define input layout for models
@@ -168,20 +167,12 @@ void Graphics::BeginFrameDeferred()
 	ID3D11RenderTargetView* renderTargets[] = {
 		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::POSITION]->GetRenderTarget(),
 		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::ALBEDO]->GetRenderTarget(),
-		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMAL]->GetRenderTarget(),
-		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::TANGENT]->GetRenderTarget(),
-		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::BINORMAL]->GetRenderTarget(),
-		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMALMAP]->GetRenderTarget(),
-		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::DISPLACEMENTMAP]->GetRenderTarget()
+		m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMAL]->GetRenderTarget()
 	};
 	m_pContext->OMSetRenderTargets( BUFFER_COUNT, renderTargets, m_pDepthStencil->GetDepthStencilView() );
 	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::POSITION]->GetRenderTarget(), m_clearColor );
 	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::ALBEDO]->GetRenderTarget(), m_clearColor );
 	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMAL]->GetRenderTarget(), m_clearColor );
-	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::TANGENT]->GetRenderTarget(), m_clearColor );
-	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::BINORMAL]->GetRenderTarget(), m_clearColor );
-	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::NORMALMAP]->GetRenderTarget(), m_clearColor );
-	m_pContext->ClearRenderTargetView( m_pRenderTargetsDeferred[Bind::RenderTarget::Type::DISPLACEMENTMAP]->GetRenderTarget(), m_clearColor );
 	m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
 }
 
@@ -193,7 +184,7 @@ void Graphics::UpdateRenderStateSkysphere( bool useDeferred, bool useGBuffer )
 	{
 		useGBuffer ?
 			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ ) :
-			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR );
+			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderGB, m_pixelShaderGB );
 	}
 	else
 	{
@@ -209,7 +200,7 @@ void Graphics::UpdateRenderStateCube( bool useDeferred, bool useGBuffer )
 	{
 		useGBuffer ?
 			Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader ) :
-			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR );
+			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderGB, m_pixelShaderGB );
 	}
 	else
 	{
@@ -225,7 +216,7 @@ void Graphics::UpdateRenderStateObject( bool useDeferred, bool useGBuffer )
 	{
 		useGBuffer ?
 			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ ) :
-			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR );
+			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderGB, m_pixelShaderGB );
 	}
 	else
 	{
@@ -241,7 +232,7 @@ void Graphics::UpdateRenderStateTexture( bool useDeferred, bool useGBuffer )
 	{
 		useGBuffer ?
 			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderTEX, m_pixelShaderTEX ) :
-			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR );
+			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderGB, m_pixelShaderGB );
 	}
 	else
 	{

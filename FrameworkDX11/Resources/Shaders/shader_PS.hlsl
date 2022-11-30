@@ -5,13 +5,9 @@
 Texture2D textureDiffuse : register( t0 );
 Texture2D textureNormal : register( t1 );
 Texture2D textureDisplacement : register( t2 );
-Texture2D textureAlbedo : register( t3 );
+Texture2D textureAlbedoDefer : register( t3 );
 Texture2D textureNormalDefer : register( t4 );
-Texture2D texturePosition : register( t5 );
-Texture2D textureTangentDefer : register( t6 );
-Texture2D textureBinormalDefer : register( t7 );
-Texture2D textureNormalMapDefer : register( t8 );
-Texture2D textureDisplacementMapDefer : register( t9 );
+Texture2D texturePositionDefer : register( t5 );
 SamplerState samplerState : register( s0 );
 
 // Structs
@@ -186,22 +182,14 @@ float3x3 computeTBNMatrixB( float3 unitNormal, float3 tangent, float3 binorm )
 
 float3 NormalMapping( float2 texCoord, float3x3 TBN )
 {
-    float3 texNormal;
-    if ( Deferred.UseDeferredShading )
-        texNormal = textureNormalMapDefer.Sample( samplerState, texCoord ).rgb;
-    else
-        texNormal = textureNormal.Sample( samplerState, texCoord ).rgb;
+    float3 texNormal = textureNormal.Sample( samplerState, texCoord ).rgb;
     float3 texNorm = 2.0f * texNormal - 1.0f;
     return mul( texNorm, TBN );
 }
 
 float2 SimpleParallax( float2 texCoord, float3 toEye )
 {
-    float height;
-    if ( Deferred.UseDeferredShading )
-        height = textureDisplacementMapDefer.Sample( samplerState, texCoord ).r;
-    else
-        height = textureDisplacement.Sample( samplerState, texCoord ).r;
+    float height = textureDisplacement.Sample( samplerState, texCoord ).r;
     float heightSB = Mapping.HeightScale * ( height - 1.0f );
     float2 parallax = toEye.xy * heightSB;
     return ( texCoord + parallax );
@@ -233,10 +221,7 @@ float2 ParallaxOcclusion( float2 texCoord, float3 normal, float3 toEye )
 
     while ( currSample < numSamples + 1 )
     {
-        if ( Deferred.UseDeferredShading )
-            currHeight = textureDisplacementMapDefer.SampleGrad( samplerState, texCoord + currParallax, dx, dy ).r;
-        else
-            currHeight = textureDisplacement.SampleGrad( samplerState, texCoord + currParallax, dx, dy ).r;
+        currHeight = textureDisplacement.SampleGrad( samplerState, texCoord + currParallax, dx, dy ).r;
         if ( currHeight > currZ )
         {
             float n = prevHeight - prevZ;
@@ -267,11 +252,7 @@ float ParallaxSelfShadowing( float3 toLight, float2 texCoord, bool softShadow )
 
     float2 dx = ddx( texCoord );
     float2 dy = ddy( texCoord );
-    float height;
-    if ( Deferred.UseDeferredShading )
-        height = 1.0f - textureDisplacementMapDefer.SampleGrad( samplerState, texCoord, dx, dy ).r;
-    else
-        height = 1.0f - textureDisplacement.SampleGrad( samplerState, texCoord, dx, dy ).r;
+    float height = 1.0f - textureDisplacement.SampleGrad( samplerState, texCoord, dx, dy ).r;
     float parallaxScale = Mapping.HeightScale * ( 1.0f - height );
 
     if ( dot( float3( 0.0f, 0.0f, 1.0f ), toLight ) > 0.0f )
@@ -285,11 +266,7 @@ float ParallaxSelfShadowing( float3 toLight, float2 texCoord, bool softShadow )
 
         float currLayerHeight = height - layerHeight;
         float2 currTexCoord = texCoord + texStep;
-        float heightFromTex;
-        if ( Deferred.UseDeferredShading )
-            heightFromTex = 1.0f - textureDisplacementMapDefer.SampleGrad( samplerState, currTexCoord, dx, dy ).r;
-        else
-            heightFromTex = 1.0f - textureDisplacement.SampleGrad( samplerState, currTexCoord, dx, dy ).r;
+        float heightFromTex = 1.0f - textureDisplacement.SampleGrad( samplerState, currTexCoord, dx, dy ).r;
         int stepIndex = 1;
         int numIter = 0;
 
@@ -305,10 +282,7 @@ float ParallaxSelfShadowing( float3 toLight, float2 texCoord, bool softShadow )
             stepIndex += 1;
             currLayerHeight -= layerHeight;
             currTexCoord += texStep;
-            if ( Deferred.UseDeferredShading )
-                heightFromTex = textureDisplacementMapDefer.SampleGrad( samplerState, currTexCoord, dx, dy ).r;
-            else
-                heightFromTex = textureDisplacement.SampleGrad( samplerState, currTexCoord, dx, dy ).r;
+            heightFromTex = textureDisplacement.SampleGrad( samplerState, currTexCoord, dx, dy ).r;
         }
 
         if ( numSamplesUnderSurface < 1.0f )
@@ -347,37 +321,12 @@ float4 PS( PS_INPUT input ) : SV_TARGET
 {   
     if ( Deferred.UseDeferredShading )
     {
-        //float4 position = texturePosition.Sample( samplerState, input.TexCoord );
         int3 sampleIndices = int3( input.Position.xy, 0 );
-        float4 position = texturePosition.Load( sampleIndices );
-        float3 vertexToLight = normalize( Lights[0].Position - position ).xyz;
-        /*float3 vertexToEye = normalize( CameraPosition - position ).xyz;*/
-        
-        //float3 normal = textureNormalDefer.Sample( samplerState, input.TexCoord ).rgb;
+        float4 position = texturePositionDefer.Load( sampleIndices );
+        float3 vertexToLight = normalize( Lights[0].Position - position ).xyz;        
         float3 normal = textureNormalDefer.Load( sampleIndices ).rgb;
-        /*float3 tangent = textureTangentDefer.Sample( samplerState, input.TexCoord ).rgb;
-        float3 binormal = textureBinormalDefer.Sample( samplerState, input.TexCoord ).rgb;*/
         
-        /*float3x3 TBN = computeTBNMatrixB( normal, tangent, binormal );
-        float3 vertexToLightTS = mul( vertexToLight, TBN );
-        float3 vertexToEyeTS = mul( vertexToEye, TBN );*/
-        
-        /*if ( Mapping.UseParallaxMap )
-        {
-            if ( Mapping.UseParallaxOcclusion )
-                input.TexCoord = ParallaxOcclusion( input.TexCoord, normal, vertexToEyeTS );
-            else
-                input.TexCoord = SimpleParallax( input.TexCoord, vertexToEyeTS );
-        
-            if ( input.TexCoord.x > 1.0f || input.TexCoord.y > 1.0f || input.TexCoord.x < 0.0f || input.TexCoord.y < 0.0f )
-                discard;
-        }*/
-        
-        /*if ( Mapping.UseNormalMap )
-            normal = NormalMapping( input.TexCoord, TBN );*/
-        
-        //float4 albedo = textureAlbedo.Sample( samplerState, input.TexCoord );
-        float4 albedo = textureAlbedo.Load( sampleIndices );
+        float4 albedo = textureAlbedoDefer.Load( sampleIndices );
         if ( !Material.UseTexture )
             albedo = float4( 1.0f, 1.0f, 1.0f, 1.0f );
         
@@ -399,13 +348,9 @@ float4 PS( PS_INPUT input ) : SV_TARGET
 	    float4 ambient = Material.Ambient * GlobalAmbient * Lights[0].Intensity;	
         float4 diffuse = Material.Diffuse * lit.Diffuse * Lights[0].Intensity;    
 	    float4 specular = Material.Specular * lit.Specular * Lights[0].Intensity;
-        
-        float shadowFactor = 1.0f;
-        /*if ( Mapping.UseParallaxSelfShadowing )
-            shadowFactor = ParallaxSelfShadowing( vertexToLightTS, input.TexCoord, Mapping.UseSoftShadow );*/
 	
         // final colour
-	    float4 finalColor = ( emissive + ambient + diffuse * shadowFactor + specular * shadowFactor ) * albedo;
+	    float4 finalColor = ( emissive + ambient + diffuse + specular ) * albedo;
 	    return finalColor;
     }
     else

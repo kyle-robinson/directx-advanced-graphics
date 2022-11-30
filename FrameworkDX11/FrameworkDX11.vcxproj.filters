@@ -415,7 +415,7 @@
     <FxCompile Include="Resources\Shaders\shaderNRM_VS.hlsl">
       <Filter>Resources\Shaders\Vertex</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderDR_VS.hlsl">
+    <FxCompile Include="Resources\Shaders\shaderGB_VS.hlsl">
       <Filter>Resources\Shaders\Vertex</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\shader_VS.hlsl">
@@ -424,7 +424,7 @@
     <FxCompile Include="Resources\Shaders\shader_PS.hlsl">
       <Filter>Resources\Shaders\Pixel</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderDR_PS.hlsl">
+    <FxCompile Include="Resources\Shaders\shaderGB_PS.hlsl">
       <Filter>Resources\Shaders\Pixel</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\shaderNRM_PS.hlsl">

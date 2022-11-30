@@ -12,7 +12,7 @@
 #include "DepthStencil.h"
 #include "RenderTarget.h"
 
-static UINT BUFFER_COUNT = 7u;
+static UINT BUFFER_COUNT = 3u;
 
 class Graphics
 {
@@ -61,8 +61,8 @@ private:
 	VertexShader m_vertexShaderPP;
 	PixelShader m_pixelShaderPP;
 
-	VertexShader m_vertexShaderDR;
-	PixelShader m_pixelShaderDR;
+	VertexShader m_vertexShaderGB;
+	PixelShader m_pixelShaderGB;
 
 	VertexShader m_vertexShaderNRM;
 	PixelShader m_pixelShaderNRM;

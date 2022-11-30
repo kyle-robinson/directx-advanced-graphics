@@ -22,11 +22,7 @@ namespace Bind
 			DEFAULT = -1,
 			POSITION,
 			ALBEDO,
-			NORMAL,
-			TANGENT,
-			BINORMAL,
-			NORMALMAP,
-			DISPLACEMENTMAP
+			NORMAL
 		};
 		RenderTarget( ID3D11Device* device, int width, int height, Type type = Type::DEFAULT )
 		{
@@ -40,17 +36,9 @@ namespace Bind
 				textureDesc.ArraySize = 1u;
 				switch ( type )
 				{
-					/*DXGI_FORMAT_R32G32B32A32_FLOAT*/
-					/*DXGI_FORMAT_R16G16B16A16_FLOAT*/
-					/*DXGI_FORMAT_B8G8R8X8_UNORM*/
-					/*DXGI_FORMAT_R8G8B8A8_UNORM*/
 					case Type::POSITION: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
 					case Type::ALBEDO: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
 					case Type::NORMAL: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
-					case Type::TANGENT: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
-					case Type::BINORMAL: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
-					case Type::NORMALMAP: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
-					case Type::DISPLACEMENTMAP: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
 					case Type::DEFAULT: textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
 				}
 				textureDesc.SampleDesc.Count = SAMPLE_COUNT;
