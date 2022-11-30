@@ -323,24 +323,23 @@ float4 PS( PS_INPUT input ) : SV_TARGET
     {
         int3 sampleIndices = int3( input.Position.xy, 0 );
         float4 position = texturePositionDefer.Load( sampleIndices );
-        float3 vertexToLight = normalize( Lights[0].Position - position ).xyz;        
-        float3 normal = textureNormalDefer.Load( sampleIndices ).rgb;
-        
-        float4 albedo = textureAlbedoDefer.Load( sampleIndices );
-        if ( !Material.UseTexture )
-            albedo = float4( 1.0f, 1.0f, 1.0f, 1.0f );
-        
-        // determine whether to only show one texture
         if ( Deferred.OnlyPositions )
             return position;
         
-        if ( Deferred.OnlyAlbedo )
-            return albedo;
-        
+        float3 normal = textureNormalDefer.Load( sampleIndices ).rgb;
+        if ( !Mapping.UseNormalMap )
+            normal = input.Normal;
         if ( Deferred.OnlyNormals )
             return float4( normal, 1.0f );
+        
+        float4 albedo = textureAlbedoDefer.Load( sampleIndices );
+        if ( !Material.UseTexture )
+            albedo = float4( 1.0f, 1.0f, 1.0f, 1.0f );        
+        if ( Deferred.OnlyAlbedo )
+            return albedo;
 
         // lighting
+        float3 vertexToLight = normalize( Lights[0].Position - position ).xyz;
         LightingResult lit = ComputeLighting( position, normal, vertexToLight );
 
 	    // texture/material

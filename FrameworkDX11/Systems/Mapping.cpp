@@ -33,90 +33,104 @@ void Mapping::UpdateCB()
     if ( !m_cbMapping.ApplyChanges() ) return;
 }
 
-void Mapping::SpawnControlWindow()
+void Mapping::SpawnControlWindow( bool usingDeferred )
 {
 	if ( ImGui::Begin( "Texture Mapping", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
 	{
-		// normal & parallax mapping
-		static int activeMappingTechnique = 2;
-		static bool selectedMappingTechnique[3];
-		static std::string previewValueMappingTechnique = "Normal + Parallax Mapping";
-		static const char* mappingList[]{ "None", "Normal Mapping", "Normal + Parallax Mapping" };
-		ImGui::Text( "Mapping Technique" );
-		if ( ImGui::BeginCombo( "##Mapping Technique", previewValueMappingTechnique.c_str() ) )
+		if ( usingDeferred )
 		{
-			for ( uint32_t i = 0; i < IM_ARRAYSIZE( mappingList ); i++ )
+			static bool useNormalMap = m_bUseNormalMap;
+			if ( ImGui::Checkbox( "Use Normal Map?", &useNormalMap ) )
 			{
-				const bool isSelected = i == activeMappingTechnique;
-				if ( ImGui::Selectable( mappingList[i], isSelected ) )
-				{
-					activeMappingTechnique = i;
-					previewValueMappingTechnique = mappingList[i];
-				}
+				m_bUseParallaxMap = false;
+				m_bUseParallaxOcclusion = false;
+				m_bUseParallaxSelfShadowing = false;
+				m_bUseNormalMap = useNormalMap;
 			}
-
-			switch ( activeMappingTechnique )
-			{
-			case 0: m_bUseNormalMap = false; m_bUseParallaxMap = false; m_bUseParallaxOcclusion = false; m_bUseParallaxSelfShadowing = false; break;
-			case 1: m_bUseNormalMap = true; m_bUseParallaxMap = false; m_bUseParallaxOcclusion = false; m_bUseParallaxSelfShadowing = false; break;
-			case 2: m_bUseNormalMap = true; m_bUseParallaxMap = true; m_bUseParallaxOcclusion = false; m_bUseParallaxSelfShadowing = false; break;
-			}
-
-			ImGui::EndCombo();
 		}
-
-		// parallax occlusion and self-shadowing
-		if ( m_bUseParallaxMap )
+		else
 		{
-			// parallax depth scale
-			ImGui::NewLine();
-			ImGui::Text( "Height Scale" );
-			ImGui::SliderFloat( "##Height Scale", &m_fHeightScale, 0.0f, 1.0f, "%.1f" );
-
-			ImGui::NewLine();
-			ImGui::Separator();
-			ImGui::NewLine();
-
-			static int activeParallaxTechnique = 2;
-			static bool selectedParallaxTechnique[3];
-			static std::string previewValueParallaxTechnique = "Occlusion + Self-Shadowing";
-			static const char* parallaxList[]{ "Basic", "Occlusion Mapping", "Occlusion + Self-Shadowing" };
-			ImGui::Text( "Parallax Technique" );
-			if ( ImGui::BeginCombo( "##Parallax Technique", previewValueParallaxTechnique.c_str() ) )
+			// normal & parallax mapping
+			static int activeMappingTechnique = 2;
+			static bool selectedMappingTechnique[3];
+			static std::string previewValueMappingTechnique = "Normal + Parallax Mapping";
+			static const char* mappingList[]{ "None", "Normal Mapping", "Normal + Parallax Mapping" };
+			ImGui::Text( "Mapping Technique" );
+			if ( ImGui::BeginCombo( "##Mapping Technique", previewValueMappingTechnique.c_str() ) )
 			{
-				for ( uint32_t i = 0; i < IM_ARRAYSIZE( parallaxList ); i++ )
+				for ( uint32_t i = 0; i < IM_ARRAYSIZE( mappingList ); i++ )
 				{
-					const bool isSelected = i == activeParallaxTechnique;
-					if ( ImGui::Selectable( parallaxList[i], isSelected ) )
+					const bool isSelected = i == activeMappingTechnique;
+					if ( ImGui::Selectable( mappingList[i], isSelected ) )
 					{
-						activeParallaxTechnique = i;
-						previewValueParallaxTechnique = parallaxList[i];
+						activeMappingTechnique = i;
+						previewValueMappingTechnique = mappingList[i];
 					}
 				}
 
-				switch ( activeParallaxTechnique )
+				switch ( activeMappingTechnique )
 				{
-				case 0: m_bUseParallaxOcclusion = false; m_bUseParallaxSelfShadowing = false; break;
-				case 1: m_bUseParallaxOcclusion = true; m_bUseParallaxSelfShadowing = false; break;
-				case 2: m_bUseParallaxOcclusion = true; m_bUseParallaxSelfShadowing = true; break;
+				case 0: m_bUseNormalMap = false; m_bUseParallaxMap = false; m_bUseParallaxOcclusion = false; m_bUseParallaxSelfShadowing = false; break;
+				case 1: m_bUseNormalMap = true; m_bUseParallaxMap = false; m_bUseParallaxOcclusion = false; m_bUseParallaxSelfShadowing = false; break;
+				case 2: m_bUseNormalMap = true; m_bUseParallaxMap = true; m_bUseParallaxOcclusion = false; m_bUseParallaxSelfShadowing = false; break;
 				}
 
 				ImGui::EndCombo();
 			}
 
-			// soft and hard shadows
-			if ( m_bUseParallaxSelfShadowing )
+			// parallax occlusion and self-shadowing
+			if ( m_bUseParallaxMap )
 			{
+				// parallax depth scale
+				ImGui::NewLine();
+				ImGui::Text( "Height Scale" );
+				ImGui::SliderFloat( "##Height Scale", &m_fHeightScale, 0.0f, 1.0f, "%.1f" );
+
 				ImGui::NewLine();
 				ImGui::Separator();
 				ImGui::NewLine();
 
-				static int shadowGroup = 0;
-				if ( ImGui::RadioButton( "Soft Shadows", &shadowGroup, 0 ) )
-					m_bUseSoftShadow = true;
-				ImGui::SameLine();
-				if ( ImGui::RadioButton( "Hard Shadows", &shadowGroup, 1 ) )
-					m_bUseSoftShadow = false;
+				static int activeParallaxTechnique = 2;
+				static bool selectedParallaxTechnique[3];
+				static std::string previewValueParallaxTechnique = "Occlusion + Self-Shadowing";
+				static const char* parallaxList[]{ "Basic", "Occlusion Mapping", "Occlusion + Self-Shadowing" };
+				ImGui::Text( "Parallax Technique" );
+				if ( ImGui::BeginCombo( "##Parallax Technique", previewValueParallaxTechnique.c_str() ) )
+				{
+					for ( uint32_t i = 0; i < IM_ARRAYSIZE( parallaxList ); i++ )
+					{
+						const bool isSelected = i == activeParallaxTechnique;
+						if ( ImGui::Selectable( parallaxList[i], isSelected ) )
+						{
+							activeParallaxTechnique = i;
+							previewValueParallaxTechnique = parallaxList[i];
+						}
+					}
+
+					switch ( activeParallaxTechnique )
+					{
+					case 0: m_bUseParallaxOcclusion = false; m_bUseParallaxSelfShadowing = false; break;
+					case 1: m_bUseParallaxOcclusion = true; m_bUseParallaxSelfShadowing = false; break;
+					case 2: m_bUseParallaxOcclusion = true; m_bUseParallaxSelfShadowing = true; break;
+					}
+
+					ImGui::EndCombo();
+				}
+
+				// soft and hard shadows
+				if ( m_bUseParallaxSelfShadowing )
+				{
+					ImGui::NewLine();
+					ImGui::Separator();
+					ImGui::NewLine();
+
+					static int shadowGroup = 0;
+					if ( ImGui::RadioButton( "Soft Shadows", &shadowGroup, 0 ) )
+						m_bUseSoftShadow = true;
+					ImGui::SameLine();
+					if ( ImGui::RadioButton( "Hard Shadows", &shadowGroup, 1 ) )
+						m_bUseSoftShadow = false;
+				}
 			}
 		}
 	}

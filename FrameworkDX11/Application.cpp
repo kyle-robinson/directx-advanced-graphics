@@ -221,15 +221,19 @@ void Application::Render()
     // Render imgui windows
     m_imgui.BeginRender();
     m_imgui.SpawnInstructionWindow();
-    m_motionBlur.SpawnControlWindow( m_fxaa.IsActive(), m_ssao.IsActive() );
-    m_fxaa.SpawnControlWindow( m_motionBlur.IsActive(), m_ssao.IsActive() );
-    m_ssao.SpawnControlWindow( m_motionBlur.IsActive(), m_fxaa.IsActive() );
+    if ( !m_deferred.IsActive() )
+    {
+        m_motionBlur.SpawnControlWindow( m_fxaa.IsActive(), m_ssao.IsActive() );
+        m_fxaa.SpawnControlWindow( m_motionBlur.IsActive(), m_ssao.IsActive() );
+        m_ssao.SpawnControlWindow( m_motionBlur.IsActive(), m_fxaa.IsActive() );
+    }
     m_postProcessing.SpawnControlWindow(
         m_motionBlur.IsActive(),
         m_fxaa.IsActive(),
-        m_ssao.IsActive() );
+        m_ssao.IsActive(),
+        m_deferred.IsActive() );
     m_deferred.SpawnControlWindow();
-    m_mapping.SpawnControlWindow();
+    m_mapping.SpawnControlWindow( m_deferred.IsActive() );
     m_light.SpawnControlWindow();
     m_cube.SpawnControlWindows();
     m_imgui.EndRender();

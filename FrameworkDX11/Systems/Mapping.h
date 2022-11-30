@@ -10,7 +10,7 @@ class Mapping
 public:
 	bool Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 	void UpdateCB();
-	void SpawnControlWindow();
+	void SpawnControlWindow( bool usingDeferred );
 	inline ID3D11Buffer* const* GetCB() const noexcept { return m_cbMapping.GetAddressOf(); }
 private:
 	BOOL m_bUseNormalMap = TRUE;
