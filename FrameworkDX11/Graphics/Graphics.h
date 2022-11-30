@@ -36,7 +36,7 @@ public:
 		ID3D11Buffer* const* cbFXAA,
 		ID3D11Buffer* const* cbSSAO,
 		ID3D11ShaderResourceView* const* pNoiseTexture );
-	void RenderSceneToTextureNormalDepth( ID3D11Buffer* const* cbMatrices );
+	void RenderSceneToTextureNormal( ID3D11Buffer* const* cbMatrices );
 	void EndFrame();
 
 	inline UINT GetWidth() const noexcept { return m_viewWidth; }
@@ -86,7 +86,7 @@ private:
 
 	std::shared_ptr<Bind::RenderTarget> m_pRenderTarget;
 	std::shared_ptr<Bind::DepthStencil> m_pDepthStencil;
-	std::shared_ptr<Bind::RenderTarget> m_pRenderTargetNormalDepth;
+	std::shared_ptr<Bind::RenderTarget> m_pRenderTargetNormal;
 	std::unordered_map<Bind::RenderTarget::Type, std::shared_ptr<Bind::RenderTarget>> m_pRenderTargetsDeferred;
 
 	std::shared_ptr<Bind::Viewport> m_pViewport;

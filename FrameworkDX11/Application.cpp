@@ -53,8 +53,8 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
         hr = m_deferred.Initialize( graphics.GetDevice(), graphics.GetContext() );
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'deferred' system!" );
 
-        // Initialize models
 #if defined ( _x64 )
+        // Initialize models
         if ( !m_objSkysphere.Initialize( "Resources\\Models\\sphere.obj", graphics.GetDevice(), graphics.GetContext(), m_cbMatrices ) )
 		    return false;
         m_objSkysphere.SetInitialScale( 50.0f, 50.0f, 50.0f );
@@ -137,8 +137,10 @@ void Application::Render()
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr() ) :
             m_cube.Draw( graphics.GetContext() );
 
+#if defined ( _x64 )
         graphics.UpdateRenderStateTexture();
         m_light.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+#endif
     };
 
     if ( m_deferred.IsActive() )
@@ -146,10 +148,6 @@ void Application::Render()
         // Normal pass
         graphics.BeginFrameDeferred();
         RenderScene( true, false );
-    }
-    else
-    {
-        m_camera.EnableMovement();
     }
 
     if ( m_ssao.IsActive() )
@@ -168,7 +166,7 @@ void Application::Render()
         // Add to constant buffer
         m_cbMatricesNormalDepth.data = mndData;
         if ( !m_cbMatricesNormalDepth.ApplyChanges() ) return;
-        graphics.RenderSceneToTextureNormalDepth( m_cbMatricesNormalDepth.GetAddressOf() );
+        graphics.RenderSceneToTextureNormal( m_cbMatricesNormalDepth.GetAddressOf() );
     }
 
     // Standard pass
@@ -191,40 +189,43 @@ void Application::Render()
     m_ssao.UpdateCB( graphics.GetWidth(), graphics.GetHeight(), m_camera );
 
     // Render text
-    m_spriteBatch->Begin();
-    static XMFLOAT2 textPosition = { graphics.GetWidth() * 0.5f, graphics.GetHeight() * 0.96f };
-    std::function<XMFLOAT2( const wchar_t* )> DrawOutline = [&]( const wchar_t* text ) mutable -> XMFLOAT2
+    if ( !m_motionBlur.IsActive() && !m_fxaa.IsActive() && !m_ssao.IsActive() )
     {
-        XMFLOAT2 originF = XMFLOAT2( 1.0f, 1.0f );
-        XMVECTOR origin = m_spriteFont->MeasureString( text ) / 2.0f;
-        XMStoreFloat2( &originF, origin );
+        m_spriteBatch->Begin();
+        static XMFLOAT2 textPosition = { graphics.GetWidth() * 0.5f, graphics.GetHeight() * 0.96f };
+        std::function<XMFLOAT2( const wchar_t* )> DrawOutline = [&]( const wchar_t* text ) mutable -> XMFLOAT2
+        {
+            XMFLOAT2 originF = XMFLOAT2( 1.0f, 1.0f );
+            XMVECTOR origin = m_spriteFont->MeasureString( text ) / 2.0f;
+            XMStoreFloat2( &originF, origin );
 
-        // Draw outline
-        m_spriteFont->DrawString( m_spriteBatch.get(), text,
-            XMFLOAT2( textPosition.x + 1.0f, textPosition.y + 1.0f ), Colors::Black, 0.0f, originF );
-        m_spriteFont->DrawString( m_spriteBatch.get(), text,
-            XMFLOAT2( textPosition.x - 1.0f, textPosition.y + 1.0f ), Colors::Black, 0.0f, originF );
-        m_spriteFont->DrawString( m_spriteBatch.get(), text,
-            XMFLOAT2( textPosition.x - 1.0f, textPosition.y - 1.0f ), Colors::Black, 0.0f, originF );
-        m_spriteFont->DrawString( m_spriteBatch.get(), text,
-            XMFLOAT2( textPosition.x + 1.0f, textPosition.y - 1.0f ), Colors::Black, 0.0f, originF );
+            // Draw outline
+            m_spriteFont->DrawString( m_spriteBatch.get(), text,
+                XMFLOAT2( textPosition.x + 1.0f, textPosition.y + 1.0f ), Colors::Black, 0.0f, originF );
+            m_spriteFont->DrawString( m_spriteBatch.get(), text,
+                XMFLOAT2( textPosition.x - 1.0f, textPosition.y + 1.0f ), Colors::Black, 0.0f, originF );
+            m_spriteFont->DrawString( m_spriteBatch.get(), text,
+                XMFLOAT2( textPosition.x - 1.0f, textPosition.y - 1.0f ), Colors::Black, 0.0f, originF );
+            m_spriteFont->DrawString( m_spriteBatch.get(), text,
+                XMFLOAT2( textPosition.x + 1.0f, textPosition.y - 1.0f ), Colors::Black, 0.0f, originF );
 
-        return originF;
-    };
+            return originF;
+        };
 #if defined( _x64 )
-    const wchar_t* text = L"[x64] Assimp lib found! Complex models in use!";
+        const wchar_t* text = L"[x64] Assimp lib found! Complex models in use!";
 #elif defined( _x86 )
-    const wchar_t* text = L"[x86] Assimp lib not found! Complex models removed!";
+        const wchar_t* text = L"[x86] Assimp lib not found! Complex models removed!";
 #endif
-    XMFLOAT2 originF = DrawOutline( text );
-    m_spriteFont->DrawString( m_spriteBatch.get(), text, textPosition,
+        XMFLOAT2 originF = DrawOutline( text );
+        m_spriteFont->DrawString( m_spriteBatch.get(), text, textPosition,
 #if defined( _x64 )
-        Colors::Green,
+            Colors::Green,
 #elif defined( _x86 )
-        Colors::Red,
+            Colors::Red,
 #endif
-        0.0f, originF, XMFLOAT2( 1.0f, 1.0f ) );
-    m_spriteBatch->End();
+            0.0f, originF, XMFLOAT2( 1.0f, 1.0f ) );
+        m_spriteBatch->End();
+    }
 
     // Render scene to texture
     graphics.BeginRenderSceneToTexture();
@@ -235,17 +236,13 @@ void Application::Render()
     // Render imgui windows
     m_imgui.BeginRender();
     m_imgui.SpawnInstructionWindow();
-    if ( !m_deferred.IsActive() )
-    {
-        m_motionBlur.SpawnControlWindow( m_fxaa.IsActive(), m_ssao.IsActive() );
-        m_fxaa.SpawnControlWindow( m_motionBlur.IsActive(), m_ssao.IsActive() );
-        m_ssao.SpawnControlWindow( m_motionBlur.IsActive(), m_fxaa.IsActive() );
-    }
+    m_motionBlur.SpawnControlWindow( m_fxaa.IsActive(), m_ssao.IsActive() );
+    m_fxaa.SpawnControlWindow( m_motionBlur.IsActive(), m_ssao.IsActive() );
+    m_ssao.SpawnControlWindow( m_motionBlur.IsActive(), m_fxaa.IsActive() );
     m_postProcessing.SpawnControlWindow(
         m_motionBlur.IsActive(),
         m_fxaa.IsActive(),
-        m_ssao.IsActive(),
-        m_deferred.IsActive() );
+        m_ssao.IsActive() );
     m_deferred.SpawnControlWindow();
     m_mapping.SpawnControlWindow( m_deferred.IsActive() );
     m_light.SpawnControlWindow();

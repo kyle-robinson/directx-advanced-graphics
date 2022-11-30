@@ -59,11 +59,8 @@ void PostProcessing::Bind( ID3D11DeviceContext* pContext, Bind::RenderTarget* pR
 	}
 }
 
-void PostProcessing::SpawnControlWindow( bool usingMotionBlur, bool usingFXAA, bool usingSSAO, bool usingDeferred )
+void PostProcessing::SpawnControlWindow( bool usingMotionBlur, bool usingFXAA, bool usingSSAO )
 {
-	if ( usingDeferred )
-		ImGui::Begin( "Post-Processing", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove );
-
 	if ( !usingMotionBlur && !usingFXAA && !usingSSAO )
 	{
 		// Switch between basic/tone map post-process options

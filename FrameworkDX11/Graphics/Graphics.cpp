@@ -25,7 +25,7 @@ void Graphics::InitializeDirectX( HWND hWnd )
 	m_pViewport = std::make_shared<Bind::Viewport>( m_pContext.Get(), m_viewWidth, m_viewHeight );
     
 	m_pRenderTarget = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
-	m_pRenderTargetNormalDepth = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
+	m_pRenderTargetNormal = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
 	for ( uint32_t i = 0u; i < BUFFER_COUNT; i++ )
 		m_pRenderTargetsDeferred.emplace( (Bind::RenderTarget::Type)i, std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight, (Bind::RenderTarget::Type)i ) );
     
@@ -170,7 +170,7 @@ void Graphics::BeginFrame()
 void Graphics::BeginFrameNormal()
 {
 	// Clear render target/depth stencil
-	m_pRenderTargetNormalDepth->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
+	m_pRenderTargetNormal->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
 	m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
 }
 
@@ -241,20 +241,20 @@ void Graphics::RenderSceneToTexture(
 	// Render fullscreen texture to new render target
 	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderPP, m_pixelShaderPP );
 	m_pContext->PSSetConstantBuffers( 0u, 1u, cbMotionBlur );
-	m_pContext->PSSetConstantBuffers( 1u, 1u, cbFXAA );	
-	m_pContext->PSSetConstantBuffers( 2u, 1u, cbSSAO );	
+	m_pContext->PSSetConstantBuffers( 1u, 1u, cbFXAA );
+	m_pContext->PSSetConstantBuffers( 2u, 1u, cbSSAO );
 	m_quad.SetupBuffers( m_pContext.Get() );
 
 	m_pContext->PSSetShaderResources( 0u, 1u, m_pRenderTarget->GetShaderResourceViewPtr() );
 	m_pContext->PSSetShaderResources( 1u, 1u, m_pDepthStencil->GetShaderResourceViewPtr() );
-	m_pContext->PSSetShaderResources( 2u, 1u, m_pRenderTargetNormalDepth->GetShaderResourceViewPtr() );
+	m_pContext->PSSetShaderResources( 2u, 1u, m_pRenderTargetNormal->GetShaderResourceViewPtr() );
 	m_pContext->PSSetShaderResources( 3u, 1u, pNoiseTexture );
 
 	Bind::Rasterizer::DrawSolid( m_pContext.Get(), m_quad.GetIndexBuffer().IndexCount() ); // always draw as solid
 	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
 }
 
-void Graphics::RenderSceneToTextureNormalDepth( ID3D11Buffer* const* cbMatrices )
+void Graphics::RenderSceneToTextureNormal( ID3D11Buffer* const* cbMatrices )
 {
 	// Render fullscreen texture to new render target
 	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderNRM, m_pixelShaderNRM );
@@ -268,7 +268,7 @@ void Graphics::EndFrame()
 {
 	// Unbind render target
 	m_pRenderTarget->BindNull( m_pContext.Get() );
-	m_pRenderTargetNormalDepth->BindNull( m_pContext.Get() );
+	m_pRenderTargetNormal->BindNull( m_pContext.Get() );
 	for ( uint32_t i = 0u; i < BUFFER_COUNT; i++ )
 		m_pRenderTargetsDeferred[(Bind::RenderTarget::Type)i]->BindNull( m_pContext.Get() );
 	m_pBackBuffer->BindNull( m_pContext.Get() );

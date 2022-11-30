@@ -1,7 +1,7 @@
 // Resources
 Texture2D textureQuad : register( t0 );
 Texture2D textureDepth : register( t1 );
-Texture2D textureNormalDepth : register( t2 );
+Texture2D textureNormal : register( t2 );
 Texture2D textureRandom : register( t3 );
 
 SamplerState samplerWrap : register( s0 );
@@ -167,9 +167,9 @@ float4 DoFXAA( float2 texCoord )
 
 float4 DoSSAO( float2 texCoord, float4 posView )
 {
-    float centerZBuffer = textureNormalDepth.Sample( samplerClamp, texCoord ).w;
+    float centerZBuffer = textureDepth.Sample( samplerClamp, texCoord );
     float3 centerDepthPos = ComputePositionViewFromZ( uint2( posView.xy ), centerZBuffer );
-    float3 normal = DecodeSphereMap( textureNormalDepth.Sample( samplerClamp, texCoord ).xy );
+    float3 normal = DecodeSphereMap( textureNormal.Sample( samplerClamp, texCoord ).xy );
 
     float3 randomVector = textureRandom.Sample( samplerWrap, texCoord * SSAO.NoiseScale ).xyz;
     float3 tangent = normalize( randomVector - normal * dot( randomVector, normal ) );
@@ -189,7 +189,7 @@ float4 DoSSAO( float2 texCoord, float4 posView )
         float4 offset = mul( float4( samplePos, 1.0f ), SSAO.ProjectionMatrix );
         offset.xy /= offset.w;
 
-        float sampleDepth = textureNormalDepth.Sample( samplerClamp, float2( offset.x * 0.5f + 0.5f, -offset.y * 0.5f + 0.5f ) ).w;
+        float sampleDepth = textureDepth.Sample( samplerClamp, float2( offset.x * 0.5f + 0.5f, -offset.y * 0.5f + 0.5f ) );
         sampleDepth = ComputePositionViewFromZ( offset.xy, sampleDepth ).z;
 
         float rangeCheck = smoothstep( 0.0f, 1.0f, SSAO.Radius / abs( centerDepthPos.z - sampleDepth ) );
