@@ -21,7 +21,10 @@
 #include "ImGuiManager.h"
 #include "PostProcessing.h"
 #include "WindowContainer.h"
+
+#if defined ( _x64 )
 #include "RenderableGameObject.h"
+#endif
 
 class Application : public WindowContainer
 {
@@ -38,7 +41,10 @@ private:
 	Light m_light;
 	Camera m_camera;
 	ImGuiManager m_imgui;
+
+#if defined ( _x64 )
 	RenderableGameObject m_objSkysphere;
+#endif
 	
 	// Systems
 	FXAA m_fxaa;

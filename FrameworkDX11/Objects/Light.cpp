@@ -7,10 +7,12 @@ bool Light::Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, Co
 {
 	try
 	{
+#if defined ( _x64 )
         // Initialize light model
         if ( !m_objLight.Initialize( "Resources\\Models\\light.obj", pDevice, pContext, cb_vs_vertexshader ) )
 		    return false;
         m_objLight.SetInitialScale( 0.1f, 0.1f, 0.1f );
+#endif
 
         // Initialize constant buffer
 		HRESULT hr = m_cbLight.Initialize( pDevice, pContext );
@@ -26,8 +28,10 @@ bool Light::Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, Co
 
 void Light::Draw( const XMMATRIX& view, const XMMATRIX& projection )
 {
+#if defined ( _x64 )
     if ( !m_bAttachedToCamera )
         m_objLight.Draw( view, projection );
+#endif
 }
 
 void Light::UpdateCB( Camera& camera )
@@ -56,8 +60,10 @@ void Light::UpdateCB( Camera& camera )
         m_fPosition = cameraPosition;
     light.Position = m_fPosition;
     
+#if defined ( _x64 )
     // Update model position
     m_objLight.SetPosition( XMFLOAT3( m_fPosition.x, m_fPosition.y, m_fPosition.z ) );
+#endif
 
     DirectX::XMVECTOR lightDirection = DirectX::XMVectorSet(
         camera.GetCameraTarget().x - m_fPosition.x,

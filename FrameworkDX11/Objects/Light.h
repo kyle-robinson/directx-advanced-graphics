@@ -5,7 +5,10 @@
 class Camera;
 #include "structures.h"
 #include "ConstantBuffer.h"
+
+#if defined ( _x64 )
 #include "RenderableGameObject.h"
+#endif
 
 class Light
 {
@@ -27,7 +30,10 @@ private:
 	FLOAT m_fQuadraticAttenuation = 1.0f;
 	FLOAT m_fIntensity = 4.0f;
 
+#if defined ( _x64 )
 	RenderableGameObject m_objLight;
+#endif
+
 	bool m_bAttachedToCamera = true;
 	ConstantBuffer<Light_CB> m_cbLight;
 };

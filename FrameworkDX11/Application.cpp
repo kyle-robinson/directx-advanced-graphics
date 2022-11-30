@@ -54,9 +54,11 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'deferred' system!" );
 
         // Initialize models
+#if defined ( _x64 )
         if ( !m_objSkysphere.Initialize( "Resources\\Models\\sphere.obj", graphics.GetDevice(), graphics.GetContext(), m_cbMatrices ) )
 		    return false;
         m_objSkysphere.SetInitialScale( 50.0f, 50.0f, 50.0f );
+#endif
     }
     catch ( COMException& exception )
 	{
@@ -69,11 +71,13 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 
 void Application::CleanupDevice()
 {
+#ifdef _DEBUG
     // Useful for finding dx memory leaks
     ID3D11Debug* debugDevice = nullptr;
     graphics.GetDevice()->QueryInterface( __uuidof( ID3D11Debug ), reinterpret_cast<void**>( &debugDevice ) );
     debugDevice->ReportLiveDeviceObjects( D3D11_RLDO_DETAIL );
     if ( debugDevice ) debugDevice->Release();
+#endif
 }
 
 bool Application::ProcessMessages() noexcept
@@ -91,8 +95,10 @@ void Application::Update()
     // Update input
     m_input.Update( dt );
 
+#if defined ( _x64 )
     // Update skysphere position
     m_objSkysphere.SetPosition( m_camera.GetPositionFloat3() );
+#endif
 
     // Update the cube transform, material etc. 
     m_cube.Update( dt );
@@ -103,9 +109,11 @@ void Application::Render()
 #pragma RENDER_PASSES
     std::function<void( bool, bool )> RenderScene = [&]( bool useDeferred, bool useGBuffer ) -> void
     {
+#if defined ( _x64 )
         // Render skyphere first
         graphics.UpdateRenderStateSkysphere();
         m_objSkysphere.Draw( m_camera.GetViewMatrix(), m_camera.GetProjectionMatrix() );
+#endif
     
         // Update constant buffers
         m_light.UpdateCB( m_camera );
@@ -203,14 +211,19 @@ void Application::Render()
 
         return originF;
     };
-    const wchar_t* text;
-    if ( m_deferred.IsActive() )
-        text = L"Camera movement disabled while using deferred rendering!";
-    else
-        text = L"Camera movement enabled while using forward rendering!";
+#if defined( _x64 )
+    const wchar_t* text = L"[x64] Assimp lib found! Complex models in use!";
+#elif defined( _x86 )
+    const wchar_t* text = L"[x86] Assimp lib not found! Complex models removed!";
+#endif
     XMFLOAT2 originF = DrawOutline( text );
     m_spriteFont->DrawString( m_spriteBatch.get(), text, textPosition,
-        m_deferred.IsActive() ? Colors::Red : Colors::Green, 0.0f, originF, XMFLOAT2( 1.0f, 1.0f ) );
+#if defined( _x64 )
+        Colors::Green,
+#elif defined( _x86 )
+        Colors::Red,
+#endif
+        0.0f, originF, XMFLOAT2( 1.0f, 1.0f ) );
     m_spriteBatch->End();
 
     // Render scene to texture
