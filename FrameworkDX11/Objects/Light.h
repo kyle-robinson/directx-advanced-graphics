@@ -19,7 +19,9 @@ public:
 	void UpdateCB( Camera& camera );
 	void SpawnControlWindow();
 
-	inline ID3D11Buffer* const* GetCB() const noexcept { return m_cbLight.GetAddressOf(); }
+	inline const ConstantBuffer<Light_CB>& GetCB() const noexcept { return m_cbLight; }
+	inline ID3D11Buffer* GetCB_Ptr() const noexcept { return m_cbLight.Get(); }
+	inline ID3D11Buffer* const* GetCB_DPtr() const noexcept { return m_cbLight.GetAddressOf(); }
 private:
 	XMFLOAT4 m_fPosition = { 0.0f, 0.0f, 0.0f, 1.0f };
 	XMFLOAT4 m_fColor = XMFLOAT4( DirectX::Colors::White );

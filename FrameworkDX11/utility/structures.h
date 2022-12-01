@@ -20,6 +20,15 @@ struct MatricesNormalDepth
 	XMMATRIX mWorldInvTransposeView;
 };
 
+struct MatricesShadow
+{
+	XMMATRIX mWorld;
+	XMMATRIX mWorldInvTranspose;
+	XMMATRIX mWorldViewProj;
+	XMMATRIX mTexTransform;
+	XMMATRIX mShadowTransform;
+};
+
 // Motion Blur
 struct MotionBlurData
 {
@@ -102,6 +111,22 @@ struct SSAOData
 struct SSAO_CB
 {
 	SSAOData SSAO;
+};
+
+// Shadow Mapping
+struct ShadowData
+{
+	ShadowData()
+		: UseShadows( FALSE )
+	{}
+
+	BOOL UseShadows;
+	XMFLOAT3 Padding;
+};
+
+struct Shadow_CB
+{
+	ShadowData Shadows;
 };
 
 // Materials
@@ -213,7 +238,7 @@ struct Mapping_CB
 struct DeferredData
 {
 	DeferredData()
-		: UseDeferredShading( TRUE )
+		: UseDeferredShading( FALSE )
 		, OnlyPositions( FALSE )
 		, OnlyAlbedo( FALSE )
 		, OnlyNormals( FALSE )

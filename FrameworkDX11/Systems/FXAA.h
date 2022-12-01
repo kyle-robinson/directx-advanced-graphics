@@ -1,3 +1,4 @@
+#pragma once
 #ifndef FXAA_H
 #define FXAA_H
 

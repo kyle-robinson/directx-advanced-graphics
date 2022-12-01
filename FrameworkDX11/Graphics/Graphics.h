@@ -18,12 +18,15 @@ class Graphics
 {
 public:
 	bool Initialize( HWND hWnd, UINT width, UINT height );
+	void ResizeWindow( HWND hWnd, XMFLOAT2 windowSize );
 	void BeginFrame();
 	void BeginFrameNormal();
 	void BeginFrameDeferred();
+	void BeginFrameShadow();
 	
 	void UpdateRenderStateSkysphere();
 	void UpdateRenderStateCube(
+		bool useShadows = false,
 		bool useDeferred = false,
 		bool useGBuffer = false
 	);
@@ -32,11 +35,13 @@ public:
 	
 	void BeginRenderSceneToTexture();
 	void RenderSceneToTexture(
+		bool useShadowMap,
 		ID3D11Buffer* const* cbMotionBlur,
 		ID3D11Buffer* const* cbFXAA,
 		ID3D11Buffer* const* cbSSAO,
 		ID3D11ShaderResourceView* const* pNoiseTexture );
 	void RenderSceneToTextureNormal( ID3D11Buffer* const* cbMatrices );
+	void RenderSceneToTextureShadow( ID3D11Buffer* const* cbMatrices );
 	void EndFrame();
 
 	inline UINT GetWidth() const noexcept { return m_viewWidth; }
@@ -47,7 +52,7 @@ public:
 	inline Bind::RenderTarget* GetDeferredRenderTarget( Bind::RenderTarget::Type type ) const noexcept { return &*m_pRenderTargetsDeferred.at( type ); }
 
 private:
-	void InitializeDirectX( HWND hWnd );
+	void InitializeDirectX( HWND hWnd, bool resizingWindow );
 	bool InitializeShaders();
 	bool InitializeRTT();
 
@@ -73,6 +78,9 @@ private:
 	VertexShader m_vertexShaderNRM;
 	PixelShader m_pixelShaderNRM;
 
+	VertexShader m_vertexShaderSDW;
+	PixelShader m_pixelShaderSDW;
+
 	VertexShader m_vertexShaderTEX;
 	PixelShader m_pixelShaderTEX;
 
@@ -87,6 +95,7 @@ private:
 	std::shared_ptr<Bind::RenderTarget> m_pRenderTarget;
 	std::shared_ptr<Bind::DepthStencil> m_pDepthStencil;
 	std::shared_ptr<Bind::RenderTarget> m_pRenderTargetNormal;
+	std::shared_ptr<Bind::RenderTarget> m_pRenderTargetShadow;
 	std::unordered_map<Bind::RenderTarget::Type, std::shared_ptr<Bind::RenderTarget>> m_pRenderTargetsDeferred;
 
 	std::shared_ptr<Bind::Viewport> m_pViewport;

@@ -26,6 +26,9 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
         hr = m_cbMatricesNormalDepth.Initialize( graphics.GetDevice(), graphics.GetContext() );
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'Matrices Normal Depth' constant buffer!" );
 
+        hr = m_cbMatricesShadow.Initialize( graphics.GetDevice(), graphics.GetContext() );
+	    COM_ERROR_IF_FAILED( hr, "Failed to create 'Matrices Shadow' constant buffer!" );
+
         // Initialize game objects
 	    hr = m_cube.InitializeMesh( graphics.GetDevice(), graphics.GetContext() );
         COM_ERROR_IF_FAILED(hr, "Failed to create 'cube' object!");
@@ -52,6 +55,9 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 
         hr = m_deferred.Initialize( graphics.GetDevice(), graphics.GetContext() );
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'deferred' system!" );
+
+        hr = m_shadowMap.Initialize( graphics.GetDevice(), graphics.GetContext(), graphics.GetWidth(), graphics.GetHeight() );
+	    COM_ERROR_IF_FAILED( hr, "Failed to create 'shadow map' system!" );
 
 #if defined ( _x64 )
         // Initialize models
@@ -94,11 +100,22 @@ void Application::Update()
 
     // Update input
     m_input.Update( dt );
+    if ( windowResized )
+    {
+        m_imgui.Initialize( renderWindow.GetHWND(), graphics.GetDevice(), graphics.GetContext() );
+        m_camera.SetProjectionValues( 75.0f,
+            static_cast<float>( graphics.GetWidth() ) /
+            static_cast<float>( graphics.GetHeight() ),
+            0.01f, 100.0f );
+    }
 
 #if defined ( _x64 )
     // Update skysphere position
     m_objSkysphere.SetPosition( m_camera.GetPositionFloat3() );
 #endif
+
+    // Update shadow mapping
+    BuildShadowTransform();
 
     // Update the cube transform, material etc. 
     m_cube.Update( dt );
@@ -107,7 +124,7 @@ void Application::Update()
 void Application::Render()
 {
 #pragma RENDER_PASSES
-    std::function<void( bool, bool )> RenderScene = [&]( bool useDeferred, bool useGBuffer ) -> void
+    std::function<void( bool, bool, bool )> RenderScene = [&]( bool useShadows, bool useDeferred, bool useGBuffer ) -> void
     {
 #if defined ( _x64 )
         // Render skyphere first
@@ -117,25 +134,39 @@ void Application::Render()
     
         // Update constant buffers
         m_light.UpdateCB( m_camera );
+        m_shadowMap.UpdateCB();
         m_deferred.UpdateCB();
         m_mapping.UpdateCB();
         m_cube.UpdateCB();
 
         // Render objects
-        graphics.UpdateRenderStateCube( useDeferred, useGBuffer );
+        graphics.UpdateRenderStateCube( useShadows, useDeferred, useGBuffer );
         m_cube.UpdateBuffers( m_cbMatrices, m_camera );
         graphics.GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
         graphics.GetContext()->PSSetConstantBuffers( 0u, 1u, m_cube.GetCB() );
-        graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_light.GetCB() );
+        graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_light.GetCB_DPtr() );
         graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_mapping.GetCB() );
-        if ( useDeferred && useGBuffer )
+        if ( useShadows )
+        {
+            graphics.GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatricesShadow.GetAddressOf() );
+            graphics.GetContext()->PSSetConstantBuffers( 0u, 1u, m_cbMatricesShadow.GetAddressOf() );
+            graphics.GetContext()->PSSetConstantBuffers( 1u, 1u, m_cube.GetCB() );
+            graphics.GetContext()->PSSetConstantBuffers( 2u, 1u, m_light.GetCB_DPtr() );
+            graphics.GetContext()->PSSetConstantBuffers( 3u, 1u, m_mapping.GetCB() );
+            m_cube.Draw( graphics.GetContext() );
+        }
+        else if ( useDeferred && useGBuffer )
+        {
             graphics.GetContext()->PSSetConstantBuffers( 3u, 1u, m_deferred.GetCB() );
-        ( useDeferred && useGBuffer ) ?
             m_cube.DrawDeferred( graphics.GetContext(),
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::POSITION )->GetShaderResourceViewPtr(),
                 graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::ALBEDO )->GetShaderResourceViewPtr(),
-                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr() ) :
+                graphics.GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr() );
+        }
+        else
+        {
             m_cube.Draw( graphics.GetContext() );
+        }
 
 #if defined ( _x64 )
         graphics.UpdateRenderStateTexture();
@@ -143,18 +174,37 @@ void Application::Render()
 #endif
     };
 
+    if ( m_shadowMap.IsActive() )
+    {
+        graphics.BeginFrameShadow();
+        RenderScene( true, false, false );
+
+        // Update normal/depth constant buffer
+        MatricesShadow sdwData;
+        sdwData.mWorld = XMMatrixIdentity();
+        sdwData.mWorldViewProj = sdwData.mWorld * XMMatrixTranspose( m_camera.GetViewMatrix() ) * XMMatrixTranspose( m_camera.GetProjectionMatrix() );
+        sdwData.mWorldInvTranspose = XMMatrixTranspose( XMMatrixInverse( nullptr, sdwData.mWorld ) );
+        sdwData.mShadowTransform = XMLoadFloat4x4( &mShadowTransform );
+        sdwData.mTexTransform = XMMatrixScaling( 2.0f, 1.0f, 1.0f );
+
+        // Add to constant buffer
+        m_cbMatricesShadow.data = sdwData;
+        if ( !m_cbMatricesShadow.ApplyChanges() ) return;
+        graphics.RenderSceneToTextureShadow( m_cbMatricesShadow.GetAddressOf() );
+    }
+
     if ( m_deferred.IsActive() )
     {
         // Normal pass
         graphics.BeginFrameDeferred();
-        RenderScene( true, false );
+        RenderScene( false, true, false );
     }
 
     if ( m_ssao.IsActive() )
     {
         // Normal pass
         graphics.BeginFrameNormal();
-        RenderScene( m_deferred.IsActive(), true );
+        RenderScene( false, m_deferred.IsActive(), true );
 
         // Update normal/depth constant buffer
         MatricesNormalDepth mndData;
@@ -171,7 +221,7 @@ void Application::Render()
 
     // Standard pass
     graphics.BeginFrame();
-    RenderScene( m_deferred.IsActive(), true );
+    RenderScene( false, m_deferred.IsActive(), true );
 #pragma endregion
 
 #pragma region POST_PROCESSING
@@ -230,7 +280,7 @@ void Application::Render()
     // Render scene to texture
     graphics.BeginRenderSceneToTexture();
     ( m_motionBlur.IsActive() || m_fxaa.IsActive() || m_ssao.IsActive() ) ?
-        graphics.RenderSceneToTexture( m_motionBlur.GetCB(), m_fxaa.GetCB(), m_ssao.GetCB(), m_ssao.GetNoiseTexture() ) :
+        graphics.RenderSceneToTexture( m_shadowMap.IsActive(), m_motionBlur.GetCB(), m_fxaa.GetCB(), m_ssao.GetCB(), m_ssao.GetNoiseTexture() ) :
         m_postProcessing.Bind( graphics.GetContext(), graphics.GetRenderTarget() );
 
     // Render imgui windows
@@ -244,6 +294,7 @@ void Application::Render()
         m_fxaa.IsActive(),
         m_ssao.IsActive() );
     m_deferred.SpawnControlWindow();
+    m_shadowMap.SpawnControlWindow();
     m_mapping.SpawnControlWindow( m_deferred.IsActive() );
     m_light.SpawnControlWindow();
     m_cube.SpawnControlWindows();
@@ -257,4 +308,39 @@ void Application::Render()
         XMMatrixTranspose( m_camera.GetViewMatrix() ) *
         XMMatrixTranspose( m_camera.GetProjectionMatrix() ) );
 #pragma endregion
+}
+
+void Application::BuildShadowTransform()
+{
+    // Only the first "main" light casts a shadow.
+    XMVECTOR lightDir = XMLoadFloat4(&m_light.GetCB().data.Lights[0].Direction);
+    XMVECTOR lightPos = -2.0f * mSceneBounds.Radius * lightDir;
+    XMVECTOR targetPos = XMLoadFloat3(&mSceneBounds.Center);
+    XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    XMMATRIX V = XMMatrixLookAtLH(lightPos, targetPos, up);
+
+    // Transform bounding sphere to light space.
+    XMFLOAT3 sphereCenterLS;
+    XMStoreFloat3(&sphereCenterLS, XMVector3TransformCoord(targetPos, V));
+
+    // Ortho frustum in light space encloses scene.
+    float l = sphereCenterLS.x - mSceneBounds.Radius;
+    float b = sphereCenterLS.y - mSceneBounds.Radius;
+    float n = sphereCenterLS.z - mSceneBounds.Radius;
+    float r = sphereCenterLS.x + mSceneBounds.Radius;
+    float t = sphereCenterLS.y + mSceneBounds.Radius;
+    float f = sphereCenterLS.z + mSceneBounds.Radius;
+    XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+
+    // Transform NDC space [-1,+1]^2 to texture space [0,1]^2
+    XMMATRIX T(
+        0.5f, 0.0f, 0.0f, 0.0f,
+        0.0f, -0.5f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.0f, 1.0f);
+
+    XMMATRIX S = V * P * T;
+    XMStoreFloat4x4(&mLightView, V);
+    XMStoreFloat4x4(&mLightProj, P);
+    XMStoreFloat4x4(&mShadowTransform, S);
 }

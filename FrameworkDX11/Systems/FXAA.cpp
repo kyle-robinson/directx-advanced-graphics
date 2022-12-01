@@ -51,15 +51,5 @@ void FXAA::SpawnControlWindow( bool usingMotionBlur, bool usingSSAO )
 	{
 		ImGui::Text( "Max Span" );
 		ImGui::SliderFloat( "##Max Span", &m_fSpanMax, 4.0f, 12.0f, "%1.f" );
-
-		ImGui::Text( "Min Reduce ( 1.0f / [value] )" );
-		static float reduceMinDenom = 128.0f;
-		ImGui::SliderFloat( "##Min Reduce", &reduceMinDenom, 64.0f, 128.0f, "%1.f" );
-		m_fReduceMin = 1.0f / reduceMinDenom;
-
-		ImGui::Text( "Mul Reduce ( 1.0f / [value] )" );
-		static float reduceMulDenom = 8.0f;
-		ImGui::SliderFloat( "##Mul Reduce", &reduceMulDenom, 4.0f, 12.0f, "%1.f" );
-		m_fReduceMul = 1.0f / reduceMulDenom;
 	}
 }

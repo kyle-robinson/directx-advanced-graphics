@@ -34,7 +34,6 @@ namespace Bind
                 sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
                 sd.SampleDesc.Count = SAMPLE_COUNT;
                 sd.SampleDesc.Quality = MAX_QUALITY;
-                sd.BufferCount = 1u;
                 sd.OutputWindow = hWnd;
                 sd.Windowed = TRUE;
                 sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;

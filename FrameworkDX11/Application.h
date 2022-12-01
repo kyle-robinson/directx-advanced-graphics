@@ -17,6 +17,7 @@
 #include "Mapping.h"
 #include "Shaders.h"
 #include "Deferred.h"
+#include "ShadowMap.h"
 #include "MotionBlur.h"
 #include "ImGuiManager.h"
 #include "PostProcessing.h"
@@ -25,6 +26,17 @@
 #if defined ( _x64 )
 #include "RenderableGameObject.h"
 #endif
+
+struct BoundingSphereShd
+{
+	BoundingSphereShd()
+		: Center(0.0f, 0.0f, 0.0f),
+		Radius(0.0f)
+	{}
+
+	XMFLOAT3 Center;
+	float Radius;
+};
 
 class Application : public WindowContainer
 {
@@ -35,6 +47,8 @@ public:
 	bool ProcessMessages() noexcept;
 	void Update();
 	void Render();
+
+	void BuildShadowTransform();
 private:
 	// Objects
 	Cube m_cube;
@@ -51,16 +65,25 @@ private:
 	SSAO m_ssao;
 	Mapping m_mapping;
 	Deferred m_deferred;
+	ShadowMap m_shadowMap;
 	MotionBlur m_motionBlur;
 	PostProcessing m_postProcessing;
 
 	// Data
 	Timer m_timer;
 	Input m_input;
+	BoundingSphereShd mSceneBounds;
+
+	XMFLOAT4X4 mLightView;
+	XMFLOAT4X4 mLightProj;
+	XMFLOAT4X4 mShadowTransform;
 	XMFLOAT4X4 m_previousViewProjection;
-	ConstantBuffer<Matrices> m_cbMatrices;
+	
 	std::unique_ptr<SpriteFont> m_spriteFont;
 	std::unique_ptr<SpriteBatch> m_spriteBatch;
+
+	ConstantBuffer<Matrices> m_cbMatrices;
+	ConstantBuffer<MatricesShadow> m_cbMatricesShadow;
 	ConstantBuffer<MatricesNormalDepth> m_cbMatricesNormalDepth;
 };
 

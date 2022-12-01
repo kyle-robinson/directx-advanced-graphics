@@ -26,6 +26,7 @@ WindowContainer::WindowContainer()
 extern LRESULT ImGui_ImplWin32_WndProcHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
+    windowResized = false;
     if ( ImGui_ImplWin32_WndProcHandler( hWnd, uMsg, wParam, lParam ) )
         return true;
     const auto& imio = ImGui::GetIO();
@@ -254,19 +255,29 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     // Window Resize Event
     case WM_SIZE:
 	{
-		RECT windowRect = { 0,0 };
+		RECT windowRect = { 0, 0 };
 		if ( GetClientRect( renderWindow.GetHWND(), &windowRect ) )
 		{
-			windowSize = {
+			windowSize =
+            {
                 static_cast<float>( windowRect.right - windowRect.left ),
                 static_cast<float>( windowRect.bottom - windowRect.top )
             };
 
-			if ( windowSize.x < 500 )
-				windowSize.x = 1260;
+            if ( windowSize.x < 500 )
+            {
+				windowSize.x = 500;
+                windowResized = true;
+            }
 
 			if ( windowSize.y < 400 )
-				windowSize.y = 500;
+            {
+				windowSize.y = 400;
+                windowResized = true;
+            }
+
+            if ( windowResized )
+                graphics.ResizeWindow( hWnd, windowSize );
 
 			return DefWindowProc( hWnd, uMsg, wParam, lParam );;
 		}

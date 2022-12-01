@@ -58,14 +58,16 @@ bool SSAO::Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 		descTex.CPUAccessFlags = 0u;
 		descTex.MiscFlags = 0u;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> pNoiseTexture;
-		pDevice->CreateTexture2D( &descTex, &data, pNoiseTexture.GetAddressOf() );
+		hr = pDevice->CreateTexture2D( &descTex, &data, pNoiseTexture.GetAddressOf() );
+		COM_ERROR_IF_FAILED( hr, "Failed to create 'SSAO' sample texture!" );
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC descSRV;
 		descSRV.Format = descTex.Format;
 		descSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		descSRV.Texture2D.MostDetailedMip = 0u;
 		descSRV.Texture2D.MipLevels = 1u;
-		pDevice->CreateShaderResourceView( pNoiseTexture.Get(), &descSRV, m_pTextureNoise.GetAddressOf() );
+		hr = pDevice->CreateShaderResourceView( pNoiseTexture.Get(), &descSRV, m_pTextureNoise.GetAddressOf() );
+		COM_ERROR_IF_FAILED( hr, "Failed to create 'SSAO' shader resource view!" );
 	}
 	catch ( COMException& exception )
 	{

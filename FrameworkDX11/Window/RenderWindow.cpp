@@ -32,13 +32,13 @@ bool RenderWindow::Initialize( WindowContainer* pWindowContainer, HINSTANCE hIns
 	windowRect.top = centerScreenY;
 	windowRect.right = windowRect.left + width;
 	windowRect.bottom = windowRect.top + height;
-	AdjustWindowRect( &windowRect, WS_OVERLAPPEDWINDOW, FALSE );
+	AdjustWindowRect( &windowRect, WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME ^ WS_MAXIMIZEBOX, FALSE );
 
 	// create window
 	hWnd = CreateWindow(
 		windowClass_Wide.c_str(),
 		windowTitle_Wide.c_str(),
-		WS_OVERLAPPEDWINDOW,
+		WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME ^ WS_MAXIMIZEBOX,
 		windowRect.left,
 		windowRect.top,
 		windowRect.right - windowRect.left,

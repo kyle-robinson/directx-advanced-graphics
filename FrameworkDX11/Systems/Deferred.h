@@ -14,7 +14,7 @@ public:
 	inline bool IsActive() const noexcept { return m_bUseDeferredShading; }
 	inline ID3D11Buffer* const* GetCB() const noexcept { return m_cbDeferred.GetAddressOf(); }
 private:
-	BOOL m_bUseDeferredShading = TRUE;
+	BOOL m_bUseDeferredShading = FALSE;
 	BOOL m_bOnlyPositions = FALSE;
 	BOOL m_bOnlyAlbedo = FALSE;
 	BOOL m_bOnlyNormals = FALSE;
