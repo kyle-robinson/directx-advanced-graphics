@@ -71,9 +71,10 @@ private:
 	VertexBuffer<Vertex> m_vertexBuffer;
 	ConstantBuffer<Material_CB> m_cbMaterial;
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pTextureDiffuse;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pTextureNormal;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pTextureDisplacement;
+	int m_textureIndex = 0;
+	std::vector<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_pTexturesDiffuse;
+	std::vector<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_pTexturesNormal;
+	std::vector<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_pTexturesDisplacement;
 };
 
 #endif

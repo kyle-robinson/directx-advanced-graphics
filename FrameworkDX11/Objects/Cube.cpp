@@ -76,13 +76,22 @@ bool Cube::InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext 
         COM_ERROR_IF_FAILED( hr, "Failed to create cube index buffer!" );
 
 		// Load and setup textures
-		hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_TEX.dds", nullptr, m_pTextureDiffuse.GetAddressOf() );
+		m_pTexturesDiffuse.resize( 3u );
+		hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_TEX.dds", nullptr, m_pTexturesDiffuse[0].GetAddressOf() );
+		hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\crate_TEX.dds", nullptr, m_pTexturesDiffuse[1].GetAddressOf() );
+		hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\rocks_TEX.dds", nullptr, m_pTexturesDiffuse[2].GetAddressOf() );
 		COM_ERROR_IF_FAILED( hr, "Failed to create 'diffuse' texture!" );
 
-		hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_NORM.dds", nullptr, m_pTextureNormal.GetAddressOf() );
+		m_pTexturesNormal.resize( 3u );
+		hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_NORM.dds", nullptr, m_pTexturesNormal[0].GetAddressOf() );
+		hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\crate_NORM.dds", nullptr, m_pTexturesNormal[1].GetAddressOf() );
+		hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\rocks_NORM.dds", nullptr, m_pTexturesNormal[2].GetAddressOf() );
 		COM_ERROR_IF_FAILED( hr, "Failed to create 'normal' texture!" );
 
-		hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_DISP.dds", nullptr, m_pTextureDisplacement.GetAddressOf() );
+		m_pTexturesDisplacement.resize( 3u );
+		hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\bricks_DISP.dds", nullptr, m_pTexturesDisplacement[0].GetAddressOf() );
+		hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\crate_DISP.dds", nullptr, m_pTexturesDisplacement[1].GetAddressOf() );
+		hr = DirectX::CreateDDSTextureFromFile( pDevice, L"Resources\\Textures\\rocks_DISP.dds", nullptr, m_pTexturesDisplacement[2].GetAddressOf() );
 		COM_ERROR_IF_FAILED( hr, "Failed to create 'displacement' texture!" );
 
 		// Setup constant buffer
@@ -153,9 +162,9 @@ void Cube::Draw( ID3D11DeviceContext* pContext )
 	pContext->IASetVertexBuffers( 0u, 1u, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.StridePtr(), &offset );
 	pContext->IASetIndexBuffer( m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0 );
 
-	pContext->PSSetShaderResources( 0u, 1u, m_pTextureDiffuse.GetAddressOf() );
-	pContext->PSSetShaderResources( 1u, 1u, m_pTextureNormal.GetAddressOf() );
-	pContext->PSSetShaderResources( 2u, 1u, m_pTextureDisplacement.GetAddressOf() );
+	pContext->PSSetShaderResources( 0u, 1u, m_pTexturesDiffuse[m_textureIndex].GetAddressOf() );
+	pContext->PSSetShaderResources( 1u, 1u, m_pTexturesNormal[m_textureIndex].GetAddressOf() );
+	pContext->PSSetShaderResources( 2u, 1u, m_pTexturesDisplacement[m_textureIndex].GetAddressOf() );
 
 	pContext->DrawIndexed( m_indexBuffer.IndexCount(), 0u, 0u );
 }
@@ -179,7 +188,38 @@ void Cube::DrawDeferred(
 
 void Cube::SpawnControlWindows()
 {
-	if ( ImGui::Begin( "Cube Data", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+	if ( ImGui::Begin( "Texture Data", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
+	{
+		static int activeTexture = 0;
+		static bool selectedTexture[3];
+		static std::string previewValueTexture = "Red Bricks";
+		static const char* textureList[]{ "Red Bricks", "Wooden Crate", "Cobblestone" };
+		ImGui::Text( "Active Texture" );
+		if ( ImGui::BeginCombo( "##Active Texture", previewValueTexture.c_str() ) )
+		{
+			for ( uint32_t i = 0; i < IM_ARRAYSIZE( textureList ); i++ )
+			{
+				const bool isSelected = i == activeTexture;
+				if ( ImGui::Selectable( textureList[i], isSelected ) )
+				{
+					activeTexture = i;
+					previewValueTexture = textureList[i];
+				}
+			}
+
+			switch ( activeTexture )
+			{
+			case 0: m_textureIndex = 0; break;
+			case 1: m_textureIndex = 1; break;
+			case 2: m_textureIndex = 2; break;
+			}
+
+			ImGui::EndCombo();
+		}
+	}
+	ImGui::End();
+
+	if ( ImGui::Begin( "Cube Data", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
 	{
 		ImGui::Checkbox( "Rotate Cube?", &m_bEnableSpin );
 		ImGui::Checkbox( "Reverse?", &m_bReverseSpin );

@@ -311,7 +311,6 @@ void Graphics::RenderSceneToTexture(
 	m_quad.SetupBuffers( m_pContext.Get() );
 
 	m_pContext->PSSetShaderResources( 0u, 1u, ( useShadowMap ? m_pRenderTargetShadow : m_pRenderTarget )->GetShaderResourceViewPtr() );
-	m_pContext->PSSetShaderResources( 0u, 1u, m_pRenderTargetShadow->GetShaderResourceViewPtr() );
 	m_pContext->PSSetShaderResources( 1u, 1u, m_pDepthStencil->GetShaderResourceViewPtr() );
 	m_pContext->PSSetShaderResources( 2u, 1u, m_pRenderTargetNormal->GetShaderResourceViewPtr() );
 	m_pContext->PSSetShaderResources( 3u, 1u, pNoiseTexture );
