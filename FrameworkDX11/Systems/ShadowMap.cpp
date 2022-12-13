@@ -76,4 +76,5 @@ void ShadowMap::SpawnControlWindow()
 		ImGui::Checkbox( "Use Shadows?", &useShadows );
 		m_bUseShadows = useShadows;
 	}
+	ImGui::End();
 }

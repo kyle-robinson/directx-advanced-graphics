@@ -281,7 +281,7 @@ float ParallaxSelfShadowing( float3 toLight, float2 texCoord, bool softShadow )
             }
             else
             {
-                shadowFactor = 0.1f;
+                shadowFactor = 0.6f;
             }
         }
     }

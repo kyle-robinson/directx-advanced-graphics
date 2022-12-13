@@ -56,8 +56,8 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
         hr = m_deferred.Initialize( graphics.GetDevice(), graphics.GetContext() );
 	    COM_ERROR_IF_FAILED( hr, "Failed to create 'deferred' system!" );
 
-        hr = m_shadowMap.Initialize( graphics.GetDevice(), graphics.GetContext(), graphics.GetWidth(), graphics.GetHeight() );
-	    COM_ERROR_IF_FAILED( hr, "Failed to create 'shadow map' system!" );
+        //hr = m_shadowMap.Initialize( graphics.GetDevice(), graphics.GetContext(), graphics.GetWidth(), graphics.GetHeight() );
+	    //COM_ERROR_IF_FAILED( hr, "Failed to create 'shadow map' system!" );
 
 #if defined ( _x64 )
         // Initialize models
@@ -115,7 +115,7 @@ void Application::Update()
 #endif
 
     // Update shadow mapping
-    BuildShadowTransform();
+    //BuildShadowTransform();
 
     // Update the cube transform, material etc. 
     m_cube.Update( dt );
@@ -134,7 +134,7 @@ void Application::Render()
     
         // Update constant buffers
         m_light.UpdateCB( m_camera );
-        m_shadowMap.UpdateCB();
+        //m_shadowMap.UpdateCB();
         m_deferred.UpdateCB();
         m_mapping.UpdateCB();
         m_cube.UpdateCB();
@@ -294,7 +294,7 @@ void Application::Render()
         m_fxaa.IsActive(),
         m_ssao.IsActive() );
     m_deferred.SpawnControlWindow();
-    m_shadowMap.SpawnControlWindow();
+    //m_shadowMap.SpawnControlWindow();
     m_mapping.SpawnControlWindow( m_deferred.IsActive() );
     m_light.SpawnControlWindow();
     m_cube.SpawnControlWindows();
@@ -313,15 +313,15 @@ void Application::Render()
 void Application::BuildShadowTransform()
 {
     // Only the first "main" light casts a shadow.
-    XMVECTOR lightDir = XMLoadFloat4(&m_light.GetCB().data.Lights[0].Direction);
+    XMVECTOR lightDir = XMLoadFloat4( &m_light.GetCB().data.Lights[0].Direction );
     XMVECTOR lightPos = -2.0f * mSceneBounds.Radius * lightDir;
-    XMVECTOR targetPos = XMLoadFloat3(&mSceneBounds.Center);
-    XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-    XMMATRIX V = XMMatrixLookAtLH(lightPos, targetPos, up);
+    XMVECTOR targetPos = XMLoadFloat3( &mSceneBounds.Center );
+    XMVECTOR up = XMVectorSet( 0.0f, 1.0f, 0.0f, 0.0f );
+    XMMATRIX V = XMMatrixLookAtLH( lightPos, targetPos, up );
 
     // Transform bounding sphere to light space.
     XMFLOAT3 sphereCenterLS;
-    XMStoreFloat3(&sphereCenterLS, XMVector3TransformCoord(targetPos, V));
+    XMStoreFloat3( &sphereCenterLS, XMVector3TransformCoord( targetPos, V ) );
 
     // Ortho frustum in light space encloses scene.
     float l = sphereCenterLS.x - mSceneBounds.Radius;
@@ -330,17 +330,17 @@ void Application::BuildShadowTransform()
     float r = sphereCenterLS.x + mSceneBounds.Radius;
     float t = sphereCenterLS.y + mSceneBounds.Radius;
     float f = sphereCenterLS.z + mSceneBounds.Radius;
-    XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+    XMMATRIX P = XMMatrixOrthographicOffCenterLH( l, r, b, t, n, f );
 
     // Transform NDC space [-1,+1]^2 to texture space [0,1]^2
     XMMATRIX T(
-        0.5f, 0.0f, 0.0f, 0.0f,
+        0.5f,  0.0f, 0.0f, 0.0f,
         0.0f, -0.5f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, 0.0f, 1.0f);
+        0.0f,  0.0f, 1.0f, 0.0f,
+        0.5f,  0.5f, 0.0f, 1.0f );
 
     XMMATRIX S = V * P * T;
-    XMStoreFloat4x4(&mLightView, V);
-    XMStoreFloat4x4(&mLightProj, P);
-    XMStoreFloat4x4(&mShadowTransform, S);
+    XMStoreFloat4x4( &mLightView, V );
+    XMStoreFloat4x4( &mLightProj, P );
+    XMStoreFloat4x4( &mShadowTransform, S );
 }
