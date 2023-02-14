@@ -22,7 +22,7 @@ public:
 	void BeginFrame();
 	void BeginFrameNormal();
 	void BeginFrameDeferred();
-	
+
 	void UpdateRenderStateSkysphere();
 	void UpdateRenderStateCube(
 		bool useDeferred = false,
@@ -30,7 +30,7 @@ public:
 	);
 	void UpdateRenderStateObject();
 	void UpdateRenderStateTexture();
-	
+
 	void BeginRenderSceneToTexture();
 	void RenderSceneToTexture(
 		ID3D11Buffer* const* cbMotionBlur,

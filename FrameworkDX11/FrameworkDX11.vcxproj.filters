@@ -25,30 +25,6 @@
     <ClInclude Include="Input\Mouse.h">
       <Filter>Headers\Input</Filter>
     </ClInclude>
-    <ClInclude Include="..\External\imgui\imconfig.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imgui.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imgui_impl_dx11.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imgui_impl_win32.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imgui_internal.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imstb_rectpack.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imstb_textedit.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imstb_truetype.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\ImGuiManager.h">
       <Filter>Headers\Graphics</Filter>
     </ClInclude>
@@ -157,6 +133,48 @@
     <ClInclude Include="Systems\Deferred.h">
       <Filter>Headers\Systems</Filter>
     </ClInclude>
+    <ClInclude Include="Levels\Level3.h">
+      <Filter>Headers\Levels</Filter>
+    </ClInclude>
+    <ClInclude Include="Levels\Level2.h">
+      <Filter>Headers\Levels</Filter>
+    </ClInclude>
+    <ClInclude Include="Levels\Level1.h">
+      <Filter>Headers\Levels</Filter>
+    </ClInclude>
+    <ClInclude Include="Levels\LevelContainer.h">
+      <Filter>Headers\Levels</Filter>
+    </ClInclude>
+    <ClInclude Include="Levels\LevelStateMachine.h">
+      <Filter>Headers\Levels</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\TextRenderer.h">
+      <Filter>Headers\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imconfig.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_impl_dx11.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_impl_win32.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_internal.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_rectpack.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_textedit.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_truetype.h">
+      <Filter>Resources\ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -231,6 +249,12 @@
     <Filter Include="Resources\Shaders\Pixel">
       <UniqueIdentifier>{ec8f9c54-f45f-4500-a970-94483dac5ae7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Levels">
+      <UniqueIdentifier>{97ac836f-277b-43ae-9a61-f8a7566440c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Levels">
+      <UniqueIdentifier>{8346fcbe-f4c5-43fa-a980-d4f2a0d1defb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\alpha_mayoris.jpg">
@@ -270,24 +294,6 @@
     </ClCompile>
     <ClCompile Include="Input\Keyboard.cpp">
       <Filter>Source\Input</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\imgui\imgui.cpp">
-      <Filter>Resources\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\imgui\imgui_demo.cpp">
-      <Filter>Resources\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\imgui\imgui_draw.cpp">
-      <Filter>Resources\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\imgui\imgui_impl_dx11.cpp">
-      <Filter>Resources\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\imgui\imgui_impl_win32.cpp">
-      <Filter>Resources\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\imgui\imgui_widgets.cpp">
-      <Filter>Resources\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\ImGuiManager.cpp">
       <Filter>Source\Graphics</Filter>
@@ -366,6 +372,42 @@
     </ClCompile>
     <ClCompile Include="Systems\Deferred.cpp">
       <Filter>Source\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="Levels\Level1.cpp">
+      <Filter>Source\Levels</Filter>
+    </ClCompile>
+    <ClCompile Include="Levels\Level2.cpp">
+      <Filter>Source\Levels</Filter>
+    </ClCompile>
+    <ClCompile Include="Levels\Level3.cpp">
+      <Filter>Source\Levels</Filter>
+    </ClCompile>
+    <ClCompile Include="Levels\LevelStateMachine.cpp">
+      <Filter>Source\Levels</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\TextRenderer.cpp">
+      <Filter>Source\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui.cpp">
+      <Filter>Resources\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_demo.cpp">
+      <Filter>Resources\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_draw.cpp">
+      <Filter>Resources\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_impl_dx11.cpp">
+      <Filter>Resources\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_impl_win32.cpp">
+      <Filter>Resources\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_tables.cpp">
+      <Filter>Resources\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_widgets.cpp">
+      <Filter>Resources\ImGui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
