@@ -1,5 +1,11 @@
 # Advanced Graphics
 
+[![MSBuild-Debug](https://github.com/kyle-robinson/directx-advanced-graphics/actions/workflows/msbuild-debug.yml/badge.svg)](https://github.com/kyle-robinson/directx-advanced-graphics/actions/workflows/msbuild-debug.yml)
+&nbsp;
+[![MSBuild-Release](https://github.com/kyle-robinson/directx-advanced-graphics/actions/workflows/msbuild-release.yml/badge.svg)](https://github.com/kyle-robinson/directx-advanced-graphics/actions/workflows/msbuild-release.yml)
+&nbsp;
+[![CodeQL](https://github.com/kyle-robinson/directx-advanced-graphics/actions/workflows/codeql.yml/badge.svg)](https://github.com/kyle-robinson/directx-advanced-graphics/actions/workflows/codeql.yml)
+
 A graphics framework created using DirectX 11 that implements a range of advanced of graphics like complex texture mapping techniques and screen-space effects.<br/>
 
 <img src="directx-framework.PNG" alt="DirectX Framework Thumbnail" border="10" />
