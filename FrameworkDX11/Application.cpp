@@ -115,7 +115,7 @@ void Application::Update()
 void Application::Render()
 {
 #pragma RENDER_PASSES
-    std::function<void( bool, bool, bool )> RenderScene = [&]( bool useDeferred, bool useGBuffer ) -> void
+    std::function<void( bool, bool )> RenderScene = [&]( bool useDeferred, bool useGBuffer ) -> void
     {
 #if defined ( _x64 )
         // Render skyphere first
@@ -159,14 +159,14 @@ void Application::Render()
     {
         // Normal pass
         graphics.BeginFrameDeferred();
-        RenderScene( false, true, false );
+        RenderScene( true, false );
     }
 
     if ( m_ssao.IsActive() )
     {
         // Normal pass
         graphics.BeginFrameNormal();
-        RenderScene( false, m_deferred.IsActive(), true );
+        RenderScene( m_deferred.IsActive(), true );
 
         // Update normal/depth constant buffer
         MatricesNormalDepth mndData;
@@ -183,7 +183,7 @@ void Application::Render()
 
     // Standard pass
     graphics.BeginFrame();
-    RenderScene( false, m_deferred.IsActive(), true );
+    RenderScene( m_deferred.IsActive(), true );
 #pragma endregion
 
 #pragma region POST_PROCESSING
