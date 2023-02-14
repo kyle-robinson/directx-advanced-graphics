@@ -17,7 +17,6 @@
 #include "Mapping.h"
 #include "Shaders.h"
 #include "Deferred.h"
-#include "ShadowMap.h"
 #include "MotionBlur.h"
 #include "ImGuiManager.h"
 #include "PostProcessing.h"
@@ -47,8 +46,6 @@ public:
 	bool ProcessMessages() noexcept;
 	void Update();
 	void Render();
-
-	void BuildShadowTransform();
 private:
 	// Objects
 	Cube m_cube;
@@ -65,7 +62,6 @@ private:
 	SSAO m_ssao;
 	Mapping m_mapping;
 	Deferred m_deferred;
-	ShadowMap m_shadowMap;
 	MotionBlur m_motionBlur;
 	PostProcessing m_postProcessing;
 
@@ -76,14 +72,12 @@ private:
 
 	XMFLOAT4X4 mLightView;
 	XMFLOAT4X4 mLightProj;
-	XMFLOAT4X4 mShadowTransform;
 	XMFLOAT4X4 m_previousViewProjection;
 	
 	std::unique_ptr<SpriteFont> m_spriteFont;
 	std::unique_ptr<SpriteBatch> m_spriteBatch;
 
 	ConstantBuffer<Matrices> m_cbMatrices;
-	ConstantBuffer<MatricesShadow> m_cbMatricesShadow;
 	ConstantBuffer<MatricesNormalDepth> m_cbMatricesNormalDepth;
 };
 

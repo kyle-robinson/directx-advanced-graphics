@@ -22,11 +22,9 @@ public:
 	void BeginFrame();
 	void BeginFrameNormal();
 	void BeginFrameDeferred();
-	void BeginFrameShadow();
 	
 	void UpdateRenderStateSkysphere();
 	void UpdateRenderStateCube(
-		bool useShadows = false,
 		bool useDeferred = false,
 		bool useGBuffer = false
 	);
@@ -35,13 +33,11 @@ public:
 	
 	void BeginRenderSceneToTexture();
 	void RenderSceneToTexture(
-		bool useShadowMap,
 		ID3D11Buffer* const* cbMotionBlur,
 		ID3D11Buffer* const* cbFXAA,
 		ID3D11Buffer* const* cbSSAO,
 		ID3D11ShaderResourceView* const* pNoiseTexture );
 	void RenderSceneToTextureNormal( ID3D11Buffer* const* cbMatrices );
-	void RenderSceneToTextureShadow( ID3D11Buffer* const* cbMatrices );
 	void EndFrame();
 
 	inline UINT GetWidth() const noexcept { return m_viewWidth; }
@@ -95,7 +91,6 @@ private:
 	std::shared_ptr<Bind::RenderTarget> m_pRenderTarget;
 	std::shared_ptr<Bind::DepthStencil> m_pDepthStencil;
 	std::shared_ptr<Bind::RenderTarget> m_pRenderTargetNormal;
-	std::shared_ptr<Bind::RenderTarget> m_pRenderTargetShadow;
 	std::unordered_map<Bind::RenderTarget::Type, std::shared_ptr<Bind::RenderTarget>> m_pRenderTargetsDeferred;
 
 	std::shared_ptr<Bind::Viewport> m_pViewport;

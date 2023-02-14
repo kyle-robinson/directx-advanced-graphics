@@ -62,7 +62,6 @@ void Graphics::InitializeDirectX( HWND hWnd, bool resizingWindow )
     
 	m_pRenderTarget = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
 	m_pRenderTargetNormal = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
-	m_pRenderTargetShadow = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
 	for ( uint32_t i = 0u; i < BUFFER_COUNT; i++ )
 		m_pRenderTargetsDeferred.emplace( (Bind::RenderTarget::Type)i, std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight, (Bind::RenderTarget::Type)i ) );
     
@@ -114,20 +113,6 @@ bool Graphics::InitializeShaders()
 		COM_ERROR_IF_FAILED( hr, "Failed to create gbuffer vertex shader!" );
 		hr = m_pixelShaderGB.Initialize( m_pDevice, L"Resources\\Shaders\\shaderGB_PS.hlsl" );
 		COM_ERROR_IF_FAILED( hr, "Failed to create gbuffer pixel shader!" );
-
-		// Define input layout for shadow pass
-		D3D11_INPUT_ELEMENT_DESC layoutSDW[] =
-		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		};
-
-		// Create the shadow shaders
-		hr = m_vertexShaderSDW.Initialize( m_pDevice, L"Resources\\Shaders\\shaderSDW_VS.hlsl", layoutSDW, ARRAYSIZE( layoutSDW ) );
-		COM_ERROR_IF_FAILED( hr, "Failed to create shadow vertex shader!" );
-		hr = m_pixelShaderSDW.Initialize( m_pDevice, L"Resources\\Shaders\\shaderSDW_PS.hlsl" );
-		COM_ERROR_IF_FAILED( hr, "Failed to create shadow pixel shader!" );
 
 		// Define input layout for models
 		D3D11_INPUT_ELEMENT_DESC layoutOBJ[] =
@@ -242,13 +227,6 @@ void Graphics::BeginFrameDeferred()
 	m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
 }
 
-void Graphics::BeginFrameShadow()
-{
-	// Clear render target/depth stencil
-	m_pRenderTargetShadow->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
-	m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
-}
-
 void Graphics::UpdateRenderStateSkysphere()
 {
 	// Set render state for skysphere
@@ -256,15 +234,11 @@ void Graphics::UpdateRenderStateSkysphere()
 	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
 }
 
-void Graphics::UpdateRenderStateCube( bool useShadows, bool useDeferred, bool useGBuffer )
+void Graphics::UpdateRenderStateCube( bool useDeferred, bool useGBuffer )
 {
 	// Set default render state for cubes
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
-	if ( useShadows )
-	{
-		Shaders::BindShaders( m_pContext.Get(), m_vertexShaderSDW, m_pixelShaderSDW );
-	}
-	else if ( useDeferred )
+	if ( useDeferred )
 	{
 		useGBuffer ?
 			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR ) :
@@ -297,7 +271,6 @@ void Graphics::BeginRenderSceneToTexture()
 }
 
 void Graphics::RenderSceneToTexture(
-	bool useShadowMap,
 	ID3D11Buffer* const* cbMotionBlur,
 	ID3D11Buffer* const* cbFXAA,
 	ID3D11Buffer* const* cbSSAO,
@@ -310,7 +283,7 @@ void Graphics::RenderSceneToTexture(
 	m_pContext->PSSetConstantBuffers( 2u, 1u, cbSSAO );
 	m_quad.SetupBuffers( m_pContext.Get() );
 
-	m_pContext->PSSetShaderResources( 0u, 1u, ( useShadowMap ? m_pRenderTargetShadow : m_pRenderTarget )->GetShaderResourceViewPtr() );
+	m_pContext->PSSetShaderResources( 0u, 1u, m_pRenderTarget->GetShaderResourceViewPtr() );
 	m_pContext->PSSetShaderResources( 1u, 1u, m_pDepthStencil->GetShaderResourceViewPtr() );
 	m_pContext->PSSetShaderResources( 2u, 1u, m_pRenderTargetNormal->GetShaderResourceViewPtr() );
 	m_pContext->PSSetShaderResources( 3u, 1u, pNoiseTexture );
@@ -329,23 +302,11 @@ void Graphics::RenderSceneToTextureNormal( ID3D11Buffer* const* cbMatrices )
 	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
 }
 
-void Graphics::RenderSceneToTextureShadow( ID3D11Buffer* const* cbMatrices )
-{
-	// Render fullscreen texture to new render target
-	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderSDW, m_pixelShaderSDW );
-	m_pContext->VSSetConstantBuffers( 0u, 1u, cbMatrices );
-	m_pContext->PSSetConstantBuffers( 0u, 1u, cbMatrices );
-	m_quad.SetupBuffers( m_pContext.Get() );
-	Bind::Rasterizer::DrawSolid( m_pContext.Get(), m_quad.GetIndexBuffer().IndexCount() ); // always draw as solid
-	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
-}
-
 void Graphics::EndFrame()
 {
 	// Unbind render target
 	m_pRenderTarget->BindNull( m_pContext.Get() );
 	m_pRenderTargetNormal->BindNull( m_pContext.Get() );
-	m_pRenderTargetShadow->BindNull( m_pContext.Get() );
 	for ( uint32_t i = 0u; i < BUFFER_COUNT; i++ )
 		m_pRenderTargetsDeferred[(Bind::RenderTarget::Type)i]->BindNull( m_pContext.Get() );
 	m_pBackBuffer->BindNull( m_pContext.Get() );

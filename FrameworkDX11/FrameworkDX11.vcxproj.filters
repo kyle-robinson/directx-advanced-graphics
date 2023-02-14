@@ -157,9 +157,6 @@
     <ClInclude Include="Systems\Deferred.h">
       <Filter>Headers\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="Systems\ShadowMap.h">
-      <Filter>Headers\Systems</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -370,9 +367,6 @@
     <ClCompile Include="Systems\Deferred.cpp">
       <Filter>Source\Systems</Filter>
     </ClCompile>
-    <ClCompile Include="Systems\ShadowMap.cpp">
-      <Filter>Source\Systems</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resources\Tutorial01.rc">
@@ -449,12 +443,6 @@
       <Filter>Resources\Shaders\Pixel</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\shaderDR_VS.hlsl">
-      <Filter>Resources\Shaders\Vertex</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderSDW_PS.hlsl">
-      <Filter>Resources\Shaders\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderSDW_VS.hlsl">
       <Filter>Resources\Shaders\Vertex</Filter>
     </FxCompile>
   </ItemGroup>
