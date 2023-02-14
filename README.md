@@ -1,8 +1,8 @@
-# DX11 Advanced Rendering
+# Advanced Graphics
 
 A graphics framework created using DirectX 11 that implements a range of advanced of graphics like complex texture mapping techniques and screen-space effects.<br/>
 
-<img src="directx-framework.png" alt="DirectX Framework Thumbnail" border="10" />
+<img src="directx-framework.PNG" alt="DirectX Framework Thumbnail" border="10" />
 
 ## List of Features
 
