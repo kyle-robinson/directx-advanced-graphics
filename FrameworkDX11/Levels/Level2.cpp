@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Level2.h"
+#include "TextRenderer.h"
 
 void Level2::OnCreate()
 {

@@ -24,7 +24,7 @@ struct PS_OUTPUT
 PS_OUTPUT PS( PS_INPUT input )
 {
     PS_OUTPUT output;
-    
+
     output.Position = input.PositionW;
     output.Albedo = textureObj.Sample( samplerState, input.TexCoord );
 
@@ -32,11 +32,11 @@ PS_OUTPUT PS( PS_INPUT input )
     float3 T = normalize( input.Tangent - N  * dot( input.Tangent, N ) );
     float3 B = cross( T, N );
     float3x3 TBN = float3x3( T, B, N );
-    
+
     float3 normalFromMap = textureNrm.Sample( samplerState, input.TexCoord ) * 2.0f - 1.0f;
     normalFromMap.y = -normalFromMap.y;
     input.Normal = normalize( mul( normalFromMap, TBN ) );
     output.Normal = float4( input.Normal, 1.0f );
-    
+
     return output;
 }

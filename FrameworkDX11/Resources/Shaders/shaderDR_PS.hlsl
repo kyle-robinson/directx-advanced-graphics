@@ -1,5 +1,8 @@
 // Definitions
 #define MAX_LIGHTS 1
+#define DIRECTIONAL_LIGHT 0
+#define POINT_LIGHT 1
+#define SPOT_LIGHT 2
 
 // Resources
 Texture2D texturePosition : register( t0 );
@@ -14,7 +17,7 @@ struct _Material
     float4 Ambient;
     float4 Diffuse;
     float4 Specular;
-    
+
     float SpecularPower;
     bool UseTexture;
     float2 Padding;
@@ -25,12 +28,12 @@ struct Light
     float4 Position;
     float4 Direction;
     float4 Color;
-    
+
     float SpotAngle;
     float ConstantAttenuation;
     float LinearAttenuation;
     float QuadraticAttenuation;
-    
+
     float Intensity;
     int LightType;
     bool Enabled;
@@ -100,7 +103,7 @@ float4 DoSpecular( Light lightObject, float3 vertexToEye, float3 lightDirectionT
 
 	float lightIntensity = saturate( dot( Normal, lightDir ) );
 	float4 specular = float4( 0.0f, 0.0f, 0.0f, 0.0f );
-    
+
 	if ( lightIntensity > 0.0f )
 	{
 		float3  reflection = normalize( 2.0f * lightIntensity * Normal - lightDir );
@@ -113,6 +116,17 @@ float4 DoSpecular( Light lightObject, float3 vertexToEye, float3 lightDirectionT
 float DoAttenuation( Light light, float d )
 {
 	return 1.0f / ( light.ConstantAttenuation + light.LinearAttenuation * d + light.QuadraticAttenuation * d * d );
+}
+
+LightingResult DoDirectionalLight( Light light, float3 V, float4 P, float3 N )
+{
+    LightingResult result;
+
+    float3 L = -light.Direction.xyz;
+    result.Diffuse = DoDiffuse( light, L, N );
+    result.Specular = DoSpecular( light, V, L, N );
+
+    return result;
 }
 
 LightingResult DoPointLight( Light light, float3 vertexToEye, float4 vertexPos, float3 N )
@@ -136,6 +150,35 @@ LightingResult DoPointLight( Light light, float3 vertexToEye, float4 vertexPos, 
 	return result;
 }
 
+float DoSpotCone( Light light, float3 L )
+{
+    float minCos = cos( light.SpotAngle );
+    float maxCos = ( minCos + 1.0f ) / 2.0f;
+    float cosAngle = dot( light.Direction.xyz, -L );
+    return smoothstep( minCos, maxCos, cosAngle );
+}
+
+LightingResult DoSpotLight( Light light, float3 vertexToEye, float4 vertexPos, float3 N )
+{
+    LightingResult result;
+
+    float3 LightDirectionToVertex = ( vertexPos - light.Position ).xyz;
+    float distance = length( LightDirectionToVertex );
+    LightDirectionToVertex = LightDirectionToVertex / distance;
+
+    float3 L = ( light.Position - vertexPos ).xyz;
+    distance = length( L );
+    L = L / distance;
+
+    float attenuation = DoAttenuation( light, distance );
+    float spotIntensity = DoSpotCone( light, L );
+
+    result.Diffuse = DoDiffuse( light, L, N ) * attenuation * spotIntensity;
+    result.Specular = DoSpecular( light, vertexToEye, LightDirectionToVertex, N ) * attenuation * spotIntensity;
+
+    return result;
+}
+
 LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye )
 {
 	LightingResult totalResult = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
@@ -145,11 +188,16 @@ LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye )
 	{
 		LightingResult result = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
 
-		if ( !Lights[i].Enabled ) 
+		if ( !Lights[i].Enabled )
 			continue;
-		
-		result = DoPointLight( Lights[i], vertexToEye, vertexPos, N );
-		
+
+        if ( Lights[i].LightType == DIRECTIONAL_LIGHT )
+            result = DoDirectionalLight( Lights[i], vertexToEye, vertexPos, N );
+		else if ( Lights[i].LightType == POINT_LIGHT )
+            result = DoPointLight( Lights[i], vertexToEye, vertexPos, N );
+        else if ( Lights[i].LightType == SPOT_LIGHT )
+            result = DoSpotLight( Lights[i], vertexToEye, vertexPos, N );
+
 		totalResult.Diffuse += result.Diffuse;
 		totalResult.Specular += result.Specular;
 	}
@@ -173,13 +221,13 @@ float4 PS( PS_INPUT input ) : SV_TARGET
     float4 position = texturePosition.Load( sampleIndices );
     if ( Deferred.OnlyPositions )
         return position;
-        
+
     float3 normal = textureNormal.Load( sampleIndices ).rgb;
     if ( !Mapping.UseNormalMap )
         normal = input.Normal;
     if ( Deferred.OnlyNormals )
         return float4( normal, 1.0f );
-        
+
     float4 albedo = textureAlbedo.Load( sampleIndices );
     if ( !Material.UseTexture )
         albedo = float4( 1.0f, 1.0f, 1.0f, 1.0f );
@@ -195,7 +243,7 @@ float4 PS( PS_INPUT input ) : SV_TARGET
 	float4 ambient = Material.Ambient * GlobalAmbient * Lights[0].Intensity;
     float4 diffuse = Material.Diffuse * lit.Diffuse * Lights[0].Intensity;
 	float4 specular = Material.Specular * lit.Specular * Lights[0].Intensity;
-	
+
     // final colour
 	float4 finalColor = ( emissive + ambient + diffuse + specular ) * albedo;
 	return finalColor;

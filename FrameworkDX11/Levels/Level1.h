@@ -10,11 +10,11 @@
 #include "Cube.h"
 #include "FXAA.h"
 #include "SSAO.h"
-#include "Light.h"
 #include "Mapping.h"
 #include "Shaders.h"
 #include "Deferred.h"
 #include "MotionBlur.h"
+#include "LightControl.h"
 #include "PostProcessing.h"
 
 #if defined ( _x64 )
@@ -39,7 +39,7 @@ public:
 private:
 	// Objects
 	Cube m_cube;
-	Light m_light;
+	LightControl* m_pLightControl;
 
 #if defined ( _x64 )
 	RenderableGameObject m_objSkysphere;
@@ -53,10 +53,7 @@ private:
 	MotionBlur m_motionBlur;
 	PostProcessing m_postProcessing;
 
-	XMFLOAT4X4 mLightView;
-	XMFLOAT4X4 mLightProj;
 	XMFLOAT4X4 m_previousViewProjection;
-
 	ConstantBuffer<Matrices> m_cbMatrices;
 	ConstantBuffer<MatricesNormalDepth> m_cbMatricesNormalDepth;
 };

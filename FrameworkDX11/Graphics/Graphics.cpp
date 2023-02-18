@@ -13,7 +13,7 @@ bool Graphics::Initialize( HWND hWnd, UINT width, UINT height )
 
 	if ( !InitializeRTT() )
 		return false;
-	
+
 	return true;
 }
 
@@ -23,7 +23,7 @@ void Graphics::ResizeWindow( HWND hWnd, XMFLOAT2 windowSize )
 	m_viewHeight = windowSize.y;
 
 	{
-		// Window size: changing buffers size 
+		// Window size: changing buffers size
 		m_pContext->OMSetRenderTargets( 0u, nullptr, nullptr );
 
 		// Clear all buffers
@@ -59,12 +59,12 @@ void Graphics::InitializeDirectX( HWND hWnd, bool resizingWindow )
     m_pBackBuffer = std::make_shared<Bind::BackBuffer>( m_pDevice.Get(), m_pSwapChain->GetSwapChain() );
     m_pDepthStencil = std::make_shared<Bind::DepthStencil>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
 	m_pViewport = std::make_shared<Bind::Viewport>( m_pContext.Get(), m_viewWidth, m_viewHeight );
-    
+
 	m_pRenderTarget = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
 	m_pRenderTargetNormal = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
 	for ( uint32_t i = 0u; i < BUFFER_COUNT; i++ )
 		m_pRenderTargetsDeferred.emplace( (Bind::RenderTarget::Type)i, std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight, (Bind::RenderTarget::Type)i ) );
-    
+
     m_pRasterizerStates.emplace( Bind::Rasterizer::Type::SOLID, std::make_shared<Bind::Rasterizer>( m_pDevice.Get(), Bind::Rasterizer::Type::SOLID ) );
     m_pRasterizerStates.emplace( Bind::Rasterizer::Type::SKYSPHERE, std::make_shared<Bind::Rasterizer>( m_pDevice.Get(), Bind::Rasterizer::Type::SKYSPHERE ) );
     m_pRasterizerStates.emplace( Bind::Rasterizer::Type::WIREFRAME, std::make_shared<Bind::Rasterizer>( m_pDevice.Get(), Bind::Rasterizer::Type::WIREFRAME ) );
@@ -75,7 +75,6 @@ void Graphics::InitializeDirectX( HWND hWnd, bool resizingWindow )
 	m_pSamplerStates.emplace( Bind::Sampler::Type::POINT, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::POINT ) );
 
 	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
-	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_CLAMP]->Bind( m_pContext.Get() );
     m_pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 }
 
@@ -162,7 +161,7 @@ bool Graphics::InitializeShaders()
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
-		
+
 		// Create the normal pass shaders
 		hr = m_vertexShaderNRM.Initialize( m_pDevice, L"Resources\\Shaders\\shaderNRM_VS.hlsl", layoutNRM, ARRAYSIZE( layoutNRM ) );
 		COM_ERROR_IF_FAILED( hr, "Failed to create normal vertex shader!" );

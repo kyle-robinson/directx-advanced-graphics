@@ -18,8 +18,11 @@ void Level1::OnCreate()
     hr = m_cube.InitializeMesh( m_gfx->GetDevice(), m_gfx->GetContext() );
     COM_ERROR_IF_FAILED( hr, "Failed to create 'cube' object!" );
 
-    hr = m_light.Initialize( m_gfx->GetDevice(), m_gfx->GetContext(), m_cbMatrices );
-    COM_ERROR_IF_FAILED( hr, "Failed to create 'light' object!" );
+    m_pLightControl = new LightControl( m_gfx->GetDevice(), m_gfx->GetContext() );
+    m_pLightControl->AddLight( "Point Light", m_gfx->GetDevice(), m_gfx->GetContext(), m_cbMatrices, *m_camera, TRUE, LightType::PointLight,
+        XMFLOAT4( 0.0f, 0.0f, -3.0f, 1.0f ), XMFLOAT4( Colors::White ), 0.0f, 1.0f, 1.0f, 1.0f, 4.0f );
+	//m_pLightControl->AddLight( "Spot Light", m_gfx->GetDevice(), m_gfx->GetContext(), m_cbMatrices, *m_camera, TRUE, LightType::SpotLight,
+    //    XMFLOAT4( 0.0f, 5.0f, 0.0f, 1.0f ), XMFLOAT4( Colors::Red ), 45.0f, 1.0f, 1.0f, 1.0f, 2.0f );
 
     hr = m_mapping.Initialize( m_gfx->GetDevice(), m_gfx->GetContext() );
     COM_ERROR_IF_FAILED( hr, "Failed to create 'mapping' system!" );
@@ -59,19 +62,16 @@ void Level1::RenderFrame()
         m_objSkysphere.Draw( m_camera->GetViewMatrix(), m_camera->GetProjectionMatrix() );
 #endif
 
-        // Update constant buffers
-        m_light.UpdateCB( *m_camera );
-        m_deferred.UpdateCB();
-        m_mapping.UpdateCB();
-        m_cube.UpdateCB();
-
         // Render objects
         m_gfx->UpdateRenderStateCube( useDeferred, useGBuffer );
         m_cube.UpdateBuffers( m_cbMatrices, *m_camera );
+
         m_gfx->GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
+        m_gfx->GetContext()->VSSetConstantBuffers( 1u, 1u, m_pLightControl->GetCB_DPtr() );
         m_gfx->GetContext()->PSSetConstantBuffers( 0u, 1u, m_cube.GetCB() );
-        m_gfx->GetContext()->PSSetConstantBuffers( 1u, 1u, m_light.GetCB_DPtr() );
+        m_gfx->GetContext()->PSSetConstantBuffers( 1u, 1u, m_pLightControl->GetCB_DPtr() );
         m_gfx->GetContext()->PSSetConstantBuffers( 2u, 1u, m_mapping.GetCB() );
+
         if ( useDeferred && useGBuffer )
         {
             m_gfx->GetContext()->PSSetConstantBuffers( 3u, 1u, m_deferred.GetCB() );
@@ -87,7 +87,7 @@ void Level1::RenderFrame()
 
 #if defined ( _x64 )
         m_gfx->UpdateRenderStateTexture();
-        m_light.Draw( m_camera->GetViewMatrix(), m_camera->GetProjectionMatrix() );
+        m_pLightControl->Draw( m_camera->GetViewMatrix(), m_camera->GetProjectionMatrix() );
 #endif
     };
 
@@ -131,13 +131,6 @@ void Level1::EndFrame_Start()
     m_motionBlur.SetViewProjInv( viewProjInv );
     XMMATRIX prevViewProj = XMLoadFloat4x4( &m_previousViewProjection );
     m_motionBlur.SetPrevViewProj( prevViewProj );
-    m_motionBlur.UpdateCB();
-
-    // Setup FXAA
-    m_fxaa.UpdateCB( m_gfx->GetWidth(), m_gfx->GetHeight() );
-
-    // Setup SSAO
-    m_ssao.UpdateCB( m_gfx->GetWidth(), m_gfx->GetHeight(), *m_camera );
 
     // Render text
     if ( !m_motionBlur.IsActive() && !m_fxaa.IsActive() && !m_ssao.IsActive() )
@@ -171,7 +164,7 @@ void Level1::EndFrame_Start()
         m_ssao.IsActive() );
     m_deferred.SpawnControlWindow();
     m_mapping.SpawnControlWindow( m_deferred.IsActive() );
-    m_light.SpawnControlWindow();
+    m_pLightControl->SpawnControlWindows();
     m_cube.SpawnControlWindows();
 }
 
@@ -195,6 +188,20 @@ void Level1::Update( const float dt )
     m_objSkysphere.SetPosition( m_camera->GetPositionFloat3() );
 #endif
 
-    // Update the cube transform, material etc.
+    // Update objects and constant buffers
+    m_pLightControl->Update( *m_camera );
+    m_pLightControl->SetupLightsForRender( XMFLOAT4(
+        m_camera->GetPositionFloat3().x,
+        m_camera->GetPositionFloat3().y,
+        m_camera->GetPositionFloat3().z,
+        0.0f
+    ) );
+
+    m_deferred.UpdateCB();
+    m_mapping.UpdateCB();
     m_cube.Update( dt );
+
+    m_motionBlur.UpdateCB();
+    m_fxaa.UpdateCB( m_gfx->GetWidth(), m_gfx->GetHeight() );
+    m_ssao.UpdateCB( m_gfx->GetWidth(), m_gfx->GetHeight(), *m_camera );
 }

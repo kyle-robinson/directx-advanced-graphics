@@ -120,7 +120,7 @@ struct MaterialData
 	XMFLOAT4 Ambient;
 	XMFLOAT4 Diffuse;
 	XMFLOAT4 Specular;
-	
+
 	FLOAT SpecularPower;
 	BOOL UseTexture;
 	XMFLOAT2 Padding;
@@ -167,6 +167,9 @@ struct LightData
 	int LightType;
 	BOOL Enabled;
 	FLOAT Padding;
+
+	XMMATRIX View;
+	XMMATRIX Projection;
 };
 
 #define MAX_LIGHTS 1
