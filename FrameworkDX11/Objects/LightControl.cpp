@@ -96,7 +96,7 @@ void LightControl::SpawnControlWindows()
     {
         ImGui::Text( "Global Ambient" );
         static XMFLOAT4 globalAmbient = XMFLOAT4( m_fGlobalAmbient );
-		ImGui::SliderFloat4( "##GlobalAmbient", &globalAmbient.x, 0.0f, 1.0f, "%.1f" );
+		ImGui::SliderFloat4( "##Global Ambient", &globalAmbient.x, 0.0f, 1.0f, "%.1f" );
 		m_fGlobalAmbient = globalAmbient;
         ImGui::NewLine();
         for ( auto light : m_pLights )

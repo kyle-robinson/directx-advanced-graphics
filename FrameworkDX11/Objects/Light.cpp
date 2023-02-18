@@ -103,9 +103,9 @@ void Light::Update( Camera& camera )
 #endif
 
     XMVECTOR lightDirection = XMVectorSet(
-        /*camera.GetCameraTarget().x,*/ -m_fPosition.x,
-        /*camera.GetCameraTarget().y,*/ -m_fPosition.y,
-        /*camera.GetCameraTarget().z,*/ -m_fPosition.z,
+        -m_fPosition.x,
+        -m_fPosition.y,
+        -m_fPosition.z,
         0.0f
     );
     lightDirection = XMVector3Normalize( lightDirection );
@@ -133,15 +133,20 @@ void Light::SpawnControlWindow()
     if ( ImGui::CollapsingHeader( std::string( m_sName ).append( " (" ).append( type ).append( ")" ).c_str() ) )
     {
         static bool enabled = (bool)m_bEnabled;
-        ImGui::Checkbox( std::string( "Enabled?##" ).append( m_sName ).c_str(), &enabled );
+        ImGui::Text( "Enabled?" );
+        ImGui::SameLine();
+        ImGui::Checkbox( std::string( "##Enabled" ).append( m_sName ).c_str(), &enabled );
         m_bEnabled = (BOOL)enabled;
-        ImGui::Checkbox( std::string( "Attached To Camera?##" ).append( m_sName ).c_str(), &m_bAttachedToCamera );
+
+        ImGui::Text( "Attached To Camera?" );
+        ImGui::SameLine();
+        ImGui::Checkbox( std::string( "##Attached" ).append( m_sName ).c_str(), &m_bAttachedToCamera );
         ImGui::NewLine();
 
         if ( !m_bAttachedToCamera )
         {
             ImGui::Text( "Position" );
-		    ImGui::DragFloat4( std::string( "##Light Position" ).append( m_sName ).c_str(), &m_fPosition.x, 0.1f, -10.0f, 10.0f, "%.1f" );
+		    ImGui::DragFloat4( std::string( "##Position" ).append( m_sName ).c_str(), &m_fPosition.x, 0.1f, -10.0f, 10.0f, "%.1f" );
 		    ImGui::NewLine();
             ImGui::Separator();
             ImGui::NewLine();
@@ -163,6 +168,6 @@ void Light::SpawnControlWindow()
 	    ImGui::DragFloat( std::string( "##Intensity" ).append( m_sName ).c_str(), &m_fIntensity, 0.1f, 1.0f, 10.0f, "%1.f" );
 
         ImGui::Text( "Spot Angle" );
-        ImGui::DragFloat( std::string( "##SpotAngle" ).append( m_sName ).c_str(), &m_fSpotAngle, 1.0f, -90.0f, 90.0f, "%1.f" );
+        ImGui::DragFloat( std::string( "##Spot Angle" ).append( m_sName ).c_str(), &m_fSpotAngle, 1.0f, -90.0f, 90.0f, "%1.f" );
     }
 }

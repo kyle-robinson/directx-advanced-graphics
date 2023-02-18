@@ -55,7 +55,8 @@ struct _Mapping
 
     bool UseSoftShadow;
     float HeightScale;
-    float2 Padding;
+    float MinLayers;
+    float MaxLayers;
 };
 
 // Constant Buffers
@@ -126,10 +127,8 @@ LightingResult DoPointLight( Light light, float3 vertexToEye, float4 vertexPos, 
 
 	float3 vertexToLight = ( light.Position - vertexPos ).xyz;
 	distance = length( vertexToLight );
-	//vertexToLight = vertexToLight / distance;
 
 	float attenuation = DoAttenuation( light, distance );
-	//attenuation = 1;
 
 	result.Diffuse = DoDiffuse( light, lightVectorTS, N ) * attenuation;
 	result.Specular = DoSpecular( light, vertexToEye, -lightVectorTS, N ) * attenuation;
@@ -185,9 +184,9 @@ LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye, 
         else if ( Lights[i].LightType == SPOT_LIGHT )
             result = DoSpotLight( Lights[i], vertexToEye, vertexPos, N, lightVectorTS[i] );
 
-		totalResult.Diffuse += result.Diffuse;
-		totalResult.Specular += result.Specular;
-	}
+        totalResult.Diffuse += result.Diffuse;
+        totalResult.Specular += result.Specular;
+    }
 
 	totalResult.Diffuse = saturate( totalResult.Diffuse );
 	totalResult.Specular = saturate( totalResult.Specular );
@@ -216,7 +215,6 @@ float3 NormalMapping( float2 texCoord )
 {
     float3 texNormal = textureNormal.Sample( samplerState, texCoord ).rgb;
     float3 texNorm = ( 2.0f * texNormal ) - 1.0f;
-    //return mul( texNorm, TBN );
     return normalize( texNorm );
 }
 
@@ -280,9 +278,6 @@ float2 ParallaxOcclusion( float2 texCoord, float3 normal, float3 toEye )
 float ParallaxSelfShadowing( float3 toLight, float2 texCoord, float3 normal, bool softShadow )
 {
     float shadowFactor = 1.0f;
-    int minLayers = 10;
-    int maxLayers = 15;
-
     float2 dx = ddx( texCoord );
     float2 dy = ddy( texCoord );
     float height = 1.0f - textureDisplacement.SampleGrad( samplerState, texCoord, dx, dy ).r;
@@ -292,7 +287,7 @@ float ParallaxSelfShadowing( float3 toLight, float2 texCoord, float3 normal, boo
     {
         shadowFactor = 0.0f;
         float numSamplesUnderSurface = 0.0f;
-        float numLayers = lerp( maxLayers, minLayers, dot( normal, toLight ) );
+        float numLayers = lerp( Mapping.MaxLayers, Mapping.MinLayers, dot( normal, toLight ) );
 
         float layerHeight = height / numLayers;
         float2 texStep = parallaxScale * toLight.xy / numLayers;
@@ -354,22 +349,10 @@ struct PS_INPUT
 
     float3 Normal : NORMAL;
     float3 NormalTS : NORMAL_TS;
-    //float3 Tangent : TANGENT;
-    //float3 Binormal : BINORMAL;
 };
 
 float4 PS( PS_INPUT input ) : SV_TARGET
 {
-    input.Normal = normalize( input.Normal );
-
-	//float3x3 TBN = computeTBNMatrix( input.Normal, input.Tangent );
-    //float3x3 TBN = computeTBNMatrixB( input.Normal, input.Tangent, input.Binormal );
-
-    //float3 vertexToLight = normalize( Lights[0].Position - input.WorldPosition ).xyz;
-    //float3 vertexToLightTS = mul( vertexToLight, TBN );
-    //float3 vertexToEye = normalize( CameraPosition - input.WorldPosition ).xyz;
-    //float3 vertexToEyeTS = mul( vertexToEye, TBN );
-
 	// parallax
     if ( Mapping.UseParallaxMap )
     {
@@ -391,11 +374,21 @@ float4 PS( PS_INPUT input ) : SV_TARGET
 
 	// texture/material
     float4 textureColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-    float4 emissive = Material.Emissive * 4.0f;// * Lights[0].Intensity;
-    float4 ambient = Material.Ambient * GlobalAmbient * 4.0f;// * Lights[0].Intensity;
-    float4 diffuse = Material.Diffuse * lit.Diffuse * 4.0f;// * Lights[0].Intensity;
-    float4 specular = Material.Specular * lit.Specular * 4.0f;// * Lights[0].Intensity;
+    float4 emissive = Material.Emissive;
+    float4 ambient = Material.Ambient * GlobalAmbient;
+    float4 diffuse = Material.Diffuse * lit.Diffuse;
+    float4 specular = Material.Specular * lit.Specular;
 
+    // update intensity
+    for ( int i = 0; i < MAX_LIGHTS; ++i )
+    {
+        emissive *= Lights[i].Intensity;
+        ambient *= Lights[i].Intensity;
+        diffuse *= Lights[i].Intensity;
+        specular *= Lights[i].Intensity;
+    }
+
+    // update texture
     if ( Material.UseTexture )
         textureColor = textureDiffuse.Sample( samplerState, input.TexCoord );
     else

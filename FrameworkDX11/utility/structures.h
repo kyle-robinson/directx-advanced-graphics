@@ -195,6 +195,8 @@ struct MappingData
 		, UseParallaxSelfShadowing( TRUE )
 		, UseSoftShadow( TRUE )
 		, HeightScale( 0.1f )
+		, MinLayers( 10 )
+		, MaxLayers( 15 )
 	{}
 
 	BOOL UseNormalMap;
@@ -204,7 +206,8 @@ struct MappingData
 
 	BOOL UseSoftShadow;
 	FLOAT HeightScale;
-	XMFLOAT2 Padding;
+	int MinLayers;
+	int MaxLayers;
 };
 
 struct Mapping_CB

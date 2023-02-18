@@ -19,6 +19,8 @@ private:
 	BOOL m_bUseParallaxSelfShadowing = TRUE;
 	BOOL m_bUseSoftShadow = TRUE;
 	FLOAT m_fHeightScale = 0.1f;
+	int m_iMinLayers = 10;
+	int m_iMaxLayers = 15;
 	ConstantBuffer<Mapping_CB> m_cbMapping;
 };
 

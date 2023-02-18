@@ -63,8 +63,6 @@ struct VS_OUTPUT
 
     float3 Normal : NORMAL;
     float3 NormalTS : NORMAL_TS;
-    //float3 Tangent : TANGENT;
-    //float3 Binormal : BINORMAL;
 };
 
 float3 VectorToTangentSpace( float3 vectorV, float3x3 TBN_inv )
@@ -82,11 +80,7 @@ VS_OUTPUT VS( VS_INPUT input )
 	output.WorldPosition = output.Position;
     output.Position = mul( output.Position, View );
     output.Position = mul( output.Position, Projection );
-
-	// convert from model to world space
 	output.Normal = mul( float4( input.Normal, 0.0f ), World ).xyz;
-	//output.Tangent = mul( float4( input.Tangent, 1.0f ), World ).xyz;
-	//output.Binormal = mul( float4( input.Binormal, 1.0f ), World ).xyz;
 
     // Build TBN matrix
     float3 T = normalize( mul( input.Tangent, (float3x4)World ) );
