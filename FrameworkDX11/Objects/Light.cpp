@@ -1,29 +1,63 @@
 #include "stdafx.h"
 #include "Light.h"
-#include "Camera.h"
 #include <imgui/imgui.h>
 
-bool Light::Initialize( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ConstantBuffer<Matrices>& cb_vs_vertexshader )
-{
-	try
-	{
-#if defined ( _x64 )
-        // Initialize light model
-        if ( !m_objLight.Initialize( "Resources\\Models\\light.obj", pDevice, pContext, cb_vs_vertexshader ) )
-		    return false;
-        m_objLight.SetInitialScale( 0.1f, 0.1f, 0.1f );
-#endif
+Light::Light() {}
 
-        // Initialize constant buffer
-		HRESULT hr = m_cbLight.Initialize( pDevice, pContext );
-		COM_ERROR_IF_FAILED( hr, "Failed to create 'Light' constant buffer!" );
-	}
-	catch ( COMException& exception )
-	{
-		ErrorLogger::Log( exception );
+Light::Light( std::string name, ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ConstantBuffer<Matrices>& cbuffer, Camera& camera )
+{
+    m_sName = name;
+    SetModel( pDevice, pContext, cbuffer );
+    SetCBData( pDevice, pContext, camera );
+    m_lightCamera.Initialize( XMFLOAT3( m_fPosition.x, m_fPosition.y, m_fPosition.z ), 1280.0f, 720.0f );
+}
+
+Light::Light( std::string name, ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ConstantBuffer<Matrices>& cbuffer, Camera& camera,
+    BOOL enabled, LightType type, XMFLOAT4 pos, XMFLOAT4 col, FLOAT angle, FLOAT constAtten, FLOAT linAtten, FLOAT quadAtten, FLOAT intensity )
+{
+	m_sName = name;
+	m_bEnabled = enabled;
+	m_eType = type;
+	m_fPosition = pos;
+	m_fColor = col;
+    m_fSpotAngle = angle;
+	m_fConstantAttenuation = constAtten;
+	m_fLinearAttenuation = linAtten;
+	m_fQuadraticAttenuation = quadAtten;
+	m_fIntensity = intensity;
+    SetModel( pDevice, pContext, cbuffer );
+    SetCBData( pDevice, pContext, camera );
+    m_lightCamera.Initialize( XMFLOAT3( m_fPosition.x, m_fPosition.y, m_fPosition.z ), 1280.0f, 720.0f );
+}
+
+Light::~Light() {}
+
+bool Light::SetModel( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ConstantBuffer<Matrices>& cbuffer )
+{
+#if defined ( _x64 )
+    // Initialize light model
+    if ( !m_objLight.Initialize( "Resources\\Models\\light.obj", pDevice, pContext, cbuffer ) )
 		return false;
-	}
+    m_objLight.SetInitialScale( 0.1f, 0.1f, 0.1f );
+#endif
 	return true;
+}
+
+bool Light::SetCBData( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, Camera& camera )
+{
+    try
+    {
+        // Initialize constant buffer
+        HRESULT hr = m_cbLight.Initialize( pDevice, pContext );
+        COM_ERROR_IF_FAILED( hr, "Failed to create 'Light' constant buffer!" );
+        Update( camera ); // Update constant buffer with default values
+    }
+    catch ( COMException& exception )
+    {
+        ErrorLogger::Log( exception );
+        return false;
+    }
+    return true;
 }
 
 void Light::Draw( const XMMATRIX& view, const XMMATRIX& projection )
@@ -34,22 +68,25 @@ void Light::Draw( const XMMATRIX& view, const XMMATRIX& projection )
 #endif
 }
 
-void Light::UpdateCB( Camera& camera )
+void Light::Update( Camera& camera )
 {
+    m_lightCamera.SetPosition( XMFLOAT3( m_fPosition.x, m_fPosition.y, m_fPosition.z ) );
+    m_lightCamera.UpdateMatrix();
+
     XMFLOAT4 cameraPosition =
     {
         camera.GetPositionFloat3().x,
         camera.GetPositionFloat3().y,
         camera.GetPositionFloat3().z,
-        1.0f
+        0.0f
     };
 
 	// Setup light data
     LightData light;
-    light.Enabled = TRUE;
-    light.LightType = PointLight;
+    light.Enabled = m_bEnabled;
+    light.LightType = m_eType;
     light.Color = m_fColor;
-    light.SpotAngle = DirectX::XMConvertToRadians( m_fSpotAngle );
+    light.SpotAngle = XMConvertToRadians( m_fSpotAngle );
     light.ConstantAttenuation = m_fConstantAttenuation;
     light.LinearAttenuation = m_fLinearAttenuation;
     light.QuadraticAttenuation = m_fQuadraticAttenuation;
@@ -59,61 +96,78 @@ void Light::UpdateCB( Camera& camera )
     if ( m_bAttachedToCamera )
         m_fPosition = cameraPosition;
     light.Position = m_fPosition;
-    
+
 #if defined ( _x64 )
     // Update model position
     m_objLight.SetPosition( XMFLOAT3( m_fPosition.x, m_fPosition.y, m_fPosition.z ) );
 #endif
 
-    DirectX::XMVECTOR lightDirection = DirectX::XMVectorSet(
-        camera.GetCameraTarget().x - m_fPosition.x,
-        camera.GetCameraTarget().y - m_fPosition.y,
-        camera.GetCameraTarget().z - m_fPosition.z,
+    XMVECTOR lightDirection = XMVectorSet(
+        -m_fPosition.x,
+        -m_fPosition.y,
+        -m_fPosition.z,
         0.0f
     );
-    lightDirection = DirectX::XMVector3Normalize( lightDirection );
-    DirectX::XMStoreFloat4( &light.Direction, lightDirection );
+    lightDirection = XMVector3Normalize( lightDirection );
+    XMStoreFloat4( &light.Direction, lightDirection );
+
+    // Update camera data
+	light.View = XMMatrixTranspose( m_lightCamera.GetViewMatrix() );
+	light.Projection = XMMatrixTranspose( m_lightCamera.GetProjectionMatrix() );
 
     // Add to constant buffer
-    m_cbLight.data.EyePosition = cameraPosition;
-    m_cbLight.data.Lights[0] = light;
+    m_cbLight.data = light;
     if ( !m_cbLight.ApplyChanges() ) return;
 }
 
 void Light::SpawnControlWindow()
 {
-    if ( ImGui::Begin( "Light Data", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
+	static std::string type = "";
+    switch ( m_eType )
     {
-        ImGui::Checkbox( "Attached To Camera?", &m_bAttachedToCamera );
+	case LightType::DirectionalLight: type = "Directional"; break;
+	case LightType::PointLight: type = "Point"; break;
+	case LightType::SpotLight: type = "Spot"; break;
+    }
+
+    if ( ImGui::CollapsingHeader( std::string( m_sName ).append( " (" ).append( type ).append( ")" ).c_str() ) )
+    {
+        bool enabled = (bool)m_bEnabled;
+        ImGui::Checkbox( std::string( "##Enabled" ).append( m_sName ).c_str(), &enabled );
+        m_bEnabled = (BOOL)enabled;
+        ImGui::SameLine();
+        ImGui::Text( "Enabled?" );
+
+        ImGui::Checkbox( std::string( "##Attached" ).append( m_sName ).c_str(), &m_bAttachedToCamera );
+        ImGui::SameLine();
+        ImGui::Text( "Attached To Camera?" );
         ImGui::NewLine();
 
         if ( !m_bAttachedToCamera )
         {
             ImGui::Text( "Position" );
-		    ImGui::SliderFloat4( "##Light Position", &m_fPosition.x, -10.0f, 10.0f, "%.1f" );
+		    ImGui::DragFloat4( std::string( "##Position" ).append( m_sName ).c_str(), &m_fPosition.x, 0.1f, -10.0f, 10.0f, "%.1f" );
 		    ImGui::NewLine();
             ImGui::Separator();
             ImGui::NewLine();
         }
 
         ImGui::Text( "Color" );
-		ImGui::SliderFloat4( "##Color", &m_fColor.x, 0.0f, 1.0f, "%.1f" );
-		ImGui::NewLine();
+	    ImGui::DragFloat4( std::string( "##Color" ).append( m_sName ).c_str(), &m_fColor.x, 0.1f, 0.0f, 1.0f, "%.1f" );
 
         ImGui::Text( "Constant Attenuation" );
-		ImGui::SliderFloat( "##Constant", &m_fConstantAttenuation, 0.0f, 1.0f, "%.1f" );
-		ImGui::NewLine();
+	    ImGui::DragFloat( std::string( "##Constant" ).append( m_sName ).c_str(), &m_fConstantAttenuation, 0.1f, 0.0f, 1.0f, "%.1f" );
 
         ImGui::Text( "Linear Attenuation" );
-		ImGui::SliderFloat( "##Linear", &m_fLinearAttenuation, 0.0f, 1.0f, "%.1f" );
-		ImGui::NewLine();
+	    ImGui::DragFloat( std::string( "##Linear" ).append( m_sName ).c_str(), &m_fLinearAttenuation, 0.1f, 0.0f, 1.0f, "%.1f" );
 
         ImGui::Text( "Quadratic Attenuation" );
-		ImGui::SliderFloat( "##Quadratic", &m_fQuadraticAttenuation, 0.0f, 1.0f, "%.1f" );
-        ImGui::NewLine();
+	    ImGui::DragFloat( std::string( "##Quadratic" ).append( m_sName ).c_str(), &m_fQuadraticAttenuation, 0.1f, 0.0f, 1.0f, "%.1f" );
 
         ImGui::Text( "Intensity" );
-		ImGui::SliderFloat( "##Intensity", &m_fIntensity, 1.0f, 10.0f, "%1.f" );
+	    ImGui::DragFloat( std::string( "##Intensity" ).append( m_sName ).c_str(), &m_fIntensity, 0.1f, 1.0f, 10.0f, "%1.f" );
+
+        ImGui::Text( "Spot Angle" );
+        ImGui::DragFloat( std::string( "##Spot Angle" ).append( m_sName ).c_str(), &m_fSpotAngle, 1.0f, 0.0f, 100.0f, "%1.f" );
     }
-    ImGui::End();
 }

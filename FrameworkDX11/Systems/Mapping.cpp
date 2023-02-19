@@ -27,6 +27,8 @@ void Mapping::UpdateCB()
 	mapData.UseParallaxSelfShadowing = m_bUseParallaxSelfShadowing;
 	mapData.UseSoftShadow = m_bUseSoftShadow;
 	mapData.HeightScale = m_fHeightScale;
+	mapData.MinLayers = m_iMinLayers;
+	mapData.MaxLayers = m_iMaxLayers;
 
 	// Add to constant buffer
 	m_cbMapping.data.MapData = mapData;
@@ -84,7 +86,11 @@ void Mapping::SpawnControlWindow( bool usingDeferred )
 				// parallax depth scale
 				ImGui::NewLine();
 				ImGui::Text( "Height Scale" );
-				ImGui::SliderFloat( "##Height Scale", &m_fHeightScale, 0.0f, 1.0f, "%.1f" );
+				ImGui::DragFloat( "##Height Scale", &m_fHeightScale, 0.1f, 0.0f, 1.0f, "%.1f" );
+				ImGui::Text( "Min Layers" );
+				ImGui::DragInt( "##Min Layers", &m_iMinLayers, 1.0f, 0, 30 );
+				ImGui::Text( "Max Layers" );
+				ImGui::DragInt( "##Max Layers", &m_iMaxLayers, 1.0f, 0, 30 );
 
 				ImGui::NewLine();
 				ImGui::Separator();

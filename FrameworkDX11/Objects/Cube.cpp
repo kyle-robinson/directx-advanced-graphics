@@ -3,59 +3,7 @@
 #include "Camera.h"
 #include <imgui/imgui.h>
 
-Vertex vertices[] =
-{
-	{ { -1.0f,  1.0f, -1.0f }, {  0.0f,  1.0f,  0.0f }, { 1.0f, 0.0f }, { -1.0f, 0.0f,  0.0f }, { 0.0f,  0.0f, -1.0f } },
-	{ {  1.0f,  1.0f, -1.0f }, {  0.0f,  1.0f,  0.0f }, { 0.0f, 0.0f }, { -1.0f, 0.0f,  0.0f }, { 0.0f,  0.0f, -1.0f } },
-	{ {  1.0f,  1.0f,  1.0f }, {  0.0f,  1.0f,  0.0f }, { 0.0f, 1.0f }, { -1.0f, 0.0f,  0.0f }, { 0.0f,  0.0f, -1.0f } },
-	{ { -1.0f,  1.0f,  1.0f }, {  0.0f,  1.0f,  0.0f }, { 1.0f, 1.0f }, { -1.0f, 0.0f,  0.0f }, { 0.0f,  0.0f, -1.0f } },
-
-	{ { -1.0f, -1.0f, -1.0f }, {  0.0f, -1.0f,  0.0f }, { 0.0f, 0.0f }, {  1.0f, 0.0f,  0.0f }, { 0.0f,  0.0f,  1.0f } },
-	{ {  1.0f, -1.0f, -1.0f }, {  0.0f, -1.0f,  0.0f }, { 1.0f, 0.0f }, {  1.0f, 0.0f,  0.0f }, { 0.0f,  0.0f,  1.0f } },
-	{ {  1.0f, -1.0f,  1.0f }, {  0.0f, -1.0f,  0.0f }, { 1.0f, 1.0f }, {  1.0f, 0.0f,  0.0f }, { 0.0f,  0.0f,  1.0f } },
-	{ { -1.0f, -1.0f,  1.0f }, {  0.0f, -1.0f,  0.0f }, { 0.0f, 1.0f }, {  1.0f, 0.0f,  0.0f }, { 0.0f,  0.0f,  1.0f } },
-
-	{ { -1.0f, -1.0f,  1.0f }, { -1.0f,  0.0f,  0.0f }, { 0.0f, 1.0f }, {  0.0f, 0.0f, -1.0f }, { 0.0f, -1.0f,  0.0f } },
-	{ { -1.0f, -1.0f, -1.0f }, { -1.0f,  0.0f,  0.0f }, { 1.0f, 1.0f }, {  0.0f, 0.0f, -1.0f }, { 0.0f, -1.0f,  0.0f } },
-	{ { -1.0f,  1.0f, -1.0f }, { -1.0f,  0.0f,  0.0f }, { 1.0f, 0.0f }, {  0.0f, 0.0f, -1.0f }, { 0.0f, -1.0f,  0.0f } },
-	{ { -1.0f,  1.0f,  1.0f }, { -1.0f,  0.0f,  0.0f }, { 0.0f, 0.0f }, {  0.0f, 0.0f, -1.0f }, { 0.0f, -1.0f,  0.0f } },
-
-	{ {  1.0f, -1.0f,  1.0f }, {  1.0f,  0.0f,  0.0f }, { 1.0f, 1.0f }, {  0.0f, 0.0f,  1.0f }, { 0.0f, -1.0f,  0.0f } },
-	{ {  1.0f, -1.0f, -1.0f }, {  1.0f,  0.0f,  0.0f }, { 0.0f, 1.0f }, {  0.0f, 0.0f,  1.0f }, { 0.0f, -1.0f,  0.0f } },
-	{ {  1.0f,  1.0f, -1.0f }, {  1.0f,  0.0f,  0.0f }, { 0.0f, 0.0f }, {  0.0f, 0.0f,  1.0f }, { 0.0f, -1.0f,  0.0f } },
-	{ {  1.0f,  1.0f,  1.0f }, {  1.0f,  0.0f,  0.0f }, { 1.0f, 0.0f }, {  0.0f, 0.0f,  1.0f }, { 0.0f, -1.0f,  0.0f } },
-
-	{ { -1.0f, -1.0f, -1.0f }, {  0.0f,  0.0f, -1.0f }, { 0.0f, 1.0f }, {  1.0f, 0.0f,  0.0f }, { 0.0f, -1.0f,  0.0f } },
-	{ {  1.0f, -1.0f, -1.0f }, {  0.0f,  0.0f, -1.0f }, { 1.0f, 1.0f }, {  1.0f, 0.0f,  0.0f }, { 0.0f, -1.0f,  0.0f } },
-	{ {  1.0f,  1.0f, -1.0f }, {  0.0f,  0.0f, -1.0f }, { 1.0f, 0.0f }, {  1.0f, 0.0f,  0.0f }, { 0.0f, -1.0f,  0.0f } },
-	{ { -1.0f,  1.0f, -1.0f }, {  0.0f,  0.0f, -1.0f }, { 0.0f, 0.0f }, {  1.0f, 0.0f,  0.0f }, { 0.0f, -1.0f,  0.0f } },
-
-	{ { -1.0f, -1.0f,  1.0f }, {  0.0f,  0.0f,  1.0f }, { 1.0f, 1.0f }, { -1.0f, 0.0f,  0.0f }, { 0.0f, -1.0f,  0.0f } },
-	{ {  1.0f, -1.0f,  1.0f }, {  0.0f,  0.0f,  1.0f }, { 0.0f, 1.0f }, { -1.0f, 0.0f,  0.0f }, { 0.0f, -1.0f,  0.0f } },
-	{ {  1.0f,  1.0f,  1.0f }, {  0.0f,  0.0f,  1.0f }, { 0.0f, 0.0f }, { -1.0f, 0.0f,  0.0f }, { 0.0f, -1.0f,  0.0f } },
-	{ { -1.0f,  1.0f,  1.0f }, {  0.0f,  0.0f,  1.0f }, { 1.0f, 0.0f }, { -1.0f, 0.0f,  0.0f }, { 0.0f, -1.0f,  0.0f } },
-};
-
-WORD indices[] =
-{
-	3,1,0,
-	2,1,3,
-
-	6,4,5,
-	7,4,6,
-
-	11,9,8,
-	10,9,11,
-
-	14,12,13,
-	15,12,14,
-
-	19,17,16,
-	18,17,19,
-
-	22,20,21,
-	23,20,22
-};
+#define NUM_VERTICES 36
 
 bool Cube::InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
@@ -67,7 +15,86 @@ bool Cube::InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext 
 		m_rotation = { 0.0f, 0.0f, 0.0f };
 		m_scale = { 1.0f, 1.0f, 1.0f };
 
+		Vertex vertices[] =
+		{
+			// top
+			{ XMFLOAT3( -1.0f, 1.0f,  1.0f ), XMFLOAT3( 0.0f, 1.0f, 0.0f ), XMFLOAT2( 1.0f, 1.0f ) }, // 3
+			{ XMFLOAT3(  1.0f, 1.0f, -1.0f ), XMFLOAT3( 0.0f, 1.0f, 0.0f ), XMFLOAT2( 0.0f, 0.0f ) }, // 1
+			{ XMFLOAT3( -1.0f, 1.0f, -1.0f ), XMFLOAT3( 0.0f, 1.0f, 0.0f ), XMFLOAT2( 1.0f, 0.0f ) }, // 0
+
+			{ XMFLOAT3(  1.0f, 1.0f,  1.0f ), XMFLOAT3( 0.0f, 1.0f, 0.0f ), XMFLOAT2( 0.0f, 1.0f ) }, // 2
+			{ XMFLOAT3(  1.0f, 1.0f, -1.0f ), XMFLOAT3( 0.0f, 1.0f, 0.0f ), XMFLOAT2( 0.0f, 0.0f ) }, // 1
+			{ XMFLOAT3( -1.0f, 1.0f,  1.0f ), XMFLOAT3( 0.0f, 1.0f, 0.0f ), XMFLOAT2( 1.0f, 1.0f ) }, // 3
+
+			// bottom
+			{ XMFLOAT3(  1.0f, -1.0f,  1.0f ), XMFLOAT3( 0.0f, -1.0f, 0.0f ), XMFLOAT2( 1.0f, 1.0f ) }, // 6
+			{ XMFLOAT3( -1.0f, -1.0f, -1.0f ), XMFLOAT3( 0.0f, -1.0f, 0.0f ), XMFLOAT2( 0.0f, 0.0f ) }, // 4
+			{ XMFLOAT3(  1.0f, -1.0f, -1.0f ), XMFLOAT3( 0.0f, -1.0f, 0.0f ), XMFLOAT2( 1.0f, 0.0f ) }, // 5
+
+			{ XMFLOAT3( -1.0f, -1.0f,  1.0f ), XMFLOAT3( 0.0f, -1.0f, 0.0f ), XMFLOAT2( 0.0f, 1.0f ) }, // 7
+			{ XMFLOAT3( -1.0f, -1.0f, -1.0f ), XMFLOAT3( 0.0f, -1.0f, 0.0f ), XMFLOAT2( 0.0f, 0.0f ) }, // 4
+			{ XMFLOAT3(  1.0f, -1.0f,  1.0f ), XMFLOAT3( 0.0f, -1.0f, 0.0f ), XMFLOAT2( 1.0f, 1.0f ) }, // 6
+
+			// left
+			{ XMFLOAT3( -1.0f,  1.0f,  1.0f ), XMFLOAT3( -1.0f, 0.0f, 0.0f ), XMFLOAT2( 0.0f, 0.0f ) }, // 11
+			{ XMFLOAT3( -1.0f, -1.0f, -1.0f ), XMFLOAT3( -1.0f, 0.0f, 0.0f ), XMFLOAT2( 1.0f, 1.0f ) }, // 9
+			{ XMFLOAT3( -1.0f, -1.0f,  1.0f ), XMFLOAT3( -1.0f, 0.0f, 0.0f ), XMFLOAT2( 0.0f, 1.0f ) }, // 8
+
+			{ XMFLOAT3( -1.0f,  1.0f, -1.0f ), XMFLOAT3( -1.0f, 0.0f, 0.0f ), XMFLOAT2( 1.0f, 0.0f ) }, // 10
+			{ XMFLOAT3( -1.0f, -1.0f, -1.0f ), XMFLOAT3( -1.0f, 0.0f, 0.0f ), XMFLOAT2( 1.0f, 1.0f ) }, // 9
+			{ XMFLOAT3( -1.0f,  1.0f,  1.0f ), XMFLOAT3( -1.0f, 0.0f, 0.0f ), XMFLOAT2( 0.0f, 0.0f ) }, // 11
+
+			// right
+			{ XMFLOAT3( 1.0f,  1.0f, -1.0f ), XMFLOAT3( 1.0f, 0.0f, 0.0f ), XMFLOAT2( 0.0f, 0.0f ) }, // 14
+			{ XMFLOAT3( 1.0f, -1.0f,  1.0f ), XMFLOAT3( 1.0f, 0.0f, 0.0f ), XMFLOAT2( 1.0f, 1.0f ) }, // 12
+			{ XMFLOAT3( 1.0f, -1.0f, -1.0f ), XMFLOAT3( 1.0f, 0.0f, 0.0f ), XMFLOAT2( 0.0f, 1.0f ) }, // 13
+
+			{ XMFLOAT3( 1.0f,  1.0f,  1.0f ), XMFLOAT3( 1.0f, 0.0f, 0.0f ), XMFLOAT2( 1.0f, 0.0f ) }, // 15
+			{ XMFLOAT3( 1.0f, -1.0f,  1.0f ), XMFLOAT3( 1.0f, 0.0f, 0.0f ), XMFLOAT2( 1.0f, 1.0f ) }, // 12
+			{ XMFLOAT3( 1.0f,  1.0f, -1.0f ), XMFLOAT3( 1.0f, 0.0f, 0.0f ), XMFLOAT2( 0.0f, 0.0f ) }, // 14
+
+			// front
+			{ XMFLOAT3( -1.0f,  1.0f, -1.0f ), XMFLOAT3( 0.0f, 0.0f, -1.0f ), XMFLOAT2( 0.0f, 0.0f ) }, // 19
+			{ XMFLOAT3(  1.0f, -1.0f, -1.0f ), XMFLOAT3( 0.0f, 0.0f, -1.0f ), XMFLOAT2( 1.0f, 1.0f ) }, // 17
+			{ XMFLOAT3( -1.0f, -1.0f, -1.0f ), XMFLOAT3( 0.0f, 0.0f, -1.0f ), XMFLOAT2( 0.0f, 1.0f ) }, // 16
+
+			{ XMFLOAT3(  1.0f,  1.0f, -1.0f ), XMFLOAT3( 0.0f, 0.0f, -1.0f ), XMFLOAT2( 1.0f, 0.0f ) }, // 18
+			{ XMFLOAT3(  1.0f, -1.0f, -1.0f ), XMFLOAT3( 0.0f, 0.0f, -1.0f ), XMFLOAT2( 1.0f, 1.0f ) }, // 17
+			{ XMFLOAT3( -1.0f,  1.0f, -1.0f ), XMFLOAT3( 0.0f, 0.0f, -1.0f ), XMFLOAT2( 0.0f, 0.0f ) }, // 19
+
+			// back
+			{ XMFLOAT3(  1.0f,  1.0f, 1.0f ), XMFLOAT3( 0.0f, 0.0f, 1.0f ), XMFLOAT2( 0.0f, 0.0f ) }, // 22
+			{ XMFLOAT3( -1.0f, -1.0f, 1.0f ), XMFLOAT3( 0.0f, 0.0f, 1.0f ), XMFLOAT2( 1.0f, 1.0f ) }, // 20
+			{ XMFLOAT3(  1.0f, -1.0f, 1.0f ), XMFLOAT3( 0.0f, 0.0f, 1.0f ), XMFLOAT2( 0.0f, 1.0f ) }, // 21
+
+			{ XMFLOAT3( -1.0f,  1.0f, 1.0f ), XMFLOAT3( 0.0f, 0.0f, 1.0f ), XMFLOAT2( 1.0f, 0.0f ) }, // 23
+			{ XMFLOAT3( -1.0f, -1.0f, 1.0f ), XMFLOAT3( 0.0f, 0.0f, 1.0f ), XMFLOAT2( 1.0f, 1.0f ) }, // 20
+			{ XMFLOAT3(  1.0f,  1.0f, 1.0f ), XMFLOAT3( 0.0f, 0.0f, 1.0f ), XMFLOAT2( 0.0f, 0.0f ) }, // 22
+		};
+
+		WORD indices[] =
+		{
+			0,1,2,
+			3,4,5,
+
+			6,7,8,
+			9,10,11,
+
+			12,13,14,
+			15,16,17,
+
+			18,19,20,
+			21,22,23,
+
+			24,25,26,
+			27,28,29,
+
+			30,31,32,
+			33,34,35
+		};
+
 		// Create vertex buffer
+		CalculateModelVectors( vertices );
 		HRESULT hr = m_vertexBuffer.Initialize( pDevice, vertices, ARRAYSIZE( vertices ) );
         COM_ERROR_IF_FAILED( hr, "Failed to create cube vertex buffer!" );
 
@@ -97,6 +124,7 @@ bool Cube::InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext 
 		// Setup constant buffer
 		hr = m_cbMaterial.Initialize( pDevice, pContext );
 		COM_ERROR_IF_FAILED( hr, "Failed to create 'Material' constant buffer!" );
+		UpdateCB(); // Update constant buffer with default values
 	}
 	catch ( COMException& exception )
 	{
@@ -118,6 +146,7 @@ void Cube::Update( float dt )
 	}
 
 	UpdateMatrix();
+	UpdateCB();
 }
 
 void Cube::UpdateCB()
@@ -260,4 +289,125 @@ void Cube::SpawnControlWindows()
 		m_bUseTexture = useTexture;
 	}
 	ImGui::End();
+}
+
+void Cube::CalculateTangentBinormalLH( Vertex v0, Vertex v1, Vertex v2, XMFLOAT3& normal, XMFLOAT3& tangent, XMFLOAT3& binormal )
+{
+	XMFLOAT3 edge1( v1.Position.x - v0.Position.x, v1.Position.y - v0.Position.y, v1.Position.z - v0.Position.z );
+	XMFLOAT3 edge2( v2.Position.x - v0.Position.x, v2.Position.y - v0.Position.y, v2.Position.z - v0.Position.z );
+
+	XMFLOAT2 deltaUV1( v1.TexCoord.x - v0.TexCoord.x, v1.TexCoord.y - v0.TexCoord.y );
+	XMFLOAT2 deltaUV2( v2.TexCoord.x - v0.TexCoord.x, v2.TexCoord.y - v0.TexCoord.y );
+
+	float f = 1.0f / ( deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y );
+
+	tangent.x = f * ( deltaUV2.y * edge1.x - deltaUV1.y * edge2.x );
+	tangent.y = f * ( deltaUV2.y * edge1.y - deltaUV1.y * edge2.y );
+	tangent.z = f * ( deltaUV2.y * edge1.z - deltaUV1.y * edge2.z );
+	XMVECTOR tn = XMLoadFloat3( &tangent );
+	tn = XMVector3Normalize( tn );
+	XMStoreFloat3( &tangent, tn );
+
+	binormal.x = f * ( deltaUV1.x * edge2.x - deltaUV2.x * edge1.x );
+	binormal.y = f * ( deltaUV1.x * edge2.y - deltaUV2.x * edge1.y );
+	binormal.z = f * ( deltaUV1.x * edge2.z - deltaUV2.x * edge1.z );
+
+	tn = XMLoadFloat3( &binormal );
+	tn = XMVector3Normalize( tn );
+	XMStoreFloat3( &binormal, tn );
+
+	XMVECTOR vv0 = XMLoadFloat3( &v0.Position );
+	XMVECTOR vv1 = XMLoadFloat3( &v1.Position );
+	XMVECTOR vv2 = XMLoadFloat3( &v2.Position );
+
+	XMVECTOR e0 = vv1 - vv0;
+	XMVECTOR e1 = vv2 - vv0;
+
+	XMVECTOR e01cross = XMVector3Cross( e0, e1 );
+	e01cross = XMVector3Normalize( e01cross );
+	XMFLOAT3 normalOut;
+	XMStoreFloat3( &normalOut, e01cross );
+	normal = normalOut;
+}
+
+void Cube::CalculateModelVectors( Vertex* vertices )
+{
+	int faceCount, i, index;
+	Vertex vertex1, vertex2, vertex3;
+	XMFLOAT3 tangent, binormal, normal;
+
+	// Calculate the number of faces in the model.
+	faceCount = NUM_VERTICES / 3;
+
+	// Initialize the index to the model data.
+	index = 0;
+
+	// Go through all the faces and calculate the the tangent, binormal, and normal vectors.
+	for ( i = 0; i < faceCount; i++ )
+	{
+		// Get the three vertices for this face from the model.
+		vertex1.Position.x = vertices[index].Position.x;
+		vertex1.Position.y = vertices[index].Position.y;
+		vertex1.Position.z = vertices[index].Position.z;
+		vertex1.TexCoord.x = vertices[index].TexCoord.x;
+		vertex1.TexCoord.y = vertices[index].TexCoord.y;
+		vertex1.Normal.x = vertices[index].Normal.x;
+		vertex1.Normal.y = vertices[index].Normal.y;
+		vertex1.Normal.z = vertices[index].Normal.z;
+		index++;
+
+		vertex2.Position.x = vertices[index].Position.x;
+		vertex2.Position.y = vertices[index].Position.y;
+		vertex2.Position.z = vertices[index].Position.z;
+		vertex2.TexCoord.x = vertices[index].TexCoord.x;
+		vertex2.TexCoord.y = vertices[index].TexCoord.y;
+		vertex2.Normal.x = vertices[index].Normal.x;
+		vertex2.Normal.y = vertices[index].Normal.y;
+		vertex2.Normal.z = vertices[index].Normal.z;
+		index++;
+
+		vertex3.Position.x = vertices[index].Position.x;
+		vertex3.Position.y = vertices[index].Position.y;
+		vertex3.Position.z = vertices[index].Position.z;
+		vertex3.TexCoord.x = vertices[index].TexCoord.x;
+		vertex3.TexCoord.y = vertices[index].TexCoord.y;
+		vertex3.Normal.x = vertices[index].Normal.x;
+		vertex3.Normal.y = vertices[index].Normal.y;
+		vertex3.Normal.z = vertices[index].Normal.z;
+		index++;
+
+		// Calculate the Tangent and binormal of that face.
+		CalculateTangentBinormalLH( vertex1, vertex2, vertex3, normal, tangent, binormal );
+
+		// Store the normal, Tangent, and binormal for this face back in the model structure.
+		vertices[index - 1].Normal.x = normal.x;
+		vertices[index - 1].Normal.y = normal.y;
+		vertices[index - 1].Normal.z = normal.z;
+		vertices[index - 1].Tangent.x = tangent.x;
+		vertices[index - 1].Tangent.y = tangent.y;
+		vertices[index - 1].Tangent.z = tangent.z;
+		vertices[index - 1].Binormal.x = binormal.x;
+		vertices[index - 1].Binormal.y = binormal.y;
+		vertices[index - 1].Binormal.z = binormal.z;
+
+		vertices[index - 2].Normal.x = normal.x;
+		vertices[index - 2].Normal.y = normal.y;
+		vertices[index - 2].Normal.z = normal.z;
+		vertices[index - 2].Tangent.x = tangent.x;
+		vertices[index - 2].Tangent.y = tangent.y;
+		vertices[index - 2].Tangent.z = tangent.z;
+		vertices[index - 2].Binormal.x = binormal.x;
+		vertices[index - 2].Binormal.y = binormal.y;
+		vertices[index - 2].Binormal.z = binormal.z;
+
+		vertices[index - 3].Normal.x = normal.x;
+		vertices[index - 3].Normal.y = normal.y;
+		vertices[index - 3].Normal.z = normal.z;
+		vertices[index - 3].Tangent.x = tangent.x;
+		vertices[index - 3].Tangent.y = tangent.y;
+		vertices[index - 3].Tangent.z = tangent.z;
+		vertices[index - 3].Binormal.x = binormal.x;
+		vertices[index - 3].Binormal.y = binormal.y;
+		vertices[index - 3].Binormal.z = binormal.z;
+	}
 }

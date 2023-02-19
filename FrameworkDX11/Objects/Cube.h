@@ -38,18 +38,20 @@ public:
 
 	inline ID3D11Buffer* const* GetCB() const noexcept { return m_cbMaterial.GetAddressOf(); }
 	inline XMFLOAT4X4* GetTransform() noexcept { return &m_World; }
-	
+
 	inline void SetPosition( XMFLOAT3 position ) { m_position = position; UpdateMatrix(); }
 	inline XMFLOAT3 GetPosition() const noexcept { return m_position; }
 
 	inline void SetRotation( XMFLOAT3 rotation ) { m_rotation = rotation; UpdateMatrix(); }
 	inline XMFLOAT3 GetRotation() const noexcept { return m_rotation; }
-	
+
 	inline void SetScale( XMFLOAT3 scale ) { m_scale = scale; UpdateMatrix(); };
 	inline XMFLOAT3 GetScale() const noexcept { return m_scale; }
 
 private:
 	void UpdateMatrix();
+	void CalculateModelVectors( Vertex* vertices );
+	void CalculateTangentBinormalLH( Vertex v0, Vertex v1, Vertex v2, XMFLOAT3& normal, XMFLOAT3& tangent, XMFLOAT3& binormal );
 
 	XMFLOAT4X4 m_World;
 	XMFLOAT3 m_position;
@@ -62,7 +64,7 @@ private:
 	XMFLOAT4 m_fSpecular = { 1.0f, 1.0f, 1.0f, 1.0f };
 	FLOAT m_fSpecularPower = 128.0f;
 	BOOL m_bUseTexture = TRUE;
-	
+
 	bool m_bResetSpin = false;
 	bool m_bEnableSpin = false;
 	bool m_bReverseSpin = false;
