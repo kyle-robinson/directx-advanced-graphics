@@ -1,497 +1,478 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="utility\structures.h">
-      <Filter>Headers\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="utility\DDSTextureLoader.h">
-      <Filter>Headers\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="utility\COMException.h">
-      <Filter>Headers\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="utility\ErrorLogger.h">
-      <Filter>Headers\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="utility\StringConverter.h">
-      <Filter>Headers\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Resources\Resource.h">
-      <Filter>Resources\Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="Input\Keyboard.h">
-      <Filter>Headers\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="Input\Mouse.h">
-      <Filter>Headers\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\ImGuiManager.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Shaders.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Utility\stdafx.h">
-      <Filter>Headers\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\SwapChain.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\DepthStencil.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Rasterizer.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\RenderTarget.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Sampler.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Viewport.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Application.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Window\RenderWindow.h">
-      <Filter>Headers\Window</Filter>
-    </ClInclude>
-    <ClInclude Include="Window\WindowContainer.h">
-      <Filter>Headers\Window</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Graphics.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\ConstantBuffer.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Input\Input.h">
-      <Filter>Headers\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="Utility\Timer.h">
-      <Filter>Headers\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\Camera.h">
-      <Filter>Headers\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\Cube.h">
-      <Filter>Headers\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\Light.h">
-      <Filter>Headers\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\IndexBuffer.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\VertexBuffer.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\Quad.h">
-      <Filter>Headers\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Model\Colour.h">
-      <Filter>Headers\Model</Filter>
-    </ClInclude>
-    <ClInclude Include="Model\Mesh.h">
-      <Filter>Headers\Model</Filter>
-    </ClInclude>
-    <ClInclude Include="Model\Model.h">
-      <Filter>Headers\Model</Filter>
-    </ClInclude>
-    <ClInclude Include="Model\Texture.h">
-      <Filter>Headers\Model</Filter>
-    </ClInclude>
-    <ClInclude Include="Model\GameObject.h">
-      <Filter>Headers\Model</Filter>
-    </ClInclude>
-    <ClInclude Include="Model\GameObject3D.h">
-      <Filter>Headers\Model</Filter>
-    </ClInclude>
-    <ClInclude Include="Model\RenderableGameObject.h">
-      <Filter>Headers\Model</Filter>
-    </ClInclude>
-    <ClInclude Include="Systems\Mapping.h">
-      <Filter>Headers\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="Systems\PostProcessing.h">
-      <Filter>Headers\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="Systems\MotionBlur.h">
-      <Filter>Headers\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="Systems\FXAA.h">
-      <Filter>Headers\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="Systems\SSAO.h">
-      <Filter>Headers\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\BackBuffer.h">
-      <Filter>Headers\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Systems\Deferred.h">
-      <Filter>Headers\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="Levels\Level3.h">
-      <Filter>Headers\Levels</Filter>
-    </ClInclude>
-    <ClInclude Include="Levels\Level2.h">
-      <Filter>Headers\Levels</Filter>
-    </ClInclude>
-    <ClInclude Include="Levels\Level1.h">
-      <Filter>Headers\Levels</Filter>
-    </ClInclude>
-    <ClInclude Include="Levels\LevelContainer.h">
-      <Filter>Headers\Levels</Filter>
-    </ClInclude>
-    <ClInclude Include="Levels\LevelStateMachine.h">
-      <Filter>Headers\Levels</Filter>
-    </ClInclude>
-    <ClInclude Include="Utility\TextRenderer.h">
-      <Filter>Headers\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imconfig.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imgui.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imgui_impl_dx11.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imgui_impl_win32.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imgui_internal.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imstb_rectpack.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imstb_textedit.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imstb_truetype.h">
-      <Filter>Resources\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\LightControl.h">
-      <Filter>Headers\Objects</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Headers">
-      <UniqueIdentifier>{c4e360bd-b26b-427d-8c8f-bf538e819818}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source">
-      <UniqueIdentifier>{0fd4644f-3f49-4cc7-abf3-e3b76205f830}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resources">
-      <UniqueIdentifier>{67cdca99-f288-49be-9daf-e00f5bde2f3f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resources\Textures">
-      <UniqueIdentifier>{ca549a25-15a7-4c94-b484-7bded1559695}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Graphics">
-      <UniqueIdentifier>{fde589aa-46c2-4274-9d8c-c591790231ae}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Graphics">
-      <UniqueIdentifier>{93d8350b-ee0d-418a-a358-b3105778b68f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Utility">
-      <UniqueIdentifier>{c8aba2f5-1b87-4e8e-9d48-d3619677644e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Utility">
-      <UniqueIdentifier>{40ea2878-b1f0-4133-8159-0bf7748b8478}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Input">
-      <UniqueIdentifier>{cd7154da-f20e-4b8e-9971-890eaeca8b3f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Input">
-      <UniqueIdentifier>{b073e192-979d-4dd7-a1df-efc4ecf00a7b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resources\ImGui">
-      <UniqueIdentifier>{892b92d8-932b-4911-8ab9-a95b026786c5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Window">
-      <UniqueIdentifier>{34a7d95c-0f6e-4276-90a0-31431b4974ca}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Window">
-      <UniqueIdentifier>{afef2627-0e65-4b6e-a92d-797a774a7e44}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resources\Resources">
-      <UniqueIdentifier>{1d8c2ef3-4f82-4770-b351-d61316d54cf2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Objects">
-      <UniqueIdentifier>{3e222487-55a7-49ec-8de6-f96424054162}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Objects">
-      <UniqueIdentifier>{c8f76aa1-f083-418b-a1e0-fdcc172ac8b8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Model">
-      <UniqueIdentifier>{b6bf4202-47b3-4d24-aa9a-3e6b8458d86f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Model">
-      <UniqueIdentifier>{35a9937b-0643-4ab7-9b18-ad85a069432f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resources\Cursors">
-      <UniqueIdentifier>{5c306b27-5e77-4121-9e73-e7947d13bb4e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Systems">
-      <UniqueIdentifier>{e67b8696-6b51-422c-ac79-1bc08e1edc1c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Systems">
-      <UniqueIdentifier>{3eacb0cf-b452-431e-a3e2-2e15e8ee0b8c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resources\Shaders">
-      <UniqueIdentifier>{ba39053a-3e2c-43a4-a9bb-1617ff9fc9d9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resources\Shaders\Vertex">
-      <UniqueIdentifier>{82577194-8e3b-4a33-81bd-46125700bca8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resources\Shaders\Pixel">
-      <UniqueIdentifier>{ec8f9c54-f45f-4500-a970-94483dac5ae7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Levels">
-      <UniqueIdentifier>{97ac836f-277b-43ae-9a61-f8a7566440c8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Levels">
-      <UniqueIdentifier>{8346fcbe-f4c5-43fa-a980-d4f2a0d1defb}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Resources\Textures\alpha_mayoris.jpg">
-      <Filter>Resources\Textures</Filter>
-    </Image>
-    <Image Include="Resources\Textures\bricks_DISP.dds">
-      <Filter>Resources\Textures</Filter>
-    </Image>
-    <Image Include="Resources\Textures\bricks_NORM.dds">
-      <Filter>Resources\Textures</Filter>
-    </Image>
-    <Image Include="Resources\Textures\bricks_TEX.dds">
-      <Filter>Resources\Textures</Filter>
-    </Image>
-    <Image Include="Resources\Textures\stone.dds">
-      <Filter>Resources\Textures</Filter>
-    </Image>
-    <Image Include="Resources\directx.ico">
-      <Filter>Resources\Resources</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="WinMain.cpp">
-      <Filter>Source</Filter>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="DDSTextureLoader.cpp">
+      <Filter>TextureLoading</Filter>
     </ClCompile>
-    <ClCompile Include="utility\DDSTextureLoader.cpp">
-      <Filter>Source\Utility</Filter>
+    <ClCompile Include="DrawableGameObject.cpp">
+      <Filter>ObjectFiles</Filter>
     </ClCompile>
-    <ClCompile Include="utility\ErrorLogger.cpp">
-      <Filter>Source\Utility</Filter>
+    <ClCompile Include="DebugOutput.cpp">
+      <Filter>DebugSupport</Filter>
     </ClCompile>
-    <ClCompile Include="utility\StringConverter.cpp">
-      <Filter>Source\Utility</Filter>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Camera</Filter>
     </ClCompile>
-    <ClCompile Include="Input\Mouse.cpp">
-      <Filter>Source\Input</Filter>
+    <ClCompile Include="Keyboard.cpp">
+      <Filter>Input\KeyBorad</Filter>
     </ClCompile>
-    <ClCompile Include="Input\Keyboard.cpp">
-      <Filter>Source\Input</Filter>
+    <ClCompile Include="KeyboardEvent.cpp">
+      <Filter>Input\KeyBorad</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\ImGuiManager.cpp">
-      <Filter>Source\Graphics</Filter>
+    <ClCompile Include="Mouse_Picking.cpp">
+      <Filter>Input\Mouse</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\Shaders.cpp">
-      <Filter>Source\Graphics</Filter>
+    <ClCompile Include="MouseEvent.cpp">
+      <Filter>Input\Mouse</Filter>
     </ClCompile>
-    <ClCompile Include="Utility\stdafx.cpp">
-      <Filter>Source\Utility</Filter>
+    <ClCompile Include="MouseInput.cpp">
+      <Filter>Input\Mouse</Filter>
     </ClCompile>
-    <ClCompile Include="Application.cpp">
-      <Filter>Source</Filter>
+    <ClCompile Include="InputControllor.cpp">
+      <Filter>Input</Filter>
     </ClCompile>
-    <ClCompile Include="Window\WindowContainer.cpp">
-      <Filter>Source\Window</Filter>
+    <ClCompile Include="Vector3.cpp">
+      <Filter>UsefullFiles</Filter>
     </ClCompile>
-    <ClCompile Include="Window\RenderWindow.cpp">
-      <Filter>Source\Window</Filter>
+    <ClCompile Include="Application.cpp" />
+    <ClCompile Include="CameraController.cpp">
+      <Filter>Camera</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\Graphics.cpp">
-      <Filter>Source\Graphics</Filter>
+    <ClCompile Include="ShaderController.cpp">
+      <Filter>Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="Input\Input.cpp">
-      <Filter>Source\Input</Filter>
+    <ClCompile Include="LightControll.cpp">
+      <Filter>Light</Filter>
     </ClCompile>
-    <ClCompile Include="Utility\Timer.cpp">
-      <Filter>Source\Utility</Filter>
+    <ClCompile Include="Light.cpp">
+      <Filter>Light</Filter>
     </ClCompile>
-    <ClCompile Include="Objects\Light.cpp">
-      <Filter>Source\Objects</Filter>
+    <ClCompile Include="Appearance.cpp">
+      <Filter>ObjectFiles</Filter>
     </ClCompile>
-    <ClCompile Include="Objects\Cube.cpp">
-      <Filter>Source\Objects</Filter>
+    <ClCompile Include="Transform.cpp">
+      <Filter>ObjectFiles</Filter>
     </ClCompile>
-    <ClCompile Include="Objects\Camera.cpp">
-      <Filter>Source\Objects</Filter>
+    <ClCompile Include="RenderTargetControll.cpp">
+      <Filter>RenderTarget</Filter>
     </ClCompile>
-    <ClCompile Include="Objects\Quad.cpp">
-      <Filter>Source\Objects</Filter>
+    <ClCompile Include="RenderTargetTextureClass.cpp">
+      <Filter>RenderTarget</Filter>
     </ClCompile>
-    <ClCompile Include="Model\Texture.cpp">
-      <Filter>Source\Model</Filter>
+    <ClCompile Include="BillboradObject.cpp">
+      <Filter>Billboarding</Filter>
     </ClCompile>
-    <ClCompile Include="Model\Model.cpp">
-      <Filter>Source\Model</Filter>
+    <ClCompile Include="ShadowMap.cpp">
+      <Filter>ShadowDepth</Filter>
     </ClCompile>
-    <ClCompile Include="Model\Mesh.cpp">
-      <Filter>Source\Model</Filter>
+    <ClCompile Include="ImGuiManager.cpp">
+      <Filter>DImGUI</Filter>
     </ClCompile>
-    <ClCompile Include="Model\Colour.cpp">
-      <Filter>Source\Model</Filter>
+    <ClCompile Include="Terrain.cpp">
+      <Filter>Terrain</Filter>
     </ClCompile>
-    <ClCompile Include="Model\GameObject.cpp">
-      <Filter>Source\Model</Filter>
+    <ClCompile Include="TerrainAppearence.cpp">
+      <Filter>Terrain</Filter>
     </ClCompile>
-    <ClCompile Include="Model\GameObject3D.cpp">
-      <Filter>Source\Model</Filter>
+    <ClCompile Include="TerrainJsonLoad.cpp">
+      <Filter>Terrain</Filter>
     </ClCompile>
-    <ClCompile Include="Model\RenderableGameObject.cpp">
-      <Filter>Source\Model</Filter>
+    <ClCompile Include="TerrainVoxel.cpp">
+      <Filter>Terrain</Filter>
     </ClCompile>
-    <ClCompile Include="Systems\PostProcessing.cpp">
-      <Filter>Source\Systems</Filter>
+    <ClCompile Include="DataStucts.cpp">
+      <Filter>Annimation</Filter>
     </ClCompile>
-    <ClCompile Include="Systems\MotionBlur.cpp">
-      <Filter>Source\Systems</Filter>
+    <ClCompile Include="Bone.cpp">
+      <Filter>Annimation</Filter>
     </ClCompile>
-    <ClCompile Include="Systems\Mapping.cpp">
-      <Filter>Source\Systems</Filter>
+    <ClCompile Include="M3dLoader.cpp">
+      <Filter>Annimation</Filter>
     </ClCompile>
-    <ClCompile Include="Systems\FXAA.cpp">
-      <Filter>Source\Systems</Filter>
+    <ClCompile Include="AnimatedModel.cpp">
+      <Filter>Annimation</Filter>
     </ClCompile>
-    <ClCompile Include="Systems\SSAO.cpp">
-      <Filter>Source\Systems</Filter>
+    <ClCompile Include="RansterStateManager.cpp">
+      <Filter>UsefullFiles</Filter>
     </ClCompile>
-    <ClCompile Include="Systems\Deferred.cpp">
-      <Filter>Source\Systems</Filter>
+    <ClCompile Include="Skeleton.cpp">
+      <Filter>Annimation</Filter>
     </ClCompile>
-    <ClCompile Include="Levels\Level1.cpp">
-      <Filter>Source\Levels</Filter>
-    </ClCompile>
-    <ClCompile Include="Levels\Level2.cpp">
-      <Filter>Source\Levels</Filter>
-    </ClCompile>
-    <ClCompile Include="Levels\Level3.cpp">
-      <Filter>Source\Levels</Filter>
-    </ClCompile>
-    <ClCompile Include="Levels\LevelStateMachine.cpp">
-      <Filter>Source\Levels</Filter>
-    </ClCompile>
-    <ClCompile Include="Utility\TextRenderer.cpp">
-      <Filter>Source\Utility</Filter>
-    </ClCompile>
+    <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="..\External\imgui\imgui.cpp">
-      <Filter>Resources\ImGui</Filter>
+      <Filter>DImGUI</Filter>
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_demo.cpp">
-      <Filter>Resources\ImGui</Filter>
+      <Filter>DImGUI</Filter>
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_draw.cpp">
-      <Filter>Resources\ImGui</Filter>
+      <Filter>DImGUI</Filter>
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_impl_dx11.cpp">
-      <Filter>Resources\ImGui</Filter>
+      <Filter>DImGUI</Filter>
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_impl_win32.cpp">
-      <Filter>Resources\ImGui</Filter>
+      <Filter>DImGUI</Filter>
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_tables.cpp">
-      <Filter>Resources\ImGui</Filter>
+      <Filter>DImGUI</Filter>
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_widgets.cpp">
-      <Filter>Resources\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="Objects\LightControl.cpp">
-      <Filter>Source\Objects</Filter>
+      <Filter>DImGUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Resources\Tutorial01.rc">
-      <Filter>Resources\Resources</Filter>
+    <ClInclude Include="main.h" />
+    <ClInclude Include="DDSTextureLoader.h">
+      <Filter>TextureLoading</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawableGameObject.h">
+      <Filter>ObjectFiles</Filter>
+    </ClInclude>
+    <CLInclude Include="resource.h">
+      <Filter>UsefullFiles</Filter>
+    </CLInclude>
+    <ClInclude Include="structures.h">
+      <Filter>UsefullFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugOutput.h">
+      <Filter>DebugSupport</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Keyboard.h">
+      <Filter>Input\KeyBorad</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyboardEvent.h">
+      <Filter>Input\KeyBorad</Filter>
+    </ClInclude>
+    <ClInclude Include="Mouse_Picking.h">
+      <Filter>Input\Mouse</Filter>
+    </ClInclude>
+    <ClInclude Include="MouseEvent.h">
+      <Filter>Input\Mouse</Filter>
+    </ClInclude>
+    <ClInclude Include="MouseInput.h">
+      <Filter>Input\Mouse</Filter>
+    </ClInclude>
+    <ClInclude Include="InputControllor.h">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="C++HelperFunctions.h">
+      <Filter>UsefullFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="Quaternion.h">
+      <Filter>UsefullFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector3.h">
+      <Filter>UsefullFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h" />
+    <ClInclude Include="CameraController.h">
+      <Filter>Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderController.h">
+      <Filter>Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LightControll.h">
+      <Filter>Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Appearance.h">
+      <Filter>ObjectFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>ObjectFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTargetTextureClass.h">
+      <Filter>RenderTarget</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTargetControll.h">
+      <Filter>RenderTarget</Filter>
+    </ClInclude>
+    <ClInclude Include="BillboradObject.h">
+      <Filter>Billboarding</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowMap.h">
+      <Filter>ShadowDepth</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiManager.h">
+      <Filter>DImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain.h">
+      <Filter>Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainAppearence.h">
+      <Filter>Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\allocators.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\cursorstreamwrapper.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\document.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\encodedstream.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\encodings.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\filereadstream.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\filewritestream.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\fwd.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\istreamwrapper.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\memorybuffer.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\memorystream.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\ostreamwrapper.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\pointer.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\prettywriter.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\rapidjson.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\reader.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\schema.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\stream.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\stringbuffer.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\uri.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rapidjson\include\rapidjson\writer.h">
+      <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainJsonLoad.h">
+      <Filter>Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\FastNoiseLite-master\Cpp\FastNoiseLite.h">
+      <Filter>LibNoise</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainVoxel.h">
+      <Filter>Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="DataStucts.h">
+      <Filter>Annimation</Filter>
+    </ClInclude>
+    <ClInclude Include="Bone.h">
+      <Filter>Annimation</Filter>
+    </ClInclude>
+    <ClInclude Include="M3dLoader.h">
+      <Filter>Annimation</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimatedModel.h">
+      <Filter>Annimation</Filter>
+    </ClInclude>
+    <ClInclude Include="RansterStateManager.h">
+      <Filter>UsefullFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="Skeleton.h">
+      <Filter>Annimation</Filter>
+    </ClInclude>
+    <ClInclude Include="PerlinNoise.h" />
+    <ClInclude Include="..\External\imgui\imconfig.h">
+      <Filter>DImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui.h">
+      <Filter>DImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_impl_dx11.h">
+      <Filter>DImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_impl_win32.h">
+      <Filter>DImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_internal.h">
+      <Filter>DImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_rectpack.h">
+      <Filter>DImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_textedit.h">
+      <Filter>DImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_truetype.h">
+      <Filter>DImGUI</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="TextureLoading">
+      <UniqueIdentifier>{8559cfc0-4fb2-4cc1-882a-665f479f9ece}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObjectFiles">
+      <UniqueIdentifier>{92ee4f30-345b-43f9-bf19-76091303f3aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UsefullFiles">
+      <UniqueIdentifier>{7a1c6962-2b6a-46ea-89be-13ab9e6d9517}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Textures">
+      <UniqueIdentifier>{23134a45-c0c5-48f8-b18e-00ba7225553c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{46381d49-40c2-425b-94ba-1ba9a980903d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Camera">
+      <UniqueIdentifier>{66a4a0a3-ae89-4091-9908-bf5ccbd4941f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DebugSupport">
+      <UniqueIdentifier>{4f8ea30d-d60f-4c85-9f8e-110ed70b1236}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Input">
+      <UniqueIdentifier>{70567b8f-71ea-4178-b6d1-4a666d59457f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Input\KeyBorad">
+      <UniqueIdentifier>{2a616749-fcd5-43e8-951b-b0aa5db03233}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Input\Mouse">
+      <UniqueIdentifier>{9de25313-3d41-4dd7-8184-92e00d3db0e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Light">
+      <UniqueIdentifier>{98a9227b-549f-4898-8b76-2cc5d4f158cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DImGUI">
+      <UniqueIdentifier>{35c5ace8-1db7-44b4-9237-ab9fbd7dc97b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderTarget">
+      <UniqueIdentifier>{a04706e2-e0c5-42ac-b3d5-94f4f93a26ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Billboarding">
+      <UniqueIdentifier>{4b599a5c-fb4d-49ad-9e6f-acc9ef44184a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ShadowDepth">
+      <UniqueIdentifier>{3e394d79-c64f-4a68-8437-39fc7746621d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Terrain">
+      <UniqueIdentifier>{47cc5ffd-4fea-4153-9310-6243ce166e99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Json">
+      <UniqueIdentifier>{24768ffc-733c-47de-bee5-2efd6913d785}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LibNoise">
+      <UniqueIdentifier>{c317b88e-3eb3-49fa-bc02-63dc789b273e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Annimation">
+      <UniqueIdentifier>{dffeb552-c3c1-457a-b27b-1ca3813d6cb0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\stone.dds">
+      <Filter>Textures</Filter>
+    </Image>
+    <Image Include="Resources\bricks_DISP.dds">
+      <Filter>Textures</Filter>
+    </Image>
+    <Image Include="Resources\bricks_NORM.dds">
+      <Filter>Textures</Filter>
+    </Image>
+    <Image Include="Resources\bricks_TEX.dds">
+      <Filter>Textures</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Tutorial01.rc">
+      <Filter>UsefullFiles</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Fonts\open_sans_ms_16.spritefont">
-      <Filter>Resources\Resources</Filter>
+    <None Include="shaderNoNormalMap.fx">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Resources\Cursors\cur116.cur">
-      <Filter>Resources\Cursors</Filter>
+    <None Include="shaderVertexTBN.fx">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Resources\Cursors\cur117.cur">
-      <Filter>Resources\Cursors</Filter>
+    <None Include="shaderParallaxMapping.fx">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Resources\Cursors\cur118.cur">
-      <Filter>Resources\Cursors</Filter>
+    <None Include="shaderParallaxMapping1.fx">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Resources\Cursors\cur119.cur">
-      <Filter>Resources\Cursors</Filter>
+    <None Include="shaderParallaxOcMapping1.fx">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Resources\Cursors\cur220.cur">
-      <Filter>Resources\Cursors</Filter>
+    <None Include="shaderParallaxOcMapping.fx">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Resources\Cursors\cur221.cur">
-      <Filter>Resources\Cursors</Filter>
+    <None Include="shaderParallaxOcShadingMapping.fx">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Resources\Cursors\cur222.cur">
-      <Filter>Resources\Cursors</Filter>
+    <None Include="shaderParallaxOcShadingMapping1.fx">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Resources\Cursors\cur223.cur">
-      <Filter>Resources\Cursors</Filter>
+    <None Include="Gaussian1.fx">
+      <Filter>Shaders</Filter>
     </None>
+    <None Include="Finalpass.fx">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="BloomAlphaTex.fx">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Gaussian2.fx">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="SolidColour.fx">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Fade.fx">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="DepthOfField.fx">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Depth.fx">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="DepthLight.fx">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="BillBord.fx">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="TerrainA.fx">
+      <Filter>Terrain</Filter>
+    </None>
+    <None Include="CubeVoxel.fx">
+      <Filter>Terrain</Filter>
+    </None>
+    <None Include="AnnimationShader.fx">
+      <Filter>Annimation</Filter>
+    </None>
+    <None Include="shader.fx">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Resources\Shaders\shaderTEX_VS.hlsl">
-      <Filter>Resources\Shaders\Vertex</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderPP_VS.hlsl">
-      <Filter>Resources\Shaders\Vertex</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderOBJ_VS.hlsl">
-      <Filter>Resources\Shaders\Vertex</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderNRM_VS.hlsl">
-      <Filter>Resources\Shaders\Vertex</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderGB_VS.hlsl">
-      <Filter>Resources\Shaders\Vertex</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shader_VS.hlsl">
-      <Filter>Resources\Shaders\Vertex</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shader_PS.hlsl">
-      <Filter>Resources\Shaders\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderGB_PS.hlsl">
-      <Filter>Resources\Shaders\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderNRM_PS.hlsl">
-      <Filter>Resources\Shaders\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderOBJ_PS.hlsl">
-      <Filter>Resources\Shaders\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderPP_PS.hlsl">
-      <Filter>Resources\Shaders\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderTEX_PS.hlsl">
-      <Filter>Resources\Shaders\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderDR_PS.hlsl">
-      <Filter>Resources\Shaders\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\shaderDR_VS.hlsl">
-      <Filter>Resources\Shaders\Vertex</Filter>
-    </FxCompile>
+    <Library Include="assimp-vc142-mtd.lib" />
   </ItemGroup>
 </Project>

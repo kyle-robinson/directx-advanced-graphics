@@ -1,0 +1,12 @@
+{
+  "Terrain_Data": {
+    "Width": 513,
+    "Depth": 513,
+    "CellSpaceing": 1.0,
+    "Mode": 0
+  },
+  "Terrain_Data_HighMap": {
+    "HightMapFile": "Textures513\\coastMountain513.raw",
+    "Hight_Scale": 100.0
+  }
+}
