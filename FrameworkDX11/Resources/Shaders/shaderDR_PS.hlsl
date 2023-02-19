@@ -1,5 +1,5 @@
 // Definitions
-#define MAX_LIGHTS 1
+#define MAX_LIGHTS 2
 #define DIRECTIONAL_LIGHT 0
 #define POINT_LIGHT 1
 #define SPOT_LIGHT 2

@@ -145,10 +145,10 @@ struct LightData
 		: Position( 0.0f, 0.0f, 0.0f, 1.0f )
 		, Direction( 0.0f, 0.0f, 1.0f, 0.0f )
 		, Color( 1.0f, 1.0f, 1.0f, 1.0f )
-		, SpotAngle( XM_PIDIV2 )
+		, SpotAngle( 0.0f )
 		, ConstantAttenuation( 1.0f )
-		, LinearAttenuation( 0.0f )
-		, QuadraticAttenuation( 0.0f )
+		, LinearAttenuation( 1.0f )
+		, QuadraticAttenuation( 1.0f )
 		, Intensity( 4.0f )
 		, LightType( PointLight )
 		, Enabled( TRUE )
@@ -172,7 +172,7 @@ struct LightData
 	XMMATRIX Projection;
 };
 
-#define MAX_LIGHTS 1
+#define MAX_LIGHTS 2
 struct Light_CB
 {
 	Light_CB()

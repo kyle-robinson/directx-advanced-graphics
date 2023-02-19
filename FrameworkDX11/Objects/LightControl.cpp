@@ -20,8 +20,12 @@ LightControl::LightControl( ID3D11Device* pDevice, ID3D11DeviceContext* pContext
 
 LightControl::~LightControl()
 {
-	for ( auto light : m_pLights )
-		delete light;
+	for ( int i = 0; i < m_pLights.size(); i++ )
+    {
+        delete m_pLights[i];
+        m_pLights[i] = nullptr;
+    }
+    m_pLights.clear();
 }
 
 std::vector<Light*> LightControl::GetLightList()
@@ -73,21 +77,6 @@ void LightControl::Update( Camera& camera )
 {
     for ( auto light : m_pLights )
         light->Update( camera );
-}
-
-void LightControl::RemoveAllLights()
-{
-    for ( int i = 0; i < m_pLights.size(); i++ )
-    {
-        delete m_pLights[i];
-        m_pLights[i] = nullptr;
-    }
-    m_pLights.clear();
-}
-
-void LightControl::CleanUp()
-{
-    RemoveAllLights();
 }
 
 void LightControl::SpawnControlWindows()

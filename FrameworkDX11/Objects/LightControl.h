@@ -22,8 +22,6 @@ public:
 	void SetupLightsForRender( XMFLOAT4 eyePosition );
 	void Draw( const XMMATRIX& view, const XMMATRIX& projection );
 	void Update( Camera& camera );
-
-	void RemoveAllLights();
 	void SpawnControlWindows();
 
 	inline void SetGlobalAmbient( const XMFLOAT4& globalAmbient ) noexcept { m_fGlobalAmbient = globalAmbient; }
@@ -33,7 +31,6 @@ public:
 	inline ID3D11Buffer* GetCB_Ptr() const noexcept { return m_cbLights.Get(); }
 	inline ID3D11Buffer* const* GetCB_DPtr() const noexcept { return m_cbLights.GetAddressOf(); }
 private:
-	void CleanUp();
 	std::vector<Light*> m_pLights;
 	ConstantBuffer<Light_CB> m_cbLights;
 	XMFLOAT4 m_fGlobalAmbient = { 0.2f, 0.2f, 0.8f, 1.0f };

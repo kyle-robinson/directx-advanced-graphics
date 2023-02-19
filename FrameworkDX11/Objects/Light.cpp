@@ -122,21 +122,21 @@ void Light::Update( Camera& camera )
 
 void Light::SpawnControlWindow()
 {
-	static std::string type = "Point";
+	static std::string type = "";
     switch ( m_eType )
     {
-	case LightType::SpotLight: type = "Spot"; break;
-	case LightType::PointLight: type = "Point"; break;
 	case LightType::DirectionalLight: type = "Directional"; break;
+	case LightType::PointLight: type = "Point"; break;
+	case LightType::SpotLight: type = "Spot"; break;
     }
 
     if ( ImGui::CollapsingHeader( std::string( m_sName ).append( " (" ).append( type ).append( ")" ).c_str() ) )
     {
-        static bool enabled = (bool)m_bEnabled;
+        bool enabled = (bool)m_bEnabled;
         ImGui::Checkbox( std::string( "##Enabled" ).append( m_sName ).c_str(), &enabled );
+        m_bEnabled = (BOOL)enabled;
         ImGui::SameLine();
         ImGui::Text( "Enabled?" );
-        m_bEnabled = (BOOL)enabled;
 
         ImGui::Checkbox( std::string( "##Attached" ).append( m_sName ).c_str(), &m_bAttachedToCamera );
         ImGui::SameLine();
@@ -168,6 +168,6 @@ void Light::SpawnControlWindow()
 	    ImGui::DragFloat( std::string( "##Intensity" ).append( m_sName ).c_str(), &m_fIntensity, 0.1f, 1.0f, 10.0f, "%1.f" );
 
         ImGui::Text( "Spot Angle" );
-        ImGui::DragFloat( std::string( "##Spot Angle" ).append( m_sName ).c_str(), &m_fSpotAngle, 1.0f, -90.0f, 90.0f, "%1.f" );
+        ImGui::DragFloat( std::string( "##Spot Angle" ).append( m_sName ).c_str(), &m_fSpotAngle, 1.0f, 0.0f, 100.0f, "%1.f" );
     }
 }

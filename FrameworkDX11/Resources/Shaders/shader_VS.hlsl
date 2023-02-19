@@ -1,5 +1,5 @@
 // Definitions
-#define MAX_LIGHTS 1
+#define MAX_LIGHTS 2
 
 // Structs
 struct Light

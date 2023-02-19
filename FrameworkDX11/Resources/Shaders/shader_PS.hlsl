@@ -1,5 +1,5 @@
 // Definitions
-#define MAX_LIGHTS 1
+#define MAX_LIGHTS 2
 #define DIRECTIONAL_LIGHT 0
 #define POINT_LIGHT 1
 #define SPOT_LIGHT 2
@@ -169,12 +169,13 @@ LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye, 
 {
 	LightingResult totalResult = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
 
+    const int maxLights = 2;
 	[unroll]
-	for ( int i = 0; i < MAX_LIGHTS; ++i )
+	for ( int i = 0; i < maxLights; ++i )
 	{
 		LightingResult result = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
 
-		if ( !Lights[i].Enabled )
+		if ( Lights[i].Enabled )
 			continue;
 
         if ( Lights[i].LightType == DIRECTIONAL_LIGHT )
@@ -357,20 +358,12 @@ float4 PS( PS_INPUT input ) : SV_TARGET
     LightingResult lit = ComputeLighting( input.WorldPosition, normalize( input.Normal ), input.EyeVectorsTS, input.LightVectorTS );
 
 	// texture/material
+    float intensity = Lights[0].Intensity;
     float4 textureColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-    float4 emissive = Material.Emissive;
-    float4 ambient = Material.Ambient * GlobalAmbient;
-    float4 diffuse = Material.Diffuse * lit.Diffuse;
-    float4 specular = Material.Specular * lit.Specular;
-
-    // update intensity
-    for ( int i = 0; i < MAX_LIGHTS; ++i )
-    {
-        emissive *= Lights[i].Intensity;
-        ambient *= Lights[i].Intensity;
-        diffuse *= Lights[i].Intensity;
-        specular *= Lights[i].Intensity;
-    }
+    float4 emissive = Material.Emissive * intensity;
+    float4 ambient = Material.Ambient * GlobalAmbient * intensity;
+    float4 diffuse = Material.Diffuse * lit.Diffuse * intensity;
+    float4 specular = Material.Specular * lit.Specular * intensity;
 
     // update texture
     if ( Material.UseTexture )
@@ -382,11 +375,17 @@ float4 PS( PS_INPUT input ) : SV_TARGET
     float shadowFactor = 1.0f;
     if ( Mapping.UseParallaxSelfShadowing )
     {
-        for ( int i = 0; i < MAX_LIGHTS; ++i )
+        const int maxLights = 2;
+
+        [unroll]
+        for ( int i = 0; i < maxLights; ++i )
         {
+            if ( !Lights[i].Enabled )
+			    continue;
+
             shadowFactor = ParallaxSelfShadowing( input.LightVectorTS[i], input.TexCoord, -input.NormalTS, Mapping.UseSoftShadow );
-            diffuse = diffuse * shadowFactor;
-            specular = specular * shadowFactor;
+            diffuse *= shadowFactor;
+            specular *= shadowFactor;
         }
     }
 

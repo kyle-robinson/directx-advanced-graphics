@@ -127,8 +127,6 @@ bool Graphics::InitializeShaders()
 		hr = m_pixelShaderOBJ.Initialize( m_pDevice, L"Resources\\Shaders\\shaderOBJ_PS.hlsl" );
 		COM_ERROR_IF_FAILED( hr, "Failed to create model pixel shader!" );
 
-
-
 		// Define input layout for deferred rendering
 		D3D11_INPUT_ELEMENT_DESC layoutDR[] =
 		{
