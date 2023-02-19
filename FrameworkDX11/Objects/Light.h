@@ -2,7 +2,10 @@
 #ifndef LIGHT_H
 #define LIGHT_H
 
+class Cube;
+
 #include "Camera.h"
+#include "ShadowMap.h"
 #include "structures.h"
 #include "ConstantBuffer.h"
 
@@ -21,6 +24,8 @@ public:
 
 	void Draw( const XMMATRIX& view, const XMMATRIX& projection );
 	void Update( Camera& camera );
+
+	void CreateShadowMap( ID3D11DeviceContext* pContext, Cube* cube, Cube* floor, ConstantBuffer<Matrices>& cbuffer );
 	void SpawnControlWindow();
 
 	inline void SetPosition( const XMFLOAT4& pos ) noexcept { m_fPosition = pos;
@@ -48,6 +53,7 @@ public:
 	inline const LightType GetType() const noexcept { return m_eType; }
 	inline const BOOL GetEnabled() const noexcept { return m_bEnabled; }
 
+	inline ShadowMap* GetShadowMap() const noexcept { return m_pShadowMap; }
 	inline const ConstantBuffer<LightData>& GetCB() const noexcept { return m_cbLight; }
 	inline ID3D11Buffer* GetCB_Ptr() const noexcept { return m_cbLight.Get(); }
 	inline ID3D11Buffer* const* GetCB_DPtr() const noexcept { return m_cbLight.GetAddressOf(); }
@@ -74,6 +80,7 @@ private:
 #endif
 
 	Camera m_lightCamera;
+	ShadowMap* m_pShadowMap;
 	ConstantBuffer<LightData> m_cbLight;
 };
 

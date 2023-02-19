@@ -18,25 +18,74 @@ namespace Bind
 			ANISOTROPIC_WRAP,
 			ANISOTROPIC_CLAMP,
 			BILINEAR,
+			LINEAR,
 			POINT
 		};
-		Sampler( ID3D11Device* device, Type type, bool clamp = false, UINT slot = 0u ) : type( type ), clamp( clamp ), slot( slot )
+		enum class UVType
+		{
+			BORDER,
+			CLAMP,
+			WRAP
+		};
+		Sampler( ID3D11Device* device, Type type, UVType uvType, UINT slot = 0u )
+			: type( type ), uvType( uvType ), slot( slot )
 		{
 			try
 			{
 				CD3D11_SAMPLER_DESC samplerDesc( CD3D11_DEFAULT{} );
+				samplerDesc.ComparisonFunc = [type]() mutable
+				{
+					switch ( type )
+					{
+					case Type::ANISOTROPIC_CLAMP:
+						return D3D11_COMPARISON_LESS_EQUAL;
+					case Type::POINT:
+					case Type::LINEAR:
+					case Type::BILINEAR:
+					case Type::ANISOTROPIC_WRAP:
+						return D3D11_COMPARISON_NEVER;
+					}
+				}();
 				samplerDesc.Filter = [type]() mutable
 				{
 					switch ( type )
 					{
-					case Type::ANISOTROPIC_WRAP: case Type::ANISOTROPIC_CLAMP: return D3D11_FILTER_ANISOTROPIC;
-					case Type::POINT: return D3D11_FILTER_MIN_MAG_MIP_POINT;
-					default:
-					case Type::BILINEAR: return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+					case Type::ANISOTROPIC_WRAP:
+					case Type::ANISOTROPIC_CLAMP:
+						return D3D11_FILTER_ANISOTROPIC;
+
+					case Type::LINEAR:
+					case Type::BILINEAR:
+						return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+
+					case Type::POINT:
+						return D3D11_FILTER_MIN_MAG_MIP_POINT;
 					}
 				}();
-				samplerDesc.AddressU = clamp ? D3D11_TEXTURE_ADDRESS_CLAMP : D3D11_TEXTURE_ADDRESS_WRAP;
-				samplerDesc.AddressV = clamp ? D3D11_TEXTURE_ADDRESS_CLAMP : D3D11_TEXTURE_ADDRESS_WRAP;
+				samplerDesc.AddressU = [uvType]() mutable
+				{
+					switch ( uvType )
+					{
+					case UVType::BORDER:
+						return D3D11_TEXTURE_ADDRESS_BORDER;
+					case UVType::CLAMP:
+						return D3D11_TEXTURE_ADDRESS_CLAMP;
+					case UVType::WRAP:
+						return D3D11_TEXTURE_ADDRESS_WRAP;
+					}
+				}();
+				samplerDesc.AddressV = [uvType]() mutable
+				{
+					switch ( uvType )
+					{
+					case UVType::BORDER:
+						return D3D11_TEXTURE_ADDRESS_BORDER;
+					case UVType::CLAMP:
+						return D3D11_TEXTURE_ADDRESS_CLAMP;
+					case UVType::WRAP:
+						return D3D11_TEXTURE_ADDRESS_WRAP;
+					}
+				}();
 				samplerDesc.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY;
 
 				HRESULT hr = device->CreateSamplerState( &samplerDesc, pSampler.GetAddressOf() );
@@ -54,8 +103,8 @@ namespace Bind
 		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> pSampler;
+		UVType uvType;
 		Type type;
-		bool clamp;
 		UINT slot;
 	};
 }

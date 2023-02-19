@@ -21,9 +21,11 @@ public:
 	void ResizeWindow( HWND hWnd, XMFLOAT2 windowSize );
 	void BeginFrame();
 	void BeginFrameNormal();
+	void BeginFrameShadow();
 	void BeginFrameDeferred();
 
 	void UpdateRenderStateSkysphere();
+	void UpdateRenderStateShadow();
 	void UpdateRenderStateCube(
 		bool useDeferred = false,
 		bool useGBuffer = false
@@ -45,6 +47,7 @@ public:
 	inline ID3D11Device* GetDevice() const noexcept { return m_pDevice.Get(); }
 	inline ID3D11DeviceContext* GetContext() const noexcept { return m_pContext.Get(); }
 	inline Bind::RenderTarget* GetRenderTarget() const noexcept { return &*m_pRenderTarget; }
+	inline std::vector<std::shared_ptr<Bind::Viewport>> GetViewports() const noexcept { return m_pViewports; }
 	inline Bind::RenderTarget* GetDeferredRenderTarget( Bind::RenderTarget::Type type ) const noexcept { return &*m_pRenderTargetsDeferred.at( type ); }
 
 private:
@@ -91,10 +94,11 @@ private:
 	std::shared_ptr<Bind::RenderTarget> m_pRenderTarget;
 	std::shared_ptr<Bind::DepthStencil> m_pDepthStencil;
 	std::shared_ptr<Bind::RenderTarget> m_pRenderTargetNormal;
+	std::shared_ptr<Bind::RenderTarget> m_pRenderTargetShadow;
 	std::unordered_map<Bind::RenderTarget::Type, std::shared_ptr<Bind::RenderTarget>> m_pRenderTargetsDeferred;
 
-	std::shared_ptr<Bind::Viewport> m_pViewport;
 	std::shared_ptr<Bind::BackBuffer> m_pBackBuffer;
+	std::vector<std::shared_ptr<Bind::Viewport>> m_pViewports;
 	std::unordered_map<Bind::Sampler::Type, std::shared_ptr<Bind::Sampler>> m_pSamplerStates;
 	std::unordered_map<Bind::Rasterizer::Type, std::shared_ptr<Bind::Rasterizer>> m_pRasterizerStates;
 };

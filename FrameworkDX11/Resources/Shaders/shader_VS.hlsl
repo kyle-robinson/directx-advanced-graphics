@@ -28,7 +28,7 @@ cbuffer ConstantBuffer : register( b0 )
 	matrix World;
 	matrix View;
 	matrix Projection;
-}
+};
 
 cbuffer LightProperties : register( b1 )
 {
@@ -59,7 +59,7 @@ struct VS_OUTPUT
     float3 EyeVectorsTS : EYE_VECTOR_TS;
 
     float3 LightVectorTS[MAX_LIGHTS] : LIGHT_VECTORS_TS;
-    //float4 LightViewPosition[MAX_LIGHTS] : LIGHT_VIEW_POSITIONS;
+    float4 LightViewPosition[MAX_LIGHTS] : LIGHT_VIEW_POSITIONS;
 
     float3 Normal : NORMAL;
     float3 NormalTS : NORMAL_TS;
@@ -92,17 +92,17 @@ VS_OUTPUT VS( VS_INPUT input )
     float3 vertexToEye = CameraPosition.xyz - output.WorldPosition.xyz;
     output.EyeVectorsTS = VectorToTangentSpace( vertexToEye.xyz, TBN_inv );
 
-    //float4 LightView;
+    float4 lightView;
     for ( int i = 0; i < MAX_LIGHTS; ++i )
     {
         float3 vertexToLight = (float3)Lights[i].Position - output.WorldPosition.xyz;
         output.LightVectorTS[i] = VectorToTangentSpace( vertexToLight.xyz, TBN_inv );
 
 		// Calculate the position of the vertex as viewed by the light source
-        //LightView = mul( input.Position, World );
-        //LightView = mul( LightView, Lights[i].View );
-        //LightView = mul( LightView, Lights[i].Projection );
-        //output.LightViewPosition[i] = LightView * float4( 0.5f, -0.5f, 1.0f, 1.0f ) + float4( 0.5f, 0.5f, 0.0f, 0.0f ) * LightView.w;
+        lightView = mul( input.Position, World );
+        lightView = mul( lightView, Lights[i].View );
+        lightView = mul( lightView, Lights[i].Projection );
+        output.LightViewPosition[i] = lightView * float4( 0.5f, -0.5f, 1.0f, 1.0f ) + float4( 0.5f, 0.5f, 0.0f, 0.0f ) * lightView.w;
     }
 
     output.PositionTS = VectorToTangentSpace( output.WorldPosition.xyz, TBN_inv );

@@ -65,6 +65,7 @@ private:
 	FLOAT m_fSpecularPower = 128.0f;
 	BOOL m_bUseTexture = TRUE;
 
+	int m_iCubeIndex;
 	bool m_bResetSpin = false;
 	bool m_bEnableSpin = false;
 	bool m_bReverseSpin = false;

@@ -9,6 +9,10 @@ bool Cube::InitializeMesh( ID3D11Device* pDevice, ID3D11DeviceContext* pContext 
 {
 	try
 	{
+		static int cubeIndex = 0;
+		m_iCubeIndex = cubeIndex;
+		cubeIndex++;
+
 		// Set position to world origin
 		XMStoreFloat4x4( &m_World, XMMatrixIdentity() );
 		m_position = { 0.0f, 0.0f, 0.0f };
@@ -217,76 +221,79 @@ void Cube::DrawDeferred(
 
 void Cube::SpawnControlWindows()
 {
-	if ( ImGui::Begin( "Texture Data", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
+	std::string windowTitle = "";
+	windowTitle = ( m_iCubeIndex == 0 ) ? "Cube Data##" : "Floor Data##";
+	if ( ImGui::Begin( std::string( windowTitle ).append( std::to_string( m_iCubeIndex ) ).c_str(), FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
 	{
-		static int activeTexture = 0;
-		static bool selectedTexture[3];
-		static std::string previewValueTexture = "Red Bricks";
-		static const char* textureList[]{ "Red Bricks", "Wooden Crate", "Cobblestone" };
-		ImGui::Text( "Active Texture" );
-		if ( ImGui::BeginCombo( "##Active Texture", previewValueTexture.c_str() ) )
+		if ( ImGui::CollapsingHeader( std::string( "Texture Data##" ).append( std::to_string( m_iCubeIndex ) ).c_str() ) )
 		{
-			for ( uint32_t i = 0; i < IM_ARRAYSIZE( textureList ); i++ )
+			static int activeTexture = 0;
+			static bool selectedTexture[3];
+			static std::string previewValueTexture = "Red Bricks";
+			static const char* textureList[]{ "Red Bricks", "Wooden Crate", "Cobblestone" };
+			ImGui::Text( "Active Texture" );
+			if ( ImGui::BeginCombo( std::string( "##Active Texture" ).append( std::to_string( m_iCubeIndex ) ).c_str(), previewValueTexture.c_str() ) )
 			{
-				const bool isSelected = i == activeTexture;
-				if ( ImGui::Selectable( textureList[i], isSelected ) )
+				for ( uint32_t i = 0; i < IM_ARRAYSIZE( textureList ); i++ )
 				{
-					activeTexture = i;
-					previewValueTexture = textureList[i];
+					const bool isSelected = i == activeTexture;
+					if ( ImGui::Selectable( textureList[i], isSelected ) )
+					{
+						activeTexture = i;
+						previewValueTexture = textureList[i];
+					}
 				}
-			}
 
-			switch ( activeTexture )
-			{
-			case 0: m_textureIndex = 0; break;
-			case 1: m_textureIndex = 1; break;
-			case 2: m_textureIndex = 2; break;
-			}
+				switch ( activeTexture )
+				{
+				case 0: m_textureIndex = 0; break;
+				case 1: m_textureIndex = 1; break;
+				case 2: m_textureIndex = 2; break;
+				}
 
-			ImGui::EndCombo();
+				ImGui::EndCombo();
+			}
 		}
-	}
-	ImGui::End();
 
-	if ( ImGui::Begin( "Cube Data", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
-	{
-		ImGui::Checkbox( "Rotate Cube?", &m_bEnableSpin );
-		ImGui::Checkbox( "Reverse?", &m_bReverseSpin );
-		if ( ImGui::Checkbox( "Reset?", &m_bResetSpin ) )
+		if ( ImGui::CollapsingHeader( std::string( "Object Data##" ).append( std::to_string( m_iCubeIndex ) ).c_str() ) )
 		{
-			m_rotation.y = 0.0f;
-			m_bResetSpin = false;
-			m_bEnableSpin = false;
-			m_bReverseSpin = false;
+			ImGui::Checkbox( std::string( "Rotate Cube?##" ).append( std::to_string( m_iCubeIndex ) ).c_str(), &m_bEnableSpin );
+			ImGui::Checkbox( std::string( "Reverse?##" ).append( std::to_string( m_iCubeIndex ) ).c_str(), &m_bReverseSpin );
+			if ( ImGui::Checkbox( std::string( "Reset?##" ).append( std::to_string( m_iCubeIndex ) ).c_str(), &m_bResetSpin ) )
+			{
+				m_rotation.y = 0.0f;
+				m_bResetSpin = false;
+				m_bEnableSpin = false;
+				m_bReverseSpin = false;
+			}
 		}
-	}
-	ImGui::End();
 
-	if ( ImGui::Begin( "Material Data", FALSE, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ) )
-	{
-		ImGui::Text( "Emission Color" );
-		ImGui::SliderFloat4( "##Emission", &m_fEmissive.x, 0.0f, 1.0f, "%.1f" );
-		ImGui::NewLine();
+		if ( ImGui::CollapsingHeader( std::string( "Material Data##" ).append( std::to_string( m_iCubeIndex ) ).c_str() ) )
+		{
+			ImGui::Text( "Emission Color" );
+			ImGui::SliderFloat4( std::string( "##Emission" ).append( std::to_string( m_iCubeIndex ) ).c_str(), &m_fEmissive.x, 0.0f, 1.0f, "%.1f" );
+			ImGui::NewLine();
 
-		ImGui::Text( "Ambient Color" );
-		ImGui::SliderFloat4( "##Ambient", &m_fAmbient.x, 0.0f, 1.0f, "%.1f" );
-		ImGui::NewLine();
+			ImGui::Text( "Ambient Color" );
+			ImGui::SliderFloat4( std::string( "##Ambient" ).append( std::to_string( m_iCubeIndex ) ).c_str(), &m_fAmbient.x, 0.0f, 1.0f, "%.1f" );
+			ImGui::NewLine();
 
-		ImGui::Text( "Diffuse Color" );
-		ImGui::SliderFloat4( "##Diffuse", &m_fDiffuse.x, 0.0f, 1.0f, "%.1f" );
-		ImGui::NewLine();
+			ImGui::Text( "Diffuse Color" );
+			ImGui::SliderFloat4( std::string( "##Diffuse" ).append( std::to_string( m_iCubeIndex ) ).c_str(), &m_fDiffuse.x, 0.0f, 1.0f, "%.1f" );
+			ImGui::NewLine();
 
-		ImGui::Text( "Specular Color" );
-		ImGui::SliderFloat4( "##Specular", &m_fSpecular.x, 0.0f, 1.0f, "%.1f" );
-		ImGui::NewLine();
+			ImGui::Text( "Specular Color" );
+			ImGui::SliderFloat4( std::string( "##Specular" ).append( std::to_string( m_iCubeIndex ) ).c_str(), &m_fSpecular.x, 0.0f, 1.0f, "%.1f" );
+			ImGui::NewLine();
 
-		ImGui::Text( "Specular Power" );
-		ImGui::SliderFloat( "##Spec Power", &m_fSpecularPower, 0.0f, 256.0f, "%1.f" );
-		ImGui::NewLine();
+			ImGui::Text( "Specular Power" );
+			ImGui::SliderFloat( std::string( "##Spec Power" ).append( std::to_string( m_iCubeIndex ) ).c_str(), &m_fSpecularPower, 0.0f, 256.0f, "%1.f" );
+			ImGui::NewLine();
 
-		static bool useTexture = m_bUseTexture;
-		ImGui::Checkbox( "Use Texture?", &useTexture );
-		m_bUseTexture = useTexture;
+			static bool useTexture = m_bUseTexture;
+			ImGui::Checkbox( std::string( "Use Texture?##" ).append( std::to_string( m_iCubeIndex ) ).c_str(), &useTexture );
+			m_bUseTexture = useTexture;
+		}
 	}
 	ImGui::End();
 }

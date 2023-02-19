@@ -8,7 +8,11 @@
 Texture2D textureDiffuse : register( t0 );
 Texture2D textureNormal : register( t1 );
 Texture2D textureDisplacement : register( t2 );
+Texture2D textureShadow[2] : register( t3 );
+
 SamplerState samplerState : register( s0 );
+SamplerComparisonState samplerStateClamp : register( s1 );
+SamplerState samplerStateBorder : register( s2 );
 
 // Structs
 struct _Material
@@ -168,7 +172,59 @@ LightingResult DoSpotLight( Light light, float3 vertexToEye, float4 vertexPos, f
     return result;
 }
 
-LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye, float3 lightVectorTS[MAX_LIGHTS] )
+#define PCF_RANGE 2
+float Shadow( float4 vertexLightPos, int num )
+{
+    float shadowLevel = 0.0f;
+    float3 depthPos = vertexLightPos.xyz / vertexLightPos.w;
+
+    if ( depthPos.z > 1.0f || depthPos.z < 0.0f )
+    {
+        shadowLevel = 1.0f;
+    }
+    else
+    {
+		// bias to make correction to depth
+        float zBias = depthPos.z - 0.00005f;
+        uint width, hight;
+
+		// light num
+        if ( num == 1 )
+        {
+			// PCF
+			[unroll]
+            for (int x = -PCF_RANGE; x <= PCF_RANGE; x++)
+            {
+				[unroll]
+                for (int y = -PCF_RANGE; y <= PCF_RANGE; y++)
+                {
+                    shadowLevel += textureShadow[1].Sample( samplerStateBorder, depthPos.xy, int2( x, y ) ).r >= zBias ? 1.0f : 0.0f;
+                }
+            }
+        }
+        else
+        {
+			// hardware PCF
+			[unroll]
+            for (int x = -PCF_RANGE; x <= PCF_RANGE; x++)
+            {
+				[unroll]
+                for (int y = -PCF_RANGE; y <= PCF_RANGE; y++)
+                {
+                    shadowLevel += textureShadow[0].SampleCmpLevelZero( samplerStateClamp, depthPos.xy, depthPos.z - 0.00005f, int2( x, y ) );
+                }
+            }
+
+
+
+        }
+        shadowLevel /= ( (PCF_RANGE * 2 + 1) * (PCF_RANGE * 2 + 1) );
+    }
+
+    return shadowLevel;
+}
+
+LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye, float3 lightVectorTS[MAX_LIGHTS], float4 shadowPos[MAX_LIGHTS] )
 {
 	LightingResult totalResult = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
 
@@ -180,12 +236,24 @@ LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye, 
 		if ( !Lights[i].Enabled )
 			continue;
 
-        if ( Lights[i].LightType == DIRECTIONAL_LIGHT )
-            result = DoDirectionalLight( Lights[i], vertexToEye, vertexPos, N );
-        else if ( Lights[i].LightType == POINT_LIGHT )
-            result = DoPointLight( Lights[i], vertexToEye, vertexPos, N, lightVectorTS[i] );
-        else if ( Lights[i].LightType == SPOT_LIGHT )
-            result = DoSpotLight( Lights[i], vertexToEye, vertexPos, N, lightVectorTS[i] );
+        float shadowLevel = Shadow( shadowPos[i], i );
+        if ( shadowLevel != 0.0f )
+        {
+            if ( Lights[i].LightType == DIRECTIONAL_LIGHT )
+                result = DoDirectionalLight( Lights[i], vertexToEye, vertexPos, N );
+            else if ( Lights[i].LightType == POINT_LIGHT )
+                result = DoPointLight( Lights[i], vertexToEye, vertexPos, N, lightVectorTS[i] );
+            else if ( Lights[i].LightType == SPOT_LIGHT )
+                result = DoSpotLight( Lights[i], vertexToEye, vertexPos, N, lightVectorTS[i] );
+
+            result.Diffuse *= shadowLevel;
+            result.Specular *= shadowLevel;
+        }
+        else
+        {
+            result.Diffuse = 0;
+            result.Specular = 0;
+        }
 
         totalResult.Diffuse += result.Diffuse * Lights[i].Intensity;
         totalResult.Specular += result.Specular * Lights[i].Intensity;
@@ -332,7 +400,7 @@ struct PS_INPUT
     float3 EyeVectorsTS : EYE_VECTOR_TS;
 
     float3 LightVectorTS[MAX_LIGHTS] : LIGHT_VECTORS_TS;
-    //float4 LightViewPosition[MAX_LIGHTS] : LIGHT_VIEW_POSITIONS;
+    float4 LightViewPosition[MAX_LIGHTS] : LIGHT_VIEW_POSITIONS;
 
     float3 Normal : NORMAL;
     float3 NormalTS : NORMAL_TS;
@@ -357,7 +425,7 @@ float4 PS( PS_INPUT input ) : SV_TARGET
         input.Normal = NormalMapping( input.TexCoord );
 
 	// lighting
-    LightingResult lit = ComputeLighting( input.WorldPosition, normalize( input.Normal ), input.EyeVectorsTS, input.LightVectorTS );
+    LightingResult lit = ComputeLighting( input.WorldPosition, normalize( input.Normal ), input.EyeVectorsTS, input.LightVectorTS, input.LightViewPosition );
 
 	// texture/material
     float4 textureColor = { 0.0f, 0.0f, 0.0f, 1.0f };

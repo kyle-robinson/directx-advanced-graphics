@@ -6,6 +6,7 @@ void Level1::OnCreate()
 {
     // Initialize systems
     m_postProcessing.Initialize( m_gfx->GetDevice() );
+    m_pDepthLight = new ShadowMap( m_gfx->GetDevice(), m_gfx->GetWidth(), m_gfx->GetHeight() );
 
     // Initialize constant buffers
     HRESULT hr = m_cbMatrices.Initialize( m_gfx->GetDevice(), m_gfx->GetContext() );
@@ -18,11 +19,16 @@ void Level1::OnCreate()
     hr = m_cube.InitializeMesh( m_gfx->GetDevice(), m_gfx->GetContext() );
     COM_ERROR_IF_FAILED( hr, "Failed to create 'cube' object!" );
 
+    hr = m_floor.InitializeMesh( m_gfx->GetDevice(), m_gfx->GetContext() );
+    COM_ERROR_IF_FAILED( hr, "Failed to create 'floor' object!" );
+    m_floor.SetPosition( XMFLOAT3( 0.0f, -2.0f, 0.0f ) );
+    m_floor.SetScale( XMFLOAT3( 5.0f, 1.0f, 5.0f ) );
+
     m_pLightControl = new LightControl( m_gfx->GetDevice(), m_gfx->GetContext() );
-	m_pLightControl->AddLight( "Spot Light", m_gfx->GetDevice(), m_gfx->GetContext(), m_cbMatrices, *m_camera, TRUE, LightType::SpotLight,
-        XMFLOAT4( 0.0f, 5.0f, 0.0f, 1.0f ), XMFLOAT4( Colors::Red ), 45.0f, 1.0f, 1.0f, 1.0f, 6.0f );
     m_pLightControl->AddLight( "Point Light", m_gfx->GetDevice(), m_gfx->GetContext(), m_cbMatrices, *m_camera, TRUE, LightType::PointLight,
         XMFLOAT4( 0.0f, 0.0f, -3.0f, 1.0f ), XMFLOAT4( Colors::White ), 0.0f, 1.0f, 1.0f, 1.0f, 4.0f );
+	m_pLightControl->AddLight( "Spot Light", m_gfx->GetDevice(), m_gfx->GetContext(), m_cbMatrices, *m_camera, TRUE, LightType::SpotLight,
+        XMFLOAT4( 0.0f, 5.0f, 0.0f, 1.0f ), XMFLOAT4( Colors::Red ), 45.0f, 1.0f, 1.0f, 1.0f, 6.0f );
 
     hr = m_mapping.Initialize( m_gfx->GetDevice(), m_gfx->GetContext() );
     COM_ERROR_IF_FAILED( hr, "Failed to create 'mapping' system!" );
@@ -62,15 +68,42 @@ void Level1::RenderFrame()
         m_objSkysphere.Draw( m_camera->GetViewMatrix(), m_camera->GetProjectionMatrix() );
 #endif
 
-        // Render objects
+        // Create shadow map stencils
+        m_gfx->UpdateRenderStateShadow();
+        for ( UINT i = 0; i < MAX_LIGHTS; i++ )
+            m_pLightControl->GetLight( i )->CreateShadowMap( m_gfx->GetContext(), &m_cube, &m_floor, m_cbMatrices );
+
+        // Draw floor
         m_gfx->UpdateRenderStateCube( useDeferred, useGBuffer );
-        m_cube.UpdateBuffers( m_cbMatrices, *m_camera );
+        m_floor.UpdateBuffers( m_cbMatrices, *m_camera );
 
         m_gfx->GetContext()->VSSetConstantBuffers( 0u, 1u, m_cbMatrices.GetAddressOf() );
         m_gfx->GetContext()->VSSetConstantBuffers( 1u, 1u, m_pLightControl->GetCB_DPtr() );
-        m_gfx->GetContext()->PSSetConstantBuffers( 0u, 1u, m_cube.GetCB() );
+        m_gfx->GetContext()->PSSetConstantBuffers( 0u, 1u, m_floor.GetCB() );
         m_gfx->GetContext()->PSSetConstantBuffers( 1u, 1u, m_pLightControl->GetCB_DPtr() );
         m_gfx->GetContext()->PSSetConstantBuffers( 2u, 1u, m_mapping.GetCB() );
+
+        if ( useDeferred && useGBuffer )
+        {
+            m_gfx->GetContext()->PSSetConstantBuffers( 3u, 1u, m_deferred.GetCB() );
+            m_floor.DrawDeferred( m_gfx->GetContext(),
+                m_gfx->GetDeferredRenderTarget( Bind::RenderTarget::Type::POSITION )->GetShaderResourceViewPtr(),
+                m_gfx->GetDeferredRenderTarget( Bind::RenderTarget::Type::ALBEDO )->GetShaderResourceViewPtr(),
+                m_gfx->GetDeferredRenderTarget( Bind::RenderTarget::Type::NORMAL )->GetShaderResourceViewPtr() );
+        }
+        else
+        {
+            ID3D11ShaderResourceView* shadowMaps[2];
+            shadowMaps[0] = m_pLightControl->GetLight( 0 )->GetShadowMap()->GetDepthTexturePtr();
+            shadowMaps[1] = m_pLightControl->GetLight( 1 )->GetShadowMap()->GetDepthTexturePtr();
+            m_gfx->GetContext()->PSSetShaderResources( 3u, 2u, shadowMaps );
+
+            m_floor.Draw( m_gfx->GetContext() );
+        }
+
+        // Draw cube
+        m_cube.UpdateBuffers( m_cbMatrices, *m_camera );
+        m_gfx->GetContext()->PSSetConstantBuffers( 0u, 1u, m_cube.GetCB() );
 
         if ( useDeferred && useGBuffer )
         {
@@ -82,6 +115,11 @@ void Level1::RenderFrame()
         }
         else
         {
+            ID3D11ShaderResourceView* shadowMaps[2];
+            shadowMaps[0] = m_pLightControl->GetLight( 0 )->GetShadowMap()->GetDepthTexturePtr();
+            shadowMaps[1] = m_pLightControl->GetLight( 1 )->GetShadowMap()->GetDepthTexturePtr();
+            m_gfx->GetContext()->PSSetShaderResources( 3u, 2u, shadowMaps );
+
             m_cube.Draw( m_gfx->GetContext() );
         }
 
@@ -165,6 +203,7 @@ void Level1::EndFrame_Start()
     m_deferred.SpawnControlWindow();
     m_mapping.SpawnControlWindow( m_deferred.IsActive() );
     m_pLightControl->SpawnControlWindows();
+    m_floor.SpawnControlWindows();
     m_cube.SpawnControlWindows();
 }
 
@@ -200,8 +239,18 @@ void Level1::Update( const float dt )
     m_deferred.UpdateCB();
     m_mapping.UpdateCB();
     m_cube.Update( dt );
+    m_floor.Update( dt );
 
     m_motionBlur.UpdateCB();
     m_fxaa.UpdateCB( m_gfx->GetWidth(), m_gfx->GetHeight() );
     m_ssao.UpdateCB( m_gfx->GetWidth(), m_gfx->GetHeight(), *m_camera );
+}
+
+void Level1::CleanUp()
+{
+	delete m_pLightControl;
+	m_pLightControl = nullptr;
+
+    delete m_pDepthLight;
+	m_pDepthLight = nullptr;
 }

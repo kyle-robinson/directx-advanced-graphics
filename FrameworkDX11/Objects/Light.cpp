@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Light.h"
+#include "Cube.h"
 #include <imgui/imgui.h>
 
 Light::Light() {}
@@ -9,6 +10,7 @@ Light::Light( std::string name, ID3D11Device* pDevice, ID3D11DeviceContext* pCon
     m_sName = name;
     SetModel( pDevice, pContext, cbuffer );
     SetCBData( pDevice, pContext, camera );
+    m_pShadowMap = new ShadowMap( pDevice, 1280, 720 );
     m_lightCamera.Initialize( XMFLOAT3( m_fPosition.x, m_fPosition.y, m_fPosition.z ), 1280.0f, 720.0f );
 }
 
@@ -27,6 +29,7 @@ Light::Light( std::string name, ID3D11Device* pDevice, ID3D11DeviceContext* pCon
 	m_fIntensity = intensity;
     SetModel( pDevice, pContext, cbuffer );
     SetCBData( pDevice, pContext, camera );
+    m_pShadowMap = new ShadowMap( pDevice, 1280, 720 );
     m_lightCamera.Initialize( XMFLOAT3( m_fPosition.x, m_fPosition.y, m_fPosition.z ), 1280.0f, 720.0f );
 }
 
@@ -71,7 +74,6 @@ void Light::Draw( const XMMATRIX& view, const XMMATRIX& projection )
 void Light::Update( Camera& camera )
 {
     m_lightCamera.SetPosition( XMFLOAT3( m_fPosition.x, m_fPosition.y, m_fPosition.z ) );
-    m_lightCamera.UpdateMatrix();
 
     XMFLOAT4 cameraPosition =
     {
@@ -118,6 +120,28 @@ void Light::Update( Camera& camera )
     // Add to constant buffer
     m_cbLight.data = light;
     if ( !m_cbLight.ApplyChanges() ) return;
+}
+
+void Light::CreateShadowMap( ID3D11DeviceContext* pContext, Cube* cube, Cube* floor, ConstantBuffer<Matrices>& cbuffer )
+{
+    m_pShadowMap->SetShadowMap( pContext );
+
+    cbuffer.data.mView = m_cbLight.data.View;
+    cbuffer.data.mProjection = m_cbLight.data.Projection;
+
+    XMFLOAT4X4 cubeWorld = *cube->GetTransform();
+    XMMATRIX cubeMat = XMLoadFloat4x4( &cubeWorld );
+    cbuffer.data.mWorld = XMMatrixTranspose( cubeMat );
+    if ( !cbuffer.ApplyChanges() ) return;
+    pContext->VSSetConstantBuffers( 0u, 1u, cbuffer.GetAddressOf() );
+    cube->Draw( pContext );
+
+    XMFLOAT4X4 floorWorld = *floor->GetTransform();
+    XMMATRIX floorMat = XMLoadFloat4x4( &floorWorld );
+    cbuffer.data.mWorld = XMMatrixTranspose( floorMat );
+    if ( !cbuffer.ApplyChanges() ) return;
+    pContext->VSSetConstantBuffers( 0u, 1u, cbuffer.GetAddressOf() );
+    floor->Draw( pContext );
 }
 
 void Light::SpawnControlWindow()

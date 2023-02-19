@@ -30,11 +30,13 @@ void Graphics::ResizeWindow( HWND hWnd, XMFLOAT2 windowSize )
 		m_pBackBuffer.reset();
 		m_pRenderTarget.reset();
 		m_pRenderTargetNormal.reset();
+		m_pRenderTargetShadow.reset();
 		m_pRenderTargetsDeferred.clear();
 		m_pRasterizerStates.clear();
 		m_pSamplerStates.clear();
 		m_pDepthStencil.reset();
-		m_pViewport.reset();
+		m_pViewports[0].reset();
+		m_pViewports[1].reset();
 
 		try
 		{
@@ -58,9 +60,12 @@ void Graphics::InitializeDirectX( HWND hWnd, bool resizingWindow )
 
     m_pBackBuffer = std::make_shared<Bind::BackBuffer>( m_pDevice.Get(), m_pSwapChain->GetSwapChain() );
     m_pDepthStencil = std::make_shared<Bind::DepthStencil>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
-	m_pViewport = std::make_shared<Bind::Viewport>( m_pContext.Get(), m_viewWidth, m_viewHeight );
+
+	m_pViewports.push_back( std::make_shared<Bind::Viewport>( m_pContext.Get(), m_viewWidth, m_viewHeight ) );
+	m_pViewports.push_back( std::make_shared<Bind::Viewport>( m_pContext.Get(), m_viewWidth, m_viewHeight ) );
 
 	m_pRenderTarget = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
+	m_pRenderTargetShadow = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
 	m_pRenderTargetNormal = std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
 	for ( uint32_t i = 0u; i < BUFFER_COUNT; i++ )
 		m_pRenderTargetsDeferred.emplace( (Bind::RenderTarget::Type)i, std::make_shared<Bind::RenderTarget>( m_pDevice.Get(), m_viewWidth, m_viewHeight, (Bind::RenderTarget::Type)i ) );
@@ -69,13 +74,17 @@ void Graphics::InitializeDirectX( HWND hWnd, bool resizingWindow )
     m_pRasterizerStates.emplace( Bind::Rasterizer::Type::SKYSPHERE, std::make_shared<Bind::Rasterizer>( m_pDevice.Get(), Bind::Rasterizer::Type::SKYSPHERE ) );
     m_pRasterizerStates.emplace( Bind::Rasterizer::Type::WIREFRAME, std::make_shared<Bind::Rasterizer>( m_pDevice.Get(), Bind::Rasterizer::Type::WIREFRAME ) );
 
-    m_pSamplerStates.emplace( Bind::Sampler::Type::ANISOTROPIC_WRAP, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::ANISOTROPIC_WRAP, false, 0u ) );
-	m_pSamplerStates.emplace( Bind::Sampler::Type::ANISOTROPIC_CLAMP, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::ANISOTROPIC_CLAMP, true, 1u ) );
-	m_pSamplerStates.emplace( Bind::Sampler::Type::BILINEAR, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::BILINEAR ) );
-	m_pSamplerStates.emplace( Bind::Sampler::Type::POINT, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::POINT ) );
+    m_pSamplerStates.emplace( Bind::Sampler::Type::ANISOTROPIC_WRAP, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::ANISOTROPIC_WRAP, Bind::Sampler::UVType::WRAP ) );
+	m_pSamplerStates.emplace( Bind::Sampler::Type::ANISOTROPIC_CLAMP, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::ANISOTROPIC_CLAMP, Bind::Sampler::UVType::BORDER, 1u ) );
+	m_pSamplerStates.emplace( Bind::Sampler::Type::BILINEAR, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::BILINEAR, Bind::Sampler::UVType::WRAP ) );
+	m_pSamplerStates.emplace( Bind::Sampler::Type::LINEAR, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::LINEAR, Bind::Sampler::UVType::BORDER, 2u ) );
+	m_pSamplerStates.emplace( Bind::Sampler::Type::POINT, std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::POINT, Bind::Sampler::UVType::WRAP ) );
 
 	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
+	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_CLAMP]->Bind( m_pContext.Get() );
+	m_pSamplerStates[Bind::Sampler::Type::LINEAR]->Bind( m_pContext.Get() );
     m_pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+	m_pViewports[0]->Bind( m_pContext.Get() );
 }
 
 bool Graphics::InitializeShaders()
@@ -97,6 +106,12 @@ bool Graphics::InitializeShaders()
 		COM_ERROR_IF_FAILED( hr, "Failed to create cube vertex shader!" );
 		hr = m_pixelShader.Initialize( m_pDevice, L"Resources\\Shaders\\shader_PS.hlsl" );
 		COM_ERROR_IF_FAILED( hr, "Failed to create cube pixel shader!" );
+
+		// Create the shadow shaders
+		hr = m_vertexShaderSDW.Initialize( m_pDevice, L"Resources\\Shaders\\shaderSDW_VS.hlsl", layout, ARRAYSIZE( layout ) );
+		COM_ERROR_IF_FAILED( hr, "Failed to create Shadow vertex shader!" );
+		hr = m_pixelShaderSDW.Initialize( m_pDevice, L"Resources\\Shaders\\shaderSDW_PS.hlsl" );
+		COM_ERROR_IF_FAILED( hr, "Failed to create Shadow pixel shader!" );
 
 		// Define input layout for gbuffer pass
 		D3D11_INPUT_ELEMENT_DESC layoutGB[] =
@@ -209,6 +224,13 @@ void Graphics::BeginFrameNormal()
 	m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
 }
 
+void Graphics::BeginFrameShadow()
+{
+	// Clear render target/depth stencil
+	m_pRenderTargetShadow->Bind( m_pContext.Get(), m_pDepthStencil.get(), m_clearColor );
+	m_pDepthStencil->ClearDepthStencil( m_pContext.Get() );
+}
+
 void Graphics::BeginFrameDeferred()
 {
 	// Clear render target/depth stencil
@@ -229,6 +251,15 @@ void Graphics::UpdateRenderStateSkysphere()
 	// Set render state for skysphere
     m_pRasterizerStates[Bind::Rasterizer::Type::SKYSPHERE]->Bind( m_pContext.Get() );
 	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
+	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
+}
+
+void Graphics::UpdateRenderStateShadow()
+{
+	// Set render state for shadows
+	m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
+	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderSDW, m_pixelShaderSDW );
+	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
 }
 
 void Graphics::UpdateRenderStateCube( bool useDeferred, bool useGBuffer )
@@ -240,10 +271,14 @@ void Graphics::UpdateRenderStateCube( bool useDeferred, bool useGBuffer )
 		useGBuffer ?
 			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderDR, m_pixelShaderDR ) :
 			Shaders::BindShaders( m_pContext.Get(), m_vertexShaderGB, m_pixelShaderGB );
+		m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
 	}
 	else
 	{
 		Shaders::BindShaders( m_pContext.Get(), m_vertexShader, m_pixelShader );
+		m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
+		m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_CLAMP]->Bind( m_pContext.Get() );
+		m_pSamplerStates[Bind::Sampler::Type::LINEAR]->Bind( m_pContext.Get() );
 	}
 }
 
@@ -252,6 +287,7 @@ void Graphics::UpdateRenderStateObject()
 	// Set default render state for objects
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
 	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderOBJ, m_pixelShaderOBJ );
+	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
 }
 
 void Graphics::UpdateRenderStateTexture()
@@ -259,6 +295,7 @@ void Graphics::UpdateRenderStateTexture()
 	// Set default render state for objects
     m_pRasterizerStates[Bind::Rasterizer::Type::SOLID]->Bind( m_pContext.Get() );
 	Shaders::BindShaders( m_pContext.Get(), m_vertexShaderTEX, m_pixelShaderTEX );
+	m_pSamplerStates[Bind::Sampler::Type::ANISOTROPIC_WRAP]->Bind( m_pContext.Get() );
 }
 
 void Graphics::BeginRenderSceneToTexture()
@@ -304,6 +341,7 @@ void Graphics::EndFrame()
 	// Unbind render target
 	m_pRenderTarget->BindNull( m_pContext.Get() );
 	m_pRenderTargetNormal->BindNull( m_pContext.Get() );
+	m_pRenderTargetShadow->BindNull( m_pContext.Get() );
 	for ( uint32_t i = 0u; i < BUFFER_COUNT; i++ )
 		m_pRenderTargetsDeferred[(Bind::RenderTarget::Type)i]->BindNull( m_pContext.Get() );
 	m_pBackBuffer->BindNull( m_pContext.Get() );

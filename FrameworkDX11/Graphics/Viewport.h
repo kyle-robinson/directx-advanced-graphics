@@ -16,6 +16,10 @@ namespace Bind
 			viewportDesc = CD3D11_VIEWPORT( 0.0f, 0.0f, static_cast<FLOAT>( width ), static_cast<FLOAT>( height ) );
 			context->RSSetViewports( 1u, &viewportDesc );
 		}
+		inline void Bind( ID3D11DeviceContext* context ) noexcept
+		{
+			context->RSSetViewports( 1u, &viewportDesc );
+		}
 	private:
 		CD3D11_VIEWPORT viewportDesc = {};
 	};

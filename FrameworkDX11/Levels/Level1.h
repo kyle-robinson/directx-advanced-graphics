@@ -13,6 +13,7 @@
 #include "Mapping.h"
 #include "Shaders.h"
 #include "Deferred.h"
+#include "ShadowMap.h"
 #include "MotionBlur.h"
 #include "LightControl.h"
 #include "PostProcessing.h"
@@ -34,11 +35,13 @@ public:
 	virtual void EndFrame_End();
 
 	virtual void Update( const float dt );
-	virtual void CleanUp() {}
+	virtual void CleanUp();
 
 private:
 	// Objects
 	Cube m_cube;
+	Cube m_floor;
+	ShadowMap* m_pDepthLight;
 	LightControl* m_pLightControl;
 
 #if defined ( _x64 )
