@@ -38,6 +38,9 @@ struct Light
     int LightType;
     bool Enabled;
     float Padding;
+
+    matrix View;
+    matrix Projection;
 };
 
 struct LightingResult
@@ -169,13 +172,12 @@ LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye, 
 {
 	LightingResult totalResult = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
 
-    const int maxLights = 2;
 	[unroll]
-	for ( int i = 0; i < maxLights; ++i )
+	for ( int i = 0; i < MAX_LIGHTS; ++i )
 	{
 		LightingResult result = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
 
-		if ( Lights[i].Enabled )
+		if ( !Lights[i].Enabled )
 			continue;
 
         if ( Lights[i].LightType == DIRECTIONAL_LIGHT )
@@ -185,8 +187,8 @@ LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye, 
         else if ( Lights[i].LightType == SPOT_LIGHT )
             result = DoSpotLight( Lights[i], vertexToEye, vertexPos, N, lightVectorTS[i] );
 
-        totalResult.Diffuse += result.Diffuse;
-        totalResult.Specular += result.Specular;
+        totalResult.Diffuse += result.Diffuse * Lights[i].Intensity;
+        totalResult.Specular += result.Specular * Lights[i].Intensity;
     }
 
 	totalResult.Diffuse = saturate( totalResult.Diffuse );
@@ -358,12 +360,11 @@ float4 PS( PS_INPUT input ) : SV_TARGET
     LightingResult lit = ComputeLighting( input.WorldPosition, normalize( input.Normal ), input.EyeVectorsTS, input.LightVectorTS );
 
 	// texture/material
-    float intensity = Lights[0].Intensity;
     float4 textureColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-    float4 emissive = Material.Emissive * intensity;
-    float4 ambient = Material.Ambient * GlobalAmbient * intensity;
-    float4 diffuse = Material.Diffuse * lit.Diffuse * intensity;
-    float4 specular = Material.Specular * lit.Specular * intensity;
+    float4 emissive = Material.Emissive;
+    float4 ambient = Material.Ambient * GlobalAmbient;
+    float4 diffuse = Material.Diffuse * lit.Diffuse;
+    float4 specular = Material.Specular * lit.Specular;
 
     // update texture
     if ( Material.UseTexture )
@@ -375,10 +376,8 @@ float4 PS( PS_INPUT input ) : SV_TARGET
     float shadowFactor = 1.0f;
     if ( Mapping.UseParallaxSelfShadowing )
     {
-        const int maxLights = 2;
-
         [unroll]
-        for ( int i = 0; i < maxLights; ++i )
+        for ( int i = 0; i < MAX_LIGHTS; ++i )
         {
             if ( !Lights[i].Enabled )
 			    continue;

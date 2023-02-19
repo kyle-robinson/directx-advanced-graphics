@@ -20,7 +20,7 @@ void Level1::OnCreate()
 
     m_pLightControl = new LightControl( m_gfx->GetDevice(), m_gfx->GetContext() );
 	m_pLightControl->AddLight( "Spot Light", m_gfx->GetDevice(), m_gfx->GetContext(), m_cbMatrices, *m_camera, TRUE, LightType::SpotLight,
-        XMFLOAT4( 0.0f, 5.0f, 0.0f, 1.0f ), XMFLOAT4( Colors::Red ), 45.0f, 1.0f, 1.0f, 1.0f, 2.0f );
+        XMFLOAT4( 0.0f, 5.0f, 0.0f, 1.0f ), XMFLOAT4( Colors::Red ), 45.0f, 1.0f, 1.0f, 1.0f, 6.0f );
     m_pLightControl->AddLight( "Point Light", m_gfx->GetDevice(), m_gfx->GetContext(), m_cbMatrices, *m_camera, TRUE, LightType::PointLight,
         XMFLOAT4( 0.0f, 0.0f, -3.0f, 1.0f ), XMFLOAT4( Colors::White ), 0.0f, 1.0f, 1.0f, 1.0f, 4.0f );
 

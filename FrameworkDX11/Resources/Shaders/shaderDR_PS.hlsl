@@ -38,6 +38,9 @@ struct Light
     int LightType;
     bool Enabled;
     float Padding;
+
+    matrix View;
+    matrix Projection;
 };
 
 struct LightingResult
@@ -199,9 +202,9 @@ LightingResult ComputeLighting( float4 vertexPos, float3 N )
         else if ( Lights[i].LightType == SPOT_LIGHT )
             result = DoSpotLight( Lights[i], vertexToEye, vertexPos, N );
 
-		totalResult.Diffuse += result.Diffuse;
-		totalResult.Specular += result.Specular;
-	}
+        totalResult.Diffuse += result.Diffuse * Lights[i].Intensity;
+        totalResult.Specular += result.Specular * Lights[i].Intensity;
+    }
 
 	totalResult.Diffuse = saturate( totalResult.Diffuse );
 	totalResult.Specular = saturate( totalResult.Specular );
@@ -239,19 +242,10 @@ float4 PS( PS_INPUT input ) : SV_TARGET
     LightingResult lit = ComputeLighting( position, normal );
 
 	// texture/material
-	float4 emissive = Material.Emissive;
-	float4 ambient = Material.Ambient * GlobalAmbient;
+    float4 emissive = Material.Emissive;
+    float4 ambient = Material.Ambient * GlobalAmbient;
     float4 diffuse = Material.Diffuse * lit.Diffuse;
-	float4 specular = Material.Specular * lit.Specular;
-
-    // update intensity
-    for ( int i = 0; i < MAX_LIGHTS; ++i )
-    {
-        emissive *= Lights[i].Intensity;
-        ambient *= Lights[i].Intensity;
-        diffuse *= Lights[i].Intensity;
-        specular *= Lights[i].Intensity;
-    }
+    float4 specular = Material.Specular * lit.Specular;
 
     // final colour
 	float4 finalColor = ( emissive + ambient + diffuse + specular ) * albedo;
