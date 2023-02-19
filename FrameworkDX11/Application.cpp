@@ -872,7 +872,7 @@ void Application::Draw()
     if (isRTT) {
         //RTT to cube or screen like a tv
         // Setup the viewport
-        /*D3D11_VIEWPORT vp2;
+        D3D11_VIEWPORT vp2;
         vp2.Width = (FLOAT)_viewWidth;
         vp2.Height = (FLOAT)_viewHeight;
         vp2.MinDepth = 0.0f;
@@ -928,7 +928,7 @@ void Application::Draw()
 
         //lights
 
-        _pLightContol->draw(_pImmediateContext, _pConstantBuffer, &cb1);*/
+        _pLightContol->draw(_pImmediateContext, _pConstantBuffer, &cb1);
     }
     else
     {
@@ -1027,7 +1027,7 @@ void Application::Draw()
         ID3D11Buffer* pBuffers[1] = { g_pScreenQuadVB };
 
         //bloom alpha get
-        /*if (&postSettings.UseBloom) {
+        if (&postSettings.UseBloom) {
             //bloom
             RenderTargetControl->GetRenderTarget("alpha")->SetRenderTarget(_pImmediateContext);
 
@@ -1192,7 +1192,7 @@ void Application::Draw()
             _pImmediateContext->PSSetShaderResources(2, 1, &ResourceView3);
             _pImmediateContext->Draw(4, 0);
 
-        }*/
+        }
 
 
 
