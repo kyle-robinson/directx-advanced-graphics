@@ -55,7 +55,8 @@ struct _Mapping
 
     bool UseSoftShadow;
     float HeightScale;
-    float2 Padding;
+    int MinLayers;
+    int MaxLayers;
 };
 
 struct _Deferred
@@ -139,10 +140,9 @@ LightingResult DoPointLight( Light light, float3 vertexToEye, float4 vertexPos, 
 
 	float3 vertexToLight = ( light.Position - vertexPos ).xyz;
 	distance = length( vertexToLight );
-	vertexToLight = vertexToLight / distance;
+    vertexToLight = vertexToLight / distance;
 
 	float attenuation = DoAttenuation( light, distance );
-	//attenuation = 1;
 
 	result.Diffuse = DoDiffuse( light, vertexToLight, N ) * attenuation;
 	result.Specular = DoSpecular( light, vertexToEye, LightDirectionToVertex, N ) * attenuation;
@@ -179,7 +179,7 @@ LightingResult DoSpotLight( Light light, float3 vertexToEye, float4 vertexPos, f
     return result;
 }
 
-LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye )
+LightingResult ComputeLighting( float4 vertexPos, float3 N )
 {
 	LightingResult totalResult = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
 
@@ -187,6 +187,7 @@ LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye )
 	for ( int i = 0; i < MAX_LIGHTS; ++i )
 	{
 		LightingResult result = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+        float3 vertexToEye = (float3)normalize( Lights[i].Position - vertexPos ).xyz;
 
 		if ( !Lights[i].Enabled )
 			continue;
@@ -235,14 +236,22 @@ float4 PS( PS_INPUT input ) : SV_TARGET
         return albedo;
 
     // lighting
-    float3 vertexToLight = normalize( Lights[0].Position - position ).xyz;
-    LightingResult lit = ComputeLighting( position, normal, vertexToLight );
+    LightingResult lit = ComputeLighting( position, normal );
 
 	// texture/material
-	float4 emissive = Material.Emissive * Lights[0].Intensity;
-	float4 ambient = Material.Ambient * GlobalAmbient * Lights[0].Intensity;
-    float4 diffuse = Material.Diffuse * lit.Diffuse * Lights[0].Intensity;
-	float4 specular = Material.Specular * lit.Specular * Lights[0].Intensity;
+	float4 emissive = Material.Emissive;
+	float4 ambient = Material.Ambient * GlobalAmbient;
+    float4 diffuse = Material.Diffuse * lit.Diffuse;
+	float4 specular = Material.Specular * lit.Specular;
+
+    // update intensity
+    for ( int i = 0; i < MAX_LIGHTS; ++i )
+    {
+        emissive *= Lights[i].Intensity;
+        ambient *= Lights[i].Intensity;
+        diffuse *= Lights[i].Intensity;
+        specular *= Lights[i].Intensity;
+    }
 
     // final colour
 	float4 finalColor = ( emissive + ambient + diffuse + specular ) * albedo;

@@ -133,14 +133,14 @@ void Light::SpawnControlWindow()
     if ( ImGui::CollapsingHeader( std::string( m_sName ).append( " (" ).append( type ).append( ")" ).c_str() ) )
     {
         static bool enabled = (bool)m_bEnabled;
-        ImGui::Text( "Enabled?" );
-        ImGui::SameLine();
         ImGui::Checkbox( std::string( "##Enabled" ).append( m_sName ).c_str(), &enabled );
+        ImGui::SameLine();
+        ImGui::Text( "Enabled?" );
         m_bEnabled = (BOOL)enabled;
 
-        ImGui::Text( "Attached To Camera?" );
-        ImGui::SameLine();
         ImGui::Checkbox( std::string( "##Attached" ).append( m_sName ).c_str(), &m_bAttachedToCamera );
+        ImGui::SameLine();
+        ImGui::Text( "Attached To Camera?" );
         ImGui::NewLine();
 
         if ( !m_bAttachedToCamera )

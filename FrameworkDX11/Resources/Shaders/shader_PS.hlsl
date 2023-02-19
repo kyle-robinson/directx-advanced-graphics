@@ -55,8 +55,8 @@ struct _Mapping
 
     bool UseSoftShadow;
     float HeightScale;
-    float MinLayers;
-    float MaxLayers;
+    int MinLayers;
+    int MaxLayers;
 };
 
 // Constant Buffers
@@ -106,7 +106,7 @@ float DoAttenuation( Light light, float d )
 	return 1.0f / ( light.ConstantAttenuation + light.LinearAttenuation * d + light.QuadraticAttenuation * d * d );
 }
 
-LightingResult DoDirectionalLight( Light light, float3 V, float4 P, float3 N, float3 lightVectorTS )
+LightingResult DoDirectionalLight( Light light, float3 V, float4 P, float3 N )
 {
     LightingResult result;
 
@@ -178,7 +178,7 @@ LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye, 
 			continue;
 
         if ( Lights[i].LightType == DIRECTIONAL_LIGHT )
-            result = DoDirectionalLight( Lights[i], vertexToEye, vertexPos, N, lightVectorTS[i] );
+            result = DoDirectionalLight( Lights[i], vertexToEye, vertexPos, N );
         else if ( Lights[i].LightType == POINT_LIGHT )
             result = DoPointLight( Lights[i], vertexToEye, vertexPos, N, lightVectorTS[i] );
         else if ( Lights[i].LightType == SPOT_LIGHT )
@@ -195,22 +195,6 @@ LightingResult ComputeLighting( float4 vertexPos, float3 N, float3 vertexToEye, 
 }
 
 // Tangent Functions
-float3x3 computeTBNMatrix( float3 unitNormal, float3 tangent )
-{
-    float3 N = unitNormal;
-    float3 T = normalize( tangent - dot( tangent, N ) * N );
-    float3 B = cross( T, N );
-    return float3x3( T, B, N );
-}
-
-float3x3 computeTBNMatrixB( float3 unitNormal, float3 tangent, float3 binorm )
-{
-    float3 N = unitNormal;
-    float3 T = normalize( tangent - dot( tangent, N ) * N );
-    float3 B = normalize( binorm - dot( binorm, tangent ) * tangent );
-    return float3x3( T, B, N );
-}
-
 float3 NormalMapping( float2 texCoord )
 {
     float3 texNormal = textureNormal.Sample( samplerState, texCoord ).rgb;
