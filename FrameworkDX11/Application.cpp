@@ -1,14 +1,12 @@
 #include "Application.h"
+#include "M3dLoader.h"
 
-#include"M3dLoader.h"
 Application* app;
 LRESULT CALLBACK WindProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
     switch (message)
     {
-    case WM_CLOSE:
-        DestroyWindow(hWnd);
-        return 0;
+
 
         // Handle all other messages
     default:
@@ -23,8 +21,6 @@ LRESULT CALLBACK WindProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     }
 }
-
-
 
 //--------------------------------------------------------------------------------------
 // Called every time the application receives a message
@@ -1388,11 +1384,3 @@ void Application::Cleanup()
             debugDevice->Release();
 
 }
-
-bool Application::InputControll(MSG msg)
-{
-
-    return false;
-}
-
-

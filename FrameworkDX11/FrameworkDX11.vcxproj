@@ -99,7 +99,7 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>$(SolutionDir)External/imgui;$(SolutionDir)External/rapidjson;$(SolutionDir)External;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Input;$(ProjectDir)Utility;$(ProjectDir)Window;$(SolutionDir)External/imgui;$(SolutionDir)External/rapidjson;$(SolutionDir)External;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -439,15 +439,13 @@
     <ClInclude Include="DrawableGameObject.h" />
     <ClInclude Include="ImGuiManager.h" />
     <ClInclude Include="InputControllor.h" />
-    <ClInclude Include="Keyboard.h" />
-    <ClInclude Include="KeyboardEvent.h" />
+    <ClInclude Include="Input\Input.h" />
+    <ClInclude Include="Input\Keyboard.h" />
+    <ClInclude Include="Input\Mouse.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightControll.h" />
     <ClInclude Include="M3dLoader.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="MouseEvent.h" />
-    <ClInclude Include="MouseInput.h" />
-    <ClInclude Include="Mouse_Picking.h" />
     <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="RansterStateManager.h" />
@@ -463,7 +461,13 @@
     <ClInclude Include="TerrainJsonLoad.h" />
     <ClInclude Include="TerrainVoxel.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="Utility\COMException.h" />
+    <ClInclude Include="Utility\ErrorLogger.h" />
+    <ClInclude Include="Utility\stdafx.h" />
+    <ClInclude Include="Utility\StringHelper.h" />
     <ClInclude Include="Vector3.h" />
+    <ClInclude Include="Window\RenderWindow.h" />
+    <ClInclude Include="Window\WindowContainer.h" />
     <ResourceCompile Include="Tutorial01.rc" />
   </ItemGroup>
   <ItemGroup>
@@ -487,15 +491,13 @@
     <ClCompile Include="DrawableGameObject.cpp" />
     <ClCompile Include="ImGuiManager.cpp" />
     <ClCompile Include="InputControllor.cpp" />
-    <ClCompile Include="Keyboard.cpp" />
-    <ClCompile Include="KeyboardEvent.cpp" />
+    <ClCompile Include="Input\Input.cpp" />
+    <ClCompile Include="Input\Keyboard .cpp" />
+    <ClCompile Include="Input\Mouse.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightControll.cpp" />
     <ClCompile Include="M3dLoader.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MouseEvent.cpp" />
-    <ClCompile Include="MouseInput.cpp" />
-    <ClCompile Include="Mouse_Picking.cpp" />
     <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="RansterStateManager.cpp" />
     <ClCompile Include="RenderTargetControll.cpp" />
@@ -508,7 +510,22 @@
     <ClCompile Include="TerrainJsonLoad.cpp" />
     <ClCompile Include="TerrainVoxel.cpp" />
     <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="Utility\ErrorLogger.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Utility\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Utility\StringHelper.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Vector3.cpp" />
+    <ClCompile Include="Window\RenderWindow.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Window\WindowContainer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\bricks_DISP.dds" />

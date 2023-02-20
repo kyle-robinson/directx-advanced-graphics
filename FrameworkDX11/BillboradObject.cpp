@@ -16,7 +16,7 @@ void BillboardObject::CreatBillboard(int Number, ID3D11Device* _pd3dDevice)
 {
     HRESULT hr;
 
-    
+
     NumberOfBillBoards = Number;
 
     //creats 2 start points
@@ -24,7 +24,7 @@ void BillboardObject::CreatBillboard(int Number, ID3D11Device* _pd3dDevice)
     Positions[0].Pos = XMFLOAT3(0, 0, 0);
     Positions[1].Pos = XMFLOAT3(0, 10, 0);
 
-    //creat instance buffer at the size of how many instances there will be 
+    //creat instance buffer at the size of how many instances there will be
     D3D11_BUFFER_DESC instBuffDesc;
     ZeroMemory(&instBuffDesc, sizeof(instBuffDesc));
 
@@ -68,10 +68,10 @@ void BillboardObject::Draw(ID3D11DeviceContext* pContext, ShaderData Shader, Con
 {
     pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
     pContext->IASetInputLayout(Shader._pVertexLayout);
-    
+
     UINT strides[2] = { sizeof(SimpleVertexBill), sizeof(SimpleVertexBill) };
     UINT offsets[2] = { 0, 0 };
-    
+
     cb->mWorld = XMMatrixIdentity();
     pContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, cb, 0, 0);
 
@@ -107,7 +107,7 @@ void BillboardObject::SetTexture(string TexName, ID3D11Device* _pd3dDevice)
 
 void BillboardObject::UpdatePositions(ID3D11DeviceContext* pContext)
 {
-    //update the textures 
+    //update the textures
     pContext->UpdateSubresource(BillboardInstanceBuff, 0, NULL, &Positions[0], 0, 0);
 }
 

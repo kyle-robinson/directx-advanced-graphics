@@ -14,29 +14,27 @@ InputControllor::~InputControllor()
 
 bool InputControllor::HandleInput(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	
-
 	//get input from windows
 	switch (message)
 	{
 		//Keyborad Input
 	case WM_KEYUP: {
 		unsigned char ch = static_cast<unsigned char>(wParam);
-		_KeyInput.OnKeyRelace(ch);
+		_KeyInput.OnKeyReleased(ch);
 		return true;
 	}
 				 break;
 	case WM_KEYDOWN: {
 		unsigned char ch = static_cast<unsigned char>(wParam);
-		if (_KeyInput.IsKeysAutoRepat()) {
+		if (_KeyInput.IsKeysAutoRepeat()) {
 
-			_KeyInput.OnKeyPress(ch);
+			_KeyInput.OnKeyPressed(ch);
 		}
 		else
 		{
 			const bool wasPressed = lParam & WasP;
 			if (!wasPressed) {
-				_KeyInput.OnKeyPress(ch);
+				_KeyInput.OnKeyPressed(ch);
 			}
 
 		}
@@ -46,7 +44,7 @@ bool InputControllor::HandleInput(UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_CHAR:
 	{
 		unsigned char ch = static_cast<unsigned char>(wParam);
-		if (_KeyInput.IsCharAutoRepat()) {
+		if (_KeyInput.IsCharsAutoRepeat()) {
 			_KeyInput.OnChar(ch);
 		}
 		else
@@ -75,7 +73,7 @@ bool InputControllor::HandleInput(UINT message, WPARAM wParam, LPARAM lParam)
 		int x = LOWORD(lParam);
 		int y = HIWORD(lParam);
 
-		_MouseInput.OnLeftPress(x, y);
+		_MouseInput.OnLeftPressed(x, y);
 		return true;
 	}
 	break;
@@ -93,7 +91,7 @@ bool InputControllor::HandleInput(UINT message, WPARAM wParam, LPARAM lParam)
 		int x = LOWORD(lParam);
 		int y = HIWORD(lParam);
 
-		_MouseInput.OnRightPress(x, y);
+		_MouseInput.OnRightPressed(x, y);
 		return true;
 	}
 	break;
@@ -111,7 +109,7 @@ bool InputControllor::HandleInput(UINT message, WPARAM wParam, LPARAM lParam)
 		int x = LOWORD(lParam);
 		int y = HIWORD(lParam);
 
-		_MouseInput.OnMiddlePress(x, y);
+		_MouseInput.OnMiddlePressed(x, y);
 		return true;
 	}
 	break;
@@ -159,7 +157,7 @@ bool InputControllor::HandleInput(UINT message, WPARAM wParam, LPARAM lParam)
 		}
 
 
-		
+
 	}
 	break;
 	}
@@ -178,12 +176,12 @@ void InputControllor::CharInputUpdate()
 	//keyborad input
 	while (!_KeyInput.CharBufferIsEmpty())
 	{
-		unsigned char ch = _KeyInput.Raedchar();
+		unsigned char ch = _KeyInput.ReadChar();
 
 		_KeyInput.EnableAutoRepeatChars();
 
 	}
-	
+
 
 }
 
@@ -191,37 +189,37 @@ void InputControllor::KeyInputUpdate()
 {
 	while (!_KeyInput.KeyBufferIsEmpty())
 		{
-			KeyboardEvent keyEvent = _KeyInput.ReadKey();
+			Keyboard::KeyboardEvent keyEvent = _KeyInput.ReadKey();
 			 ch = keyEvent.GetKeyCode();
 
 			_KeyInput.EnableAutoRepeatKeys();
 
 			//---------------inputs------------------
 
-			
+
 			////cam controlls
-			if (_KeyInput.KeyIsPress('W')) {
+			if (_KeyInput.KeyIsPressed('W')) {
 				_CamreaControll->GetCurentCam()->AgustPos({
 						_CamreaControll->GetCurentCam()->GetVecFord().x *  _CamreaControll->GetCurentCam()->GetCamSpeed()  ,
 						_CamreaControll->GetCurentCam()->GetVecFord().y * _CamreaControll->GetCurentCam()->GetCamSpeed() ,
 						_CamreaControll->GetCurentCam()->GetVecFord().z * _CamreaControll->GetCurentCam()->GetCamSpeed()
 				});
 			}
-			if (_KeyInput.KeyIsPress('S')) {
+			if (_KeyInput.KeyIsPressed('S')) {
 				_CamreaControll->GetCurentCam()->AgustPos({
 						_CamreaControll->GetCurentCam()->GetVecBack().x * _CamreaControll->GetCurentCam()->GetCamSpeed(),
 						_CamreaControll->GetCurentCam()->GetVecBack().y * _CamreaControll->GetCurentCam()->GetCamSpeed() ,
 						_CamreaControll->GetCurentCam()->GetVecBack().z * _CamreaControll->GetCurentCam()->GetCamSpeed()
 					});
 			}
-			if (_KeyInput.KeyIsPress('D')) {
+			if (_KeyInput.KeyIsPressed('D')) {
 				_CamreaControll->GetCurentCam()->AgustPos({
 						_CamreaControll->GetCurentCam()->GetVecRight().x * _CamreaControll->GetCurentCam()->GetCamSpeed(),
 						_CamreaControll->GetCurentCam()->GetVecRight().y * _CamreaControll->GetCurentCam()->GetCamSpeed() ,
 						_CamreaControll->GetCurentCam()->GetVecRight().z * _CamreaControll->GetCurentCam()->GetCamSpeed()
 					});
 			}
-			if (_KeyInput.KeyIsPress('A')) {
+			if (_KeyInput.KeyIsPressed('A')) {
 				_CamreaControll->GetCurentCam()->AgustPos({
 						_CamreaControll->GetCurentCam()->GetVecLeft().x * _CamreaControll->GetCurentCam()->GetCamSpeed(),
 						_CamreaControll->GetCurentCam()->GetVecLeft().y * _CamreaControll->GetCurentCam()->GetCamSpeed() ,
@@ -229,7 +227,7 @@ void InputControllor::KeyInputUpdate()
 					});
 			}
 
-		
+
 
 
 			//----------------------------------------------------------
@@ -242,32 +240,32 @@ void InputControllor::MouseInputUpdate()
 //mouse input
 	while (!_MouseInput.EventBufferIsEmpty())
 	{
-		MouseEvent mEvent = _MouseInput.ReadEvent();
-		
+		Mouse::MouseEvent mEvent = _MouseInput.ReadEvent();
+
 		if (_MouseInput.IsLeftDown())
 		{
 			// update raw camera movement
-			if (mEvent.GetType() == MouseEventType::RawMove )
+			if (mEvent.GetType() == Mouse::MouseEvent::RawMove )
 			{
-				mousePos = { static_cast<float>(mEvent.GetMouseX()),static_cast<float>(mEvent.GetMouseY()) };
+				mousePos = { static_cast<float>(mEvent.GetPosX()),static_cast<float>(mEvent.GetPosY()) };
 				_CamreaControll->GetCurentCam()->AgustRot(
 					XMFLOAT3(
 						mousePos.y * 0.005f,
 						mousePos.x * 0.005f,
 						0.0f
 					));
-		
+
 			}
 
 		}
 
 		if (_MouseInput.IsRightDown())
 		{
-			
+
 
 
 		}
-		
+
 	}
 }
 
@@ -277,5 +275,3 @@ void InputControllor::AddCam(CameraController* cam)
 	_CamreaControll = cam;
 
 }
-
-

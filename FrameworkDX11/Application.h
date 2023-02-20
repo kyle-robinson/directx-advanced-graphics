@@ -1,4 +1,6 @@
 #pragma once
+#ifndef APPLICATION_H
+#define APPLICATION_H
 
 #include <windows.h>
 #include <windowsx.h>
@@ -33,7 +35,6 @@
 
 #include"TerrainVoxel.h"
 #include"AnimatedModel.h"
-using namespace std;
 
 class Application
 {
@@ -62,7 +63,7 @@ private:
 	//post processing
 	//--------------------------------------------------------
 	PostProcessingCB postSettings;
-	
+
 	bool isRTT = false;
 
 
@@ -74,21 +75,14 @@ private:
 	};
 
 	ID3D11Buffer* g_pScreenQuadVB = nullptr;
-	
 	ID3D11SamplerState* m_pPointrLinear;
 	ID3D11SamplerState* m_pLINEARBORDER;
-
-	
 	ShadowMap* DepthLight;
 	RenderTargetControll* RenderTargetControl;
-
-	//------------------------------------------------------
-
 	BillboardObject* BillBoradObject;
-	
 
-	XMMATRIX                _View;
-	XMMATRIX                _Projection;
+	XMMATRIX _View;
+	XMMATRIX _Projection;
 
 	int	_viewWidth;
 	int	_viewHeight;
@@ -102,11 +96,8 @@ private:
 	CameraController* _pCamControll;
 	ImGuiManager* DimGuiManager;
 	LightControll* _pLightContol;
-
 	Camera* _Camrea;
-
 	AnimatedModel* AnimmationObject;
-	
 
 public:
 	Application();
@@ -118,22 +109,15 @@ public:
 	void Update();
 	void Draw();
 
-
-
-	bool InputControll(MSG msg);
-
 private:
-
 	float calculateDeltaTime();
 	void setupLightForRender();
 	HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
 	HRESULT InitDevice();
 	void Cleanup();
 
-	HRESULT		InitMesh();
-	HRESULT		InitWorld(int width, int height);
-
-	
-
+	HRESULT	InitMesh();
+	HRESULT	InitWorld(int width, int height);
 };
 
+#endif

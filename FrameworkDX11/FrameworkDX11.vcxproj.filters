@@ -14,21 +14,6 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Camera</Filter>
     </ClCompile>
-    <ClCompile Include="Keyboard.cpp">
-      <Filter>Input\KeyBorad</Filter>
-    </ClCompile>
-    <ClCompile Include="KeyboardEvent.cpp">
-      <Filter>Input\KeyBorad</Filter>
-    </ClCompile>
-    <ClCompile Include="Mouse_Picking.cpp">
-      <Filter>Input\Mouse</Filter>
-    </ClCompile>
-    <ClCompile Include="MouseEvent.cpp">
-      <Filter>Input\Mouse</Filter>
-    </ClCompile>
-    <ClCompile Include="MouseInput.cpp">
-      <Filter>Input\Mouse</Filter>
-    </ClCompile>
     <ClCompile Include="InputControllor.cpp">
       <Filter>Input</Filter>
     </ClCompile>
@@ -121,6 +106,30 @@
     <ClCompile Include="..\External\imgui\imgui_widgets.cpp">
       <Filter>DImGUI</Filter>
     </ClCompile>
+    <ClCompile Include="Window\WindowContainer.cpp">
+      <Filter>Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Window\RenderWindow.cpp">
+      <Filter>Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\stdafx.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\ErrorLogger.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\StringHelper.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\Input.cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\Keyboard .cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\Mouse.cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
@@ -141,21 +150,6 @@
     </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="Keyboard.h">
-      <Filter>Input\KeyBorad</Filter>
-    </ClInclude>
-    <ClInclude Include="KeyboardEvent.h">
-      <Filter>Input\KeyBorad</Filter>
-    </ClInclude>
-    <ClInclude Include="Mouse_Picking.h">
-      <Filter>Input\Mouse</Filter>
-    </ClInclude>
-    <ClInclude Include="MouseEvent.h">
-      <Filter>Input\Mouse</Filter>
-    </ClInclude>
-    <ClInclude Include="MouseInput.h">
-      <Filter>Input\Mouse</Filter>
     </ClInclude>
     <ClInclude Include="InputControllor.h">
       <Filter>Input</Filter>
@@ -324,6 +318,33 @@
     <ClInclude Include="..\External\imgui\imstb_truetype.h">
       <Filter>DImGUI</Filter>
     </ClInclude>
+    <ClInclude Include="Window\WindowContainer.h">
+      <Filter>Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Window\RenderWindow.h">
+      <Filter>Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\stdafx.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\ErrorLogger.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\COMException.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\StringHelper.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\Input.h">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\Keyboard.h">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\Mouse.h">
+      <Filter>Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="TextureLoading">
@@ -349,12 +370,6 @@
     </Filter>
     <Filter Include="Input">
       <UniqueIdentifier>{70567b8f-71ea-4178-b6d1-4a666d59457f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Input\KeyBorad">
-      <UniqueIdentifier>{2a616749-fcd5-43e8-951b-b0aa5db03233}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Input\Mouse">
-      <UniqueIdentifier>{9de25313-3d41-4dd7-8184-92e00d3db0e3}</UniqueIdentifier>
     </Filter>
     <Filter Include="Light">
       <UniqueIdentifier>{98a9227b-549f-4898-8b76-2cc5d4f158cf}</UniqueIdentifier>
@@ -382,6 +397,12 @@
     </Filter>
     <Filter Include="Annimation">
       <UniqueIdentifier>{dffeb552-c3c1-457a-b27b-1ca3813d6cb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Window">
+      <UniqueIdentifier>{13a64fc6-2837-48eb-b37e-499529955071}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility">
+      <UniqueIdentifier>{14b7ac68-187e-4d31-9987-8b33aaeca197}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
