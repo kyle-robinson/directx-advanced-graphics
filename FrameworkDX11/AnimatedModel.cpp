@@ -37,7 +37,7 @@ void ProcessMesh(aiMesh* mesh, const aiScene* scene, const XMMATRIX& transformMa
 
     verts = vertices;
     index= indices;
-   
+
 }
 void ProcessNode(aiNode* node, const aiScene* scene, const XMMATRIX& parentTransformMatrix, std::vector<SkinedVertex>& verts, std::vector<USHORT>& index)
 {
@@ -52,7 +52,7 @@ void ProcessNode(aiNode* node, const aiScene* scene, const XMMATRIX& parentTrans
 
         verts.insert(verts.end(), vertices.begin(), vertices.end());
         index.insert(index.end(), indices.begin(), indices.end());
-       
+
     }
 
     for (UINT i = 0u; i < node->mNumChildren; i++) {
@@ -60,12 +60,12 @@ void ProcessNode(aiNode* node, const aiScene* scene, const XMMATRIX& parentTrans
         std::vector<USHORT> indices;
         ProcessNode(node->mChildren[i], scene, nodeTransformMatrix, vertices, indices);
 
-      
+
 
         verts.insert(verts.end(), vertices.begin(), vertices.end());
         index.insert(index.end(), indices.begin(), indices.end());
-       
-        
+
+
     }
 }
 
@@ -92,7 +92,7 @@ AnimatedModel::AnimatedModel(std::string ModelFile, ID3D11Device* device, ID3D11
     _Apparance = new Appearance();
     _Apparance->SetVertexBuffer(device, _SkinVert, (UINT)_SkinVert.size());
     _Apparance->SetIndices(device, &_Index2[0], _Index2.size());
-    
+
     //shader for animation
     Controll->NewAnimationShader("animation", L"AnnimationShader.fx", device, pImmediateContext);
 
@@ -160,10 +160,10 @@ AnimatedModel::~AnimatedModel()
 
 void AnimatedModel::Draw(ID3D11DeviceContext* pImmediateContext, ShaderController* Controll, ConstantBuffer* buffer, ID3D11Buffer* _pConstantBuffer)
 {
-    pImmediateContext->IASetInputLayout(Controll->GetShaderByName("animation")._pVertexLayout);
-    pImmediateContext->VSSetShader(Controll->GetShaderByName("animation")._pVertexShader, nullptr, 0);
-    pImmediateContext->PSSetShader(Controll->GetShaderByName("animation")._pPixelShader, nullptr, 0);
-   
+    pImmediateContext->IASetInputLayout(Controll->GetShaderByName("animation").m_pVertexLayout);
+    pImmediateContext->VSSetShader(Controll->GetShaderByName("animation").m_pVertexShader, nullptr, 0);
+    pImmediateContext->PSSetShader(Controll->GetShaderByName("animation").m_pPixelShader, nullptr, 0);
+
     XMFLOAT4X4 WorldAsFloat = TransformData->GetWorldMatrix();
     XMMATRIX mGO = XMLoadFloat4x4(&WorldAsFloat);
     buffer->mWorld = XMMatrixTranspose(mGO);
@@ -186,14 +186,14 @@ void AnimatedModel::Draw(ID3D11DeviceContext* pImmediateContext, ShaderControlle
         pImmediateContext->PSSetShaderResources(1, 1, &m_pNormalMapResourceView[subset.Id]);
 
         _Apparance->Draw(pImmediateContext, subset.FaceCount*3, subset.FaceStart * 3);
-     
+
     }
 
-    
-    pImmediateContext->IASetInputLayout(Controll->GetShaderByName("NoEffects")._pVertexLayout);
 
-    pImmediateContext->VSSetShader(Controll->GetShaderData()._pVertexShader, nullptr, 0);
-    pImmediateContext->PSSetShader(Controll->GetShaderData()._pPixelShader, nullptr, 0);
+    pImmediateContext->IASetInputLayout(Controll->GetShaderByName("NoEffects").m_pVertexLayout);
+
+    pImmediateContext->VSSetShader(Controll->GetShaderData().m_pVertexShader, nullptr, 0);
+    pImmediateContext->PSSetShader(Controll->GetShaderData().m_pPixelShader, nullptr, 0);
 }
 
 void AnimatedModel::Update(float dt)

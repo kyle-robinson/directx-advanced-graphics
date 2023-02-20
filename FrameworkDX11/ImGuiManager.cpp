@@ -103,7 +103,7 @@ static string current_RasterState = "";
 void ImGuiManager::ShaderMenu(ShaderController* Shader, PostProcessingCB* postSettings, RasterStateManager* RasterState, bool& rtt)
 {
     if (!LoadShader) {
-        Shadername = Shader->GetShaderData().Name;
+        Shadername = Shader->GetShaderData().m_sName;
         current_Shader = Shadername.c_str();
 
 
@@ -121,10 +121,10 @@ void ImGuiManager::ShaderMenu(ShaderController* Shader, PostProcessingCB* postSe
             {
                 for (int n = 0; n < Shader->GetShaderList().size(); n++)
                 {
-                    bool is_selected = (current_Shader == Shader->GetShaderList()[n].Name.c_str()); // You can store your selection however you want, outside or inside your objects
-                    if (ImGui::Selectable(Shader->GetShaderList()[n].Name.c_str(), is_selected)) {
+                    bool is_selected = (current_Shader == Shader->GetShaderList()[n].m_sName.c_str()); // You can store your selection however you want, outside or inside your objects
+                    if (ImGui::Selectable(Shader->GetShaderList()[n].m_sName.c_str(), is_selected)) {
 
-                        Shadername = Shader->GetShaderList()[n].Name;
+                        Shadername = Shader->GetShaderList()[n].m_sName;
                         Shader->SetShaderData(n);
                         current_Shader = Shadername.c_str();
                     }

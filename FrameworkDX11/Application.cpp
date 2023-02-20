@@ -126,7 +126,7 @@ HRESULT Application::InitMesh()
 
 
     //gemoatry shader
-    hr = _Shader->NewGeoShader("BillBord", L"BillBord.fx", _pd3dDevice, _pImmediateContext);
+    hr = _Shader->NewGeometryShader("BillBord", L"BillBord.fx", _pd3dDevice, _pImmediateContext);
     if (FAILED(hr))
         return hr;
 
@@ -604,12 +604,12 @@ void Application::Draw()
     //creat Shadow depth senciles
     for (UINT i = 0; i < MAX_LIGHTS; i++)
     {
-        _pImmediateContext->IASetInputLayout(_Shader->GetShaderData()._pVertexLayout);
+        _pImmediateContext->IASetInputLayout(_Shader->GetShaderData().m_pVertexLayout);
         // Set primitive topology
         _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        _pImmediateContext->VSSetShader(_Shader->GetShaderList()[10]._pVertexShader, nullptr, 0);
+        _pImmediateContext->VSSetShader(_Shader->GetShaderList()[10].m_pVertexShader, nullptr, 0);
         _pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
-        _pImmediateContext->PSSetShader(_Shader->GetShaderList()[10]._pPixelShader, nullptr, 0);
+        _pImmediateContext->PSSetShader(_Shader->GetShaderList()[10].m_pPixelShader, nullptr, 0);
 
         _pLightContol->GetLight(i)->CreateShdowMap(_pImmediateContext, GameObjects, &_pConstantBuffer);
 
@@ -649,15 +649,15 @@ void Application::Draw()
 
     // Render the cube
 
-    _pImmediateContext->IASetInputLayout(_Shader->GetShaderData()._pVertexLayout);
+    _pImmediateContext->IASetInputLayout(_Shader->GetShaderData().m_pVertexLayout);
 
     // Set primitive topology
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    _pImmediateContext->VSSetShader(_Shader->GetShaderData()._pVertexShader, nullptr, 0);
+    _pImmediateContext->VSSetShader(_Shader->GetShaderData().m_pVertexShader, nullptr, 0);
     _pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
     _pImmediateContext->VSSetConstantBuffers(2, 1, &_pLightConstantBuffer);
-    _pImmediateContext->PSSetShader(_Shader->GetShaderData()._pPixelShader, nullptr, 0);
+    _pImmediateContext->PSSetShader(_Shader->GetShaderData().m_pPixelShader, nullptr, 0);
     _pImmediateContext->PSSetConstantBuffers(2, 1, &_pLightConstantBuffer);
 
 
@@ -678,10 +678,10 @@ void Application::Draw()
      RSControll->SetRasterizerState(_pImmediateContext);
 
 
-    _pImmediateContext->VSSetShader(_Shader->GetShaderByName("NoEffects")._pVertexShader, nullptr, 0);
+    _pImmediateContext->VSSetShader(_Shader->GetShaderByName("NoEffects").m_pVertexShader, nullptr, 0);
     _pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
     _pImmediateContext->VSSetConstantBuffers(2, 1, &_pLightConstantBuffer);
-    _pImmediateContext->PSSetShader(_Shader->GetShaderByName("NoEffects")._pPixelShader, nullptr, 0);
+    _pImmediateContext->PSSetShader(_Shader->GetShaderByName("NoEffects").m_pPixelShader, nullptr, 0);
     _pImmediateContext->PSSetConstantBuffers(2, 1, &_pLightConstantBuffer);
 
      WorldAsFloat = _GameObjectFloor.GetTransfrom()->GetWorldMatrix();
@@ -700,10 +700,10 @@ void Application::Draw()
     _pImmediateContext->HSSetConstantBuffers(2, 1, &_pLightConstantBuffer);
 
 
-    BillBoradObject->Draw(_pImmediateContext, _Shader->GetGeoShader(),&cb1, _pConstantBuffer);
+    BillBoradObject->Draw(_pImmediateContext, _Shader->GetGeometryData(),&cb1, _pConstantBuffer);
 
 
-    _pImmediateContext->IASetInputLayout(_Shader->GetShaderData()._pVertexLayout);
+    _pImmediateContext->IASetInputLayout(_Shader->GetShaderData().m_pVertexLayout);
 
 
     //post 2d
@@ -746,10 +746,10 @@ void Application::Draw()
         _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
 
         // Render the cube
-        _pImmediateContext->VSSetShader(_Shader->GetShaderData()._pVertexShader, nullptr, 0);
+        _pImmediateContext->VSSetShader(_Shader->GetShaderData().m_pVertexShader, nullptr, 0);
         _pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
         _pImmediateContext->VSSetConstantBuffers(2, 1, &_pLightConstantBuffer);
-        _pImmediateContext->PSSetShader(_Shader->GetShaderData()._pPixelShader, nullptr, 0);
+        _pImmediateContext->PSSetShader(_Shader->GetShaderData().m_pPixelShader, nullptr, 0);
         _pImmediateContext->PSSetConstantBuffers(2, 1, &_pLightConstantBuffer);
 
         //_pImmediateContext->PSSetConstantBuffers(1, 1, &materialCB);
@@ -771,10 +771,10 @@ void Application::Draw()
     else
     {
 
-        _pImmediateContext->VSSetShader(_Shader->GetShaderByName("NoEffects")._pVertexShader, nullptr, 0);
+        _pImmediateContext->VSSetShader(_Shader->GetShaderByName("NoEffects").m_pVertexShader, nullptr, 0);
         _pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
         _pImmediateContext->VSSetConstantBuffers(2, 1, &_pLightConstantBuffer);
-        _pImmediateContext->PSSetShader(_Shader->GetShaderByName("NoEffects")._pPixelShader, nullptr, 0);
+        _pImmediateContext->PSSetShader(_Shader->GetShaderByName("NoEffects").m_pPixelShader, nullptr, 0);
         _pImmediateContext->PSSetConstantBuffers(2, 1, &_pLightConstantBuffer);
 
         _pLightContol->draw(_pImmediateContext, _pConstantBuffer, &cb1);
@@ -814,13 +814,13 @@ void Application::Draw()
 
 
         // Render the cube
-        _pImmediateContext->IASetInputLayout(_Shader->GetShaderData()._pVertexLayout);
+        _pImmediateContext->IASetInputLayout(_Shader->GetShaderData().m_pVertexLayout);
         // Set primitive topology
         _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        _pImmediateContext->VSSetShader(_Shader->GetShaderList()[9]._pVertexShader, nullptr, 0);
+        _pImmediateContext->VSSetShader(_Shader->GetShaderList()[9].m_pVertexShader, nullptr, 0);
         _pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
-        _pImmediateContext->PSSetShader(_Shader->GetShaderList()[9]._pPixelShader, nullptr, 0);
+        _pImmediateContext->PSSetShader(_Shader->GetShaderList()[9].m_pPixelShader, nullptr, 0);
 
         _pImmediateContext->UpdateSubresource(_pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0);
         _pImmediateContext->PSSetConstantBuffers(1, 1, &_pPostProcessingConstantBuffer);
@@ -870,13 +870,13 @@ void Application::Draw()
             RenderTargetControl->GetRenderTarget("alpha")->SetRenderTarget(_pImmediateContext);
 
 
-            _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("Alpha")._pVertexLayout);
+            _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("Alpha").m_pVertexLayout);
             _pImmediateContext->PSSetSamplers(0, 1, &m_pPointrLinear);
             _pImmediateContext->IASetVertexBuffers(0, 1, pBuffers, &strides, &offsets);
             _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-            _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("Alpha")._pVertexShader, nullptr, 0);
-            _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("Alpha")._pPixelShader, nullptr, 0);
+            _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("Alpha").m_pVertexShader, nullptr, 0);
+            _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("Alpha").m_pPixelShader, nullptr, 0);
 
 
             _pImmediateContext->UpdateSubresource(_pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0);
@@ -904,13 +904,13 @@ void Application::Draw()
            //down sample
             RenderTargetControl->GetRenderTarget("DownSample")->SetRenderTarget(_pImmediateContext);
 
-            _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("SolidColour")._pVertexLayout);
+            _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("SolidColour").m_pVertexLayout);
             _pImmediateContext->PSSetSamplers(0, 1, &m_pPointrLinear);
             _pImmediateContext->IASetVertexBuffers(0, 1, pBuffers, &strides, &offsets);
             _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-            _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("SolidColour")._pVertexShader, nullptr, 0);
-            _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("SolidColour")._pPixelShader, nullptr, 0);
+            _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("SolidColour").m_pVertexShader, nullptr, 0);
+            _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("SolidColour").m_pPixelShader, nullptr, 0);
 
 
             _pImmediateContext->UpdateSubresource(_pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0);
@@ -931,13 +931,13 @@ void Application::Draw()
             RenderTargetControl->GetRenderTarget("Gauss1")->SetRenderTarget(_pImmediateContext);
 
 
-            _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("Gaussian1")._pVertexLayout);
+            _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("Gaussian1").m_pVertexLayout);
             _pImmediateContext->PSSetSamplers(0, 1, &m_pPointrLinear);
             _pImmediateContext->IASetVertexBuffers(0, 1, pBuffers, &strides, &offsets);
             _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-            _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("Gaussian1")._pVertexShader, nullptr, 0);
-            _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("Gaussian1")._pPixelShader, nullptr, 0);
+            _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("Gaussian1").m_pVertexShader, nullptr, 0);
+            _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("Gaussian1").m_pPixelShader, nullptr, 0);
 
 
             _pImmediateContext->UpdateSubresource(_pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0);
@@ -953,13 +953,13 @@ void Application::Draw()
             RenderTargetControl->GetRenderTarget("Gauss2")->SetRenderTarget(_pImmediateContext);
 
 
-            _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("Gaussian2")._pVertexLayout);
+            _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("Gaussian2").m_pVertexLayout);
             _pImmediateContext->PSSetSamplers(0, 1, &m_pPointrLinear);
             _pImmediateContext->IASetVertexBuffers(0, 1, pBuffers, &strides, &offsets);
             _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-            _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("Gaussian2")._pVertexShader, nullptr, 0);
-            _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("Gaussian2")._pPixelShader, nullptr, 0);
+            _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("Gaussian2").m_pVertexShader, nullptr, 0);
+            _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("Gaussian2").m_pPixelShader, nullptr, 0);
 
 
             _pImmediateContext->UpdateSubresource(_pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0);
@@ -983,13 +983,13 @@ void Application::Draw()
             //upsample
             RenderTargetControl->GetRenderTarget("UpSample")->SetRenderTarget(_pImmediateContext);
 
-            _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("SolidColour")._pVertexLayout);
+            _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("SolidColour").m_pVertexLayout);
             _pImmediateContext->PSSetSamplers(0, 1, &m_pPointrLinear);
             _pImmediateContext->IASetVertexBuffers(0, 1, pBuffers, &strides, &offsets);
             _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-            _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("SolidColour")._pVertexShader, nullptr, 0);
-            _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("SolidColour")._pPixelShader, nullptr, 0);
+            _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("SolidColour").m_pVertexShader, nullptr, 0);
+            _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("SolidColour").m_pPixelShader, nullptr, 0);
 
 
             _pImmediateContext->UpdateSubresource(_pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0);
@@ -1012,12 +1012,12 @@ void Application::Draw()
             //DOF implmentation
             RenderTargetControl->GetRenderTarget("DepthOfField")->SetRenderTarget(_pImmediateContext);
 
-            _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("DepthOfField")._pVertexLayout);
+            _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("DepthOfField").m_pVertexLayout);
             _pImmediateContext->PSSetSamplers(0, 1, &m_pPointrLinear);
             _pImmediateContext->IASetVertexBuffers(0, 1, pBuffers, &strides, &offsets);
             _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-            _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("DepthOfField")._pVertexShader, nullptr, 0);
-            _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("DepthOfField")._pPixelShader, nullptr, 0);
+            _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("DepthOfField").m_pVertexShader, nullptr, 0);
+            _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("DepthOfField").m_pPixelShader, nullptr, 0);
             _pImmediateContext->UpdateSubresource(_pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0);
             _pImmediateContext->PSSetConstantBuffers(0, 1, &_pPostProcessingConstantBuffer);
 
@@ -1037,12 +1037,12 @@ void Application::Draw()
         //fade implmentation
         RenderTargetControl->GetRenderTarget("Fade")->SetRenderTarget(_pImmediateContext);
 
-        _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("Fade")._pVertexLayout);
+        _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("Fade").m_pVertexLayout);
         _pImmediateContext->PSSetSamplers(0, 1, &m_pPointrLinear);
         _pImmediateContext->IASetVertexBuffers(0, 1, pBuffers, &strides, &offsets);
         _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-        _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("Fade")._pVertexShader, nullptr, 0);
-        _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("Fade")._pPixelShader, nullptr, 0);
+        _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("Fade").m_pVertexShader, nullptr, 0);
+        _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("Fade").m_pPixelShader, nullptr, 0);
         _pImmediateContext->UpdateSubresource(_pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0);
         _pImmediateContext->PSSetConstantBuffers(0, 1, &_pPostProcessingConstantBuffer);
 
@@ -1065,13 +1065,13 @@ void Application::Draw()
         _pImmediateContext->ClearRenderTargetView(_pRenderTargetView, Colors::DarkBlue);
         _pImmediateContext->ClearDepthStencilView(_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-        _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("Fianl")._pVertexLayout);
+        _pImmediateContext->IASetInputLayout(_Shader->GetFullScreenShaderByName("Fianl").m_pVertexLayout);
         _pImmediateContext->PSSetSamplers(0, 1, &m_pPointrLinear);
         _pImmediateContext->IASetVertexBuffers(0, 1, pBuffers, &strides, &offsets);
         _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-        _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("Fianl")._pVertexShader, nullptr, 0);
-        _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("Fianl")._pPixelShader, nullptr, 0);
+        _pImmediateContext->VSSetShader(_Shader->GetFullScreenShaderByName("Fianl").m_pVertexShader, nullptr, 0);
+        _pImmediateContext->PSSetShader(_Shader->GetFullScreenShaderByName("Fianl").m_pPixelShader, nullptr, 0);
 
 
 

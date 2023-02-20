@@ -1,133 +1,129 @@
 #pragma once
-
-#include <d3d11_1.h>
-#include <d3dcompiler.h>
-#include<vector>
-#include<string>
-#include<cassert>
-using namespace std;
-/// <summary>
-/// storage for a shader's data
-/// </summary>
-struct ShaderData
-{
-	string Name;
-	ID3D11VertexShader* _pVertexShader;
-	ID3D11GeometryShader* _pGeometryShader;
-	ID3D11HullShader* _pHullShader;
-	ID3D11DomainShader* _pDomainShader;
-	ID3D11PixelShader* _pPixelShader;
-	ID3D11InputLayout* _pVertexLayout;
-
-
-
-	ShaderData() {
-		_pVertexShader = nullptr;
-		_pGeometryShader = nullptr;
-		_pHullShader = nullptr;
-		_pDomainShader = nullptr;
-		_pPixelShader = nullptr;
-		_pVertexLayout = nullptr;
-		Name = "A";
-	}
-
-	ShaderData(string _Name,ID3D11VertexShader* pVertexShader, ID3D11PixelShader* pPixelShader, ID3D11InputLayout* pVertexLayout , ID3D11GeometryShader* pGeometryShader = nullptr, ID3D11HullShader* pHullShader=nullptr, ID3D11DomainShader* pDomainShader=nullptr) {
-		_pVertexShader = pVertexShader;
-		_pGeometryShader = pGeometryShader;
-		_pHullShader = pHullShader;
-		_pDomainShader = pDomainShader;
-		_pPixelShader = pPixelShader;
-		_pVertexLayout = pVertexLayout;
-		Name = _Name;
-	}
-
-	void CleanUp() {
-
-		if (_pVertexShader)
-			_pVertexShader->Release();
-
-		if (_pPixelShader)
-			_pPixelShader->Release();
-
-		if (_pVertexLayout)
-			_pVertexLayout->Release();
-
-		if (_pGeometryShader)
-			_pGeometryShader->Release();
-
-		if (_pHullShader)
-			_pHullShader->Release();
-
-		if (_pDomainShader)
-			_pDomainShader->Release();
-	}
-
-};
-
-enum class Layout
-{
-	Defualt = 0,
-	Instance,
-	Terrain,
-	Animation
-};
+#ifndef SHADERCONTROLLER_H
+#define SHADERCONTROLLER_H
 
 /// <summary>
-/// controlls all the shaders in the appliaction
+/// Controller for all of the shaders in the application.
 /// </summary>
 class ShaderController
 {
 public:
+	enum class Layout
+	{
+		Default = 0,
+		Instance,
+		Terrain,
+		Animation
+	};
+
+	/// <summary>
+	/// Container to hold all the shader data.
+	/// </summary>
+	struct ShaderData
+	{
+		ShaderData()
+		{
+			m_sName = "Empty";
+			m_pVertexShader = nullptr;
+			m_pGeometryShader = nullptr;
+			m_pHullShader = nullptr;
+			m_pDomainShader = nullptr;
+			m_pPixelShader = nullptr;
+			m_pVertexLayout = nullptr;
+		}
+
+		ShaderData(
+			std::string name,
+			ID3D11VertexShader* pVertexShader,
+			ID3D11PixelShader* pPixelShader,
+			ID3D11InputLayout* pVertexLayout,
+			ID3D11GeometryShader* pGeometryShader = nullptr,
+			ID3D11HullShader* pHullShader = nullptr,
+			ID3D11DomainShader* pDomainShader = nullptr
+		)
+		{
+			m_sName = name;
+			m_pVertexShader = pVertexShader;
+			m_pGeometryShader = pGeometryShader;
+			m_pHullShader = pHullShader;
+			m_pDomainShader = pDomainShader;
+			m_pPixelShader = pPixelShader;
+			m_pVertexLayout = pVertexLayout;
+		}
+
+		void CleanUp()
+		{
+			if ( m_pVertexShader )
+				m_pVertexShader->Release();
+
+			if ( m_pPixelShader )
+				m_pPixelShader->Release();
+
+			if ( m_pVertexLayout )
+				m_pVertexLayout->Release();
+
+			if ( m_pGeometryShader )
+				m_pGeometryShader->Release();
+
+			if ( m_pHullShader )
+				m_pHullShader->Release();
+
+			if ( m_pDomainShader )
+				m_pDomainShader->Release();
+		}
+
+		std::string m_sName;
+		ID3D11VertexShader* m_pVertexShader;
+		ID3D11HullShader* m_pHullShader;
+		ID3D11DomainShader* m_pDomainShader;
+		ID3D11GeometryShader* m_pGeometryShader;
+		ID3D11PixelShader* m_pPixelShader;
+		ID3D11InputLayout* m_pVertexLayout;
+	};
+
 	ShaderController();
 	~ShaderController();
-	//creat shader
-	HRESULT NewShader(string Name,const WCHAR* szFileName, ID3D11Device* pd3dDevice, ID3D11DeviceContext* pImmediateContext);
-	HRESULT NewFullScreenShader(string Name, const WCHAR* szFileName, ID3D11Device* pd3dDevice, ID3D11DeviceContext* pImmediateContext);
-	HRESULT NewGeoShader(string Name, const WCHAR* szFileName, ID3D11Device* pd3dDevice, ID3D11DeviceContext* pImmediateContext);
-	HRESULT NewTessShader(string Name, const WCHAR* szFileName, ID3D11Device* pd3dDevice, ID3D11DeviceContext* pImmediateContext);
-	HRESULT NewAnimationShader(string Name, const WCHAR* szFileName, ID3D11Device* pd3dDevice, ID3D11DeviceContext* pImmediateContext);
 
-	//get shader
-	vector<ShaderData> GetShaderList() { return _ShaderData; }
+	ShaderData GetFullScreenShaderByName( std::string name );
+	ShaderData GetFullScreenShaderByNumber( int num );
+	ShaderData GetShaderByName( std::string name );
 	ShaderData GetShaderData();
-	ShaderData GetShaderByName(string Name);
+	void SetShaderData( UINT shaderNum );
 
-	vector<ShaderData> GetFSShaderList() { return _FullScreenShaderData; }
-	ShaderData GetFullScreenShaderByName(string Name);
-	ShaderData GetFullScreenShaderByNumber(int No);
+	bool NewShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	bool NewFullScreenShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	bool NewGeometryShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	bool NewTessellationShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	bool NewAnimationShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 
-	ShaderData GetGeoShader() { return GeoShader; }
-	//set shader
-	void SetShaderData(UINT ShaderSet);
-	
+	inline std::vector<ShaderData> GetFSShaderList() const noexcept{ return m_vFullScreenShaderData; }
+	inline std::vector<ShaderData> GetShaderList() const noexcept { return m_vShaderData; }
+	inline ShaderData GetGeometryData() const noexcept { return m_geometryData; }
+
 private:
-	//shaders 
-	vector<ShaderData>_ShaderData;
-	vector<ShaderData>_FullScreenShaderData;
-	ShaderData GeoShader;
-	UINT CurrentShader;
-	
-	//Load shader flies
-	HRESULT CompileShaderFromFile(const WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
-	//creat shader data
-	HRESULT NewVertexShader(const WCHAR* szFileName,  ID3D11Device* pd3dDevice, ID3D11DeviceContext* pImmediateContext, Layout layout);
-	HRESULT NewPixleShader(const WCHAR* szFileName, ID3D11Device* _pd3dDevice);
-	HRESULT NewGeometryShader(const WCHAR* szFileName, ID3D11Device* pd3dDevice, ID3D11DeviceContext* pImmediateContext);
-
-	HRESULT NewHullShader(const WCHAR* szFileName, ID3D11Device* pd3dDevice, ID3D11DeviceContext* pImmediateContext);
-	HRESULT NewDomianShader(const WCHAR* szFileName, ID3D11Device* pd3dDevice, ID3D11DeviceContext* pImmediateContext);
+	HRESULT CompileShaderFromFile( const WCHAR* fileName, LPCSTR entryPoint, LPCSTR shaderModel, ID3DBlob** blobOut );
+	bool NewVertexShader( const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext, Layout layout );
+	bool NewPixelShader( const WCHAR* fileName, ID3D11Device* pDevice );
+	bool NewGeometryShader( const WCHAR* fileName, ID3D11Device* pDevice );
+	bool NewHullShader( const WCHAR* fileName, ID3D11Device* pDevice );
+	bool NewDomainShader( const WCHAR* fileName, ID3D11Device* pDevice );
 	void CleanUp();
 
-	ID3D11VertexShader* _pVertexShader = nullptr;
-	ID3D11PixelShader* _pPixelShader = nullptr;
-	ID3D11HullShader* _pHullShader=nullptr;
-	ID3D11DomainShader* _pDomainShader=nullptr;
-	ID3D11GeometryShader* _pGeometryShader=nullptr;
-	ID3D11InputLayout* _pVertexLayout = nullptr;
+	ID3D11VertexShader* m_pVertexShader = nullptr;
+	ID3D11HullShader* m_pHullShader = nullptr;
+	ID3D11DomainShader* m_pDomainShader = nullptr;
+	ID3D11GeometryShader* m_pGeometryShader = nullptr;
+	ID3D11PixelShader* m_pPixelShader = nullptr;
+	ID3D11InputLayout* m_pVertexLayout = nullptr;
 
-	ID3D11InputLayout* g_pQuadLayout = nullptr;
-	ID3D11VertexShader* g_pQuadVS = nullptr;
-	ID3D11PixelShader* g_pQuadPS = nullptr;
+	ID3D11InputLayout* m_pQuadLayout = nullptr;
+	ID3D11VertexShader* m_pQuadVS = nullptr;
+	ID3D11PixelShader* m_pQuadPS = nullptr;
+
+	std::vector<ShaderData> m_vFullScreenShaderData;
+	std::vector<ShaderData> m_vShaderData;
+	ShaderData m_geometryData;
+	UINT m_uCurrentShader;
 };
 
-
+#endif

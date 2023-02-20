@@ -121,7 +121,7 @@ bool AabbBehindPlaneTest(XMFLOAT3 center, XMFLOAT3 extents, XMFLOAT4 plane)
 // Returns true if the box is completely outside the frustum.
 bool AabbOutsideFrustumTest(XMFLOAT3 center, XMFLOAT3 min, XMFLOAT3 Max, vector<XMFLOAT4> frustumPlanes)
 {
-    
+
     bool cull = false;
     for (size_t planeID = 0; planeID < frustumPlanes.size(); planeID++)
     {
@@ -161,9 +161,9 @@ bool AabbOutsideFrustumTest(XMFLOAT3 center, XMFLOAT3 min, XMFLOAT3 Max, vector<
 void TerrainVoxel::Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderControll, ConstantBuffer* buffer, ID3D11Buffer* _pConstantBuffer, CameraController* camControll)
 {
     if (_IsDraw) {
-        pContext->VSSetShader(ShaderControll->GetShaderByName("Voxle")._pVertexShader, nullptr, 0);
+        pContext->VSSetShader(ShaderControll->GetShaderByName("Voxle").m_pVertexShader, nullptr, 0);
         pContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
-        pContext->PSSetShader(ShaderControll->GetShaderByName("Voxle")._pPixelShader, nullptr, 0);
+        pContext->PSSetShader(ShaderControll->GetShaderByName("Voxle").m_pPixelShader, nullptr, 0);
         pContext->PSSetShaderResources(0, 5, _pGroundTextureRV.data());
         pContext->PSSetConstantBuffers(3, 1, &_CubeInfoCB);
         //frustrum Planes for culling terrain when not in view
@@ -291,7 +291,7 @@ Chunk::~Chunk()
 
 void Chunk::Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderControll, ConstantBuffer* buffer, ID3D11Buffer* _pConstantBuffer, CameraController* camControll, ID3D11Buffer* VoxleCB)
 {
-    
+
     //frustrum Planes for culling terrain when not in view
     XMFLOAT4X4 viewAsFloats = camControll->GetCam(2)->GetView();
     XMFLOAT4X4 projectionAsFloats = camControll->GetCam(2)->GetProjection();
@@ -309,10 +309,10 @@ void Chunk::Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderControll
     planes.push_back(worldPlanes[3]);
     planes.push_back(worldPlanes[4]);
     planes.push_back(worldPlanes[5]);
-   
+
     for (auto x : _CubeToDraw)
     {
-       
+
                 if (x->GetIsActive()) {
                     x->GetTransForm()->SetParent(_ChunkTransform->GetWorldMatrix());
                     XMFLOAT3 center = x->GetTransForm()->GetPosition();
@@ -322,8 +322,8 @@ void Chunk::Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderControll
                     XMStoreFloat3(&pos2, XMVector3Transform(XMLoadFloat3(&pos), XMLoadFloat4x4(&world)));
                     XMFLOAT3 minVertex = XMFLOAT3(-1,-1,-1);
                     XMFLOAT3 maxVertex = XMFLOAT3( 1,1,1);
-                    
-                    
+
+
 
                     if (!AabbOutsideFrustumTest(pos2, minVertex, maxVertex, planes)) {
                         XMFLOAT4X4 WorldAsFloat = x->GetTransForm()->GetWorldMatrix();
@@ -335,11 +335,11 @@ void Chunk::Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderControll
 
                         x->GetApparance()->Draw(pContext);
                     }
-                    
+
                 }
-        
+
     }
- 
+
 
 
 }
@@ -354,7 +354,7 @@ void Chunk::GenrateTerrain(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pConte
     noise.SetFrequency(_Frequancy);
     noise.SetFractalType(FastNoiseLite::FractalType::FractalType_None);
     noise.SetFractalOctaves(_Octaves);
-   
+
     for (float x = 0; x < _XSize; x++)
     {
         for (float z = 0; z < _ZSize; z++)
@@ -375,14 +375,14 @@ void Chunk::GenrateTerrain(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pConte
             {
                 //CubeData[x][z].push_back(new Block(pd3dDevice, pContext));
                 _AllCubeInChuck[x][z][y]->SetIsActive(true);
-                
+
             }
         }
- 
+
     }
 
-   
-    //creat caves 
+
+    //creat caves
     noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
     noise.SetFrequency(0.09);
     noise.SetFractalType(FastNoiseLite::FractalType::FractalType_None);
@@ -391,7 +391,7 @@ void Chunk::GenrateTerrain(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pConte
     {
         for (float z = 0; z < _ZSize; z++)
         {
-           
+
             for (float y = 0; y < MaxHight; y++)
             { float  Active = ((noise.GetNoise(x + _ChunkTransform->GetPosition().x, y, z + _ChunkTransform->GetPosition().z) + 1) / 2);
                 //CubeData[x][z].push_back(new Block(pd3dDevice, pContext));
@@ -403,7 +403,7 @@ void Chunk::GenrateTerrain(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pConte
         }
 
     }
-   
+
     //noise for cube types
     FastNoiseLite noise2;
     //noise.SetSeed(1338);
@@ -473,7 +473,7 @@ void Chunk::GenrateTerrain(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pConte
                 if (!lXNegative || !lXPositive || !lYNegative || !lYPositive || !lZNegative || !lZPositive) {
                     _AllCubeInChuck[x][y][z]->CreatCube(lXNegative, lXPositive, lYNegative, lYPositive, lZNegative, lZPositive, pd3dDevice, pContext);
                     _AllCubeInChuck[x][y][z]->GetTransForm()->SetPosition(x / 0.5f, z / 0.5f, y / 0.5f);
-                    
+
                         //set cube types
                        float a= noise2.GetNoise((float)x, (float)y, (float)z);
                        if (a < 0) {
@@ -486,7 +486,7 @@ void Chunk::GenrateTerrain(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pConte
                            _AllCubeInChuck[x][y][z]->SetBlockType(BlockType::Snow);
                        }
                 }
-                
+
             }
         }
     }
@@ -530,7 +530,7 @@ void Chunk::CleanUp()
 
 Block::Block(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
 {
-   
+
 }
 
 Block::~Block()
@@ -543,7 +543,7 @@ void Block::CreatCube(bool lXNegative, bool lXPositive, bool lYNegative, bool lY
     _CubeTransform = new Transform();
     _CubeApparace = new TerrainAppearence();
     _CubeApparace->CreateCube(lXNegative, lXPositive, lYNegative, lYPositive, lZNegative, lZPositive, pd3dDevice, pContext);
-    
+
 }
 
 void Block::SetBlockType(BlockType Block)

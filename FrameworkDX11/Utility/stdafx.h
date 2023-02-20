@@ -7,6 +7,7 @@
 
 // Data Structures
 #include <unordered_map>
+#include <cassert>
 #include <string>
 #include <sstream>
 #include <fstream>

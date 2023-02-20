@@ -35,7 +35,7 @@ public:
 
 	void CreatBillboard(int Number, ID3D11Device* _pd3dDevice);
 
-	void Draw(ID3D11DeviceContext* pContext,ShaderData Shader, ConstantBuffer* cb, ID3D11Buffer* _pConstantBuffer);
+	void Draw(ID3D11DeviceContext* pContext,ShaderController::ShaderData Shader, ConstantBuffer* cb, ID3D11Buffer* _pConstantBuffer);
 	void SetTexture(string TexName, ID3D11Device* _pd3dDevice);
 
 	void UpdatePositions(ID3D11DeviceContext* pContext);

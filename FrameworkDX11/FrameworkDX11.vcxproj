@@ -506,7 +506,9 @@
     <ClCompile Include="RansterStateManager.cpp" />
     <ClCompile Include="RenderTargetControll.cpp" />
     <ClCompile Include="RenderTargetTextureClass.cpp" />
-    <ClCompile Include="ShaderController.cpp" />
+    <ClCompile Include="ShaderController.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="ShadowMap.cpp" />
     <ClCompile Include="Skeleton.cpp" />
     <ClCompile Include="Terrain.cpp" />

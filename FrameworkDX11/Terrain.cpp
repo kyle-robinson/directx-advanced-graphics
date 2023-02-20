@@ -18,7 +18,7 @@ Terrain::Terrain(std::string HightMapName, XMFLOAT2 size, double Scale, TerrainG
 	_pTransform = new Transform();
     _pApperance = new TerrainAppearence(_HightMapHight, _HightMapWidth,1.0f, _HightmapData);
 
-    ShaderControll->NewTessShader("Terrain", L"TerrainA.fx", pd3dDevice, pContext);
+    ShaderControll->NewTessellationShader("Terrain", L"TerrainA.fx", pd3dDevice, pContext);
 
     CreateHightData();
     BuildHightMap(pd3dDevice);
@@ -118,7 +118,7 @@ void Terrain::Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderContro
 {
     if (_IsDraw) {
         pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
-        pContext->IASetInputLayout(ShaderControll->GetShaderByName("Terrain")._pVertexLayout);
+        pContext->IASetInputLayout(ShaderControll->GetShaderByName("Terrain").m_pVertexLayout);
 
         XMFLOAT4X4 WorldAsFloat = _pTransform->GetWorldMatrix();
         XMMATRIX mGO = XMLoadFloat4x4(&WorldAsFloat);
@@ -147,17 +147,17 @@ void Terrain::Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderContro
         pContext->UpdateSubresource(_TerrainConstantBuffer, 0, nullptr, &_TerrainCB, 0, 0);
 
         //Shader Set
-        pContext->VSSetShader(ShaderControll->GetShaderByName("Terrain")._pVertexShader, nullptr, 0);
+        pContext->VSSetShader(ShaderControll->GetShaderByName("Terrain").m_pVertexShader, nullptr, 0);
         pContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
         pContext->HSSetConstantBuffers(4, 1, &_TerrainConstantBuffer);
         pContext->VSSetShaderResources(1, 1, &_HeightMapSRV);
 
-        pContext->HSSetShader(ShaderControll->GetShaderByName("Terrain")._pHullShader, nullptr, 0);
+        pContext->HSSetShader(ShaderControll->GetShaderByName("Terrain").m_pHullShader, nullptr, 0);
         pContext->HSSetConstantBuffers(0, 1, &_pConstantBuffer);
         pContext->HSSetConstantBuffers(4, 1, &_TerrainConstantBuffer);
         pContext->HSSetShaderResources(1, 1, &_HeightMapSRV);
 
-        pContext->DSSetShader(ShaderControll->GetShaderByName("Terrain")._pDomainShader, nullptr, 0);
+        pContext->DSSetShader(ShaderControll->GetShaderByName("Terrain").m_pDomainShader, nullptr, 0);
         pContext->DSSetConstantBuffers(0, 1, &_pConstantBuffer);
         pContext->DSSetConstantBuffers(4, 1, &_TerrainConstantBuffer);
         pContext->DSSetShaderResources(1, 1, &_HeightMapSRV);
@@ -167,7 +167,7 @@ void Terrain::Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderContro
         pContext->PSSetShaderResources(0, 1, &_BlendMap);
         pContext->PSSetShaderResources(1, 1, &_HeightMapSRV);
         pContext->PSSetShaderResources(2, 5, _pApperance->GetTextureResourceView().data());
-        pContext->PSSetShader(ShaderControll->GetShaderByName("Terrain")._pPixelShader, nullptr, 0);
+        pContext->PSSetShader(ShaderControll->GetShaderByName("Terrain").m_pPixelShader, nullptr, 0);
 
         _pApperance->Draw(pContext);
 
