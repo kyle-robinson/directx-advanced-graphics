@@ -12,7 +12,9 @@
 #include <iostream>
 #include <vector>
 
-#include "InputControllor.h"
+#include "WindowContainer.h"
+#include "Input.h"
+
 #include "DDSTextureLoader.h"
 #include "resource.h"
 #include "DrawableGameObject.h"
@@ -36,11 +38,9 @@
 #include"TerrainVoxel.h"
 #include"AnimatedModel.h"
 
-class Application
+class Application : public WindowContainer
 {
 private:
-	HINSTANCE               _hInst;
-	HWND                    _hWnd;
 	D3D_DRIVER_TYPE         _driverType;
 	D3D_FEATURE_LEVEL       _featureLevel ;
 	ID3D11Device* _pd3dDevice;
@@ -91,7 +91,7 @@ private:
 	DrawableGameObject		_GameObjectFloor;
 	Terrain* _Terrain;
 	TerrainVoxel* _VoxelTerrain;
-	InputControllor* _controll;
+	Input* m_pInput;
 	ShaderController* _Shader;
 	CameraController* _pCamControll;
 	ImGuiManager* DimGuiManager;
@@ -112,7 +112,6 @@ public:
 private:
 	float calculateDeltaTime();
 	void setupLightForRender();
-	HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
 	HRESULT InitDevice();
 	void Cleanup();
 

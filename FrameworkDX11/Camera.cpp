@@ -3,7 +3,7 @@
 Camera::Camera(XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up, FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth)
 	: _eye(position), _at(at), _up(up), _windowWidth(windowWidth), _windowHeight(windowHeight), _nearDepth(nearDepth), _farDepth(farDepth)
 {
-	
+
 
 	_Rot = { 0.0f,0.0f,0.0f };
 
@@ -28,14 +28,14 @@ void Camera::Update()
 	qOrientation.i = orientation.x;
 	qOrientation.j = orientation.y;
 	qOrientation.k = orientation.z;
-	
+
 	CalculateTransformMatrixRowMajor(RotationMatrix, { 0,0,0 }, qOrientation);
 
     // Initialize the view matrix
 
 	XMVECTOR cmaTarget = XMVector3Transform(XMLoadFloat3(&_DefualtFord), RotationMatrix);
 	cmaTarget += XMLoadFloat3(&_eye);
-	XMVECTOR upDir = XMVector3TransformCoord(XMLoadFloat3(&_DefualtUP), RotationMatrix);
+	XMVECTOR upDir = XMVector3TransformCoord(XMLoadFloat3(&_DefaultUp), RotationMatrix);
 	XMStoreFloat4x4(&_view, XMMatrixLookAtLH(XMLoadFloat3(&_eye), cmaTarget, upDir));
 
 
@@ -43,18 +43,20 @@ void Camera::Update()
 	XMStoreFloat3(&_VecBack, XMVector3TransformCoord(XMLoadFloat3(&_DefaultBack), RotationMatrix));
 	XMStoreFloat3(&_VecLeft, XMVector3TransformCoord(XMLoadFloat3(&_DefaultLeft), RotationMatrix));
 	XMStoreFloat3(&_VecRight, XMVector3TransformCoord(XMLoadFloat3(&_DefaultRight), RotationMatrix));
-	
+	XMStoreFloat3(&_VecUp, XMVector3TransformCoord(XMLoadFloat3(&_DefaultUp), RotationMatrix));
+	XMStoreFloat3(&_VecDown, XMVector3TransformCoord(XMLoadFloat3(&_DefaultDown), RotationMatrix));
+
     // Initialize the projection matrix
 	XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH(0.25f * XM_PI, _windowWidth / _windowHeight, _nearDepth, _farDepth));
 
 
 
-	
+
 }
 
 void Camera::UpdatePointat()
 {
-	
+
 	XMStoreFloat4x4(&_view, XMMatrixLookAtLH(XMLoadFloat3(&_eye), XMLoadFloat3(&_at), XMLoadFloat3(&_up)));
 	XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH( XM_PI/2, 1.0f, _nearDepth, _farDepth));
 }
@@ -107,11 +109,11 @@ void Camera::AgustRot(XMFLOAT3 rot)
 
 void Camera::CleanUp()
 {
-	
+
 }
 
-XMFLOAT4X4 Camera::GetViewProjection() const 
-{ 
+XMFLOAT4X4 Camera::GetViewProjection() const
+{
 	XMMATRIX view = XMLoadFloat4x4(&_view);
 	XMMATRIX projection = XMLoadFloat4x4(&_projection);
 

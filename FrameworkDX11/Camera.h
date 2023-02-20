@@ -9,7 +9,7 @@
 
 using namespace DirectX;
 /// <summary>
-/// Camera Class: 
+/// Camera Class:
 /// updates the camera
 /// moves and rotates the camera
 /// created from https://github.com/ThomasMillard123/FGAGC
@@ -36,7 +36,8 @@ public:
 	XMFLOAT3 GetVecBack() { return _VecBack; }
 	XMFLOAT3 GetVecLeft() { return _VecLeft; }
 	XMFLOAT3 GetVecRight() { return _VecRight; }
-	XMFLOAT3 GetVecUP() { return _VecUP; }
+	XMFLOAT3 GetVecUp() { return _VecUp; }
+	XMFLOAT3 GetVecDown() { return _VecDown; }
 
 	void SetPosition(XMFLOAT3 position);
 	void AgustPos(XMFLOAT3 position);
@@ -48,38 +49,40 @@ public:
 	void SetRot(XMFLOAT3 rot);
 	void AgustRot(XMFLOAT3 rot);
 	void Reshape(FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth);
-	
-	float GetCamSpeed() { return _cameraSpeed; }
 
+	float GetCamSpeed() { return _cameraSpeed; }
+	void SetCamSpeed( float speed ) { _cameraSpeed = speed; }
 
 	void SetCamName(string Name) { CamName = Name; }
 	string GetCamName() { return CamName; }
 
 private:
-	
+
 	void CleanUp();
 private:
 
 	//movement data
-	const XMFLOAT3 _DefualtUP = { 0.0f,1.0f,0.0f };
+	const XMFLOAT3 _DefaultUp = { 0.0f,1.0f,0.0f };
+	const XMFLOAT3 _DefaultDown = { 0.0f,-1.0f,0.0f };
 	const XMFLOAT3 _DefualtFord = { 0.0f,0.0f,1.0f };
 	const XMFLOAT3 _DefaultBack = { 0.0f,0.0f,-1.0f };
 	const XMFLOAT3 _DefaultLeft = { -1.0f,0.0f,0.0f };
 	const XMFLOAT3 _DefaultRight = { 1.0f,0.0f,0.0f };
 
-	 XMFLOAT3 _VecUP;
-	 XMFLOAT3 _VecFord ;
-	 XMFLOAT3 _VecBack ;
-	 XMFLOAT3 _VecLeft ;
+	 XMFLOAT3 _VecUp;
+	 XMFLOAT3 _VecDown;
+	 XMFLOAT3 _VecFord;
+	 XMFLOAT3 _VecBack;
+	 XMFLOAT3 _VecLeft;
 	 XMFLOAT3 _VecRight;
 
 
 	//cam data
 	XMFLOAT3 _Rot;
-	float _cameraSpeed = 2.0f;
+	float _cameraSpeed = 0.5f;
 
 
-	XMFLOAT3 _eye; 
+	XMFLOAT3 _eye;
 	XMFLOAT3 _at;
 	XMFLOAT3 _up;
 
@@ -88,7 +91,7 @@ private:
 	FLOAT _nearDepth;
 	FLOAT _farDepth;
 
-	//matrixes 
+	//matrixes
 	XMFLOAT4X4 _view;
 	XMFLOAT4X4 _projection;
 

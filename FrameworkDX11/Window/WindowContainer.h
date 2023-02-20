@@ -4,7 +4,6 @@
 
 #include "Mouse.h"
 #include "Keyboard.h"
-//#include "Graphics.h"
 #include "RenderWindow.h"
 
 class WindowContainer
@@ -25,12 +24,11 @@ protected:
 	void EnableImGuiMouse() noexcept;
 	void DisableImGuiMouse() noexcept;
 
+	DirectX::XMFLOAT2 windowSize;
 	bool windowResized = false;
 	bool cursorEnabled = true;
-	XMFLOAT2 windowSize;
 
 	RenderWindow renderWindow;
-	//Graphics graphics;
 	Keyboard keyboard;
 	Mouse mouse;
 };

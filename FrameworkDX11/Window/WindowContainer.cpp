@@ -53,6 +53,7 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     {
         if ( imio.WantCaptureKeyboard )
             return 0;
+
         unsigned char keycode = static_cast<unsigned char>( wParam );
         if ( keyboard.IsKeysAutoRepeat() )
             keyboard.OnKeyPressed( keycode );
@@ -62,6 +63,7 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
             if ( !wasPressed )
                 keyboard.OnKeyPressed( keycode );
         }
+
         switch ( wParam )
         {
         case VK_ESCAPE:
@@ -76,6 +78,7 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     {
         if ( imio.WantCaptureKeyboard )
             return 0;
+
         unsigned char keycode = static_cast<unsigned char>( wParam );
         keyboard.OnKeyReleased( keycode );
         return 0;
@@ -84,6 +87,7 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     {
         if ( imio.WantCaptureKeyboard )
             return 0;
+
         unsigned char ch = static_cast<unsigned char>( wParam );
         if ( keyboard.IsCharsAutoRepeat() )
             keyboard.OnChar( ch );
@@ -102,6 +106,7 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );
         const POINTS pt = MAKEPOINTS( lParam );
+
         if ( !cursorEnabled )
         {
             if ( !mouse.IsInWindow() )
@@ -112,8 +117,10 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
             }
             return 0;
         }
+
         if ( imio.WantCaptureMouse )
             return 0;
+
         if ( pt.x >= 0 && pt.x < windowSize.x && pt.y >= 0 && pt.y < windowSize.y )
         {
             mouse.OnMouseMove( x, y );
@@ -202,6 +209,7 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     {
         if ( imio.WantCaptureMouse )
             return 0;
+
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );
         mouse.OnMiddlePressed( x, y );
@@ -211,6 +219,7 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     {
         if ( imio.WantCaptureMouse )
             return 0;
+
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );
         mouse.OnMiddleReleased( x, y );
@@ -220,6 +229,7 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     {
         if ( imio.WantCaptureMouse )
             return 0;
+
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );
         if ( GET_WHEEL_DELTA_WPARAM( wParam ) > 0 )

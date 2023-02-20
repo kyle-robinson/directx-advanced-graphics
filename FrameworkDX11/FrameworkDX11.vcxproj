@@ -438,7 +438,6 @@
     <ClInclude Include="DebugOutput.h" />
     <ClInclude Include="DrawableGameObject.h" />
     <ClInclude Include="ImGuiManager.h" />
-    <ClInclude Include="InputControllor.h" />
     <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Input\Keyboard.h" />
     <ClInclude Include="Input\Mouse.h" />
@@ -490,10 +489,15 @@
     <ClCompile Include="DebugOutput.cpp" />
     <ClCompile Include="DrawableGameObject.cpp" />
     <ClCompile Include="ImGuiManager.cpp" />
-    <ClCompile Include="InputControllor.cpp" />
-    <ClCompile Include="Input\Input.cpp" />
-    <ClCompile Include="Input\Keyboard .cpp" />
-    <ClCompile Include="Input\Mouse.cpp" />
+    <ClCompile Include="Input\Input.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Input\Keyboard .cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Input\Mouse.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightControll.cpp" />
     <ClCompile Include="M3dLoader.cpp" />

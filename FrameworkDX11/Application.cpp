@@ -1,101 +1,7 @@
 #include "Application.h"
 #include "M3dLoader.h"
 
-Application* app;
-LRESULT CALLBACK WindProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-
-    switch (message)
-    {
-
-
-        // Handle all other messages
-    default:
-    {
-         //Get ptr to window class
-
-        // Forward messages to window class
-        return app->WndProc(hWnd, message, wParam, lParam);
-    }
-
-
-
-    }
-}
-
-//--------------------------------------------------------------------------------------
-// Called every time the application receives a message
-//--------------------------------------------------------------------------------------
-extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK Application::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    PAINTSTRUCT ps;
-    HDC hdc;
-
-    if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
-        return true;
-    const auto& imio = ImGui::GetIO();
-
-    switch (message)
-    {
-    case WM_PAINT:
-        hdc = BeginPaint(hWnd, &ps);
-        EndPaint(hWnd, &ps);
-        break;
-
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-
-
-
-    case WM_KEYUP:
-    case WM_KEYDOWN:
-    case WM_CHAR:
-    {
-        if (!imio.WantCaptureKeyboard) {
-            return _controll->HandleInput(message, wParam, lParam);
-
-        }
-        return true;
-    }
-    break;
-    //mouse input
-    case WM_MOUSEMOVE:
-    case WM_LBUTTONDOWN:
-    case WM_LBUTTONUP:
-    case WM_RBUTTONDOWN:
-    case WM_RBUTTONUP:
-    case WM_MBUTTONDOWN:
-    case WM_MBUTTONUP:
-    case WM_MOUSEHWHEEL:
-    {
-        if (!imio.WantCaptureMouse) {
-            return _controll->HandleInput(message, wParam, lParam);
-
-        }
-    }
-    case WM_INPUT:
-    {
-        if (!imio.WantCaptureMouse) {
-            _controll->HandleInput(message, wParam, lParam);
-            return DefWindowProc(hWnd, message, wParam, lParam);
-        }
-
-    }
-    break;
-        // Note that this tutorial does not handle resizing (WM_SIZE) requests,
-        // so we created the window without the resize border.
-
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-
-    return 0;
-}
-
 Application::Application() {
-    _hInst = nullptr;
-    _hWnd = nullptr;
     _driverType = D3D_DRIVER_TYPE_NULL;
     _featureLevel = D3D_FEATURE_LEVEL_11_0;
     _pd3dDevice = nullptr;
@@ -107,19 +13,15 @@ Application::Application() {
     _pRenderTargetView = nullptr;
     _pConstantBuffer = nullptr;
 
-
-
     _pConstantBuffer = nullptr;
     _pLightConstantBuffer = nullptr;
 
-
-
     DimGuiManager = new ImGuiManager();
-
-    _controll = new InputControllor();
     _pLightContol = new LightControll();
+    m_pInput = new Input();
 
-    app = this;
+    _viewWidth = 1280;
+    _viewHeight = 720;
 }
 
 Application::~Application()
@@ -129,7 +31,7 @@ Application::~Application()
 
 HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 {
-    if (FAILED(InitWindow(hInstance, nCmdShow)))
+    if ( !renderWindow.Initialize( m_pInput, hInstance, "DirectX 11 Advanced Graphics & Rendering", "TutorialWindowClass", _viewWidth, _viewHeight ) )
         return 0;
 
     if (FAILED(InitDevice()))
@@ -138,64 +40,9 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
         return 0;
     }
 
-    DimGuiManager->Initialize(_hWnd, _pd3dDevice, _pImmediateContext);
+    DimGuiManager->Initialize(renderWindow.GetHWND(), _pd3dDevice, _pImmediateContext);
 
 	return S_OK;
-}
-
-HRESULT Application::InitWindow(HINSTANCE hInstance, int nCmdShow)
-{
-    // Register class
-    WNDCLASSEX wcex;
-    wcex.cbSize = sizeof(WNDCLASSEX);
-    wcex.style = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc = WindProc;
-    wcex.cbClsExtra = 0;
-    wcex.cbWndExtra = 0;
-    wcex.hInstance = hInstance;
-    wcex.hIcon = LoadIcon(hInstance, (LPCTSTR)IDI_TUTORIAL1);
-    wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-    wcex.lpszMenuName = nullptr;
-    wcex.lpszClassName = L"TutorialWindowClass";
-    wcex.hIconSm = LoadIcon(wcex.hInstance, (LPCTSTR)IDI_TUTORIAL1);
-    if (!RegisterClassEx(&wcex))
-        return E_FAIL;
-
-
-    _viewWidth = 1280;
-    _viewHeight = 720;
-
-
-    // Create window
-    _hInst = hInstance;
-    RECT rc = { 0, 0, _viewWidth, _viewHeight };
-
-
-
-    AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
-    _hWnd = CreateWindow(L"TutorialWindowClass", L"Direct3D 11",
-        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-        CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
-        nullptr);
-    if (!_hWnd)
-        return E_FAIL;
-
-    ShowWindow(_hWnd, nCmdShow);
-
-
-    RAWINPUTDEVICE rid;
-    rid.usUsagePage = 0x01;
-    rid.usUsage = 0x02;
-    rid.hwndTarget = NULL;
-    rid.dwFlags = 0;
-
-    if (RegisterRawInputDevices(&rid, 1, sizeof(rid)) == false) {
-        return E_FAIL;
-    }
-
-
-    return S_OK;
 }
 
 HRESULT Application::InitMesh()
@@ -408,7 +255,7 @@ HRESULT Application::InitWorld(int width, int height)
     _Camrea = new Camera(XMFLOAT3(0.0f, 0, -5), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), width, height, 0.01f, 50.0f);
     _Camrea->SetCamName("Diss Cam");
     _pCamControll->AddCam(_Camrea);
-    _controll->AddCam(_pCamControll);
+    m_pInput->AddCamControl( _pCamControll );
 
     //postSettings
     postSettings.UseColour = false;
@@ -464,11 +311,6 @@ HRESULT Application::InitWorld(int width, int height)
 HRESULT Application::InitDevice()
 {
     HRESULT hr = S_OK;
-
-    RECT rc;
-    GetClientRect(_hWnd, &rc);
-    UINT width = rc.right - rc.left;
-    UINT height = rc.bottom - rc.top;
 
     UINT createDeviceFlags = 0;
 #ifdef _DEBUG
@@ -544,15 +386,15 @@ HRESULT Application::InitDevice()
         }
 
         DXGI_SWAP_CHAIN_DESC1 sd = {};
-        sd.Width = width;
-        sd.Height = height;
+        sd.Width = _viewWidth;
+        sd.Height = _viewHeight;
         sd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;//  DXGI_FORMAT_R16G16B16A16_FLOAT;////DXGI_FORMAT_R8G8B8A8_UNORM;
         sd.SampleDesc.Count = 1;
         sd.SampleDesc.Quality = 0;
         sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         sd.BufferCount = 1;
 
-        hr = dxgiFactory2->CreateSwapChainForHwnd(_pd3dDevice, _hWnd, &sd, nullptr, nullptr, &_pSwapChain1);
+        hr = dxgiFactory2->CreateSwapChainForHwnd(_pd3dDevice, renderWindow.GetHWND(), &sd, nullptr, nullptr, &_pSwapChain1);
         if (SUCCEEDED(hr))
         {
             hr = _pSwapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void**>(&_pSwapChain));
@@ -565,13 +407,13 @@ HRESULT Application::InitDevice()
         // DirectX 11.0 systems
         DXGI_SWAP_CHAIN_DESC sd = {};
         sd.BufferCount = 1;
-        sd.BufferDesc.Width = width;
-        sd.BufferDesc.Height = height;
+        sd.BufferDesc.Width = _viewWidth;
+        sd.BufferDesc.Height = _viewHeight;
         sd.BufferDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
         sd.BufferDesc.RefreshRate.Numerator = 60;
         sd.BufferDesc.RefreshRate.Denominator = 1;
         sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        sd.OutputWindow = _hWnd;
+        sd.OutputWindow = renderWindow.GetHWND();
         sd.SampleDesc.Count = 1;
         sd.SampleDesc.Quality = 0;
         sd.Windowed = TRUE;
@@ -580,7 +422,7 @@ HRESULT Application::InitDevice()
     }
 
     // Note this tutorial doesn't handle full-screen swapchains so we block the ALT+ENTER shortcut
-    dxgiFactory->MakeWindowAssociation(_hWnd, DXGI_MWA_NO_ALT_ENTER);
+    dxgiFactory->MakeWindowAssociation( renderWindow.GetHWND(), DXGI_MWA_NO_ALT_ENTER);
 
     dxgiFactory->Release();
 
@@ -600,8 +442,8 @@ HRESULT Application::InitDevice()
 
     // Create depth stencil texture
     D3D11_TEXTURE2D_DESC descDepth = {};
-    descDepth.Width = width;
-    descDepth.Height = height;
+    descDepth.Width = _viewWidth;
+    descDepth.Height = _viewHeight;
     descDepth.MipLevels = 1;
     descDepth.ArraySize = 1;
     descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -652,19 +494,19 @@ HRESULT Application::InitDevice()
 
     // Create a render target view 2nd
     RenderTargetControl = new RenderTargetControll();
-    RenderTargetControl->CreatRenderTarget("RTT",width, height,_pd3dDevice);
-    RenderTargetControl->CreatRenderTarget("Depth", width, height, _pd3dDevice);
-    RenderTargetControl->CreatRenderTarget("DepthOfField", width, height, _pd3dDevice);
-    RenderTargetControl->CreatRenderTarget("Fade", width, height, _pd3dDevice);
-    RenderTargetControl->CreatRenderTarget("Gauss1", width / 2, height / 2, _pd3dDevice);
-    RenderTargetControl->CreatRenderTarget("Gauss2", width / 2, height / 2, _pd3dDevice);
-    RenderTargetControl->CreatRenderTarget("DownSample", width / 2, height / 2, _pd3dDevice);
-    RenderTargetControl->CreatRenderTarget("UpSample", width, height, _pd3dDevice);
-    RenderTargetControl->CreatRenderTarget("alpha", width, height, _pd3dDevice);
+    RenderTargetControl->CreatRenderTarget("RTT", _viewWidth, _viewHeight,_pd3dDevice);
+    RenderTargetControl->CreatRenderTarget("Depth", _viewWidth, _viewHeight, _pd3dDevice);
+    RenderTargetControl->CreatRenderTarget("DepthOfField", _viewWidth, _viewHeight, _pd3dDevice);
+    RenderTargetControl->CreatRenderTarget("Fade", _viewWidth, _viewHeight, _pd3dDevice);
+    RenderTargetControl->CreatRenderTarget("Gauss1", _viewWidth / 2, _viewHeight / 2, _pd3dDevice);
+    RenderTargetControl->CreatRenderTarget("Gauss2", _viewWidth / 2, _viewHeight / 2, _pd3dDevice);
+    RenderTargetControl->CreatRenderTarget("DownSample", _viewWidth / 2, _viewHeight / 2, _pd3dDevice);
+    RenderTargetControl->CreatRenderTarget("UpSample", _viewWidth, _viewHeight, _pd3dDevice);
+    RenderTargetControl->CreatRenderTarget("alpha", _viewWidth, _viewHeight, _pd3dDevice);
 
 
 
-    DepthLight= new ShadowMap(_pd3dDevice, width, height);
+    DepthLight= new ShadowMap(_pd3dDevice, _viewWidth, _viewHeight );
 
     RSControll = new RasterStateManager();
 
@@ -694,7 +536,7 @@ HRESULT Application::InitDevice()
         return hr;
     }
 
-    hr = InitWorld(width, height);
+    hr = InitWorld( _viewWidth, _viewHeight );
     if (FAILED(hr))
     {
         MessageBox(nullptr,
@@ -716,7 +558,7 @@ void Application::Update()
     if (t == 0.0f)
         return;
 
-    _controll->Update();
+    m_pInput->Update( t );
     _pCamControll->Update();
     _Terrain->Update();
     // Update the cube transform, material etc.
@@ -1307,8 +1149,8 @@ void Application::Cleanup()
         _GameObject.cleanup();
         _GameObjectFloor.cleanup();
 
-        delete _controll;
-        _controll = nullptr;
+        delete m_pInput;
+        m_pInput = nullptr;
 
         delete _pCamControll;
         _pConstantBuffer = nullptr;

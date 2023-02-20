@@ -14,9 +14,6 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Camera</Filter>
     </ClCompile>
-    <ClCompile Include="InputControllor.cpp">
-      <Filter>Input</Filter>
-    </ClCompile>
     <ClCompile Include="Vector3.cpp">
       <Filter>UsefullFiles</Filter>
     </ClCompile>
@@ -150,9 +147,6 @@
     </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="InputControllor.h">
-      <Filter>Input</Filter>
     </ClInclude>
     <ClInclude Include="C++HelperFunctions.h">
       <Filter>UsefullFiles</Filter>
