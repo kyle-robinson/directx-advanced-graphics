@@ -69,7 +69,7 @@ PS_INPUT VS( VS_INPUT input )
 	// Convert from model to world space
 	output.Norm = mul( float4( input.Norm, 0 ), World ).xyz;
 	output.Tex = input.Tex;
-  
+
 	// Build TBN matrix
 	float3 T = normalize( mul( input.Tangent, (float3x4)World ) );
 	float3 B = normalize( mul( input.BiTangent, (float3x4)World ) );
