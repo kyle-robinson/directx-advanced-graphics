@@ -90,7 +90,7 @@ float4 DoSpecular( Light lightObject, float3 vertexToEye, float3 lightDirectionT
 	float4 lightDir = float4( normalize( -lightDirectionToVertex ), 1 );
 	float lightIntensity = saturate( dot( Normal, (float3)lightDir ) );
 	float4 specular = float4( 0.0f, 0.0f, 0.0f, 0.0f );
-	
+
 	if ( lightIntensity > 0.0f )
 	{
 		float3  reflection = normalize( 2 * lightIntensity * Normal - (float3)lightDir );
@@ -120,7 +120,7 @@ LightingResult DoPointLight( Light light, float3 vertexToEye, float4 vertexPos, 
 	float attenuation = DoAttenuation( light, distance );
 	result.Diffuse = DoDiffuse( light, vertexToLight, N ) * attenuation;
     result.Specular = DoSpecular( light, vertexToEye, lightDirectionToVertex, N ) * attenuation;
-	
+
 	return result;
 }
 
@@ -156,7 +156,7 @@ LightingResult DoSpotLight( Light light, float3 vertexToEye, float4 vertexPos, f
 	float spotIntensity = DoSpotCone( light, L );
 	result.Diffuse = DoDiffuse( light, L, N ) * attenuation * spotIntensity;
     result.Specular = DoSpecular( light, vertexToEye, lightDirectionToVertex, N ) * attenuation * spotIntensity;
-	
+
 	return result;
 }
 
@@ -174,7 +174,7 @@ float Shadow( float4 vertLightPos, int num )
 		// Bias to correct depth
         float zBias = depthPos.z - 0.00005f;
 		uint width, hight;
-		
+
 		if ( num == 1 )
 		{
 			// PCF
@@ -217,21 +217,21 @@ LightingResult ComputeLighting( float4 vertexPos, float3 N, float4 shadowPos[MAX
 	{
 		LightingResult result = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
 
-		if ( !Lights[i].Enabled ) 
+		if ( !Lights[i].Enabled )
 			continue;
-		
+
 		float shadowLevel = Shadow( shadowPos[i], i );
 		if ( shadowLevel != 0.0f )
 		{
 			if ( Lights[i].LightType == POINT_LIGHT )
 				result = DoPointLight( Lights[i], vertexToEye, vertexPos, N );
-			
+
 			if ( Lights[i].LightType == DIRECTIONAL_LIGHT )
 				result = DoDirectionalLight( Lights[i], vertexToEye, vertexPos, N );
-			
+
 			if ( Lights[i].LightType == SPOT_LIGHT )
 				result = DoSpotLight( Lights[i], vertexToEye, vertexPos, N );
-			
+
 			result.Diffuse *= shadowLevel;
 			result.Specular *= shadowLevel;
 		}
@@ -240,7 +240,7 @@ LightingResult ComputeLighting( float4 vertexPos, float3 N, float4 shadowPos[MAX
 			result.Diffuse = 0;
 			result.Specular = 0;
 		}
-		
+
 		totalResult.Diffuse += result.Diffuse;
 		totalResult.Specular += result.Specular;
 	}
