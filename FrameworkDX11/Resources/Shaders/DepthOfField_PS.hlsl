@@ -5,7 +5,7 @@ Texture2D texDepth : register( t2 );
 SamplerState smpPoint : register( s0 );
 
 // Constant Buffers
-cbuffer PostProcessingCB: register( b0 )
+cbuffer PostProcessingCB : register( b0 )
 {
     float4 Color;
     
@@ -32,7 +32,6 @@ struct VERTEX_OUT
     float2 Tex : TEXCOORD0;
 };
 
-//Pixel shader
 float4 PS( VERTEX_OUT input ) : SV_TARGET
 {
     float4 color = { 0.0f, 0.0f, 0.0f, 1.0f };

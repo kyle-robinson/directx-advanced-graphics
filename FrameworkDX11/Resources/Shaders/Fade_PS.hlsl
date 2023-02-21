@@ -3,7 +3,7 @@ Texture2D texDiffuse : register( t0 );
 SamplerState smpPoint : register( s0 );
 
 // Constant Buffers
-cbuffer PostProcessingCB: register( b0 )
+cbuffer PostProcessingCB : register( b0 )
 {
     float4 Color;
     
