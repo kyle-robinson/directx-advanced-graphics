@@ -27,7 +27,7 @@ VERTEX_OUT VS( VERTEX_IN input )
     output.Tex = input.Tex;
 
     // Get texel size for screen of this width
-    float texelSize = 1.0f / 1280;
+    float texelSize = 1.0f / 1280.0f;
 
     // Create UV coordinates for the pixel and its four horizontal neighbors on either side
     output.texCoord1 = input.Tex + float2( texelSize * -4.0f, 0.0f );

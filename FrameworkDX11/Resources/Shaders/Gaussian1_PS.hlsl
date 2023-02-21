@@ -20,15 +20,15 @@ struct VERTEX_OUT
 
 float4 PS( VERTEX_OUT input ) : SV_TARGET
 {
-    // Create the weights that each neighbor pixel will contribute to the blur.
+    // Create the weights that each neighbor pixel will contribute to the blur
     float weight0 = 1.0f;
     float weight1 = 0.9f;
     float weight2 = 0.55f;
     float weight3 = 0.18f;
     float weight4 = 0.1f;
 
-    // Create a normalized value to average the weights out a bit.
-    float normalization = (weight0 + 2.0f * (weight1 + weight2 + weight3 + weight4));
+    // Create a normalized value to average the weights out a bit
+    float normalization = ( weight0 + 2.0f * ( weight1 + weight2 + weight3 + weight4 ) );
 
     // Normalize the weights.
     weight0 = weight0 / normalization;
@@ -37,17 +37,17 @@ float4 PS( VERTEX_OUT input ) : SV_TARGET
     weight3 = weight3 / normalization;
     weight4 = weight4 / normalization;
 
-    // Add the nine horizontal pixels to the color by the specific weight of each.
-    float4 vColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    vColor += texDiffuse.Sample( smpPoint, input.texCoord1) * weight4;
-    vColor += texDiffuse.Sample( smpPoint, input.texCoord2) * weight3;
-    vColor += texDiffuse.Sample( smpPoint, input.texCoord3) * weight2;
-    vColor += texDiffuse.Sample( smpPoint, input.texCoord4) * weight1;
-    vColor += texDiffuse.Sample( smpPoint, input.texCoord5) * weight0;
-    vColor += texDiffuse.Sample( smpPoint, input.texCoord6) * weight1;
-    vColor += texDiffuse.Sample( smpPoint, input.texCoord7) * weight2;
-    vColor += texDiffuse.Sample( smpPoint, input.texCoord8) * weight3;
-    vColor += texDiffuse.Sample( smpPoint, input.texCoord9) * weight4;
+    // Add the nine horizontal pixels to the color by the specific weight of each
+    float4 vColor = float4( 0.0f, 0.0f, 0.0f, 0.0f );
+    vColor += texDiffuse.Sample( smpPoint, input.texCoord1 ) * weight4;
+    vColor += texDiffuse.Sample( smpPoint, input.texCoord2 ) * weight3;
+    vColor += texDiffuse.Sample( smpPoint, input.texCoord3 ) * weight2;
+    vColor += texDiffuse.Sample( smpPoint, input.texCoord4 ) * weight1;
+    vColor += texDiffuse.Sample( smpPoint, input.texCoord5 ) * weight0;
+    vColor += texDiffuse.Sample( smpPoint, input.texCoord6 ) * weight1;
+    vColor += texDiffuse.Sample( smpPoint, input.texCoord7 ) * weight2;
+    vColor += texDiffuse.Sample( smpPoint, input.texCoord8 ) * weight3;
+    vColor += texDiffuse.Sample( smpPoint, input.texCoord9 ) * weight4;
     
     return vColor;
 }
