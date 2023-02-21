@@ -8,19 +8,19 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
     theApp = new Application();
 
-    if (FAILED(theApp->Initialise(hInstance, nCmdShow)))
+    if ( FAILED( theApp->Initialise( hInstance, nCmdShow ) ) )
     {
         return -1;
     }
 
     // Main message loop
-    MSG msg = {0};
-    while( WM_QUIT != msg.message )
+    MSG msg = { 0 };
+    while ( WM_QUIT != msg.message )
     {
-        if( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE ) )
+        if ( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE ) )
         {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            TranslateMessage( &msg );
+            DispatchMessage( &msg );
         }
         else
         {
@@ -32,5 +32,5 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     delete theApp;
     theApp = nullptr;
 
-    return ( int )msg.wParam;
+    return (int)msg.wParam;
 }
