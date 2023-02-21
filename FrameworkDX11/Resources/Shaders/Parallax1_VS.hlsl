@@ -40,7 +40,7 @@ cbuffer LightProperties : register( b2 )
 // Lighting Functions
 float3 VectorToTangentSpace( float3 vectorV, float3x3 TBN_inv )
 {
-	float3 tangentSpaceNormal = normalize( mul(vectorV, TBN_inv ) );
+	float3 tangentSpaceNormal = normalize( mul( vectorV, TBN_inv ) );
 	return tangentSpaceNormal;
 }
 
