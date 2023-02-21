@@ -25,9 +25,9 @@ cbuffer TerrainCB : register( b4 )
 	float Layer4MaxHeight;
 
 	float Layer5MaxHeight;
-	float Paddin1;
-	float Paddin2;
-	float Paddin3;
+	float Padding1;
+	float Padding2;
+	float Padding3;
 
 	float4 WorldFrustumPlanes[6];
 };

@@ -16,5 +16,5 @@ VERTEX_OUT VS( VERTEX_IN input )
     VERTEX_OUT output;
     output.Pos = input.Pos;
     output.Tex = input.Tex;
-    return Output;
+    return output;
 }

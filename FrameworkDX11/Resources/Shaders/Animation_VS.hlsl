@@ -28,7 +28,7 @@ cbuffer MatrixBuffer : register( b0 )
 	matrix View;
 	matrix Projection;
 	float4 vOutputColor;
-}
+};
 
 cbuffer LightProperties : register( b2 )
 {
@@ -92,8 +92,8 @@ PS_INPUT VS( VS_INPUT input )
 
 	// Convert from model to world space
 	output.Norm = mul( float4( input.Norm, 0 ), World ).xyz;
-
 	output.Tex = input.Tex;
+
 	float4 lightView;
 	for ( int i = 0; i < MAX_LIGHTS; ++i )
 	{

@@ -1,3 +1,6 @@
+// Definitions
+#define MAX_LIGHTS 2
+
 // Resources
 Texture2D txDiffuse : register( t0 );
 SamplerState smpLinear : register( s0 );
