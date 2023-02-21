@@ -26,7 +26,7 @@ enum class BlockType
 /// <summary>
 /// cube data cb
 /// </summary>
-struct VoxleCube
+struct VoxelCube
 {
     int CubeType=0;
     XMFLOAT3 Pad1;
@@ -54,7 +54,7 @@ public:
     BlockType GetBlockType() {
         return _BlockType;
     }
-    VoxleCube GetCubeData() { return _CubeData; }
+    VoxelCube GetCubeData() { return _CubeData; }
 
 
 private:
@@ -64,7 +64,7 @@ private:
 
     bool _IsActive = false;
     BlockType _BlockType = BlockType::Air;
-    VoxleCube _CubeData;
+    VoxelCube _CubeData;
 };
 
 
@@ -78,7 +78,7 @@ public:
 	Chunk(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos, XMFLOAT3 Size);
     Chunk(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos, XMFLOAT3 Size,int Seed, float Frequancy, int Octave);
 	~Chunk();
-    void Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderControll, ConstantBuffer* buffer, ID3D11Buffer* _pConstantBuffer, CameraController* camControll, ID3D11Buffer* VoxleCB);
+    void Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderControll, ConstantBuffer* buffer, ID3D11Buffer* _pConstantBuffer, CameraController* camControll, ID3D11Buffer* VoxelCB);
 
     Transform* GetTrnasfor() { return _ChunkTransform; }
 

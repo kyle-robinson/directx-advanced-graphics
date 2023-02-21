@@ -18,7 +18,11 @@ cbuffer ConstantBuffer : register(b0)
 	float4 camPos;
 }
 
-Texture2D gLayerMapArray[5]: register(t0);
+Texture2D txDiffuse : register(t0);
+Texture2D txNormal: register(t1);
+Texture2D txParallax: register(t2);
+Texture2D txDepth[2] : register(t3);
+
 
 SamplerState samLinear : register(s0);
 SamplerComparisonState sampleStateClamp : register(s1);
@@ -84,13 +88,6 @@ cbuffer LightProperties : register(b2)
 	Light Lights[MAX_LIGHTS];           // 80 * 8 = 640 bytes
 };
 
-cbuffer VoxleCube : register(b3)
-{
-	int CubeType;   
-	float3 Pad1;
-
-};
-
 //--------------------------------------------------------------------------------------
 struct VS_INPUT
 {
@@ -107,7 +104,7 @@ struct PS_INPUT
 	float4 worldPos : POSITION;
 	float3 Norm : NORMAL;
 	float2 Tex : TEXCOORD0;
-
+	
 };
 
 
@@ -116,18 +113,56 @@ struct PS_INPUT
 //--------------------------------------------------------------------------------------
 PS_INPUT VS(VS_INPUT input)
 {
-
+	
 	input.Pos.w = 1.0f;
 	PS_INPUT output = (PS_INPUT)0;
-	output.Pos = mul(input.Pos, World);
-	output.worldPos = output.Pos;
-	output.Pos = mul(output.Pos, View);
-	output.Pos = mul(output.Pos, Projection);
+	output.Pos = input.Pos;
+	output.worldPos = mul(input.Pos, World);
 
-
+	
 
 	return output;
 }
+
+[maxvertexcount(4)]
+void GS(point PS_INPUT input[1], inout TriangleStream<PS_INPUT> OutputStream) {
+	
+	float3 planeNormal = input[0].worldPos - camPos;
+	planeNormal.y = 0.0f;
+	planeNormal = normalize(planeNormal);
+
+	float3 upVector = float3(0.0f, 1.0f, 0.0f);
+	float3 rightVector = normalize(cross(planeNormal, upVector));
+
+	// Create the billboards quad	
+	float3 vert[4];
+	vert[0] = input[0].worldPos - rightVector; 
+	vert[1] = input[0].worldPos + rightVector; 
+	vert[2] = input[0].worldPos - rightVector + upVector; 
+	vert[3] = input[0].worldPos + rightVector + upVector; 
+
+	// Get billboards texture coordinates	
+	float2 texCoord[4];
+	texCoord[0] = float2(0, 1);	
+	texCoord[1] = float2(1, 1);
+	texCoord[2] = float2(0, 0);
+	texCoord[3] = float2(1, 0);
+
+
+	PS_INPUT outputvert;
+
+	for (int i = 0; i < 4; i++) {	    
+		// VP = view / projection transform matrix, coordinate already has world transform    
+		outputvert.Pos = mul(float4(vert[i], 1.0f), View);
+		outputvert.Pos = mul(outputvert.Pos, Projection);
+		outputvert.worldPos = float4(vert[i], 0.0f);
+		outputvert.Tex = texCoord[i];
+		outputvert.Norm = float3(0, 0, 0);
+		OutputStream.Append(outputvert);
+	}
+
+}
+
 
 //--------------------------------------------------------------------------------------
 // Pixel Shader
@@ -137,38 +172,16 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 {
 
 
-	float4 texColor = { 0, 1, 0, 1 };
+	float4 texColor = { 1, 1, 1, 1 };
 
-	float4 water = { 0,0,1,1 };
-	float4 Stone = { 0.69 ,0.70 ,0.70 ,1 };
-	float4 snow = { 0,0,0,1 };
-	float4 c0 = gLayerMapArray[0].Sample(samLinear, IN.Tex);
-	float4 c1 = gLayerMapArray[1].Sample(samLinear, IN.Tex);
-	float4 c2 = gLayerMapArray[2].Sample(samLinear, IN.Tex);
-	float4 c3 = gLayerMapArray[3].Sample(samLinear, IN.Tex);
-	float4 c4 = gLayerMapArray[4].Sample(samLinear, IN.Tex);
-
-	float BlendFactor = 0;
-	//set cube textuer
-	if (CubeType==1) {
-		texColor = water;
-	}
-	else if (CubeType==2) {
-		texColor = c0;
-	}
-	else if (CubeType==3) {
-		
-		texColor = snow;
-	}
-	else if (CubeType==4) {
-		texColor = Stone;
-	}
-	else if (CubeType==5) {
-		texColor = c3;
-	}
-	
 
 	
+	texColor = txDiffuse.Sample(samLinear, IN.Tex);
+	
+
+
+	
+
 
 	return texColor;
 }

@@ -90,23 +90,23 @@ public:
 	ShaderData GetShaderData();
 	void SetShaderData( UINT shaderNum );
 
-	bool NewShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
-	bool NewFullScreenShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
-	bool NewGeometryShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
-	bool NewTessellationShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
-	bool NewAnimationShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	bool NewShader( std::string name, std::wstring fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	bool NewFullScreenShader( std::string name, std::wstring fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	bool NewGeometryShader( std::string name, std::wstring fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	bool NewTessellationShader( std::string name, std::wstring fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	bool NewAnimationShader( std::string name, std::wstring fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 
 	inline std::vector<ShaderData> GetFSShaderList() const noexcept{ return m_vFullScreenShaderData; }
 	inline std::vector<ShaderData> GetShaderList() const noexcept { return m_vShaderData; }
 	inline ShaderData GetGeometryData() const noexcept { return m_geometryData; }
 
 private:
-	HRESULT CompileShaderFromFile( const WCHAR* fileName, LPCSTR entryPoint, LPCSTR shaderModel, ID3DBlob** blobOut );
-	bool NewVertexShader( const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext, Layout layout );
-	bool NewPixelShader( const WCHAR* fileName, ID3D11Device* pDevice );
-	bool NewGeometryShader( const WCHAR* fileName, ID3D11Device* pDevice );
-	bool NewHullShader( const WCHAR* fileName, ID3D11Device* pDevice );
-	bool NewDomainShader( const WCHAR* fileName, ID3D11Device* pDevice );
+	HRESULT CompileShaderFromFile( std::wstring fileName, LPCSTR entryPoint, LPCSTR shaderModel, ID3DBlob** blobOut );
+	bool NewVertexShader( std::wstring fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext, Layout layout );
+	bool NewPixelShader( std::wstring fileName, ID3D11Device* pDevice );
+	bool NewGeometryShader( std::wstring fileName, ID3D11Device* pDevice );
+	bool NewHullShader( std::wstring fileName, ID3D11Device* pDevice );
+	bool NewDomainShader( std::wstring fileName, ID3D11Device* pDevice );
 	void CleanUp();
 
 	ID3D11VertexShader* m_pVertexShader = nullptr;

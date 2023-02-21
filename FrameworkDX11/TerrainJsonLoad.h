@@ -7,7 +7,7 @@
 #include<string>
 #include<fstream>
 
-//Data stucts to store data 
+//Data stucts to store data
 struct HightMapSettings
 {
     std::string HightMapFile;
@@ -58,11 +58,11 @@ bool CheckDataIsThere(const std::string& objectName, const DataFormat& document)
 {
     return document.HasMember(objectName.c_str());;
 }
-//store the file 
+//store the file
 inline bool StoreFile(const std::string& fileName, const Document& document)
 {
     // Write back to file
-    std::ofstream fileStream("JSON\\" + fileName +".json");
+    std::ofstream fileStream("Resources/JSON/" + fileName +".json");
     OStreamWrapper wrapperStream(fileStream);
     Writer<OStreamWrapper> writer(wrapperStream);
     document.Accept(writer);

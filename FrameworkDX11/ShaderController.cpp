@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "ShaderController.h"
 
+#define SHADER_PATH L"Resources/Shaders/"
+
 ShaderController::ShaderController()
 {
     m_uCurrentShader = 0u;
@@ -55,10 +57,11 @@ void ShaderController::SetShaderData( UINT shaderNum )
 }
 
 #pragma region CREATE-SHADERS
-bool ShaderController::NewShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
+bool ShaderController::NewShader( std::string name, std::wstring fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
     try
     {
+        fileName = SHADER_PATH + fileName;
         HRESULT hr = NewVertexShader( fileName, pDevice, pContext, Layout::Default );
         COM_ERROR_IF_FAILED( hr, "Failed to create a VERTEX shader for " + name );
 
@@ -77,13 +80,20 @@ bool ShaderController::NewShader( std::string name, const WCHAR* fileName, ID3D1
     return true;
 }
 
-bool ShaderController::NewFullScreenShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
+bool ShaderController::NewFullScreenShader( std::string name, std::wstring fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
     ID3DBlob* pVSBlob = nullptr;
     ID3DBlob* pPSBlob = nullptr;
 
     try
     {
+        fileName = SHADER_PATH + fileName;
+        std::wstring filePathCopy = fileName;
+
+        std::wstring shaderTag = L"_VS";
+        int position = fileName.find( L".hlsl" );
+        fileName = fileName.substr( 0, position ) + shaderTag + fileName.substr( position );
+
         // Compile the vertex shader
         HRESULT hr = CompileShaderFromFile( fileName, "QuadVS", "vs_5_0", &pVSBlob );
         COM_ERROR_IF_FAILED( hr, "Failed to compile the FULLSCREEN VERTEX shader!" );
@@ -105,9 +115,13 @@ bool ShaderController::NewFullScreenShader( std::string name, const WCHAR* fileN
             pVSBlob->GetBufferSize(), &m_pQuadLayout );
         COM_ERROR_IF_FAILED( hr, "Failed to create the INPUT LAYOUT for a FULLSCREEN vertex shader!" );
 
+        shaderTag = L"_PS";
+        position = filePathCopy.find( L".hlsl" );
+        filePathCopy = filePathCopy.substr( 0, position ) + shaderTag + filePathCopy.substr( position );
+
         // Compile the pixel shader
         ID3DBlob* pPSBlob = nullptr;
-        hr = CompileShaderFromFile( fileName, "QuadPS", "ps_5_0", &pPSBlob );
+        hr = CompileShaderFromFile( filePathCopy, "QuadPS", "ps_5_0", &pPSBlob );
         COM_ERROR_IF_FAILED( hr, "Failed to compile the FULLSCREEN PIXEL shader!" );
 
         // Create the pixel shader
@@ -128,10 +142,11 @@ bool ShaderController::NewFullScreenShader( std::string name, const WCHAR* fileN
     return true;
 }
 
-bool ShaderController::NewGeometryShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
+bool ShaderController::NewGeometryShader( std::string name, std::wstring fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
     try
     {
+        fileName = SHADER_PATH + fileName;
         HRESULT hr = NewVertexShader( fileName, pDevice, pContext, Layout::Instance );
         COM_ERROR_IF_FAILED( hr, "Failed to create a VERTEX shader for " + name );
 
@@ -151,10 +166,11 @@ bool ShaderController::NewGeometryShader( std::string name, const WCHAR* fileNam
     return true;
 }
 
-bool ShaderController::NewTessellationShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
+bool ShaderController::NewTessellationShader( std::string name, std::wstring fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
     try
     {
+        fileName = SHADER_PATH + fileName;
         HRESULT hr = NewVertexShader( fileName, pDevice, pContext, Layout::Terrain );
         COM_ERROR_IF_FAILED( hr, "Failed to create a VERTEX shader for " + name );
 
@@ -179,10 +195,11 @@ bool ShaderController::NewTessellationShader( std::string name, const WCHAR* fil
     return true;
 }
 
-bool ShaderController::NewAnimationShader( std::string name, const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
+bool ShaderController::NewAnimationShader( std::string name, std::wstring fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
     try
     {
+        fileName = SHADER_PATH + fileName;
         HRESULT hr = NewVertexShader( fileName, pDevice, pContext, Layout::Animation );
         COM_ERROR_IF_FAILED( hr, "Failed to create a VERTEX shader for " + name );
 
@@ -203,7 +220,7 @@ bool ShaderController::NewAnimationShader( std::string name, const WCHAR* fileNa
 #pragma endregion
 
 #pragma region COMPILE-SHADERS
-HRESULT ShaderController::CompileShaderFromFile( const WCHAR* fileName, LPCSTR entryPoint, LPCSTR shaderModel, ID3DBlob** blobOut )
+HRESULT ShaderController::CompileShaderFromFile( std::wstring fileName, LPCSTR entryPoint, LPCSTR shaderModel, ID3DBlob** blobOut )
 {
     DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #if defined(DEBUG) || defined(_DEBUG)
@@ -212,7 +229,7 @@ HRESULT ShaderController::CompileShaderFromFile( const WCHAR* fileName, LPCSTR e
 #endif
 
     ID3DBlob* pErrorBlob = nullptr;
-    HRESULT hr = D3DCompileFromFile( fileName, nullptr, nullptr, entryPoint,
+    HRESULT hr = D3DCompileFromFile( fileName.c_str(), nullptr, nullptr, entryPoint,
         shaderModel, dwShaderFlags, 0, blobOut, &pErrorBlob );
 
     if ( pErrorBlob )
@@ -228,14 +245,18 @@ HRESULT ShaderController::CompileShaderFromFile( const WCHAR* fileName, LPCSTR e
     return hr;
 }
 
-bool ShaderController::NewVertexShader( const WCHAR* fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext, Layout layout )
+bool ShaderController::NewVertexShader( std::wstring fileName, ID3D11Device* pDevice, ID3D11DeviceContext* pContext, Layout layout )
 {
     ID3DBlob* pVSBlob = nullptr;
 
     try
     {
+        std::wstring shaderTag = L"_VS";
+        int position = fileName.find( L".hlsl" );
+        fileName = fileName.substr( 0, position ) + shaderTag + fileName.substr( position );
+
         // Compile the vertex shader
-        HRESULT hr = CompileShaderFromFile( fileName, "VS", "vs_5_0", &pVSBlob );
+        HRESULT hr = CompileShaderFromFile( fileName.c_str(), "VS", "vs_5_0", &pVSBlob );
         COM_ERROR_IF_FAILED( hr, "Failed to compile the VERTEX shader!" );
 
         // Create the vertex shader
@@ -336,12 +357,16 @@ bool ShaderController::NewVertexShader( const WCHAR* fileName, ID3D11Device* pDe
     return true;
 }
 
-bool ShaderController::NewPixelShader( const WCHAR* fileName, ID3D11Device* pDevice )
+bool ShaderController::NewPixelShader( std::wstring fileName, ID3D11Device* pDevice )
 {
     ID3DBlob* pPSBlob = nullptr;
 
     try
     {
+        std::wstring shaderTag = L"_PS";
+        int position = fileName.find( L".hlsl" );
+        fileName = fileName.substr( 0, position ) + shaderTag + fileName.substr( position );
+
         // Compile the pixel shader
         HRESULT hr = CompileShaderFromFile( fileName, "PS", "ps_5_0", &pPSBlob );
         COM_ERROR_IF_FAILED( hr, "Failed to compile the PIXEL shader!" );
@@ -360,12 +385,16 @@ bool ShaderController::NewPixelShader( const WCHAR* fileName, ID3D11Device* pDev
     return true;
 }
 
-bool ShaderController::NewGeometryShader( const WCHAR* fileName, ID3D11Device* pDevice )
+bool ShaderController::NewGeometryShader( std::wstring fileName, ID3D11Device* pDevice )
 {
     ID3DBlob* pGSBlob = nullptr;
 
     try
     {
+        std::wstring shaderTag = L"_GS";
+        int position = fileName.find( L".hlsl" );
+        fileName = fileName.substr( 0, position ) + shaderTag + fileName.substr( position );
+
         // Compile the geometry shader
         HRESULT hr = CompileShaderFromFile( fileName, "GS", "gs_5_0", &pGSBlob );
         COM_ERROR_IF_FAILED( hr, "Failed to compile the GEOMETRY shader!" );
@@ -384,12 +413,16 @@ bool ShaderController::NewGeometryShader( const WCHAR* fileName, ID3D11Device* p
     return true;
 }
 
-bool ShaderController::NewHullShader( const WCHAR* fileName, ID3D11Device* pDevice )
+bool ShaderController::NewHullShader( std::wstring fileName, ID3D11Device* pDevice )
 {
     ID3DBlob* pHSBlob = nullptr;
 
     try
     {
+        std::wstring shaderTag = L"_HS";
+        int position = fileName.find( L".hlsl" );
+        fileName = fileName.substr( 0, position ) + shaderTag + fileName.substr( position );
+
         // Compile the hull shader
         HRESULT hr = CompileShaderFromFile( fileName, "HS", "hs_5_0", &pHSBlob );
         COM_ERROR_IF_FAILED( hr, "Failed to compile the HULL shader!" );
@@ -408,12 +441,16 @@ bool ShaderController::NewHullShader( const WCHAR* fileName, ID3D11Device* pDevi
     return true;
 }
 
-bool ShaderController::NewDomainShader( const WCHAR* fileName, ID3D11Device* pDevice )
+bool ShaderController::NewDomainShader( std::wstring fileName, ID3D11Device* pDevice )
 {
     ID3DBlob* pDSBlob = nullptr;
 
     try
     {
+        std::wstring shaderTag = L"_DS";
+        int position = fileName.find( L".hlsl" );
+        fileName = fileName.substr( 0, position ) + shaderTag + fileName.substr( position );
+
         // Compile the domain shader
         HRESULT hr = CompileShaderFromFile( fileName, "DS", "ds_5_0", &pDSBlob );
         COM_ERROR_IF_FAILED( hr, "Failed to compile the DOMAIN shader!" );

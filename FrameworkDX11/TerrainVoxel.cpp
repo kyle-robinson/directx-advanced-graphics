@@ -6,15 +6,15 @@ TerrainVoxel::TerrainVoxel(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pConte
     _NumberOfChunksZ(NumberOfChunks_Z),
     _NumberOfChunks(NumberOfChunks_X * NumberOfChunks_Z)
 {
-    shader->NewShader("Voxle", L"CubeVoxel.fx", pd3dDevice, pContext);
+    shader->NewShader("Voxel", L"Voxel.hlsl", pd3dDevice, pContext);
     _ChunkData.resize(_NumberOfChunksX);
 
     vector<string> texGround;
-    texGround.push_back("Textures513/grass.dds");
-    texGround.push_back("Textures513/darkdirt.dds");
-    texGround.push_back("Textures513/lightdirt.dds");
-    texGround.push_back("Textures513/stone.dds");
-    texGround.push_back("Textures513/snow.dds");
+    texGround.push_back("Resources/Textures/grass.dds" );
+    texGround.push_back( "Resources/Textures/darkdirt.dds" );
+    texGround.push_back( "Resources/Textures/lightdirt.dds" );
+    texGround.push_back( "Resources/Textures/stone.dds" );
+    texGround.push_back( "Resources/Textures/snow.dds");
     ID3D11ShaderResourceView* res;
 
     for (auto texName : texGround)
@@ -37,7 +37,7 @@ TerrainVoxel::TerrainVoxel(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pConte
 
     D3D11_BUFFER_DESC bd = {};
     bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(VoxleCube);
+    bd.ByteWidth = sizeof(VoxelCube);
     bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     bd.CPUAccessFlags = 0;
     HRESULT hr = pd3dDevice->CreateBuffer(&bd, nullptr, &_CubeInfoCB);
@@ -161,9 +161,9 @@ bool AabbOutsideFrustumTest(XMFLOAT3 center, XMFLOAT3 min, XMFLOAT3 Max, vector<
 void TerrainVoxel::Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderControll, ConstantBuffer* buffer, ID3D11Buffer* _pConstantBuffer, CameraController* camControll)
 {
     if (_IsDraw) {
-        pContext->VSSetShader(ShaderControll->GetShaderByName("Voxle").m_pVertexShader, nullptr, 0);
+        pContext->VSSetShader(ShaderControll->GetShaderByName("Voxel").m_pVertexShader, nullptr, 0);
         pContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
-        pContext->PSSetShader(ShaderControll->GetShaderByName("Voxle").m_pPixelShader, nullptr, 0);
+        pContext->PSSetShader(ShaderControll->GetShaderByName("Voxel").m_pPixelShader, nullptr, 0);
         pContext->PSSetShaderResources(0, 5, _pGroundTextureRV.data());
         pContext->PSSetConstantBuffers(3, 1, &_CubeInfoCB);
         //frustrum Planes for culling terrain when not in view
@@ -289,7 +289,7 @@ Chunk::~Chunk()
 }
 
 
-void Chunk::Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderControll, ConstantBuffer* buffer, ID3D11Buffer* _pConstantBuffer, CameraController* camControll, ID3D11Buffer* VoxleCB)
+void Chunk::Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderControll, ConstantBuffer* buffer, ID3D11Buffer* _pConstantBuffer, CameraController* camControll, ID3D11Buffer* VoxelCB)
 {
 
     //frustrum Planes for culling terrain when not in view
@@ -330,8 +330,8 @@ void Chunk::Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderControll
                         XMMATRIX mGO = XMLoadFloat4x4(&WorldAsFloat);
                         buffer->mWorld = XMMatrixTranspose(mGO);
                         pContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, buffer, 0, 0);
-                        VoxleCube data = x->GetCubeData();
-                        pContext->UpdateSubresource(VoxleCB, 0, nullptr, &data, 0, 0);
+                        VoxelCube data = x->GetCubeData();
+                        pContext->UpdateSubresource(VoxelCB, 0, nullptr, &data, 0, 0);
 
                         x->GetApparance()->Draw(pContext);
                     }

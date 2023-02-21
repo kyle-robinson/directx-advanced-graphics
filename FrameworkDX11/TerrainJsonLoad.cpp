@@ -14,7 +14,7 @@ void TerrainJsonLoad::LoadData(std::string FileName, TerrainData& output)
 	Document document;
 
 
-	std::ifstream fileStream("JSON\\"+FileName + ".json");
+	std::ifstream fileStream("Resources/JSON/"+FileName + ".json");
 	if (!fileStream.is_open())
 	{
 		document.SetNull();
@@ -29,7 +29,7 @@ void TerrainJsonLoad::LoadData(std::string FileName, TerrainData& output)
 	}
 
 	TerrainData objectData;
-	
+
 
 	if (!document.IsNull())
 	{
@@ -37,7 +37,7 @@ void TerrainJsonLoad::LoadData(std::string FileName, TerrainData& output)
 
 		for (auto& m : document.GetObject())
 		{
-			
+
 			if (m.value.HasMember("Width"))
 			{
 				output.Width = m.value.FindMember("Width")->value.GetInt();
@@ -53,7 +53,7 @@ void TerrainJsonLoad::LoadData(std::string FileName, TerrainData& output)
 			if (m.value.HasMember("Mode"))
 			{
 				output.mode= m.value.FindMember("Mode")->value.GetInt();
-				
+
 				switch (output.mode)
 				{
 				case 0:
@@ -74,7 +74,7 @@ void TerrainJsonLoad::LoadData(std::string FileName, TerrainData& output)
 		}
 	}
 
-	
+
 }
 
 void TerrainJsonLoad::StoreData(std::string FileName, TerrainData DataToStore)
@@ -112,8 +112,8 @@ void TerrainJsonLoad::StoreData(std::string FileName, TerrainData DataToStore)
 		document.AddMember("Terrain_Data_DimondSquare", document2, document.GetAllocator());
 		break;
 	}
-	
-	
+
+
 	StoreFile(FileName, document);
 
 }
@@ -121,7 +121,7 @@ void TerrainJsonLoad::StoreData(std::string FileName, TerrainData DataToStore)
 HightMapSettings TerrainJsonLoad::LoadHightMapSettings(Document& Doc)
 {
 	HightMapSettings Data;
-	
+
 	for (auto& Object : Doc["Terrain_Data_HighMap"].GetObject())
 	{
 		string ObjectName = Object.name.GetString();
@@ -140,13 +140,13 @@ HightMapSettings TerrainJsonLoad::LoadHightMapSettings(Document& Doc)
 
 void TerrainJsonLoad::StoreHightMapSettings(Document& Doc, const HightMapSettings Data)
 {
-	
+
 	Doc.SetObject();
 	Value s;
 	s.SetString(Data.HightMapFile.c_str(),Doc.GetAllocator() );
 	Doc.AddMember("HightMapFile", s, Doc.GetAllocator());
 	Doc.AddMember("Hight_Scale", Data.HightScale, Doc.GetAllocator());
-	
+
 }
 
 FualtLineSettings TerrainJsonLoad::LoadFualtLineSettings(Document& Doc)
@@ -210,7 +210,7 @@ void TerrainJsonLoad::StoreDimondSquareSettings(Document& Doc, const DimondSquar
 	Doc.AddMember("Seed", Data.Seed, Doc.GetAllocator());
 	Doc.AddMember("HightScale", Data.HightScale, Doc.GetAllocator());
 	Doc.AddMember("Range", Data.range, Doc.GetAllocator());
-	
+
 }
 
 TerrainNoiseSettings TerrainJsonLoad::LoadTerrainNoiseSettings(Document& Doc)

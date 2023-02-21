@@ -9,8 +9,8 @@ Appearance::Appearance()
 	m_pTextureResourceView = nullptr;
 	m_pSamplerLinear = nullptr;
 
-	
-	
+
+
 }
 
 Appearance::~Appearance()
@@ -20,7 +20,7 @@ Appearance::~Appearance()
 
 void Appearance::Update(ID3D11DeviceContext* pContext)
 {
-	
+
 	pContext->UpdateSubresource(m_pMaterialConstantBuffer, 0, nullptr, &m_material, 0, 0);
 }
 
@@ -144,7 +144,7 @@ HRESULT Appearance::initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pCon
 
 	};
 
-	//shared vertexes 
+	//shared vertexes
 	//// Create vertex buffer
 	//SimpleVertex vertices[] =
 	//{
@@ -259,15 +259,15 @@ HRESULT Appearance::initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pCon
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	NumberOfVert = NUM_VERTICES;
 	// load and setup textures
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\bricks_TEX.dds", nullptr, &m_pTextureResourceView);
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources/Textures/bricks_TEX.dds", nullptr, &m_pTextureResourceView);
 	if (FAILED(hr))
 		return hr;
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\bricks_NORM.dds", nullptr, &m_pNormalMapResourceView);
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources/Textures/bricks_NORM.dds", nullptr, &m_pNormalMapResourceView);
 	if (FAILED(hr))
 		return hr;
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\bricks_DISP.dds", nullptr, &m_pParralaxMapResourceView);
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources/Textures/bricks_DISP.dds", nullptr, &m_pParralaxMapResourceView);
 	if (FAILED(hr))
 		return hr;
 
@@ -397,15 +397,15 @@ HRESULT Appearance::initMeshFloor(ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 
 	NumberOfVert = indices.size();
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\bricks_TEX.dds", nullptr, &m_pTextureResourceView);
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources/Textures/bricks_TEX.dds", nullptr, &m_pTextureResourceView);
 	if (FAILED(hr))
 		return hr;
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\bricks_NORM.dds", nullptr, &m_pNormalMapResourceView);
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources/Textures/bricks_NORM.dds", nullptr, &m_pNormalMapResourceView);
 	if (FAILED(hr))
 		return hr;
 
-	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources\\bricks_DISP.dds", nullptr, &m_pParralaxMapResourceView);
+	hr = CreateDDSTextureFromFile(pd3dDevice, L"Resources/Textures/bricks_DISP.dds", nullptr, &m_pParralaxMapResourceView);
 	if (FAILED(hr))
 		return hr;
 
@@ -467,7 +467,7 @@ HRESULT Appearance::SetIndices(ID3D11Device* device, const USHORT* indices, UINT
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
 	ibd.StructureByteStride = 0;
-	
+
 	D3D11_SUBRESOURCE_DATA iinitData;
 	iinitData.pSysMem = indices;
 

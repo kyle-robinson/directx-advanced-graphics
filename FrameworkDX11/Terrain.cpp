@@ -18,7 +18,7 @@ Terrain::Terrain(std::string HightMapName, XMFLOAT2 size, double Scale, TerrainG
 	_pTransform = new Transform();
     _pApperance = new TerrainAppearence(_HightMapHight, _HightMapWidth,1.0f, _HightmapData);
 
-    ShaderControll->NewTessellationShader("Terrain", L"TerrainA.fx", pd3dDevice, pContext);
+    ShaderControll->NewTessellationShader("Terrain", L"Terrain.hlsl", pd3dDevice, pContext);
 
     CreateHightData();
     BuildHightMap(pd3dDevice);

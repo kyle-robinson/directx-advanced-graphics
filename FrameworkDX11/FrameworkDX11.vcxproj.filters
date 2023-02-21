@@ -398,20 +398,36 @@
     <Filter Include="Utility">
       <UniqueIdentifier>{14b7ac68-187e-4d31-9987-8b33aaeca197}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Resources\stone.dds">
-      <Filter>Textures</Filter>
-    </Image>
-    <Image Include="Resources\bricks_DISP.dds">
-      <Filter>Textures</Filter>
-    </Image>
-    <Image Include="Resources\bricks_NORM.dds">
-      <Filter>Textures</Filter>
-    </Image>
-    <Image Include="Resources\bricks_TEX.dds">
-      <Filter>Textures</Filter>
-    </Image>
+    <Filter Include="Shaders\Vertex">
+      <UniqueIdentifier>{06c1f70b-e4fa-4476-a1d1-9e55dd587804}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Pixel">
+      <UniqueIdentifier>{e9b27210-390f-479e-88b4-6714c7a39ddc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Textures\Stone">
+      <UniqueIdentifier>{5d487197-5f3d-4727-ab2a-647a9a2faf69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Textures\Toybox">
+      <UniqueIdentifier>{46c02267-8457-445a-85cb-42810d9b5008}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Textures\Bricks">
+      <UniqueIdentifier>{7d35cc2e-733b-466c-a930-0a8c6d742e40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Textures\Terrain">
+      <UniqueIdentifier>{5b982fc7-4db7-4310-8685-528d0a7961a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Textures\Crate">
+      <UniqueIdentifier>{3675f6b3-5816-43e6-a1c3-e00995886620}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Domain">
+      <UniqueIdentifier>{9e9c9976-d03b-48bd-878d-8bf73ee610be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Hull">
+      <UniqueIdentifier>{4b25660f-4803-4430-bc00-4fcf08c1cc11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Geometry">
+      <UniqueIdentifier>{e6f34733-459c-4aba-8101-fd8b8a522819}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Tutorial01.rc">
@@ -419,75 +435,226 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaderNoNormalMap.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaderVertexTBN.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaderParallaxMapping.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaderParallaxMapping1.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaderParallaxOcMapping1.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaderParallaxOcMapping.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaderParallaxOcShadingMapping.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaderParallaxOcShadingMapping1.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Gaussian1.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Finalpass.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="BloomAlphaTex.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Gaussian2.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="SolidColour.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Fade.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="DepthOfField.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Depth.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="DepthLight.fx">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="BillBord.fx">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="TerrainA.fx">
       <Filter>Terrain</Filter>
     </None>
     <None Include="CubeVoxel.fx">
       <Filter>Terrain</Filter>
     </None>
-    <None Include="AnnimationShader.fx">
-      <Filter>Annimation</Filter>
+    <None Include="Resources\Textures\coastMountain513.raw">
+      <Filter>Textures\Terrain</Filter>
     </None>
-    <None Include="shader.fx">
-      <Filter>Shaders</Filter>
+    <None Include="Resources\Shaders\Terrain_DS.hlsl">
+      <Filter>Shaders\Domain</Filter>
     </None>
-    <None Include="ClassDiagram.cd" />
+    <None Include="Resources\Shaders\Billboard_GS.hlsl">
+      <Filter>Shaders\Geometry</Filter>
+    </None>
+    <None Include="Resources\Shaders\Terrain_HS.hlsl">
+      <Filter>Shaders\Hull</Filter>
+    </None>
+    <None Include="Resources\Shaders\Animation_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\Billboard_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\Bloom_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\Default_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\DefaultNoNormal_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\Depth_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\DepthLight_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\DepthOfField_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\Fade_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\FinalPass_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\Gaussian1_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\Gaussian2_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\Parallax1_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\Parallax2_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\ParallaxOcclusion1_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\ParallaxOcclusion2_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\ParallaxOcclusionShadow1_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\ParallaxOcclusionShadow2_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\SolidColour_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\TBN_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\Terrain_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\Voxel_PS.hlsl">
+      <Filter>Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\Animation_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\Billboard_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\Bloom_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\Default_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\DefaultNoNormal_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\Depth_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\DepthLight_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\DepthOfField_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\Fade_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\FinalPass_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\Gaussian1_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\Gaussian2_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\Parallax1_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\Parallax2_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\ParallaxOcclusion1_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\ParallaxOcclusion2_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\ParallaxOcclusionShadow1_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\ParallaxOcclusionShadow2_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\SolidColour_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\TBN_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\Terrain_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\Voxel_VS.hlsl">
+      <Filter>Shaders\Vertex</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Library Include="assimp-vc142-mtd.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\Textures\stone_texture.dds">
+      <Filter>Textures\Stone</Filter>
+    </Image>
+    <Image Include="Resources\Textures\stone.dds">
+      <Filter>Textures\Stone</Filter>
+    </Image>
+    <Image Include="Resources\Textures\stone_heightMap.dds">
+      <Filter>Textures\Stone</Filter>
+    </Image>
+    <Image Include="Resources\Textures\stone_normalMap.dds">
+      <Filter>Textures\Stone</Filter>
+    </Image>
+    <Image Include="Resources\Textures\Crate_COLOR.dds">
+      <Filter>Textures\Crate</Filter>
+    </Image>
+    <Image Include="Resources\Textures\Crate_DISP.dds">
+      <Filter>Textures\Crate</Filter>
+    </Image>
+    <Image Include="Resources\Textures\Crate_NRM.dds">
+      <Filter>Textures\Crate</Filter>
+    </Image>
+    <Image Include="Resources\Textures\Crate_OCC.dds">
+      <Filter>Textures\Crate</Filter>
+    </Image>
+    <Image Include="Resources\Textures\Crate_OCC2.dds">
+      <Filter>Textures\Crate</Filter>
+    </Image>
+    <Image Include="Resources\Textures\Crate_SPEC.dds">
+      <Filter>Textures\Crate</Filter>
+    </Image>
+    <Image Include="Resources\Textures\toybox_TEX.dds">
+      <Filter>Textures\Toybox</Filter>
+    </Image>
+    <Image Include="Resources\Textures\toybox_DISP.dds">
+      <Filter>Textures\Toybox</Filter>
+    </Image>
+    <Image Include="Resources\Textures\toybox_NORM.dds">
+      <Filter>Textures\Toybox</Filter>
+    </Image>
+    <Image Include="Resources\Textures\bricks_DISP.dds">
+      <Filter>Textures\Bricks</Filter>
+    </Image>
+    <Image Include="Resources\Textures\bricks_NORM.dds">
+      <Filter>Textures\Bricks</Filter>
+    </Image>
+    <Image Include="Resources\Textures\bricks_TEX.dds">
+      <Filter>Textures\Bricks</Filter>
+    </Image>
+    <Image Include="Resources\Textures\blend.dds">
+      <Filter>Textures\Terrain</Filter>
+    </Image>
+    <Image Include="Resources\Textures\conenormal.dds">
+      <Filter>Textures\Terrain</Filter>
+    </Image>
+    <Image Include="Resources\Textures\darkdirt.dds">
+      <Filter>Textures\Terrain</Filter>
+    </Image>
+    <Image Include="Resources\Textures\grass.dds">
+      <Filter>Textures\Terrain</Filter>
+    </Image>
+    <Image Include="Resources\Textures\lightdirt.dds">
+      <Filter>Textures\Terrain</Filter>
+    </Image>
+    <Image Include="Resources\Textures\snow.dds">
+      <Filter>Textures\Terrain</Filter>
+    </Image>
   </ItemGroup>
 </Project>

@@ -94,7 +94,7 @@ AnimatedModel::AnimatedModel(std::string ModelFile, ID3D11Device* device, ID3D11
     _Apparance->SetIndices(device, &_Index2[0], _Index2.size());
 
     //shader for animation
-    Controll->NewAnimationShader("animation", L"AnnimationShader.fx", device, pImmediateContext);
+    Controll->NewAnimationShader("animation", L"Animation.hlsl", device, pImmediateContext);
 
     //transform data
     TransformData = new Transform();
@@ -102,7 +102,7 @@ AnimatedModel::AnimatedModel(std::string ModelFile, ID3D11Device* device, ID3D11
     TransformData->SetScale(0.05f, 0.05f, 0.05f);
 
     //textuers
-    wstring FileLoacation = L"AnimationModel\\";
+    wstring FileLoacation = L"Resources/AnimModel/";
     m_pTextureResourceView.resize(_Mat.size(),nullptr);
     m_pNormalMapResourceView.resize(_Mat.size(),nullptr);
     for (size_t i = 0; i < _Mat.size(); i++)
