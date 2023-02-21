@@ -95,7 +95,7 @@ bool ShaderController::NewFullScreenShader( std::string name, std::wstring fileN
         fileName = fileName.substr( 0, position ) + shaderTag + fileName.substr( position );
 
         // Compile the vertex shader
-        HRESULT hr = CompileShaderFromFile( fileName, "QuadVS", "vs_5_0", &pVSBlob );
+        HRESULT hr = CompileShaderFromFile( fileName, "VS", "vs_5_0", &pVSBlob );
         COM_ERROR_IF_FAILED( hr, "Failed to compile the FULLSCREEN VERTEX shader!" );
 
         // Create the vertex shader
@@ -121,7 +121,7 @@ bool ShaderController::NewFullScreenShader( std::string name, std::wstring fileN
 
         // Compile the pixel shader
         ID3DBlob* pPSBlob = nullptr;
-        hr = CompileShaderFromFile( filePathCopy, "QuadPS", "ps_5_0", &pPSBlob );
+        hr = CompileShaderFromFile( filePathCopy, "PS", "ps_5_0", &pPSBlob );
         COM_ERROR_IF_FAILED( hr, "Failed to compile the FULLSCREEN PIXEL shader!" );
 
         // Create the pixel shader

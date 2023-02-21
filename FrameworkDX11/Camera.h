@@ -79,7 +79,7 @@ private:
 
 	//cam data
 	XMFLOAT3 _Rot;
-	float _cameraSpeed = 0.5f;
+	float _cameraSpeed = 0.1f;
 
 
 	XMFLOAT3 _eye;
