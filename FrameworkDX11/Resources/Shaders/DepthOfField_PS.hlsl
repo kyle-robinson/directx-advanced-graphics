@@ -1,72 +1,52 @@
+// Resources
+Texture2D texDiffuse : register( t0 );
+Texture2D texBlur : register( t1 );
+Texture2D texDepth : register( t2 );
+SamplerState smpPoint : register( s0 );
 
-
-Texture2D tex : register(t0);
-Texture2D Bluertex : register(t1);
-Texture2D txDepth : register(t2);
-
-SamplerState PointSampler : register(s0);
-
-
-cbuffer PostProcessingCB: register(b0)
+// Constant Buffers
+cbuffer PostProcessingCB: register( b0 )
 {
     float4  Color;
-    //----------
+    
     int UseHDR;
     int UseBloom;
-    int UseDepthOfF;
+    int UseDepthOfField;
     int UseColour;
-    //------------
+    
     int UseBlur;
-    float fadeAmount;
+    float FadeAmount;
     float FarPlane;
-    float focalwidth;
-    //--------------
-    float focalDistance;
-    float blerAttenuation;
-    int pad1;
-    int pad2;
+    float FocalWidth;
+    
+    float FocalDistance;
+    float BlurAttenuation;
+    int Padding1;
+    int Padding2;
 };
 
-struct QuadVS_Input
-{
-    float4 Pos : POSITION;
-    float2 Tex : TEXCOORD0;
-};
-
-struct QuadVS_Output
+// Pixel Shader
+struct VERTEX_OUT
 {
     float4 Pos : SV_POSITION;
     float2 Tex : TEXCOORD0;
- 
 };
 
-QuadVS_Output QuadVS(QuadVS_Input Input)
-{
-    // no mvp transform - model coordinates already in projection space (-1 to 1)
-    QuadVS_Output Output;
-    Output.Pos = Input.Pos;
-    Output.Tex = Input.Tex;
-
-    return Output;
-}
-
 //Pixel shader
-float4 QuadPS(QuadVS_Output Input) : SV_TARGET
+float4 PS( VERTEX_OUT input ) : SV_TARGET
 {
-    float4 Colour = { 0, 0, 0, 1 };
-    float4 vColor = tex.Sample(PointSampler, Input.Tex);
-    float4 blurTex = Bluertex.Sample(PointSampler, Input.Tex);
+    float4 color = { 0.0f, 0.0f, 0.0f, 1.0f };
+    float4 vColor = texDiffuse.Sample( smpPoint, input.Tex );
+    float4 blurTex = texBlur.Sample( smpPoint, input.Tex );
 
     float4 depth = { 0, 0, 1, 1 };
-    depth = txDepth.Sample(PointSampler, Input.Tex);
+    depth = texDepth.Sample( smpPoint, input.Tex );
 
-    //find if depth is at focal point transition
-    float zDepth = smoothstep(0, focalwidth, abs(focalDistance - (depth.z * FarPlane)));
-    
-  
+    // Find if depth is at focal point transition
+    float zDepth = smoothstep( 0, FocalWidth, abs( FocalDistance - ( depth.z * FarPlane ) ) );
 
-   //blend between bluer immage and non bluered immage
-    Colour= lerp(vColor, blurTex, saturate(zDepth) * blerAttenuation);
+    // Blend between blurred and non-blurred images
+    color = lerp( vColor, blurTex, saturate( zDepth ) * BlurAttenuation );
     
-    return Colour;
+    return color;
 }
