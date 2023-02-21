@@ -7,7 +7,7 @@ SamplerState smpPoint : register( s0 );
 // Constant Buffers
 cbuffer PostProcessingCB: register( b0 )
 {
-    float4  Color;
+    float4 Color;
     
     int UseHDR;
     int UseBloom;
