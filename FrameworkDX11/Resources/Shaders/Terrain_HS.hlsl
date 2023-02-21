@@ -29,9 +29,9 @@ cbuffer TerrainCB : register( b4 )
 	float Layer4MaxHeight;
 
 	float Layer5MaxHeight;
-	float Paddin1;
-	float Paddin2;
-	float Paddin3;
+	float Padding1;
+	float Padding2;
+	float Padding3;
 
 	float4 WorldFrustumPlanes[6];
 };
@@ -72,7 +72,7 @@ bool AabbOutsideFrustumTest( float3 center, float3 extents, float4 frustumPlanes
     {
 		// If the box is completely behind any of the frustum planes
 		// then it is outside the frustum
-        if (AabbBehindPlaneTest( center, extents, frustumPlanes[i] ) )
+        if ( AabbBehindPlaneTest( center, extents, frustumPlanes[i] ) )
         {
             return true;
         }
@@ -134,7 +134,7 @@ PatchTess ConstantHS( InputPatch<VERTEX_OUT, 4> patch, uint patchID : SV_Primiti
         float3 e3 = 0.5f * ( pos2 + pos3 );
         float3 c = 0.25f * ( pos0 + pos1 + pos2 + pos3 );
 
-		//get the tess factor
+		// Get the tess factor
         pt.EdgeTess[0] = CalcTessFactor( e0 );
         pt.EdgeTess[1] = CalcTessFactor( e1 );
         pt.EdgeTess[2] = CalcTessFactor( e2 );
