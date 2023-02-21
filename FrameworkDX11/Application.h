@@ -103,9 +103,7 @@ public:
 	Application();
 	~Application();
 
-	LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	HRESULT Initialise(HINSTANCE hInstance, int nCmdShow);
-
 	void Update();
 	void Draw();
 
