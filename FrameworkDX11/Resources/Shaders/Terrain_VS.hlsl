@@ -9,23 +9,23 @@ SamplerState smpHeightMap
 };
 
 // Vertex Shader
-struct VERTEXIN
+struct VERTEX_IN
 {
 	float4 PosL : POSITION;
 	float2 Tex : TEXCOORD0;
     float2 BoundsY : BOUNDS_Y;
 };
 
-struct VERTEXOUT
+struct VERTEX_OUT
 {
 	float3 PosW : POSITION;
 	float2 Tex : TEXCOORD0;
 	float2 BoundsY : BOUNDS_Y;
 };
 
-VERTEXOUT VS( VERTEXIN input )
+VERTEX_OUT VS( VERTEX_IN input )
 {
-    VERTEXOUT vout;
+    VERTEX_OUT vout;
 
 	// Specify the terrain in world space
 	vout.PosW = input.PosL;

@@ -81,14 +81,14 @@ bool AabbOutsideFrustumTest( float3 center, float3 extents, float4 frustumPlanes
 }
 
 // Hull Shader
-struct VERTEXOUT
+struct VERTEX_OUT
 {
     float3 PosW : POSITION;
     float2 Tex : TEXCOORD0;
     float2 BoundsY : BOUNDS_Y;
 };
 
-PatchTess ConstantHS(InputPatch<VERTEXOUT, 4> patch, uint patchID : SV_PrimitiveID)
+PatchTess ConstantHS( InputPatch<VERTEX_OUT, 4> patch, uint patchID : SV_PrimitiveID )
 {
     PatchTess pt;
 
@@ -147,7 +147,7 @@ PatchTess ConstantHS(InputPatch<VERTEXOUT, 4> patch, uint patchID : SV_Primitive
     }
 }
 
-struct HULLOUT
+struct HULL_OUT
 {
 	float3 PosW : POSITION;
 	float2 Tex : TEXCOORD0;
@@ -159,10 +159,10 @@ struct HULLOUT
 [outputcontrolpoints( 4 )]
 [patchconstantfunc( "ConstantHS" )]
 [maxtessfactor( 64.0f )]
-HULLOUT HS( InputPatch<VERTEXOUT, 4> p, uint i : SV_OutputControlPointID, uint patchId : SV_PrimitiveID )
+HULL_OUT HS( InputPatch<VERTEX_OUT, 4> p, uint i : SV_OutputControlPointID, uint patchId : SV_PrimitiveID )
 {
 	// Pass-through
-    HULLOUT output;
+    HULL_OUT output;
     output.PosW = p[i].PosW;
     output.Tex = p[i].Tex;
     return output;

@@ -33,7 +33,7 @@ cbuffer TerrainCB : register( b4 )
 };
 
 // Pixel Shader
-struct DOMAINOUT
+struct DOMAIN_OUT
 {
     float4 PosH : SV_POSITION;
     float3 PosW : POSITION;
@@ -41,7 +41,7 @@ struct DOMAINOUT
     float2 TiledTex : TILEDTEX;
 };
 
-float4 PS( DOMAINOUT input ) : SV_TARGET
+float4 PS( DOMAIN_OUT input ) : SV_TARGET
 {
 	float4 texColor = { 1, 0, 0, 1 };
 

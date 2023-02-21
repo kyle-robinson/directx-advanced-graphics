@@ -25,13 +25,13 @@ cbuffer MatrixBuffer : register( b0 )
 }
 
 // Domain Shader
-struct HULLOUT
+struct HULL_OUT
 {
     float3 PosW : POSITION;
     float2 Tex : TEXCOORD0;
 };
 
-struct DOMAINOUT
+struct DOMAIN_OUT
 {
     float4 PosH : SV_POSITION;
     float3 PosW : POSITION;
@@ -40,9 +40,9 @@ struct DOMAINOUT
 };
 
 [domain( "quad" )]
-DOMAINOUT DS( PatchTess patchTess, float2 uv : SV_DomainLocation, const OutputPatch<HULLOUT, 4> quad )
+DOMAIN_OUT DS( PatchTess patchTess, float2 uv : SV_DomainLocation, const OutputPatch<HULL_OUT, 4> quad )
 {
-    DOMAINOUT output;
+    DOMAIN_OUT output;
 
 	// Bilinear interpolation
     output.PosW = lerp(
