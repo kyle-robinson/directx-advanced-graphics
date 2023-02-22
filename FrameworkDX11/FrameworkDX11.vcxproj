@@ -535,12 +535,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Textures\coastMountain513.raw" />
-    <None Include="TerrainA.fx">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="CubeVoxel.fx">
-      <FileType>Document</FileType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Library Include="assimp-vc142-mtd.lib" />

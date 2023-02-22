@@ -435,12 +435,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TerrainA.fx">
-      <Filter>Terrain</Filter>
-    </None>
-    <None Include="CubeVoxel.fx">
-      <Filter>Terrain</Filter>
-    </None>
     <None Include="Resources\Textures\coastMountain513.raw">
       <Filter>Textures\Terrain</Filter>
     </None>
