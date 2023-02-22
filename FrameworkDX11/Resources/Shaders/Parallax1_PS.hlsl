@@ -7,7 +7,7 @@
 
 // Resources
 Texture2D txDiffuse : register( t0 );
-Texture2D txNormal: register( t1 );
+Texture2D txNormal : register( t1 );
 Texture2D txParallax : register( t2 );
 Texture2D txDepth[2] : register( t3 );
 SamplerState smpLinear : register( s0 );
