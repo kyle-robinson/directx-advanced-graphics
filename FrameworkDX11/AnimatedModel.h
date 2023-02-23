@@ -1,104 +1,92 @@
 #pragma once
+#ifndef ANIMATEDMODEL_H
+#define ANIMATEDMODEL_H
 
-#include"DataStucts.h"
-#include"Appearance.h"
-#include"M3dLoader.h"
-#include"ShaderController.h"
-#include"Transform.h"
-#include"Skeleton.h"
+#include "Skeleton.h"
+#include "M3dLoader.h"
+#include "Transform.h"
+#include "DataStucts.h"
+#include "Appearance.h"
+#include "ShaderController.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-/// <summary>
-/// controll all the data to animate a model
-/// Skining
-/// skelaton
-/// </summary>
 class AnimatedModel
 {
 public:
-    AnimatedModel(std::string ModelFile, ID3D11Device* device, ID3D11DeviceContext* pImmediateContext, ShaderController* Controll);
+    AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ShaderController* shaderControl );
     ~AnimatedModel();
 
-    void Draw(ID3D11DeviceContext* pImmediateContext, ShaderController* Controll, ConstantBuffer* buffer, ID3D11Buffer* _pConstantBuffer);
-    void Update(float dt);
+    void Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer* buffer, ID3D11Buffer* cbuffer );
+    void Update( float dt );
 
-    Skeleton* GetSkeleton() { return &SkeletonData; }
+    inline Skeleton* GetSkeleton() noexcept { return &m_skeletonData; }
 
-
-    void SetAnnimation(string ClipName) {
-
-        if (_ClipName != ClipName) {
-            _PrevClipName = _ClipName;
-            prevTime = TimePos;
-            _ClipName = ClipName;
-            TimePos = 0;
+    inline void SetAnimation( std::string clipName )
+    {
+        if ( m_sClipName != clipName )
+        {
+            m_sPrevClipName = m_sClipName;
+            m_fPrevTime = m_fTimePos;
+            m_sClipName = clipName;
+            m_fTimePos = 0;
         }
-        
     }
 
-    Transform* GetTransformData(){return TransformData;}
+    inline Transform* GetTransformData() const noexcept { return m_pTransformData; }
+    inline std::string GetModelName() const noexcept { return m_sModelName; }
+    inline std::vector<Subset> GetSubsets() const noexcept { return m_vSubsets; }
+    inline std::vector<M3dMaterial> GetMaterialData() const noexcept { return m_vMat; }
+    inline std::string GetClipName() const noexcept { return m_sClipName; }
+    inline float GetTimePos() const noexcept { return m_fTimePos; }
 
+    inline bool GetIsLoop() const noexcept { return m_bLoopAnimation; }
+    inline void SetIsLoop( bool loop ) noexcept { m_bLoopAnimation = loop; }
 
-    std::string GetModelName() { return _ModelName; }
-    std::vector<Subset> GetSubsets() { return _Subsets; }
-    std::vector<M3dMaterial> GetMaterrialData(){ return _Mat; }
-
-    std::string GetClipName() { 
-        return _ClipName; 
-    }
-    float GetTimePos() { return TimePos; }
-
-
-    bool GetIsLoop() { return isLoopAnimation; }
-    void SetIsLoop(bool IsLoop) { isLoopAnimation = IsLoop; }
-
-    void SetTimePos(float Time) { 
-        TimePos = Time; 
-        if (SkeletonData.GetClipEndTime(_ClipName) < TimePos) {
-            TimePos = SkeletonData.GetClipEndTime(_ClipName);
+    inline void SetTimePos( float time )
+    {
+        m_fTimePos = time;
+        if ( m_skeletonData.GetClipEndTime( m_sClipName ) < m_fTimePos )
+        {
+            m_fTimePos = m_skeletonData.GetClipEndTime( m_sClipName );
         }
-        if (SkeletonData.GetClipStartTime(_ClipName) > TimePos) {
-            TimePos = 0;
+        if ( m_skeletonData.GetClipStartTime( m_sClipName ) > m_fTimePos )
+        {
+            m_fTimePos = 0;
         }
     }
 
 private:
+    void ProcessMesh( aiMesh* mesh, const aiScene* scene, const XMMATRIX& transformMatrix, std::vector<SkinedVertex>& verts, std::vector<USHORT>& index );
+    void ProcessNode( aiNode* node, const aiScene* scene, const XMMATRIX& parentTransformMatrix, std::vector<SkinedVertex>& verts, std::vector<USHORT>& index );
     void CleanUp();
-    Appearance* _Apparance;
 
-    std::string _ModelName;
+    Appearance* m_pAppearance;
+    std::string m_sModelName;
 
+    std::vector<USHORT> m_vIndex;
+    std::vector<USHORT> m_vIndex2;
+    std::vector<Subset> m_vSubsets;
+    std::vector<M3dMaterial> m_vMat;
+    std::vector<SkinedVertex> m_vSkinVert;
 
-    std::vector<SkinedVertex> _SkinVert;
-    std::vector<USHORT> index;
-    std::vector<USHORT> _Index2;
-    std::vector<Subset> _Subsets;
-    std::vector<M3dMaterial> _Mat;
-   
+    cbSkinned m_skinData;
+    Skeleton m_skeletonData;
+    Transform* m_pTransformData;
+    std::vector<XMFLOAT4X4> m_vFinalTransforms;
+    ID3D11Buffer* m_pFinalTransformsCB = nullptr;
 
-    Skeleton SkeletonData;
+    std::vector<ID3D11ShaderResourceView*> m_pTextureResourceView;
+    std::vector<ID3D11ShaderResourceView*> m_pNormalMapResourceView;
 
+    float m_fTimePos = 0.0f;
+    bool m_bLoopAnimation = false;
+    std::string m_sClipName = "BindPose";
 
-    Transform* TransformData;
-    std::vector<XMFLOAT4X4> FinalTransforms;
-    cbSkinned data;
-    ID3D11Buffer* FinalTransformsCB = nullptr;
-
-   std::vector<ID3D11ShaderResourceView*> m_pTextureResourceView;
-   std::vector<ID3D11ShaderResourceView*> m_pNormalMapResourceView;
-
-   bool isLoopAnimation=false;
-   float TimePos= 0.0f;
-   std::string _ClipName = "BindPose";
-
-   float prevTime;
-   std::string _PrevClipName = "BindPose";
-
-
-
-
+    float m_fPrevTime;
+    std::string m_sPrevClipName = "BindPose";
 };
 
+#endif

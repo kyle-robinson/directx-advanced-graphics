@@ -7,6 +7,7 @@
 #include"Camera.h"
 #include"ShadowMap.h"
 using namespace DirectX;
+using namespace std;
 /// <summary>
 /// controlls a single lights data
 /// </summary>
@@ -51,7 +52,7 @@ private:
 	Light _LightData;
 	DrawableGameObject* LightObject;
 	string Name;
-	
+
 
 
 	XMFLOAT4X4 _view;

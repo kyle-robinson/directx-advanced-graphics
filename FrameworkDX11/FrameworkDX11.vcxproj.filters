@@ -30,13 +30,7 @@
     <ClCompile Include="TerrainVoxel.cpp">
       <Filter>Objects\Terrain</Filter>
     </ClCompile>
-    <ClCompile Include="DataStucts.cpp">
-      <Filter>Objects\Animation</Filter>
-    </ClCompile>
     <ClCompile Include="Bone.cpp">
-      <Filter>Objects\Animation</Filter>
-    </ClCompile>
-    <ClCompile Include="M3dLoader.cpp">
       <Filter>Objects\Animation</Filter>
     </ClCompile>
     <ClCompile Include="AnimatedModel.cpp">
@@ -131,6 +125,12 @@
     </ClCompile>
     <ClCompile Include="Graphics\SamplerController.cpp">
       <Filter>Graphics\Sampler</Filter>
+    </ClCompile>
+    <ClCompile Include="M3dLoader.cpp">
+      <Filter>Utility\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="DataStucts.cpp">
+      <Filter>Utility\Data</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -231,13 +231,7 @@
     <ClInclude Include="TerrainVoxel.h">
       <Filter>Objects\Terrain</Filter>
     </ClInclude>
-    <ClInclude Include="DataStucts.h">
-      <Filter>Objects\Animation</Filter>
-    </ClInclude>
     <ClInclude Include="Bone.h">
-      <Filter>Objects\Animation</Filter>
-    </ClInclude>
-    <ClInclude Include="M3dLoader.h">
       <Filter>Objects\Animation</Filter>
     </ClInclude>
     <ClInclude Include="AnimatedModel.h">
@@ -294,9 +288,6 @@
     <CLInclude Include="resource.h">
       <Filter>Resources</Filter>
     </CLInclude>
-    <ClInclude Include="structures.h">
-      <Filter>Utility</Filter>
-    </ClInclude>
     <ClInclude Include="Utility\ErrorLogger.h">
       <Filter>Utility\Errors</Filter>
     </ClInclude>
@@ -365,6 +356,15 @@
     </ClInclude>
     <ClInclude Include="Graphics\SamplerController.h">
       <Filter>Graphics\Sampler</Filter>
+    </ClInclude>
+    <ClInclude Include="M3dLoader.h">
+      <Filter>Utility\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Structures.h">
+      <Filter>Utility\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="DataStucts.h">
+      <Filter>Utility\Data</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -484,6 +484,12 @@
     </Filter>
     <Filter Include="Graphics\Sampler">
       <UniqueIdentifier>{e517ea10-3233-49ff-a94e-1e8d3b8c7060}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Model">
+      <UniqueIdentifier>{372b1198-9447-4664-b08e-8a94cc77ef5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Data">
+      <UniqueIdentifier>{982fc4a6-973c-49e7-aaa2-fe0eab433720}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

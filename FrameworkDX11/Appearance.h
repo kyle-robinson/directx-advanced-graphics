@@ -1,14 +1,11 @@
 #pragma once
-#include <directxmath.h>
-#include <d3d11_1.h>
-#include <string>
-#include "DDSTextureLoader.h"
-#include"Structures.h"
-#include"DataStucts.h"
-#include<vector>
+#ifndef APPEARANCE_H
+#define APPEARANCE_H
 
-using namespace DirectX;
-using namespace std;
+#include "DDSTextureLoader.h"
+#include "Structures.h"
+#include "DataStucts.h"
+#include <vector>
 
 #define NUM_VERTICES 36
 
@@ -17,81 +14,73 @@ struct SimpleVertex
 	XMFLOAT3 Pos;
 	XMFLOAT3 Normal;
 	XMFLOAT2 TexCoord;
-	XMFLOAT3 tangent;
-	XMFLOAT3 biTangent;
+	XMFLOAT3 Tangent;
+	XMFLOAT3 BiTangent;
 };
 
-/// <summary>
-/// class to hold apperance data of an object
-/// </summary>
 class Appearance
 {
 public:
-
 	Appearance();
 	~Appearance();
-	HRESULT	initMesh(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext);
-	HRESULT	initMeshFloor(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext, UINT Width, UINT Hight);
+
+	HRESULT	InitMesh_Cube( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	HRESULT	InitMesh_Quad( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 
 	template <typename VertexType>
-	HRESULT SetVertexBuffer(ID3D11Device* pd3dDevice, const VertexType* vertices, UINT count);
-	HRESULT SetVertexBuffer(ID3D11Device* pd3dDevice, vector<SkinedVertex> Verts, UINT count);
-	HRESULT SetIndices(ID3D11Device* device, const USHORT* indices, UINT count);
-	//sets
-	void SetTextureRV(ID3D11ShaderResourceView* textureRV) { m_pTextureResourceView = textureRV; }
-	void SetNormalRV(ID3D11ShaderResourceView* textureRV) { m_pNormalMapResourceView = textureRV; }
-	void SetTextures(ID3D11DeviceContext* pImmediateContext);
+	HRESULT SetVertexBuffer( ID3D11Device* pDevice, const VertexType* vertices, UINT count );
+	HRESULT SetVertexBuffer( ID3D11Device* pDevice, std::vector<SkinedVertex> vertices, UINT count );
+	HRESULT SetIndices( ID3D11Device* pDevice, const USHORT* indices, UINT count );
 
+	inline void SetTextureRV( ID3D11ShaderResourceView* textureRV ) noexcept { m_pTextureResourceView = textureRV; }
+	inline void SetNormalRV( ID3D11ShaderResourceView* textureRV ) noexcept { m_pNormalMapResourceView = textureRV; }
+	void SetTextures( ID3D11DeviceContext* pContext );
 
-	//gets
-	ID3D11Buffer* getVertexBuffer() { return m_pVertexBuffer; }
-	ID3D11Buffer* getIndexBuffer() { return m_pIndexBuffer; }
-	ID3D11ShaderResourceView** getTextureResourceView() { return &m_pTextureResourceView; }
-	ID3D11ShaderResourceView** getNormalMapResourceView() { return &m_pNormalMapResourceView; }
-	ID3D11SamplerState** getTextureSamplerState() { return &m_pSamplerLinear; }
-	ID3D11Buffer* getMaterialConstantBuffer() { return m_pMaterialConstantBuffer; }
+	inline ID3D11Buffer* GetVertexBuffer() const noexcept { return m_pVertexBuffer; }
+	inline ID3D11Buffer* GetIndexBuffer() const noexcept { return m_pIndexBuffer; }
 
-	MaterialPropertiesConstantBuffer getMaterialPropertiesConstantBuffer() { return m_material; }
-	void SetMaterial(MaterialPropertiesConstantBuffer material) { m_material = material; }
+	inline ID3D11ShaderResourceView** GetTextureResourceView() noexcept { return &m_pTextureResourceView; }
+	inline ID3D11ShaderResourceView** GetNormalMapResourceView() noexcept { return &m_pNormalMapResourceView; }
+	inline ID3D11Buffer* GetMaterialConstantBuffer() const noexcept { return m_pMaterialConstantBuffer; }
+	inline ID3D11SamplerState** GetTextureSamplerState() noexcept { return &m_pSamplerLinear; }
 
+	inline MaterialPropertiesConstantBuffer getMaterialPropertiesConstantBuffer() const noexcept { return m_material; }
+	inline void SetMaterial( MaterialPropertiesConstantBuffer material ) noexcept { m_material = material; }
+	inline bool HasTexture() const { return m_pTextureResourceView ? true : false; }
 
-
-	bool HasTexture() const { return m_pTextureResourceView ? true : false; }
-
-
-	 void Update(ID3D11DeviceContext* pContext);
-	virtual void Draw(ID3D11DeviceContext* pImmediateContext);
-	virtual void Draw(ID3D11DeviceContext* pImmediateContext,int vertToDraw,int Start);
-
-
+	void Update( ID3D11DeviceContext* pContext );
+	virtual void Draw( ID3D11DeviceContext* pContext );
+	virtual void Draw( ID3D11DeviceContext* pContext, int vertToDraw, int start );
 
 protected:
-	//data
+	void CalculateTangentBinormalLH( SimpleVertex v0, SimpleVertex v1, SimpleVertex v2, XMFLOAT3& normal, XMFLOAT3& Tangent, XMFLOAT3& binormal );
+	void CalculateTangentBinormalRH( SimpleVertex v0, SimpleVertex v1, SimpleVertex v2, XMFLOAT3& normal, XMFLOAT3& Tangent, XMFLOAT3& binormal );
+	void CalculateModelVectors( SimpleVertex* vertices, int vertexCount );
+	void CleanUp();
+
 	ID3D11Buffer* m_pVertexBuffer;
 	ID3D11Buffer* m_pIndexBuffer;
 
 	ID3D11SamplerState* m_pSamplerLinear;
-	MaterialPropertiesConstantBuffer	m_material;
+	MaterialPropertiesConstantBuffer m_material;
 	ID3D11Buffer* m_pMaterialConstantBuffer = nullptr;
-	int NumberOfVert =0;
+	int m_iNumberOfVert = 0;
 
 	ID3D11ShaderResourceView* m_pNormalMapResourceView;
-	ID3D11ShaderResourceView* m_pParralaxMapResourceView;
-	void CleanUp();
-	UINT mVertexStride=0;
+	ID3D11ShaderResourceView* m_pParallaxMapResourceView;
+	UINT m_uVertexStride = 0;
 private:
 	ID3D11ShaderResourceView* m_pTextureResourceView;
 };
 
 template<typename VertexType>
-inline HRESULT Appearance::SetVertexBuffer(ID3D11Device* pd3dDevice, const VertexType* vertices, UINT count)
+inline HRESULT Appearance::SetVertexBuffer( ID3D11Device* pd3dDevice, const VertexType* vertices, UINT count )
 {
-
-	mVertexStride = sizeof(VertexType);
+	m_uVertexStride = sizeof( VertexType );
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_DEFAULT;
-	vbd.ByteWidth = sizeof(VertexType) * count;
+	vbd.ByteWidth = sizeof( VertexType ) * count;
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
@@ -100,6 +89,8 @@ inline HRESULT Appearance::SetVertexBuffer(ID3D11Device* pd3dDevice, const Verte
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = vertices;
 
-	HRESULT hr = pd3dDevice->CreateBuffer(&vbd, &vinitData, &m_pVertexBuffer);
+	HRESULT hr = pd3dDevice->CreateBuffer( &vbd, &vinitData, &m_pVertexBuffer );
 	return hr;
 }
+
+#endif

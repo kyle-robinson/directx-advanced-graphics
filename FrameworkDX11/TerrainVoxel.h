@@ -6,7 +6,8 @@
 #include"ShaderController.h"
 #include"CameraController.h"
 #include<DirectXCollision.h>
-// noise genrater userd : https://github.com/Auburn/FastNoiseLite
+
+// Noise generator : https://github.com/Auburn/FastNoiseLite
 #include"fastNoiseLite\Cpp\FastNoiseLite.h"
 
 /// <summary>

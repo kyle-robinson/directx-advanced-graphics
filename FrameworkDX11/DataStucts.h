@@ -1,13 +1,10 @@
 #pragma once
-#include<d3d11.h>
-#include<DirectXMath.h>
-#include<vector>
-#include<cstddef>
+#ifndef DATASTRUCTS_H
+#define DATASTRUCTS_H
+
 using namespace DirectX;
-
-
-typedef unsigned short USHORT;
-typedef unsigned int UINT;
+#include <DirectXMath.h>
+#include <vector>
 
 ///<summary>
 /// A Keyframe defines the bone transformation at an instant in time.
@@ -17,58 +14,52 @@ struct Keyframe
 	Keyframe();
 	~Keyframe();
 
-	float TimePos;
-	XMFLOAT3 Translation;
-	XMFLOAT3 Scale;
-	XMFLOAT4 RotationQuat;
+	float m_fTimePos;
+	XMFLOAT3 m_fTranslation;
+	XMFLOAT3 m_fScale;
+	XMFLOAT4 m_fRotationQuat;
 };
-
 
 ///<summary>
 /// A BoneAnimation is defined by a list of keyframes.
 ///</summary>
 struct BoneAnimation
 {
-	float GetStartTime()const;
-	float GetEndTime()const;
-
-	void Interpolate(float t, XMFLOAT4X4& M)const;
-
-	std::vector<Keyframe> Keyframes;
-
+	float GetStartTime() const;
+	float GetEndTime() const;
+	void Interpolate( float t, XMFLOAT4X4& mat ) const;
+	std::vector<Keyframe> m_vKeyframes;
 };
 
-///<summary>
-/// animation clip data  
-///</summary>
+/// <summary>
+/// An AnimationClip is defined by a list of bone animations
+/// </summary>
 struct AnimationClip
 {
-	float GetClipStartTime()const;
-	float GetClipEndTime()const;
-
-	void Interpolate(float t, std::vector<XMFLOAT4X4>& boneTransforms)const;
-
-	std::vector<BoneAnimation> BoneAnimations;
+	float GetClipStartTime() const;
+	float GetClipEndTime() const;
+	void Interpolate( float t, std::vector<XMFLOAT4X4>& boneTransforms ) const;
+	std::vector<BoneAnimation> m_vBoneAnimations;
 };
 
 struct Subset
 {
 	Subset() :
-		Id(-1),
-		VertexStart(0), VertexCount(0),
-		FaceStart(0), FaceCount(0)
-	{
-	}
-	UINT Id;
-	UINT VertexStart;
-	UINT VertexCount;
-	UINT FaceStart;
-	UINT FaceCount;
+		m_uId( -1u ),
+		m_uVertexStart( 0u ),
+		m_uVertexCount( 0u ),
+		m_uFaceStart( 0u ),
+		m_uFaceCount( 0u )
+	{}
 
-	
+	UINT m_uId;
+	UINT m_uVertexStart;
+	UINT m_uVertexCount;
+	UINT m_uFaceStart;
+	UINT m_uFaceCount;
 };
 
-//vertex Data
+// Vertex data
 typedef unsigned char BYTE;
 struct SkinedVertex
 {
@@ -82,5 +73,7 @@ struct SkinedVertex
 
 struct cbSkinned
 {
-	XMMATRIX gBoneTransforms[96];
+	XMMATRIX m_mBoneTransforms[96];
 };
+
+#endif
