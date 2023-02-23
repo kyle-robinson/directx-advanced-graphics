@@ -534,7 +534,9 @@
     <ClCompile Include="TerrainAppearence.cpp" />
     <ClCompile Include="TerrainJsonLoad.cpp" />
     <ClCompile Include="TerrainVoxel.cpp" />
-    <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="Transform.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Utility\ErrorLogger.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>

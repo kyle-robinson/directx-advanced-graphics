@@ -31,7 +31,7 @@ void Input::UpdateMouse( float dt )
         {
             if ( me.GetType() == Mouse::MouseEvent::EventType::RawMove )
             {
-                m_pCameraControl->GetCurentCam()->AgustRot( XMFLOAT3(
+                m_pCameraControl->GetCurentCam()->AdjustRot( XMFLOAT3(
                     static_cast<float>( me.GetPosY() ) * 0.005f,
                     static_cast<float>( me.GetPosX() ) * 0.005f,
                     0.0f
@@ -59,15 +59,15 @@ void Input::UpdateKeyboard( float dt )
     // Camera movement
     if ( m_keyboard.KeyIsPressed( 'W' ) )
     {
-        m_pCameraControl->GetCurentCam()->AgustPos( {
-            m_pCameraControl->GetCurentCam()->GetVecFord().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
-            m_pCameraControl->GetCurentCam()->GetVecFord().y * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
-            m_pCameraControl->GetCurentCam()->GetVecFord().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
+        m_pCameraControl->GetCurentCam()->AdjustPos( {
+            m_pCameraControl->GetCurentCam()->GetVecForward().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
+            m_pCameraControl->GetCurentCam()->GetVecForward().y * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
+            m_pCameraControl->GetCurentCam()->GetVecForward().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
         } );
     }
     if ( m_keyboard.KeyIsPressed( 'S' ) )
     {
-        m_pCameraControl->GetCurentCam()->AgustPos( {
+        m_pCameraControl->GetCurentCam()->AdjustPos( {
             m_pCameraControl->GetCurentCam()->GetVecBack().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
             m_pCameraControl->GetCurentCam()->GetVecBack().y * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
             m_pCameraControl->GetCurentCam()->GetVecBack().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
@@ -75,7 +75,7 @@ void Input::UpdateKeyboard( float dt )
     }
     if ( m_keyboard.KeyIsPressed( 'D' ) )
     {
-        m_pCameraControl->GetCurentCam()->AgustPos( {
+        m_pCameraControl->GetCurentCam()->AdjustPos( {
             m_pCameraControl->GetCurentCam()->GetVecRight().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
             m_pCameraControl->GetCurentCam()->GetVecRight().y * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
             m_pCameraControl->GetCurentCam()->GetVecRight().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
@@ -83,7 +83,7 @@ void Input::UpdateKeyboard( float dt )
     }
     if ( m_keyboard.KeyIsPressed( 'A' ) )
     {
-        m_pCameraControl->GetCurentCam()->AgustPos( {
+        m_pCameraControl->GetCurentCam()->AdjustPos( {
             m_pCameraControl->GetCurentCam()->GetVecLeft().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
             m_pCameraControl->GetCurentCam()->GetVecLeft().y * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
             m_pCameraControl->GetCurentCam()->GetVecLeft().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
@@ -91,7 +91,7 @@ void Input::UpdateKeyboard( float dt )
     }
     if ( m_keyboard.KeyIsPressed( VK_CONTROL ) )
     {
-        m_pCameraControl->GetCurentCam()->AgustPos( {
+        m_pCameraControl->GetCurentCam()->AdjustPos( {
             m_pCameraControl->GetCurentCam()->GetVecDown().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
             m_pCameraControl->GetCurentCam()->GetVecDown().y * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
             m_pCameraControl->GetCurentCam()->GetVecDown().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
@@ -99,7 +99,7 @@ void Input::UpdateKeyboard( float dt )
     }
     if ( m_keyboard.KeyIsPressed( VK_SPACE ) )
     {
-        m_pCameraControl->GetCurentCam()->AgustPos( {
+        m_pCameraControl->GetCurentCam()->AdjustPos( {
             m_pCameraControl->GetCurentCam()->GetVecUp().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
             m_pCameraControl->GetCurentCam()->GetVecUp().y * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
             m_pCameraControl->GetCurentCam()->GetVecUp().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()

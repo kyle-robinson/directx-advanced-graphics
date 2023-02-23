@@ -91,7 +91,7 @@ void Camera::AdjustRot( XMFLOAT3 rot )
 		m_fRot.x = XMConvertToRadians( -90.0f );
 }
 
-XMFLOAT4X4 Camera::GetViewProjection() const
+XMFLOAT4X4 Camera::GetViewProjection() const noexcept
 {
 	XMMATRIX view = XMLoadFloat4x4( &m_mView );
 	XMMATRIX projection = XMLoadFloat4x4( &m_mProjection );

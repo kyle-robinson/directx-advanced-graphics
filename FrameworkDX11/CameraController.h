@@ -2,6 +2,7 @@
 #ifndef CAMERACONTROLLER_H
 #define CAMERACONTROLLER_H
 
+#include <vector>
 #include "Camera.h"
 
 class CameraController
@@ -14,7 +15,7 @@ public:
 	std::vector<Camera*> GetCamList();
 
 	void RemoveAllCams();
-	void RemoveCam( int CamNum );
+	void RemoveCam( int num );
 
 	Camera* GetCurentCam();
 	Camera* GetCam( int num );
