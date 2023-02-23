@@ -2,6 +2,7 @@
 #ifndef COMEXCEPTION_H
 #define COMEXCEPTION_H
 
+#include <string>
 #include <comdef.h>
 #include "StringHelper.h"
 

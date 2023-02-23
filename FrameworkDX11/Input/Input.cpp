@@ -3,9 +3,9 @@
 
 Input::Input()
 {
-    // Update keyboard processing
-    keyboard.DisableAutoRepeatKeys();
-    keyboard.DisableAutoRepeatChars();
+    // Update m_keyboard processing
+    m_keyboard.DisableAutoRepeatKeys();
+    m_keyboard.DisableAutoRepeatChars();
 }
 
 Input::~Input() { }
@@ -24,10 +24,10 @@ void Input::Update( float dt )
 void Input::UpdateMouse( float dt )
 {
     // update camera orientation
-    while ( !mouse.EventBufferIsEmpty() )
+    while ( !m_mouse.EventBufferIsEmpty() )
     {
-        Mouse::MouseEvent me = mouse.ReadEvent();
-        if ( mouse.IsRightDown() || !cursorEnabled )
+        Mouse::MouseEvent me = m_mouse.ReadEvent();
+        if ( m_mouse.IsRightDown() || !m_bCursorEnabled )
         {
             if ( me.GetType() == Mouse::MouseEvent::EventType::RawMove )
             {
@@ -44,9 +44,9 @@ void Input::UpdateMouse( float dt )
 void Input::UpdateKeyboard( float dt )
 {
     // Handle input for single key presses
-    while ( !keyboard.KeyBufferIsEmpty() )
+    while ( !m_keyboard.KeyBufferIsEmpty() )
     {
-        Keyboard::KeyboardEvent kbe = keyboard.ReadKey();
+        Keyboard::KeyboardEvent kbe = m_keyboard.ReadKey();
         unsigned char keycode = kbe.GetKeyCode();
 
         // Set cursor enabled/disabled
@@ -57,7 +57,7 @@ void Input::UpdateKeyboard( float dt )
     }
 
     // Camera movement
-    if ( keyboard.KeyIsPressed( 'W' ) )
+    if ( m_keyboard.KeyIsPressed( 'W' ) )
     {
         m_pCameraControl->GetCurentCam()->AgustPos( {
             m_pCameraControl->GetCurentCam()->GetVecFord().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
@@ -65,7 +65,7 @@ void Input::UpdateKeyboard( float dt )
             m_pCameraControl->GetCurentCam()->GetVecFord().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
         } );
     }
-    if ( keyboard.KeyIsPressed( 'S' ) )
+    if ( m_keyboard.KeyIsPressed( 'S' ) )
     {
         m_pCameraControl->GetCurentCam()->AgustPos( {
             m_pCameraControl->GetCurentCam()->GetVecBack().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
@@ -73,7 +73,7 @@ void Input::UpdateKeyboard( float dt )
             m_pCameraControl->GetCurentCam()->GetVecBack().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
         } );
     }
-    if ( keyboard.KeyIsPressed( 'D' ) )
+    if ( m_keyboard.KeyIsPressed( 'D' ) )
     {
         m_pCameraControl->GetCurentCam()->AgustPos( {
             m_pCameraControl->GetCurentCam()->GetVecRight().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
@@ -81,7 +81,7 @@ void Input::UpdateKeyboard( float dt )
             m_pCameraControl->GetCurentCam()->GetVecRight().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
         } );
     }
-    if ( keyboard.KeyIsPressed( 'A' ) )
+    if ( m_keyboard.KeyIsPressed( 'A' ) )
     {
         m_pCameraControl->GetCurentCam()->AgustPos( {
             m_pCameraControl->GetCurentCam()->GetVecLeft().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
@@ -89,7 +89,7 @@ void Input::UpdateKeyboard( float dt )
             m_pCameraControl->GetCurentCam()->GetVecLeft().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
         } );
     }
-    if ( keyboard.KeyIsPressed( VK_CONTROL ) )
+    if ( m_keyboard.KeyIsPressed( VK_CONTROL ) )
     {
         m_pCameraControl->GetCurentCam()->AgustPos( {
             m_pCameraControl->GetCurentCam()->GetVecDown().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
@@ -97,7 +97,7 @@ void Input::UpdateKeyboard( float dt )
             m_pCameraControl->GetCurentCam()->GetVecDown().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
         } );
     }
-    if ( keyboard.KeyIsPressed( VK_SPACE ) )
+    if ( m_keyboard.KeyIsPressed( VK_SPACE ) )
     {
         m_pCameraControl->GetCurentCam()->AgustPos( {
             m_pCameraControl->GetCurentCam()->GetVecUp().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
