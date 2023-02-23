@@ -13,7 +13,6 @@
 #include"CameraController.h"
 #include"ImGuiManager.h"
 
-#include"ShaderController.h"
 #include"LightControll.h"
 #include"ShadowMap.h"
 #include"RenderTargetTextureClass.h"
@@ -69,7 +68,6 @@ private:
 	Terrain* _Terrain;
 	TerrainVoxel* _VoxelTerrain;
 	Input* m_pInput;
-	ShaderController* _Shader;
 	CameraController* _pCamControll;
 	ImGuiManager* DimGuiManager;
 	LightControll* _pLightContol;

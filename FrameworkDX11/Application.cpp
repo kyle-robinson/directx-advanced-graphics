@@ -9,7 +9,6 @@ Application::Application()
     _pConstantBuffer = nullptr;
     _pLightConstantBuffer = nullptr;
 
-    _Shader = new ShaderController();
     DimGuiManager = new ImGuiManager();
     _pLightContol = new LightControll();
     m_pInput = new Input();
@@ -42,86 +41,8 @@ HRESULT Application::Initialise( HINSTANCE hInstance, int width, int height )
 
 HRESULT Application::InitMesh()
 {
-    // Create shaders
-    HRESULT hr = _Shader->NewShader( "NoEffects", L"DefaultNoNormal.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewShader( "NormalMap", L"Default.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewShader( "NormalMap_TBN_VS", L"TBN.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewShader( "ParallaxMapping_TBN_VS", L"Parallax1.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewShader( "ParallaxMapping", L"Parallax2.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewShader( "ParallaxOcMapping_TBN_VS", L"ParallaxOcclusion1.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewShader( "ParallaxOcMapping", L"ParallaxOcclusion2.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewShader( "ParallaxOcShadingMapping_TBN_VS", L"ParallaxOcclusionShadow1.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewShader( "ParallaxOcShadingMapping", L"ParallaxOcclusionShadow2.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewShader( "Depth(NotFullShader)", L"Depth.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewShader( "DepthLight(NotFullShader)", L"DepthLight.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    // Fullscreen shaders
-    hr = _Shader->NewFullScreenShader( "SolidColour", L"SolidColour.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewFullScreenShader( "Gaussian1", L"Gaussian1.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewFullScreenShader( "Fianl", L"FinalPass.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewFullScreenShader( "Alpha", L"Bloom.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewFullScreenShader( "Gaussian2", L"Gaussian2.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewFullScreenShader( "Fade", L"Fade.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewFullScreenShader( "DepthOfField", L"DepthOfField.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = _Shader->NewGeometryShader( "BillBord", L"Billboard.hlsl", m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
-
     // Create object meshes
-    hr = _GameObject.GetAppearance()->initMesh( m_gfx.GetDevice(), m_gfx.GetContext() );
+    HRESULT hr = _GameObject.GetAppearance()->initMesh( m_gfx.GetDevice(), m_gfx.GetContext() );
     if ( FAILED( hr ) )
         return hr;
 
@@ -133,7 +54,7 @@ HRESULT Application::InitMesh()
 
     // Terrain generation
     _Terrain = new Terrain( "Resources/Textures/coastMountain513.raw", XMFLOAT2( 513, 513 ),
-        100, TerrainGenType::HightMapLoad, m_gfx.GetDevice(), m_gfx.GetContext(), _Shader );
+        100, TerrainGenType::HightMapLoad, m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController() );
 
     vector<string> texGround;
     texGround.push_back( "Resources/Textures/grass.dds" );
@@ -145,10 +66,10 @@ HRESULT Application::InitMesh()
     _Terrain->SetTex( texGround, m_gfx.GetDevice() );
     _Terrain->SetBlendMap( "Resources/Textures/blend.dds", m_gfx.GetDevice() );
 
-    _VoxelTerrain = new TerrainVoxel( m_gfx.GetDevice(), m_gfx.GetContext(), _Shader, 3, 3 );
+    _VoxelTerrain = new TerrainVoxel( m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController(), 3, 3 );
 
     AnimmationObject = new AnimatedModel( "Resources/AnimModel/soldier.m3d",
-        m_gfx.GetDevice(), m_gfx.GetContext(), _Shader );
+        m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController() );
 
     // Create the constant buffer
     D3D11_BUFFER_DESC bd = {};
@@ -479,12 +400,12 @@ void Application::Draw()
     //creat Shadow depth senciles
     for ( UINT i = 0; i < MAX_LIGHTS; i++ )
     {
-        m_gfx.GetContext()->IASetInputLayout( _Shader->GetShaderData().m_pVertexLayout );
+        m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
         // Set primitive topology
         m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-        m_gfx.GetContext()->VSSetShader( _Shader->GetShaderList()[10].m_pVertexShader, nullptr, 0 );
+        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderList()[10].m_pVertexShader, nullptr, 0 );
         m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &_pConstantBuffer );
-        m_gfx.GetContext()->PSSetShader( _Shader->GetShaderList()[10].m_pPixelShader, nullptr, 0 );
+        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderList()[10].m_pPixelShader, nullptr, 0 );
 
         _pLightContol->GetLight( i )->CreateShdowMap( m_gfx.GetContext(), GameObjects, &_pConstantBuffer );
 
@@ -524,15 +445,15 @@ void Application::Draw()
 
     // Render the cube
 
-    m_gfx.GetContext()->IASetInputLayout( _Shader->GetShaderData().m_pVertexLayout );
+    m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
 
     // Set primitive topology
     m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
-    m_gfx.GetContext()->VSSetShader( _Shader->GetShaderData().m_pVertexShader, nullptr, 0 );
+    m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderData().m_pVertexShader, nullptr, 0 );
     m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &_pConstantBuffer );
     m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
-    m_gfx.GetContext()->PSSetShader( _Shader->GetShaderData().m_pPixelShader, nullptr, 0 );
+    m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderData().m_pPixelShader, nullptr, 0 );
     m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
 
 
@@ -549,14 +470,14 @@ void Application::Draw()
     _GameObject.draw( m_gfx.GetContext() );
 
     RSControll->SetRasterizerState( "RSCullNone", m_gfx.GetContext() );
-    AnimmationObject->Draw( m_gfx.GetContext(), _Shader, &cb1, _pConstantBuffer );
+    AnimmationObject->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), &cb1, _pConstantBuffer );
     RSControll->SetRasterizerState( m_gfx.GetContext() );
 
 
-    m_gfx.GetContext()->VSSetShader( _Shader->GetShaderByName( "NoEffects" ).m_pVertexShader, nullptr, 0 );
+    m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "NoEffects" ).m_pVertexShader, nullptr, 0 );
     m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &_pConstantBuffer );
     m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
-    m_gfx.GetContext()->PSSetShader( _Shader->GetShaderByName( "NoEffects" ).m_pPixelShader, nullptr, 0 );
+    m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "NoEffects" ).m_pPixelShader, nullptr, 0 );
     m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
 
     WorldAsFloat = _GameObjectFloor.GetTransfrom()->GetWorldMatrix();
@@ -568,17 +489,17 @@ void Application::Draw()
     _GameObjectFloor.draw( m_gfx.GetContext() );
 
     //terrain draw
-    _VoxelTerrain->Draw( m_gfx.GetContext(), _Shader, &cb1, _pConstantBuffer, _pCamControll );
-    _Terrain->Draw( m_gfx.GetContext(), _Shader, &cb1, _pConstantBuffer, _pCamControll );
+    _VoxelTerrain->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), &cb1, _pConstantBuffer, _pCamControll );
+    _Terrain->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), &cb1, _pConstantBuffer, _pCamControll );
 
 
     m_gfx.GetContext()->HSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
 
 
-    BillBoradObject->Draw( m_gfx.GetContext(), _Shader->GetGeometryData(), &cb1, _pConstantBuffer );
+    BillBoradObject->Draw( m_gfx.GetContext(), m_gfx.GetShaderController()->GetGeometryData(), &cb1, _pConstantBuffer );
 
 
-    m_gfx.GetContext()->IASetInputLayout( _Shader->GetShaderData().m_pVertexLayout );
+    m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
 
 
     //post 2d
@@ -622,10 +543,10 @@ void Application::Draw()
         m_gfx.GetContext()->UpdateSubresource( _pConstantBuffer, 0, nullptr, &cb1, 0, 0 );
 
         // Render the cube
-        m_gfx.GetContext()->VSSetShader( _Shader->GetShaderData().m_pVertexShader, nullptr, 0 );
+        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderData().m_pVertexShader, nullptr, 0 );
         m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &_pConstantBuffer );
         m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
-        m_gfx.GetContext()->PSSetShader( _Shader->GetShaderData().m_pPixelShader, nullptr, 0 );
+        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderData().m_pPixelShader, nullptr, 0 );
         m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
 
         //m_gfx.GetContext()->PSSetConstantBuffers(1, 1, &materialCB);
@@ -647,10 +568,10 @@ void Application::Draw()
     else
     {
 
-        m_gfx.GetContext()->VSSetShader( _Shader->GetShaderByName( "NoEffects" ).m_pVertexShader, nullptr, 0 );
+        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "NoEffects" ).m_pVertexShader, nullptr, 0 );
         m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &_pConstantBuffer );
         m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
-        m_gfx.GetContext()->PSSetShader( _Shader->GetShaderByName( "NoEffects" ).m_pPixelShader, nullptr, 0 );
+        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "NoEffects" ).m_pPixelShader, nullptr, 0 );
         m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
 
         _pLightContol->draw( m_gfx.GetContext(), _pConstantBuffer, &cb1 );
@@ -690,13 +611,13 @@ void Application::Draw()
 
 
         // Render the cube
-        m_gfx.GetContext()->IASetInputLayout( _Shader->GetShaderData().m_pVertexLayout );
+        m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
         // Set primitive topology
         m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
-        m_gfx.GetContext()->VSSetShader( _Shader->GetShaderList()[9].m_pVertexShader, nullptr, 0 );
+        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderList()[9].m_pVertexShader, nullptr, 0 );
         m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &_pConstantBuffer );
-        m_gfx.GetContext()->PSSetShader( _Shader->GetShaderList()[9].m_pPixelShader, nullptr, 0 );
+        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderList()[9].m_pPixelShader, nullptr, 0 );
 
         m_gfx.GetContext()->UpdateSubresource( _pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0 );
         m_gfx.GetContext()->PSSetConstantBuffers( 1, 1, &_pPostProcessingConstantBuffer );
@@ -747,13 +668,13 @@ void Application::Draw()
             RenderTargetControl->GetRenderTarget( "alpha" )->SetRenderTarget( m_gfx.GetContext() );
 
 
-            m_gfx.GetContext()->IASetInputLayout( _Shader->GetFullScreenShaderByName( "Alpha" ).m_pVertexLayout );
+            m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Alpha" ).m_pVertexLayout );
             m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
             m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
-            m_gfx.GetContext()->VSSetShader( _Shader->GetFullScreenShaderByName( "Alpha" ).m_pVertexShader, nullptr, 0 );
-            m_gfx.GetContext()->PSSetShader( _Shader->GetFullScreenShaderByName( "Alpha" ).m_pPixelShader, nullptr, 0 );
+            m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Alpha" ).m_pVertexShader, nullptr, 0 );
+            m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Alpha" ).m_pPixelShader, nullptr, 0 );
 
 
             m_gfx.GetContext()->UpdateSubresource( _pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0 );
@@ -782,13 +703,13 @@ void Application::Draw()
             //down sample
             RenderTargetControl->GetRenderTarget( "DownSample" )->SetRenderTarget( m_gfx.GetContext() );
 
-            m_gfx.GetContext()->IASetInputLayout( _Shader->GetFullScreenShaderByName( "SolidColour" ).m_pVertexLayout );
+            m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "SolidColour" ).m_pVertexLayout );
             m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
             m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
-            m_gfx.GetContext()->VSSetShader( _Shader->GetFullScreenShaderByName( "SolidColour" ).m_pVertexShader, nullptr, 0 );
-            m_gfx.GetContext()->PSSetShader( _Shader->GetFullScreenShaderByName( "SolidColour" ).m_pPixelShader, nullptr, 0 );
+            m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "SolidColour" ).m_pVertexShader, nullptr, 0 );
+            m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "SolidColour" ).m_pPixelShader, nullptr, 0 );
 
 
             m_gfx.GetContext()->UpdateSubresource( _pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0 );
@@ -810,13 +731,13 @@ void Application::Draw()
             RenderTargetControl->GetRenderTarget( "Gauss1" )->SetRenderTarget( m_gfx.GetContext() );
 
 
-            m_gfx.GetContext()->IASetInputLayout( _Shader->GetFullScreenShaderByName( "Gaussian1" ).m_pVertexLayout );
+            m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Gaussian1" ).m_pVertexLayout );
             m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
             m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
-            m_gfx.GetContext()->VSSetShader( _Shader->GetFullScreenShaderByName( "Gaussian1" ).m_pVertexShader, nullptr, 0 );
-            m_gfx.GetContext()->PSSetShader( _Shader->GetFullScreenShaderByName( "Gaussian1" ).m_pPixelShader, nullptr, 0 );
+            m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Gaussian1" ).m_pVertexShader, nullptr, 0 );
+            m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Gaussian1" ).m_pPixelShader, nullptr, 0 );
 
 
             m_gfx.GetContext()->UpdateSubresource( _pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0 );
@@ -832,13 +753,13 @@ void Application::Draw()
             RenderTargetControl->GetRenderTarget( "Gauss2" )->SetRenderTarget( m_gfx.GetContext() );
 
 
-            m_gfx.GetContext()->IASetInputLayout( _Shader->GetFullScreenShaderByName( "Gaussian2" ).m_pVertexLayout );
+            m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Gaussian2" ).m_pVertexLayout );
             m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
             m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
-            m_gfx.GetContext()->VSSetShader( _Shader->GetFullScreenShaderByName( "Gaussian2" ).m_pVertexShader, nullptr, 0 );
-            m_gfx.GetContext()->PSSetShader( _Shader->GetFullScreenShaderByName( "Gaussian2" ).m_pPixelShader, nullptr, 0 );
+            m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Gaussian2" ).m_pVertexShader, nullptr, 0 );
+            m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Gaussian2" ).m_pPixelShader, nullptr, 0 );
 
 
             m_gfx.GetContext()->UpdateSubresource( _pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0 );
@@ -862,13 +783,13 @@ void Application::Draw()
             //upsample
             RenderTargetControl->GetRenderTarget( "UpSample" )->SetRenderTarget( m_gfx.GetContext() );
 
-            m_gfx.GetContext()->IASetInputLayout( _Shader->GetFullScreenShaderByName( "SolidColour" ).m_pVertexLayout );
+            m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "SolidColour" ).m_pVertexLayout );
             m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
             m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
-            m_gfx.GetContext()->VSSetShader( _Shader->GetFullScreenShaderByName( "SolidColour" ).m_pVertexShader, nullptr, 0 );
-            m_gfx.GetContext()->PSSetShader( _Shader->GetFullScreenShaderByName( "SolidColour" ).m_pPixelShader, nullptr, 0 );
+            m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "SolidColour" ).m_pVertexShader, nullptr, 0 );
+            m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "SolidColour" ).m_pPixelShader, nullptr, 0 );
 
 
             m_gfx.GetContext()->UpdateSubresource( _pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0 );
@@ -892,12 +813,12 @@ void Application::Draw()
             //DOF implmentation
             RenderTargetControl->GetRenderTarget( "DepthOfField" )->SetRenderTarget( m_gfx.GetContext() );
 
-            m_gfx.GetContext()->IASetInputLayout( _Shader->GetFullScreenShaderByName( "DepthOfField" ).m_pVertexLayout );
+            m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "DepthOfField" ).m_pVertexLayout );
             m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
             m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
-            m_gfx.GetContext()->VSSetShader( _Shader->GetFullScreenShaderByName( "DepthOfField" ).m_pVertexShader, nullptr, 0 );
-            m_gfx.GetContext()->PSSetShader( _Shader->GetFullScreenShaderByName( "DepthOfField" ).m_pPixelShader, nullptr, 0 );
+            m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "DepthOfField" ).m_pVertexShader, nullptr, 0 );
+            m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "DepthOfField" ).m_pPixelShader, nullptr, 0 );
             m_gfx.GetContext()->UpdateSubresource( _pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0 );
             m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &_pPostProcessingConstantBuffer );
 
@@ -917,12 +838,12 @@ void Application::Draw()
         //fade implmentation
         RenderTargetControl->GetRenderTarget( "Fade" )->SetRenderTarget( m_gfx.GetContext() );
 
-        m_gfx.GetContext()->IASetInputLayout( _Shader->GetFullScreenShaderByName( "Fade" ).m_pVertexLayout );
+        m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Fade" ).m_pVertexLayout );
         m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
         m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
         m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
-        m_gfx.GetContext()->VSSetShader( _Shader->GetFullScreenShaderByName( "Fade" ).m_pVertexShader, nullptr, 0 );
-        m_gfx.GetContext()->PSSetShader( _Shader->GetFullScreenShaderByName( "Fade" ).m_pPixelShader, nullptr, 0 );
+        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Fade" ).m_pVertexShader, nullptr, 0 );
+        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Fade" ).m_pPixelShader, nullptr, 0 );
         m_gfx.GetContext()->UpdateSubresource( _pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0 );
         m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &_pPostProcessingConstantBuffer );
 
@@ -948,13 +869,13 @@ void Application::Draw()
         m_gfx.GetContext()->ClearRenderTargetView( _pRenderTargetView, Colors::DarkBlue );
         m_gfx.GetContext()->ClearDepthStencilView( _pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
-        m_gfx.GetContext()->IASetInputLayout( _Shader->GetFullScreenShaderByName( "Fianl" ).m_pVertexLayout );
+        m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Fianl" ).m_pVertexLayout );
         m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
         m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
         m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
-        m_gfx.GetContext()->VSSetShader( _Shader->GetFullScreenShaderByName( "Fianl" ).m_pVertexShader, nullptr, 0 );
-        m_gfx.GetContext()->PSSetShader( _Shader->GetFullScreenShaderByName( "Fianl" ).m_pPixelShader, nullptr, 0 );
+        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Fianl" ).m_pVertexShader, nullptr, 0 );
+        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Fianl" ).m_pPixelShader, nullptr, 0 );
 
 
 
@@ -977,7 +898,7 @@ void Application::Draw()
     DimGuiManager->DrawCamMenu( _pCamControll );
     DimGuiManager->ObjectControl( &_GameObject );
     DimGuiManager->LightControl( _pLightContol );
-    DimGuiManager->ShaderMenu( _Shader, &postSettings, RSControll, isRTT );
+    DimGuiManager->ShaderMenu( m_gfx.GetShaderController(), &postSettings, RSControll, isRTT );
     DimGuiManager->BillBoradControl( BillBoradObject );
     DimGuiManager->BezierCurveSpline();
     DimGuiManager->TerrainControll( _Terrain, _VoxelTerrain, m_gfx.GetDevice(), m_gfx.GetContext() );
@@ -1046,9 +967,6 @@ void Application::Cleanup()
     delete DimGuiManager;
     DimGuiManager = nullptr;
 
-    delete _Shader;
-    _Shader = nullptr;
-
     delete RenderTargetControl;
     RenderTargetControl = nullptr;
 
@@ -1093,5 +1011,4 @@ void Application::Cleanup()
 
     if ( debugDevice )
         debugDevice->Release();
-
 }
