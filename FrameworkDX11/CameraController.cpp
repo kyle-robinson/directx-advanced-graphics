@@ -1,8 +1,9 @@
+#include "stdafx.h"
 #include "CameraController.h"
 
 CameraController::CameraController()
 {
-	_CurrentCamNumber = 0;
+	m_iCurrentCamNumber = 0;
 }
 
 CameraController::~CameraController()
@@ -10,77 +11,72 @@ CameraController::~CameraController()
 	CleanUp();
 }
 
-void CameraController::AddCam(Camera* cam)
+void CameraController::AddCam( Camera* cam )
 {
-
-	CamList.push_back(cam);
-
+	m_vCamList.push_back( cam );
 }
 
-vector<Camera*> CameraController::GetCamList()
+std::vector<Camera*> CameraController::GetCamList()
 {
-    return CamList;
+	return m_vCamList;
 }
 
-void CameraController::RemoveAllCam()
+void CameraController::RemoveAllCams()
 {
-	for (int i = 0; i < CamList.size(); i++)
+	for ( int i = 0; i < m_vCamList.size(); i++ )
 	{
-		delete CamList[i];
+		delete m_vCamList[i];
 	}
 
-	CamList.clear();
+	m_vCamList.clear();
 }
 
-void CameraController::RemoveCam(int CamNum)
+void CameraController::RemoveCam( int num )
 {
-	delete CamList[CamNum];
-
+	delete m_vCamList[num];
 }
 
 Camera* CameraController::GetCurentCam()
 {
-	return CamList[_CurrentCamNumber];
+	return m_vCamList[m_iCurrentCamNumber];
 }
 
-Camera* CameraController::GetCam(int CamNo)
+Camera* CameraController::GetCam( int num )
 {
-	return CamList[CamNo];
+	return m_vCamList[num];
 }
 
-Camera* CameraController::GetCam(string CamName)
+Camera* CameraController::GetCam( std::string name )
 {
 	return nullptr;
 }
 
-bool CameraController::SetCam(int CamNo)
+bool CameraController::SetCam( int num )
 {
-	if (CamList.size() < CamNo || 0 > CamNo) {
+	if ( m_vCamList.size() < num || 0 > num )
+	{
 		return false;
 	}
 
-	_CurrentCamNumber = CamNo;
+	m_iCurrentCamNumber = num;
 	return true;
 }
 
-bool CameraController::SetCam(string CamName)
+bool CameraController::SetCam( std::string name )
 {
 	return false;
 }
 
 void CameraController::Update()
 {
-	for (Camera* cam : CamList) {
-
+	for ( Camera* cam : m_vCamList )
+	{
 		cam->Update();
 	}
-
-
-
 }
 
 void CameraController::CleanUp()
 {
-	RemoveAllCam();
-	_CurrentCamNumber = 0;
+	RemoveAllCams();
+	m_iCurrentCamNumber = 0;
 }

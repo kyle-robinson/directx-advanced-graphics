@@ -491,7 +491,9 @@
     <ClCompile Include="Camera.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="CameraController.cpp" />
+    <ClCompile Include="CameraController.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="DataStucts.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DrawableGameObject.cpp" />
