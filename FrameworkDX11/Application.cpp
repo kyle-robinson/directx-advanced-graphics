@@ -3,9 +3,7 @@
 
 Application::Application()
 {
-    _pRenderTargetView = nullptr;
     _pConstantBuffer = nullptr;
-
     _pConstantBuffer = nullptr;
     _pLightConstantBuffer = nullptr;
 
@@ -223,47 +221,6 @@ HRESULT Application::InitWorld()
 
 HRESULT Application::InitDevice()
 {
-    HRESULT hr = S_OK;
-
-    // Create a render target view
-    ID3D11Texture2D* pBackBuffer = nullptr;
-    hr = m_gfx.GetSwapChain()->GetBuffer( 0, __uuidof( ID3D11Texture2D ), reinterpret_cast<void**>( &pBackBuffer ) );
-    if ( FAILED( hr ) )
-        return hr;
-
-    hr = m_gfx.GetDevice()->CreateRenderTargetView( pBackBuffer, nullptr, &_pRenderTargetView );
-    pBackBuffer->Release();
-    if ( FAILED( hr ) )
-        return hr;
-
-    // Create depth stencil texture
-    D3D11_TEXTURE2D_DESC descDepth = {};
-    descDepth.Width = m_gfx.GetWidth();
-    descDepth.Height = m_gfx.GetHeight();
-    descDepth.MipLevels = 1;
-    descDepth.ArraySize = 1;
-    descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    descDepth.SampleDesc.Count = 1;
-    descDepth.SampleDesc.Quality = 0;
-    descDepth.Usage = D3D11_USAGE_DEFAULT;
-    descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-    descDepth.CPUAccessFlags = 0;
-    descDepth.MiscFlags = 0;
-    hr = m_gfx.GetDevice()->CreateTexture2D( &descDepth, nullptr, &_pDepthStencil );
-    if ( FAILED( hr ) )
-        return hr;
-
-    // Create the depth stencil view
-    D3D11_DEPTH_STENCIL_VIEW_DESC descDSV = {};
-    descDSV.Format = descDepth.Format;
-    descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    descDSV.Texture2D.MipSlice = 0;
-    hr = m_gfx.GetDevice()->CreateDepthStencilView( _pDepthStencil, &descDSV, &_pDepthStencilView );
-    if ( FAILED( hr ) )
-        return hr;
-
-
-
     //smaplers
     D3D11_SAMPLER_DESC sampDesc;
     ZeroMemory( &sampDesc, sizeof( sampDesc ) );
@@ -274,7 +231,7 @@ HRESULT Application::InitDevice()
     sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
     sampDesc.MinLOD = 0;
     sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-    hr = m_gfx.GetDevice()->CreateSamplerState( &sampDesc, &m_pPointrLinear );
+    HRESULT hr = m_gfx.GetDevice()->CreateSamplerState( &sampDesc, &m_pPointrLinear );
     if ( FAILED( hr ) )
         return hr;
 
@@ -501,11 +458,11 @@ void Application::Draw()
         vp2.TopLeftY = 0;
         m_gfx.GetContext()->RSSetViewports( 1, &vp2 );
 
-        m_gfx.GetContext()->OMSetRenderTargets( 1, &_pRenderTargetView, _pDepthStencilView );
+        m_gfx.GetContext()->OMSetRenderTargets( 1, m_gfx.GetBackBuffer()->GetBackBufferPtr(), m_gfx.GetDepthStencil()->GetDepthStencilView() );
         // Clear the back buffer
-        m_gfx.GetContext()->ClearRenderTargetView( _pRenderTargetView, Colors::LightBlue );
+        m_gfx.GetContext()->ClearRenderTargetView( m_gfx.GetBackBuffer()->GetBackBuffer(), Colors::LightBlue );
         // Clear the depth buffer to 1.0 (max depth)
-        m_gfx.GetContext()->ClearDepthStencilView( _pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
+        m_gfx.GetContext()->ClearDepthStencilView( m_gfx.GetDepthStencil()->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
 
 
@@ -850,9 +807,9 @@ void Application::Draw()
 
 
         //final post processing
-        m_gfx.GetContext()->OMSetRenderTargets( 1, &_pRenderTargetView, _pDepthStencilView );
-        m_gfx.GetContext()->ClearRenderTargetView( _pRenderTargetView, Colors::DarkBlue );
-        m_gfx.GetContext()->ClearDepthStencilView( _pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
+        m_gfx.GetContext()->OMSetRenderTargets( 1, m_gfx.GetBackBuffer()->GetBackBufferPtr(), m_gfx.GetDepthStencil()->GetDepthStencilView() );
+        m_gfx.GetContext()->ClearRenderTargetView( m_gfx.GetBackBuffer()->GetBackBuffer(), Colors::DarkBlue );
+        m_gfx.GetContext()->ClearDepthStencilView( m_gfx.GetDepthStencil()->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
         m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Final" ).m_pVertexLayout );
         m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
@@ -976,14 +933,9 @@ void Application::Cleanup()
     if ( _pConstantBuffer ) _pConstantBuffer->Release();
     if ( _pPostProcessingConstantBuffer )_pPostProcessingConstantBuffer->Release();
 
-    if ( _pDepthStencil ) _pDepthStencil->Release();
-    if ( _pDepthStencilView ) _pDepthStencilView->Release();
-    if ( _pRenderTargetView ) _pRenderTargetView->Release();
-
     if ( g_pScreenQuadVB ) g_pScreenQuadVB->Release();
     if ( m_pPointrLinear ) m_pPointrLinear->Release();
     if ( m_pPointrLinear ) m_pLINEARBORDER->Release();
-
 
     ID3D11Debug* debugDevice = nullptr;
     m_gfx.GetDevice()->QueryInterface( __uuidof( ID3D11Debug ), reinterpret_cast<void**>( &debugDevice ) );

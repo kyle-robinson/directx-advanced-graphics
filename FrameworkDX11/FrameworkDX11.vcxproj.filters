@@ -19,31 +19,31 @@
       <Filter>Objects\Light</Filter>
     </ClCompile>
     <ClCompile Include="Terrain.cpp">
-      <Filter>Graphics\Terrain</Filter>
+      <Filter>Objects\Terrain</Filter>
     </ClCompile>
     <ClCompile Include="TerrainAppearence.cpp">
-      <Filter>Graphics\Terrain</Filter>
+      <Filter>Objects\Terrain</Filter>
     </ClCompile>
     <ClCompile Include="TerrainJsonLoad.cpp">
-      <Filter>Graphics\Terrain</Filter>
+      <Filter>Objects\Terrain</Filter>
     </ClCompile>
     <ClCompile Include="TerrainVoxel.cpp">
-      <Filter>Graphics\Terrain</Filter>
+      <Filter>Objects\Terrain</Filter>
     </ClCompile>
     <ClCompile Include="DataStucts.cpp">
-      <Filter>Graphics\Animation</Filter>
+      <Filter>Objects\Animation</Filter>
     </ClCompile>
     <ClCompile Include="Bone.cpp">
-      <Filter>Graphics\Animation</Filter>
+      <Filter>Objects\Animation</Filter>
     </ClCompile>
     <ClCompile Include="M3dLoader.cpp">
-      <Filter>Graphics\Animation</Filter>
+      <Filter>Objects\Animation</Filter>
     </ClCompile>
     <ClCompile Include="AnimatedModel.cpp">
-      <Filter>Graphics\Animation</Filter>
+      <Filter>Objects\Animation</Filter>
     </ClCompile>
     <ClCompile Include="Skeleton.cpp">
-      <Filter>Graphics\Animation</Filter>
+      <Filter>Objects\Animation</Filter>
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui.cpp">
       <Filter>Resources\DImGUI</Filter>
@@ -115,19 +115,19 @@
       <Filter>Graphics\Shadows</Filter>
     </ClCompile>
     <ClCompile Include="ShaderController.cpp">
-      <Filter>Graphics\DirectX\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Graphics.cpp">
-      <Filter>Graphics\DirectX</Filter>
+      <Filter>Graphics\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="RenderTargetController.cpp">
-      <Filter>Graphics\DirectX\RenderTarget</Filter>
+      <Filter>Graphics\RenderTarget</Filter>
     </ClCompile>
     <ClCompile Include="RenderTargetTexture.cpp">
-      <Filter>Graphics\DirectX\RenderTarget</Filter>
+      <Filter>Graphics\RenderTarget</Filter>
     </ClCompile>
     <ClCompile Include="RansterStateManager.cpp">
-      <Filter>Graphics\DirectX\Rasterizer</Filter>
+      <Filter>Graphics\Rasterizer</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Graphics.cpp">
+      <Filter>Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -151,10 +151,10 @@
       <Filter>Objects\Light</Filter>
     </ClInclude>
     <ClInclude Include="Terrain.h">
-      <Filter>Graphics\Terrain</Filter>
+      <Filter>Objects\Terrain</Filter>
     </ClInclude>
     <ClInclude Include="TerrainAppearence.h">
-      <Filter>Graphics\Terrain</Filter>
+      <Filter>Objects\Terrain</Filter>
     </ClInclude>
     <ClInclude Include="..\rapidjson\include\rapidjson\allocators.h">
       <Filter>Resources\Json</Filter>
@@ -220,28 +220,28 @@
       <Filter>Resources\Json</Filter>
     </ClInclude>
     <ClInclude Include="TerrainJsonLoad.h">
-      <Filter>Graphics\Terrain</Filter>
+      <Filter>Objects\Terrain</Filter>
     </ClInclude>
     <ClInclude Include="..\FastNoiseLite-master\Cpp\FastNoiseLite.h">
       <Filter>Resources\LibNoise</Filter>
     </ClInclude>
     <ClInclude Include="TerrainVoxel.h">
-      <Filter>Graphics\Terrain</Filter>
+      <Filter>Objects\Terrain</Filter>
     </ClInclude>
     <ClInclude Include="DataStucts.h">
-      <Filter>Graphics\Animation</Filter>
+      <Filter>Objects\Animation</Filter>
     </ClInclude>
     <ClInclude Include="Bone.h">
-      <Filter>Graphics\Animation</Filter>
+      <Filter>Objects\Animation</Filter>
     </ClInclude>
     <ClInclude Include="M3dLoader.h">
-      <Filter>Graphics\Animation</Filter>
+      <Filter>Objects\Animation</Filter>
     </ClInclude>
     <ClInclude Include="AnimatedModel.h">
-      <Filter>Graphics\Animation</Filter>
+      <Filter>Objects\Animation</Filter>
     </ClInclude>
     <ClInclude Include="Skeleton.h">
-      <Filter>Graphics\Animation</Filter>
+      <Filter>Objects\Animation</Filter>
     </ClInclude>
     <ClInclude Include="..\External\imgui\imconfig.h">
       <Filter>Resources\DImGUI</Filter>
@@ -328,22 +328,37 @@
       <Filter>Graphics\Shadows</Filter>
     </ClInclude>
     <ClInclude Include="ShaderController.h">
-      <Filter>Graphics\DirectX\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Graphics.h">
-      <Filter>Graphics\DirectX</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\SwapChain.h">
-      <Filter>Graphics\DirectX</Filter>
+      <Filter>Graphics\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="RenderTargetTexture.h">
-      <Filter>Graphics\DirectX\RenderTarget</Filter>
+      <Filter>Graphics\RenderTarget</Filter>
     </ClInclude>
     <ClInclude Include="RenderTargetController.h">
-      <Filter>Graphics\DirectX\RenderTarget</Filter>
+      <Filter>Graphics\RenderTarget</Filter>
     </ClInclude>
     <ClInclude Include="RansterStateManager.h">
-      <Filter>Graphics\DirectX\Rasterizer</Filter>
+      <Filter>Graphics\Rasterizer</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Sampler.h">
+      <Filter>Graphics\Sampler</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Rasterizer.h">
+      <Filter>Graphics\Rasterizer</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\BackBuffer.h">
+      <Filter>Graphics\RenderTarget</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\DepthStencil.h">
+      <Filter>Graphics\RenderTarget</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Viewport.h">
+      <Filter>Graphics\RenderTarget</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Graphics.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\SwapChain.h">
+      <Filter>Graphics\SwapChain</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -434,32 +449,35 @@
     <Filter Include="Utility\Input">
       <UniqueIdentifier>{70567b8f-71ea-4178-b6d1-4a666d59457f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphics\Terrain">
-      <UniqueIdentifier>{47cc5ffd-4fea-4153-9310-6243ce166e99}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Graphics\Animation">
-      <UniqueIdentifier>{dffeb552-c3c1-457a-b27b-1ca3813d6cb0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Graphics\ImGui">
       <UniqueIdentifier>{2ab315e3-e79c-4ab7-b75a-3035839eaea1}</UniqueIdentifier>
     </Filter>
     <Filter Include="Graphics\Shadows">
       <UniqueIdentifier>{07e159fa-e4be-4efa-8d65-966220321fc2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphics\DirectX">
-      <UniqueIdentifier>{e517ea10-3233-49ff-a94e-1e8d3b8c7060}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Utility\PCH">
       <UniqueIdentifier>{eb4b9b71-6a69-494b-8cd1-2e29197585c2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphics\DirectX\RenderTarget">
+    <Filter Include="Objects\Animation">
+      <UniqueIdentifier>{dffeb552-c3c1-457a-b27b-1ca3813d6cb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Objects\Terrain">
+      <UniqueIdentifier>{47cc5ffd-4fea-4153-9310-6243ce166e99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Rasterizer">
+      <UniqueIdentifier>{f45f20bf-95e1-4355-9603-203f7bce5562}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\RenderTarget">
       <UniqueIdentifier>{368bac69-ed77-4514-8941-7ed109326b29}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphics\DirectX\Shaders">
+    <Filter Include="Graphics\Shaders">
       <UniqueIdentifier>{1c5b6674-8e20-457b-b4ad-1224fc0bc684}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphics\DirectX\Rasterizer">
-      <UniqueIdentifier>{f45f20bf-95e1-4355-9603-203f7bce5562}</UniqueIdentifier>
+    <Filter Include="Graphics\SwapChain">
+      <UniqueIdentifier>{c009778d-c013-41ff-8927-b01b8030748f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Sampler">
+      <UniqueIdentifier>{e517ea10-3233-49ff-a94e-1e8d3b8c7060}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

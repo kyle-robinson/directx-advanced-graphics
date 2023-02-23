@@ -26,9 +26,6 @@
 class Application : public WindowContainer
 {
 private:
-	ID3D11RenderTargetView* _pRenderTargetView;
-	ID3D11Texture2D* _pDepthStencil = nullptr;
-	ID3D11DepthStencilView* _pDepthStencilView = nullptr;
 	RasterStateManager* RSControll;
 	ID3D11RasterizerState* RSCullNone;
 	ID3D11RasterizerState* Wirer;
