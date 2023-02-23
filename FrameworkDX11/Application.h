@@ -18,19 +18,13 @@
 #include"BillboradObject.h"
 #include"Terrain.h"
 
-#include"RansterStateManager.h"
-
 #include"TerrainVoxel.h"
 #include"AnimatedModel.h"
 
 class Application : public WindowContainer
 {
 private:
-	RasterStateManager* RSControll;
-	ID3D11RasterizerState* RSCullNone;
-	ID3D11RasterizerState* Wirer;
 	ID3D11Buffer* _pConstantBuffer;
-
 	ID3D11Buffer* _pLightConstantBuffer;
 	ID3D11Buffer* _pPostProcessingConstantBuffer;
 

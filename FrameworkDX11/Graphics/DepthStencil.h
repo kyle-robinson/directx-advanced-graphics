@@ -70,23 +70,23 @@ namespace Bind
 				return;
 			}
 		}
-		inline void ClearDepthStencil( ID3D11DeviceContext* context ) noexcept
+		inline void Clear( ID3D11DeviceContext* context ) noexcept
 		{
 			context->ClearDepthStencilView( depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0u );
 		}
-		inline ID3D11DepthStencilView* GetDepthStencilView() noexcept
+		inline ID3D11DepthStencilView* GetDSV() noexcept
 		{
 			return depthStencilView.Get();
 		}
-		inline ID3D11DepthStencilView** GetDepthStencilViewPtr() noexcept
+		inline ID3D11DepthStencilView** GetDSVPtr() noexcept
 		{
 			return depthStencilView.GetAddressOf();
 		}
-		inline ID3D11ShaderResourceView* GetShaderResourceView() noexcept
+		inline ID3D11ShaderResourceView* GetSRV() noexcept
 		{
 			return shaderResourceView.Get();
 		}
-		inline ID3D11ShaderResourceView** GetShaderResourceViewPtr() noexcept
+		inline ID3D11ShaderResourceView** GetSRVPtr() noexcept
 		{
 			return shaderResourceView.GetAddressOf();
 		}

@@ -10,6 +10,8 @@
 #include "SwapChain.h"
 #include "BackBuffer.h"
 #include "ShaderController.h"
+#include "SamplerController.h"
+#include "RasterizerController.h"
 #include "RenderTargetController.h"
 
 class Graphics
@@ -28,16 +30,19 @@ public:
 
 	inline ID3D11Device* GetDevice() const noexcept { return m_pDevice.Get(); }
 	inline ID3D11DeviceContext* GetContext() const noexcept { return m_pContext.Get(); }
-	inline IDXGISwapChain* GetSwapChain() const noexcept { return m_pSwapChain->GetSwapChain(); }
+	inline IDXGISwapChain* GetSwapChain() const noexcept { return m_pSwapChain->Get(); }
 
 	inline ShaderController* GetShaderController() const noexcept { return m_pShaderController; }
+	inline SamplerController* GetSamplerController() const noexcept { return m_pSamplerController; }
+	inline RasterizerController* GetRasterizerController() const noexcept { return m_pRasterizerController; }
 	inline RenderTargetController* GetRenderTargetController() const noexcept { return m_pRenderTargetController; }
-	inline std::shared_ptr<Bind::Sampler> GetSampler( std::string type ) const noexcept { return m_pSamplerStates.at( type ); }
 
 private:
 	void InitializeDirectX( HWND hWnd );
 	void InitializeShaders();
 	void InitializeRenderTargets();
+	void InitializeRasterizerStates();
+	void InitializeSamplerStates();
 
 	// Window data
 	UINT m_viewWidth;
@@ -45,8 +50,9 @@ private:
 
 	// Pipeline components
 	ShaderController* m_pShaderController;
+	SamplerController* m_pSamplerController;
+	RasterizerController* m_pRasterizerController;
 	RenderTargetController* m_pRenderTargetController;
-	std::map<std::string, std::shared_ptr<Bind::Sampler>> m_pSamplerStates;
 
 	std::shared_ptr<Bind::Viewport> m_pViewport;
 	std::shared_ptr<Bind::BackBuffer> m_pBackBuffer;

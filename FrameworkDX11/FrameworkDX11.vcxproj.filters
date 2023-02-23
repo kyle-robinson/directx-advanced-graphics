@@ -123,11 +123,14 @@
     <ClCompile Include="RenderTargetTexture.cpp">
       <Filter>Graphics\RenderTarget</Filter>
     </ClCompile>
-    <ClCompile Include="RansterStateManager.cpp">
+    <ClCompile Include="RasterizerController.cpp">
       <Filter>Graphics\Rasterizer</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Graphics.cpp">
       <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\SamplerController.cpp">
+      <Filter>Graphics\Sampler</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -336,7 +339,7 @@
     <ClInclude Include="RenderTargetController.h">
       <Filter>Graphics\RenderTarget</Filter>
     </ClInclude>
-    <ClInclude Include="RansterStateManager.h">
+    <ClInclude Include="RasterizerController.h">
       <Filter>Graphics\Rasterizer</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\Sampler.h">
@@ -359,6 +362,9 @@
     </ClInclude>
     <ClInclude Include="Graphics\SwapChain.h">
       <Filter>Graphics\SwapChain</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\SamplerController.h">
+      <Filter>Graphics\Sampler</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

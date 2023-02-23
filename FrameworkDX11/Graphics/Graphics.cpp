@@ -4,6 +4,8 @@
 Graphics::Graphics()
 {
     m_pShaderController = new ShaderController();
+    m_pSamplerController = new SamplerController();
+    m_pRasterizerController = new RasterizerController();
     m_pRenderTargetController = new RenderTargetController();
 }
 
@@ -11,6 +13,12 @@ Graphics::~Graphics()
 {
     delete m_pShaderController;
     m_pShaderController = nullptr;
+
+    delete m_pSamplerController;
+    m_pSamplerController = nullptr;
+
+    delete m_pRasterizerController;
+    m_pRasterizerController = nullptr;
 
     delete m_pRenderTargetController;
     m_pRenderTargetController = nullptr;
@@ -23,18 +31,17 @@ void Graphics::Initialize( HWND hWnd, UINT width, UINT height )
 	InitializeDirectX( hWnd );
     InitializeShaders();
     InitializeRenderTargets();
+    InitializeRasterizerStates();
+    InitializeSamplerStates();
 }
 
 void Graphics::InitializeDirectX( HWND hWnd )
 {
 	m_pSwapChain = std::make_shared<Bind::SwapChain>( m_pContext.GetAddressOf(), m_pDevice.GetAddressOf(), hWnd, m_viewWidth, m_viewHeight );
-    m_pBackBuffer = std::make_shared<Bind::BackBuffer>( m_pDevice.Get(), m_pSwapChain->GetSwapChain() );
+    m_pBackBuffer = std::make_shared<Bind::BackBuffer>( m_pDevice.Get(), m_pSwapChain->Get() );
     m_pDepthStencil = std::make_shared<Bind::DepthStencil>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
     m_pViewport = std::make_shared<Bind::Viewport>( m_pContext.Get(), m_viewWidth, m_viewHeight );
     m_pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-
-    m_pSamplerStates.emplace( "Wrap", std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::WRAP ) );
-    m_pSamplerStates.emplace( "Border", std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::BORDER ) );
 }
 
 void Graphics::InitializeShaders()
@@ -87,4 +94,17 @@ void Graphics::InitializeRenderTargets()
     m_pRenderTargetController->CreateRenderTarget( "DownSample", m_viewWidth / 2, m_viewHeight / 2, m_pDevice.Get() );
     m_pRenderTargetController->CreateRenderTarget( "UpSample", m_viewWidth, m_viewHeight, m_pDevice.Get() );
     m_pRenderTargetController->CreateRenderTarget( "Alpha", m_viewWidth, m_viewHeight, m_pDevice.Get() );
+}
+
+void Graphics::InitializeRasterizerStates()
+{
+    m_pRasterizerController->CreateState( "None", Bind::Rasterizer::Type::NONE, m_pDevice.Get() );
+    m_pRasterizerController->CreateState( "Back", Bind::Rasterizer::Type::BACK, m_pDevice.Get() );
+    m_pRasterizerController->CreateState( "Wireframe", Bind::Rasterizer::Type::WIREFRAME, m_pDevice.Get() );
+}
+
+void Graphics::InitializeSamplerStates()
+{
+    m_pSamplerController->CreateState( "Wrap", Bind::Sampler::Type::WRAP, m_pDevice.Get() );
+    m_pSamplerController->CreateState( "Border", Bind::Sampler::Type::BORDER, m_pDevice.Get() );
 }

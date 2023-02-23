@@ -52,6 +52,10 @@ namespace Bind
 		{
 			context->PSSetSamplers( slot, 1u, pSampler.GetAddressOf() );
 		}
+		inline ID3D11SamplerState* Get() const noexcept
+		{
+			return pSampler.Get();
+		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> pSampler;
 		Type type;

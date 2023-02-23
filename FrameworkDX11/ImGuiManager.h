@@ -17,7 +17,7 @@ class ShaderController;
 class BillboardObject;
 class Terrain;
 class TerrainVoxel;
-class RasterStateManager;
+class RasterizerController;
 class AnimatedModel;
 /// <summary>
 /// controlls the DImGui that controll parts of the application
@@ -35,7 +35,7 @@ public:
 
 	//menus
 	void DrawCamMenu(CameraController* Cams);
-	void ShaderMenu(ShaderController* Shader, PostProcessingCB* postSettings, RasterStateManager* RasterState,bool &rtt);
+	void ShaderMenu(ShaderController* Shader, PostProcessingCB* postSettings, RasterizerController* RasterState,bool &rtt);
 	void ObjectControl(DrawableGameObject* GameObject);
 	void LightControl(LightControll* LightControl);
 	void BillBoradControl(BillboardObject* BillControl);

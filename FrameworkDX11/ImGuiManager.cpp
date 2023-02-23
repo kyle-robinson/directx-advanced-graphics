@@ -5,7 +5,7 @@
 #include"BillboradObject.h"
 #include"Terrain.h"
 #include"TerrainVoxel.h"
-#include"RansterStateManager.h"
+#include"RasterizerController.h"
 #include"AnimatedModel.h"
 
 
@@ -100,7 +100,7 @@ static const char* current_Shader = NULL;
 static string Shadername;
 static bool LoadShader = false;
 static string current_RasterState = "";
-void ImGuiManager::ShaderMenu(ShaderController* Shader, PostProcessingCB* postSettings, RasterStateManager* RasterState, bool& rtt)
+void ImGuiManager::ShaderMenu(ShaderController* Shader, PostProcessingCB* postSettings, RasterizerController* RasterState, bool& rtt)
 {
     if (!LoadShader) {
         Shadername = Shader->GetShaderData().m_sName;
@@ -192,7 +192,7 @@ void ImGuiManager::ShaderMenu(ShaderController* Shader, PostProcessingCB* postSe
                     bool is_selected = (current_RasterState == RasterState->GetStateNames()[n].c_str()); // You can store your selection however you want, outside or inside your objects
                     if (ImGui::Selectable(RasterState->GetStateNames()[n].c_str(), is_selected)) {
 
-                        RasterState->SetCurrentState(RasterState->GetStateNames()[n].c_str());
+                        RasterState->SetState(RasterState->GetStateNames()[n].c_str());
                         current_RasterState = RasterState->GetStateNames()[n].c_str();
                     }
 

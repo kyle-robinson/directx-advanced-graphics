@@ -61,7 +61,7 @@ namespace Bind
 				return;
 			}
         }
-        inline IDXGISwapChain* GetSwapChain() noexcept
+        inline IDXGISwapChain* Get() noexcept
         {
             return swapChain.Get();
         }

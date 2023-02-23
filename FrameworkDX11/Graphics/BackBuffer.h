@@ -36,19 +36,14 @@ namespace Bind
 		}
 		inline void Bind( ID3D11DeviceContext* context, DepthStencil* depthStencil, float clearColor[4] ) noexcept
 		{
-			context->OMSetRenderTargets( 1u, backBufferView.GetAddressOf(), depthStencil->GetDepthStencilView() );
+			context->OMSetRenderTargets( 1u, backBufferView.GetAddressOf(), depthStencil->GetDSV() );
 			context->ClearRenderTargetView( backBufferView.Get(), clearColor );
 		}
-		inline void BindNull( ID3D11DeviceContext* context ) noexcept
-		{
-			Microsoft::WRL::ComPtr<ID3D11RenderTargetView> nullRenderTarget = nullptr;
-			context->OMSetRenderTargets( 1u, nullRenderTarget.GetAddressOf(), nullptr );
-		}
-		inline ID3D11RenderTargetView* GetBackBuffer() noexcept
+		inline ID3D11RenderTargetView* Get() noexcept
 		{
 			return backBufferView.Get();
 		}
-		inline ID3D11RenderTargetView** GetBackBufferPtr() noexcept
+		inline ID3D11RenderTargetView** GetPtr() noexcept
 		{
 			return backBufferView.GetAddressOf();
 		}
