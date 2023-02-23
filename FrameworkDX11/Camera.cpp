@@ -1,136 +1,111 @@
+#include "stdafx.h"
 #include "Camera.h"
 
-Camera::Camera(XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up, FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth)
-	: _eye(position), _at(at), _up(up), _windowWidth(windowWidth), _windowHeight(windowHeight), _nearDepth(nearDepth), _farDepth(farDepth)
+Camera::Camera( XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up, FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth )
+	: m_fEye( position ), m_fAt( at ), m_fUp( up ), m_fWindowWidth( windowWidth ), m_fWindowHeight( windowHeight ), m_fNearDepth( nearDepth ), m_fFarDepth( farDepth )
 {
-
-
-	_Rot = { 0.0f,0.0f,0.0f };
-
+	m_fRot = { 0.0f,0.0f,0.0f };
 	Update();
 }
 
-Camera::~Camera()
-{
-	CleanUp();
-}
+Camera::~Camera() {}
 
 void Camera::Update()
 {
-	//get quaturnion rotation
-	XMFLOAT4 orientation;
+	// Get quaternion rotation
+	XMFLOAT4 fOrientation;
 	Quaternion qOrientation;
-	XMMATRIX RotationMatrix;
+	XMMATRIX mRotation;
 
-	XMMATRIX rotation = XMMatrixRotationX(_Rot.x) * XMMatrixRotationY(_Rot.y) * XMMatrixRotationZ(_Rot.z);
-	XMStoreFloat4(&orientation, XMQuaternionRotationMatrix(rotation));
-	qOrientation.r = orientation.w;
-	qOrientation.i = orientation.x;
-	qOrientation.j = orientation.y;
-	qOrientation.k = orientation.z;
+	XMMATRIX rotation = XMMatrixRotationX( m_fRot.x ) * XMMatrixRotationY( m_fRot.y ) * XMMatrixRotationZ( m_fRot.z );
+	XMStoreFloat4( &fOrientation, XMQuaternionRotationMatrix( rotation ) );
+	qOrientation.r = fOrientation.w;
+	qOrientation.i = fOrientation.x;
+	qOrientation.j = fOrientation.y;
+	qOrientation.k = fOrientation.z;
+	CalculateTransformMatrixRowMajor( mRotation, { 0,0,0 }, qOrientation );
 
-	CalculateTransformMatrixRowMajor(RotationMatrix, { 0,0,0 }, qOrientation);
+	// Initialize the view matrix
+	XMVECTOR camTarget = XMVector3Transform( XMLoadFloat3( &m_fDefaultForward ), mRotation );
+	camTarget += XMLoadFloat3( &m_fEye );
+	XMVECTOR upDir = XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultUp ), mRotation );
+	XMStoreFloat4x4( &m_mView, XMMatrixLookAtLH( XMLoadFloat3( &m_fEye ), camTarget, upDir ) );
 
-    // Initialize the view matrix
+	XMStoreFloat3( &m_fVecForward, XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultForward ), mRotation ) );
+	XMStoreFloat3( &m_fVecBack, XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultBack ), mRotation ) );
+	XMStoreFloat3( &m_fVecLeft, XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultLeft ), mRotation ) );
+	XMStoreFloat3( &m_fVecRight, XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultRight ), mRotation ) );
+	XMStoreFloat3( &m_fVecUp, XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultUp ), mRotation ) );
+	XMStoreFloat3( &m_fVecDown, XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultDown ), mRotation ) );
 
-	XMVECTOR cmaTarget = XMVector3Transform(XMLoadFloat3(&_DefualtFord), RotationMatrix);
-	cmaTarget += XMLoadFloat3(&_eye);
-	XMVECTOR upDir = XMVector3TransformCoord(XMLoadFloat3(&_DefaultUp), RotationMatrix);
-	XMStoreFloat4x4(&_view, XMMatrixLookAtLH(XMLoadFloat3(&_eye), cmaTarget, upDir));
-
-
-	XMStoreFloat3(&_VecFord,XMVector3TransformCoord(XMLoadFloat3(&_DefualtFord), RotationMatrix));
-	XMStoreFloat3(&_VecBack, XMVector3TransformCoord(XMLoadFloat3(&_DefaultBack), RotationMatrix));
-	XMStoreFloat3(&_VecLeft, XMVector3TransformCoord(XMLoadFloat3(&_DefaultLeft), RotationMatrix));
-	XMStoreFloat3(&_VecRight, XMVector3TransformCoord(XMLoadFloat3(&_DefaultRight), RotationMatrix));
-	XMStoreFloat3(&_VecUp, XMVector3TransformCoord(XMLoadFloat3(&_DefaultUp), RotationMatrix));
-	XMStoreFloat3(&_VecDown, XMVector3TransformCoord(XMLoadFloat3(&_DefaultDown), RotationMatrix));
-
-    // Initialize the projection matrix
-	XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH(0.25f * XM_PI, _windowWidth / _windowHeight, _nearDepth, _farDepth));
-
-
-
-
+	// Initialize the projection matrix
+	XMStoreFloat4x4( &m_mProjection, XMMatrixPerspectiveFovLH( 0.25f * XM_PI, m_fWindowWidth / m_fWindowHeight, m_fNearDepth, m_fFarDepth ) );
 }
 
-void Camera::UpdatePointat()
+void Camera::UpdatePointAt()
 {
-
-	XMStoreFloat4x4(&_view, XMMatrixLookAtLH(XMLoadFloat3(&_eye), XMLoadFloat3(&_at), XMLoadFloat3(&_up)));
-	XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH( XM_PI/2, 1.0f, _nearDepth, _farDepth));
+	XMStoreFloat4x4( &m_mView, XMMatrixLookAtLH( XMLoadFloat3( &m_fEye ), XMLoadFloat3( &m_fAt ), XMLoadFloat3( &m_fUp ) ) );
+	XMStoreFloat4x4( &m_mProjection, XMMatrixPerspectiveFovLH( XM_PI / 2, 1.0f, m_fNearDepth, m_fFarDepth ) );
 }
 
-void Camera::Reshape(FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth)
+void Camera::Reshape( FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth )
 {
-	_windowWidth = windowWidth;
-	_windowHeight = windowHeight;
-	_nearDepth = nearDepth;
-	_farDepth = farDepth;
+	m_fWindowWidth = windowWidth;
+	m_fWindowHeight = windowHeight;
+	m_fNearDepth = nearDepth;
+	m_fFarDepth = farDepth;
 }
 
-void Camera::SetPosition(XMFLOAT3 position)
+void Camera::SetPosition( XMFLOAT3 position )
 {
-	_eye = position;
+	m_fEye = position;
 }
 
-void Camera::AgustPos(XMFLOAT3 position)
+void Camera::AdjustPos( XMFLOAT3 position )
 {
-	_eye.x += position.x;
-	_eye.y += position.y;
-	_eye.z += position.z;
+	m_fEye.x += position.x;
+	m_fEye.y += position.y;
+	m_fEye.z += position.z;
 }
 
-void Camera::SetRot(XMFLOAT3 rot)
+void Camera::SetRot( XMFLOAT3 rot )
 {
-	_Rot = rot;
-	if (_Rot.x >= XMConvertToRadians(90.0f))
-		_Rot.x = XMConvertToRadians(90.0f);
+	m_fRot = rot;
+	if ( m_fRot.x >= XMConvertToRadians( 90.0f ) )
+		m_fRot.x = XMConvertToRadians( 90.0f );
 
-	if (_Rot.x <= XMConvertToRadians(-90.0f))
-		_Rot.x = XMConvertToRadians(-90.0f);
+	if ( m_fRot.x <= XMConvertToRadians( -90.0f ) )
+		m_fRot.x = XMConvertToRadians( -90.0f );
 }
 
-void Camera::AgustRot(XMFLOAT3 rot)
+void Camera::AdjustRot( XMFLOAT3 rot )
 {
-	_Rot.x += rot.x;
-	_Rot.y += rot.y;
-	_Rot.z += rot.z;
+	m_fRot.x += rot.x;
+	m_fRot.y += rot.y;
+	m_fRot.z += rot.z;
 
+	if ( m_fRot.x >= XMConvertToRadians( 90.0f ) )
+		m_fRot.x = XMConvertToRadians( 90.0f );
 
-	if (_Rot.x >= XMConvertToRadians(90.0f))
-		_Rot.x = XMConvertToRadians(90.0f);
-
-	if (_Rot.x <= XMConvertToRadians(-90.0f))
-		_Rot.x = XMConvertToRadians(-90.0f);
-}
-
-
-
-void Camera::CleanUp()
-{
-
+	if ( m_fRot.x <= XMConvertToRadians( -90.0f ) )
+		m_fRot.x = XMConvertToRadians( -90.0f );
 }
 
 XMFLOAT4X4 Camera::GetViewProjection() const
 {
-	XMMATRIX view = XMLoadFloat4x4(&_view);
-	XMMATRIX projection = XMLoadFloat4x4(&_projection);
-
+	XMMATRIX view = XMLoadFloat4x4( &m_mView );
+	XMMATRIX projection = XMLoadFloat4x4( &m_mProjection );
 	XMFLOAT4X4 viewProj;
-
-	XMStoreFloat4x4(&viewProj, view * projection);
-
+	XMStoreFloat4x4( &viewProj, view * projection );
 	return viewProj;
 }
 
-XMFLOAT4 Camera::GetPositionFloat4()
+XMFLOAT4 Camera::GetPositionFloat4() noexcept
 {
 	XMFLOAT4 Pos;
-	Pos.x = _eye.x;
-	Pos.y = _eye.y;
-	Pos.z = _eye.z;
+	Pos.x = m_fEye.x;
+	Pos.y = m_fEye.y;
+	Pos.z = m_fEye.z;
 	Pos.w = 1.0f;
-
 	return Pos;
 }

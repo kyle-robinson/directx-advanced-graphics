@@ -1,106 +1,87 @@
 #pragma once
-#include <windows.h>
-#include <d3d11_1.h>
-#include <d3dcompiler.h>
-#include <directxmath.h>
+#ifndef CAMERA_H
+#define CAMERA_H
 
 #include "Quaternion.h"
 
-
-using namespace DirectX;
-/// <summary>
-/// Camera Class:
-/// updates the camera
-/// moves and rotates the camera
-/// created from https://github.com/ThomasMillard123/FGAGC
-/// </summary>
 class Camera
 {
 public:
-	Camera(XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up, FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth);
+	Camera( XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up, FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth );
 	~Camera();
 
 	void Update();
-	void UpdatePointat();
-	XMFLOAT4X4 GetView() const { return _view; }
-	XMFLOAT4X4 GetProjection() const { return _projection; }
-	XMFLOAT4X4 GetViewProjection() const;
+	void UpdatePointAt();
 
-	XMFLOAT3 GetPosition() const { return _eye; }
-	XMFLOAT4 GetPositionFloat4();
-	XMFLOAT3 GetLookAt() const { return _at; }
-	XMFLOAT3 GetUp() const { return _up; }
+	inline XMFLOAT4X4 GetView() const noexcept { return m_mView; }
+	inline XMFLOAT4X4 GetProjection() const noexcept { return m_mProjection; }
+	XMFLOAT4X4 GetViewProjection() const noexcept;
 
+	XMFLOAT4 GetPositionFloat4() noexcept;
+	inline XMFLOAT3 GetPosition() const noexcept { return m_fEye; }
+	inline XMFLOAT3 GetLookAt() const noexcept { return m_fAt; }
+	inline XMFLOAT3 GetUp() const noexcept { return m_fUp; }
 
-	XMFLOAT3 GetVecFord() { return _VecFord; }
-	XMFLOAT3 GetVecBack() { return _VecBack; }
-	XMFLOAT3 GetVecLeft() { return _VecLeft; }
-	XMFLOAT3 GetVecRight() { return _VecRight; }
-	XMFLOAT3 GetVecUp() { return _VecUp; }
-	XMFLOAT3 GetVecDown() { return _VecDown; }
+	inline XMFLOAT3 GetVecForward() const noexcept { return m_fVecForward; }
+	inline XMFLOAT3 GetVecBack() const noexcept { return m_fVecBack; }
+	inline XMFLOAT3 GetVecLeft() const noexcept { return m_fVecLeft; }
+	inline XMFLOAT3 GetVecRight() const noexcept { return m_fVecRight; }
+	inline XMFLOAT3 GetVecUp() const noexcept { return m_fVecUp; }
+	inline XMFLOAT3 GetVecDown() const noexcept { return m_fVecDown; }
 
-	void SetPosition(XMFLOAT3 position);
-	void AgustPos(XMFLOAT3 position);
+	void SetPosition( XMFLOAT3 position );
+	void AdjustPos( XMFLOAT3 position );
 
-	void SetLookAt(XMFLOAT3 lookAt) { _at = lookAt; }
-	void SetUp(XMFLOAT3 up) { _up = up; }
+	inline void SetLookAt( XMFLOAT3 lookAt ) noexcept { m_fAt = lookAt; }
+	inline void SetUp( XMFLOAT3 up ) noexcept { m_fUp = up; }
 
-	XMFLOAT3 GetRot() { return _Rot; }
-	void SetRot(XMFLOAT3 rot);
-	void AgustRot(XMFLOAT3 rot);
-	void Reshape(FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth);
+	XMFLOAT3 GetRot() { return m_fRot; }
+	void SetRot( XMFLOAT3 rot );
+	void AdjustRot( XMFLOAT3 rot );
+	void Reshape( FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth );
 
-	float GetCamSpeed() { return _cameraSpeed; }
-	void SetCamSpeed( float speed ) { _cameraSpeed = speed; }
+	inline float GetCamSpeed() const noexcept { return m_fCameraSpeed; }
+	inline void SetCamSpeed( float speed ) noexcept { m_fCameraSpeed = speed; }
 
-	void SetCamName(string Name) { CamName = Name; }
-	string GetCamName() { return CamName; }
+	inline std::string GetCamName() const noexcept { return m_sCamName; }
+	inline void SetCamName( std::string name ) noexcept { m_sCamName = name; }
 
 private:
+	// Movement data
+	const XMFLOAT3 m_fDefaultUp = { 0.0f,1.0f,0.0f };
+	const XMFLOAT3 m_fDefaultDown = { 0.0f,-1.0f,0.0f };
+	const XMFLOAT3 m_fDefaultForward = { 0.0f,0.0f,1.0f };
+	const XMFLOAT3 m_fDefaultBack = { 0.0f,0.0f,-1.0f };
+	const XMFLOAT3 m_fDefaultLeft = { -1.0f,0.0f,0.0f };
+	const XMFLOAT3 m_fDefaultRight = { 1.0f,0.0f,0.0f };
 
-	void CleanUp();
-private:
+	XMFLOAT3 m_fVecUp;
+	XMFLOAT3 m_fVecDown;
+	XMFLOAT3 m_fVecForward;
+	XMFLOAT3 m_fVecBack;
+	XMFLOAT3 m_fVecLeft;
+	XMFLOAT3 m_fVecRight;
 
-	//movement data
-	const XMFLOAT3 _DefaultUp = { 0.0f,1.0f,0.0f };
-	const XMFLOAT3 _DefaultDown = { 0.0f,-1.0f,0.0f };
-	const XMFLOAT3 _DefualtFord = { 0.0f,0.0f,1.0f };
-	const XMFLOAT3 _DefaultBack = { 0.0f,0.0f,-1.0f };
-	const XMFLOAT3 _DefaultLeft = { -1.0f,0.0f,0.0f };
-	const XMFLOAT3 _DefaultRight = { 1.0f,0.0f,0.0f };
+	// Camera data
+	XMFLOAT3 m_fRot;
+	float m_fCameraSpeed = 0.1f;
 
-	 XMFLOAT3 _VecUp;
-	 XMFLOAT3 _VecDown;
-	 XMFLOAT3 _VecFord;
-	 XMFLOAT3 _VecBack;
-	 XMFLOAT3 _VecLeft;
-	 XMFLOAT3 _VecRight;
+	XMFLOAT3 m_fEye;
+	XMFLOAT3 m_fAt;
+	XMFLOAT3 m_fUp;
 
+	FLOAT m_fWindowWidth;
+	FLOAT m_fWindowHeight;
+	FLOAT m_fNearDepth;
+	FLOAT m_fFarDepth;
 
-	//cam data
-	XMFLOAT3 _Rot;
-	float _cameraSpeed = 0.1f;
+	// Matrices
+	XMFLOAT4X4 m_mView;
+	XMFLOAT4X4 m_mProjection;
 
-
-	XMFLOAT3 _eye;
-	XMFLOAT3 _at;
-	XMFLOAT3 _up;
-
-	FLOAT _windowWidth;
-	FLOAT _windowHeight;
-	FLOAT _nearDepth;
-	FLOAT _farDepth;
-
-	//matrixes
-	XMFLOAT4X4 _view;
-	XMFLOAT4X4 _projection;
-
-	//mouse data
-	XMFLOAT2 _MousePos;
-
-
-
-	string CamName;
-
+	// Mouse Data
+	XMFLOAT2 m_fMousePos;
+	std::string m_sCamName;
 };
 
+#endif
