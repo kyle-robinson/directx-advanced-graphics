@@ -410,11 +410,8 @@ void Application::Draw()
         m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
         m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pPixelShader, nullptr, 0 );
         m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
-
         _pLightContol->draw( m_gfx.GetContext(), _pConstantBuffer, &cb1 );
         m_gfx.GetRasterizerController()->SetState( "Back", m_gfx.GetContext() );
-
-        // Depth find
 
         // Render 3d objects
         m_gfx.GetRenderTargetController()->GetRenderTarget( "Depth" )->SetRenderTarget( m_gfx.GetContext() );
@@ -439,7 +436,6 @@ void Application::Draw()
 
         // Render the cube
         m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
-        // Set primitive topology
         m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
         m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Depth" ).m_pVertexShader, nullptr, 0 );
         m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &_pConstantBuffer );

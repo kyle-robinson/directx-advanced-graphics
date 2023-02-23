@@ -50,11 +50,11 @@ public:
 	ID3D11ShaderResourceView** getNormalMapResourceView() { return &m_pNormalMapResourceView; }
 	ID3D11SamplerState** getTextureSamplerState() { return &m_pSamplerLinear; }
 	ID3D11Buffer* getMaterialConstantBuffer() { return m_pMaterialConstantBuffer; }
-	
+
 	MaterialPropertiesConstantBuffer getMaterialPropertiesConstantBuffer() { return m_material; }
 	void SetMaterial(MaterialPropertiesConstantBuffer material) { m_material = material; }
 
-	
+
 
 	bool HasTexture() const { return m_pTextureResourceView ? true : false; }
 
@@ -63,18 +63,18 @@ public:
 	virtual void Draw(ID3D11DeviceContext* pImmediateContext);
 	virtual void Draw(ID3D11DeviceContext* pImmediateContext,int vertToDraw,int Start);
 
-	
+
 
 protected:
 	//data
 	ID3D11Buffer* m_pVertexBuffer;
 	ID3D11Buffer* m_pIndexBuffer;
-	
+
 	ID3D11SamplerState* m_pSamplerLinear;
 	MaterialPropertiesConstantBuffer	m_material;
 	ID3D11Buffer* m_pMaterialConstantBuffer = nullptr;
 	int NumberOfVert =0;
-	
+
 	ID3D11ShaderResourceView* m_pNormalMapResourceView;
 	ID3D11ShaderResourceView* m_pParralaxMapResourceView;
 	void CleanUp();
