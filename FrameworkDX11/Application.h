@@ -15,9 +15,7 @@
 
 #include"LightControll.h"
 #include"ShadowMap.h"
-#include"RenderTargetTextureClass.h"
 #include"BillboradObject.h"
-#include"RenderTargetControll.h"
 #include"Terrain.h"
 
 #include"RansterStateManager.h"
@@ -57,7 +55,6 @@ private:
 	ID3D11SamplerState* m_pPointrLinear;
 	ID3D11SamplerState* m_pLINEARBORDER;
 	ShadowMap* DepthLight;
-	RenderTargetControll* RenderTargetControl;
 	BillboardObject* BillBoradObject;
 
 	XMMATRIX _View;

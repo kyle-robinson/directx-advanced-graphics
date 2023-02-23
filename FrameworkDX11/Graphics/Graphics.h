@@ -4,6 +4,7 @@
 
 #include "SwapChain.h"
 #include "ShaderController.h"
+#include "RenderTargetController.h"
 
 class Graphics
 {
@@ -19,10 +20,12 @@ public:
 	inline ID3D11DeviceContext* GetContext() const noexcept { return m_pContext.Get(); }
 	inline IDXGISwapChain* GetSwapChain() const noexcept { return m_pSwapChain->GetSwapChain(); }
 	inline ShaderController* GetShaderController() const noexcept { return m_pShaderController; }
+	inline RenderTargetController* GetRenderTargetController() const noexcept { return m_pRenderTargetController; }
 
 private:
 	void InitializeDirectX( HWND hWnd );
 	void InitializeShaders();
+	void InitializeRenderTargets();
 
 	// Window data
 	UINT m_viewWidth;
@@ -30,6 +33,8 @@ private:
 
 	// Pipeline components
 	ShaderController* m_pShaderController;
+	RenderTargetController* m_pRenderTargetController;
+
 	std::shared_ptr<Bind::SwapChain> m_pSwapChain;
 	Microsoft::WRL::ComPtr<ID3D11Device> m_pDevice;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pContext;

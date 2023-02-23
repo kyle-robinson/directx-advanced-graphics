@@ -288,22 +288,7 @@ HRESULT Application::InitDevice()
     if ( FAILED( hr ) )
         return hr;
 
-    // Create a render target view 2nd
-    RenderTargetControl = new RenderTargetControll();
-    RenderTargetControl->CreatRenderTarget( "RTT", m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetDevice() );
-    RenderTargetControl->CreatRenderTarget( "Depth", m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetDevice() );
-    RenderTargetControl->CreatRenderTarget( "DepthOfField", m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetDevice() );
-    RenderTargetControl->CreatRenderTarget( "Fade", m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetDevice() );
-    RenderTargetControl->CreatRenderTarget( "Gauss1", m_gfx.GetWidth() / 2, m_gfx.GetHeight() / 2, m_gfx.GetDevice() );
-    RenderTargetControl->CreatRenderTarget( "Gauss2", m_gfx.GetWidth() / 2, m_gfx.GetHeight() / 2, m_gfx.GetDevice() );
-    RenderTargetControl->CreatRenderTarget( "DownSample", m_gfx.GetWidth() / 2, m_gfx.GetHeight() / 2, m_gfx.GetDevice() );
-    RenderTargetControl->CreatRenderTarget( "UpSample", m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetDevice() );
-    RenderTargetControl->CreatRenderTarget( "alpha", m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetDevice() );
-
-
-
     DepthLight = new ShadowMap( m_gfx.GetDevice(), m_gfx.GetWidth(), m_gfx.GetHeight() );
-
     RSControll = new RasterStateManager();
 
     D3D11_RASTERIZER_DESC cmdesc;
@@ -403,9 +388,9 @@ void Application::Draw()
         m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
         // Set primitive topology
         m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderList()[10].m_pVertexShader, nullptr, 0 );
+        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "DepthLight" ).m_pVertexShader, nullptr, 0 );
         m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &_pConstantBuffer );
-        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderList()[10].m_pPixelShader, nullptr, 0 );
+        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "DepthLight" ).m_pPixelShader, nullptr, 0 );
 
         _pLightContol->GetLight( i )->CreateShdowMap( m_gfx.GetContext(), GameObjects, &_pConstantBuffer );
 
@@ -415,7 +400,7 @@ void Application::Draw()
 
     //render 3d objects
     RSControll->SetRasterizerState( m_gfx.GetContext() );
-    RenderTargetControl->GetRenderTarget( "RTT" )->SetRenderTarget( m_gfx.GetContext() );
+    m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->SetRenderTarget( m_gfx.GetContext() );
 
     //set shadow samplers
     m_gfx.GetContext()->PSSetSamplers( 1, 1, &m_pLINEARBORDER );
@@ -474,10 +459,10 @@ void Application::Draw()
     RSControll->SetRasterizerState( m_gfx.GetContext() );
 
 
-    m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "NoEffects" ).m_pVertexShader, nullptr, 0 );
+    m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pVertexShader, nullptr, 0 );
     m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &_pConstantBuffer );
     m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
-    m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "NoEffects" ).m_pPixelShader, nullptr, 0 );
+    m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pPixelShader, nullptr, 0 );
     m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
 
     WorldAsFloat = _GameObjectFloor.GetTransfrom()->GetWorldMatrix();
@@ -552,7 +537,7 @@ void Application::Draw()
         //m_gfx.GetContext()->PSSetConstantBuffers(1, 1, &materialCB);
 
         //setTextures to buffer
-        ResourceView1 = RenderTargetControl->GetRenderTarget( "RTT" )->GetTexture();
+        ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
         m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
 
 
@@ -568,10 +553,10 @@ void Application::Draw()
     else
     {
 
-        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "NoEffects" ).m_pVertexShader, nullptr, 0 );
+        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pVertexShader, nullptr, 0 );
         m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &_pConstantBuffer );
         m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
-        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "NoEffects" ).m_pPixelShader, nullptr, 0 );
+        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pPixelShader, nullptr, 0 );
         m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, &_pLightConstantBuffer );
 
         _pLightContol->draw( m_gfx.GetContext(), _pConstantBuffer, &cb1 );
@@ -584,7 +569,7 @@ void Application::Draw()
 
 
         //render 3d objects
-        RenderTargetControl->GetRenderTarget( "Depth" )->SetRenderTarget( m_gfx.GetContext() );
+        m_gfx.GetRenderTargetController()->GetRenderTarget( "Depth" )->SetRenderTarget( m_gfx.GetContext() );
 
 
 
@@ -615,9 +600,9 @@ void Application::Draw()
         // Set primitive topology
         m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
-        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderList()[9].m_pVertexShader, nullptr, 0 );
+        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Depth" ).m_pVertexShader, nullptr, 0 );
         m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &_pConstantBuffer );
-        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderList()[9].m_pPixelShader, nullptr, 0 );
+        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Depth" ).m_pPixelShader, nullptr, 0 );
 
         m_gfx.GetContext()->UpdateSubresource( _pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0 );
         m_gfx.GetContext()->PSSetConstantBuffers( 1, 1, &_pPostProcessingConstantBuffer );
@@ -665,7 +650,7 @@ void Application::Draw()
         if ( &postSettings.UseBloom )
         {
             //bloom
-            RenderTargetControl->GetRenderTarget( "alpha" )->SetRenderTarget( m_gfx.GetContext() );
+            m_gfx.GetRenderTargetController()->GetRenderTarget( "Alpha" )->SetRenderTarget( m_gfx.GetContext() );
 
 
             m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Alpha" ).m_pVertexLayout );
@@ -680,7 +665,7 @@ void Application::Draw()
             m_gfx.GetContext()->UpdateSubresource( _pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0 );
             m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &_pPostProcessingConstantBuffer );
 
-            ResourceView1 = RenderTargetControl->GetRenderTarget( "RTT" )->GetTexture();
+            ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
             m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
 
             m_gfx.GetContext()->Draw( 4, 0 );
@@ -701,7 +686,7 @@ void Application::Draw()
             m_gfx.GetContext()->RSSetViewports( 1, &vp2 );
 
             //down sample
-            RenderTargetControl->GetRenderTarget( "DownSample" )->SetRenderTarget( m_gfx.GetContext() );
+            m_gfx.GetRenderTargetController()->GetRenderTarget( "DownSample" )->SetRenderTarget( m_gfx.GetContext() );
 
             m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "SolidColour" ).m_pVertexLayout );
             m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
@@ -717,18 +702,18 @@ void Application::Draw()
 
             if ( postSettings.UseBloom )
             {
-                ResourceView1 = RenderTargetControl->GetRenderTarget( "alpha" )->GetTexture();
+                ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Alpha" )->GetTexture();
             }
             else
             {
-                ResourceView1 = RenderTargetControl->GetRenderTarget( "RTT" )->GetTexture();
+                ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
             }
             m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
 
             m_gfx.GetContext()->Draw( 4, 0 );
 
             //blur 1
-            RenderTargetControl->GetRenderTarget( "Gauss1" )->SetRenderTarget( m_gfx.GetContext() );
+            m_gfx.GetRenderTargetController()->GetRenderTarget( "Gaussian1" )->SetRenderTarget( m_gfx.GetContext() );
 
 
             m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Gaussian1" ).m_pVertexLayout );
@@ -743,14 +728,14 @@ void Application::Draw()
             m_gfx.GetContext()->UpdateSubresource( _pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0 );
             m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &_pPostProcessingConstantBuffer );
 
-            ResourceView1 = RenderTargetControl->GetRenderTarget( "DownSample" )->GetTexture();
+            ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "DownSample" )->GetTexture();
 
             m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
 
             m_gfx.GetContext()->Draw( 4, 0 );
 
             //blur 2
-            RenderTargetControl->GetRenderTarget( "Gauss2" )->SetRenderTarget( m_gfx.GetContext() );
+            m_gfx.GetRenderTargetController()->GetRenderTarget( "Gaussian2" )->SetRenderTarget( m_gfx.GetContext() );
 
 
             m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Gaussian2" ).m_pVertexLayout );
@@ -765,7 +750,7 @@ void Application::Draw()
             m_gfx.GetContext()->UpdateSubresource( _pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0 );
             m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &_pPostProcessingConstantBuffer );
 
-            ResourceView1 = RenderTargetControl->GetRenderTarget( "Gauss1" )->GetTexture();
+            ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Gaussian1" )->GetTexture();
             m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
 
             m_gfx.GetContext()->Draw( 4, 0 );
@@ -781,7 +766,7 @@ void Application::Draw()
             m_gfx.GetContext()->RSSetViewports( 1, &vp );
 
             //upsample
-            RenderTargetControl->GetRenderTarget( "UpSample" )->SetRenderTarget( m_gfx.GetContext() );
+            m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->SetRenderTarget( m_gfx.GetContext() );
 
             m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "SolidColour" ).m_pVertexLayout );
             m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
@@ -796,7 +781,7 @@ void Application::Draw()
             m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &_pPostProcessingConstantBuffer );
 
 
-            ResourceView1 = RenderTargetControl->GetRenderTarget( "Gauss2" )->GetTexture();
+            ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Gaussian2" )->GetTexture();
 
 
             m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
@@ -811,7 +796,7 @@ void Application::Draw()
         if ( postSettings.UseDepthOfF )
         {
             //DOF implmentation
-            RenderTargetControl->GetRenderTarget( "DepthOfField" )->SetRenderTarget( m_gfx.GetContext() );
+            m_gfx.GetRenderTargetController()->GetRenderTarget( "DepthOfField" )->SetRenderTarget( m_gfx.GetContext() );
 
             m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "DepthOfField" ).m_pVertexLayout );
             m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
@@ -822,9 +807,9 @@ void Application::Draw()
             m_gfx.GetContext()->UpdateSubresource( _pPostProcessingConstantBuffer, 0, nullptr, &postSettings, 0, 0 );
             m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &_pPostProcessingConstantBuffer );
 
-            ResourceView1 = RenderTargetControl->GetRenderTarget( "RTT" )->GetTexture();
-            ResourceView2 = RenderTargetControl->GetRenderTarget( "UpSample" )->GetTexture();
-            ResourceView3 = RenderTargetControl->GetRenderTarget( "Depth" )->GetTexture();
+            ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
+            ResourceView2 = m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->GetTexture();
+            ResourceView3 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Depth" )->GetTexture();
 
             m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
             m_gfx.GetContext()->PSSetShaderResources( 1, 1, &ResourceView2 );
@@ -836,7 +821,7 @@ void Application::Draw()
 
 
         //fade implmentation
-        RenderTargetControl->GetRenderTarget( "Fade" )->SetRenderTarget( m_gfx.GetContext() );
+        m_gfx.GetRenderTargetController()->GetRenderTarget( "Fade" )->SetRenderTarget( m_gfx.GetContext() );
 
         m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Fade" ).m_pVertexLayout );
         m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
@@ -849,15 +834,15 @@ void Application::Draw()
 
         if ( postSettings.UseBlur )
         {
-            ResourceView1 = RenderTargetControl->GetRenderTarget( "UpSample" )->GetTexture();
+            ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->GetTexture();
         }
         else if ( postSettings.UseDepthOfF )
         {
-            ResourceView1 = RenderTargetControl->GetRenderTarget( "DepthOfField" )->GetTexture();
+            ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "DepthOfField" )->GetTexture();
         }
         else
         {
-            ResourceView1 = RenderTargetControl->GetRenderTarget( "RTT" )->GetTexture();
+            ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
         }
 
         m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
@@ -869,18 +854,18 @@ void Application::Draw()
         m_gfx.GetContext()->ClearRenderTargetView( _pRenderTargetView, Colors::DarkBlue );
         m_gfx.GetContext()->ClearDepthStencilView( _pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
-        m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Fianl" ).m_pVertexLayout );
+        m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Final" ).m_pVertexLayout );
         m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
         m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
         m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
-        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Fianl" ).m_pVertexShader, nullptr, 0 );
-        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Fianl" ).m_pPixelShader, nullptr, 0 );
+        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Final" ).m_pVertexShader, nullptr, 0 );
+        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Final" ).m_pPixelShader, nullptr, 0 );
 
 
 
-        ResourceView1 = RenderTargetControl->GetRenderTarget( "Fade" )->GetTexture();
-        ResourceView2 = RenderTargetControl->GetRenderTarget( "UpSample" )->GetTexture();
+        ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Fade" )->GetTexture();
+        ResourceView2 = m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->GetTexture();
 
 
 
@@ -966,9 +951,6 @@ void Application::Cleanup()
 
     delete DimGuiManager;
     DimGuiManager = nullptr;
-
-    delete RenderTargetControl;
-    RenderTargetControl = nullptr;
 
     delete BillBoradObject;
     BillBoradObject = nullptr;

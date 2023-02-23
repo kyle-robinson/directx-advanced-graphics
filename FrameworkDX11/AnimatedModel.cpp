@@ -94,7 +94,7 @@ AnimatedModel::AnimatedModel(std::string ModelFile, ID3D11Device* device, ID3D11
     _Apparance->SetIndices(device, &_Index2[0], _Index2.size());
 
     //shader for animation
-    Controll->NewAnimationShader("animation", L"Animation.hlsl", device, pImmediateContext);
+    Controll->NewAnimationShader("Animation", L"Animation.hlsl", device, pImmediateContext);
 
     //transform data
     TransformData = new Transform();
@@ -160,9 +160,9 @@ AnimatedModel::~AnimatedModel()
 
 void AnimatedModel::Draw(ID3D11DeviceContext* pImmediateContext, ShaderController* Controll, ConstantBuffer* buffer, ID3D11Buffer* _pConstantBuffer)
 {
-    pImmediateContext->IASetInputLayout(Controll->GetShaderByName("animation").m_pVertexLayout);
-    pImmediateContext->VSSetShader(Controll->GetShaderByName("animation").m_pVertexShader, nullptr, 0);
-    pImmediateContext->PSSetShader(Controll->GetShaderByName("animation").m_pPixelShader, nullptr, 0);
+    pImmediateContext->IASetInputLayout(Controll->GetShaderByName("Animation").m_pVertexLayout);
+    pImmediateContext->VSSetShader(Controll->GetShaderByName("Animation").m_pVertexShader, nullptr, 0);
+    pImmediateContext->PSSetShader(Controll->GetShaderByName("Animation").m_pPixelShader, nullptr, 0);
 
     XMFLOAT4X4 WorldAsFloat = TransformData->GetWorldMatrix();
     XMMATRIX mGO = XMLoadFloat4x4(&WorldAsFloat);
@@ -190,7 +190,7 @@ void AnimatedModel::Draw(ID3D11DeviceContext* pImmediateContext, ShaderControlle
     }
 
 
-    pImmediateContext->IASetInputLayout(Controll->GetShaderByName("NoEffects").m_pVertexLayout);
+    pImmediateContext->IASetInputLayout(Controll->GetShaderByName("Basic").m_pVertexLayout);
 
     pImmediateContext->VSSetShader(Controll->GetShaderData().m_pVertexShader, nullptr, 0);
     pImmediateContext->PSSetShader(Controll->GetShaderData().m_pPixelShader, nullptr, 0);

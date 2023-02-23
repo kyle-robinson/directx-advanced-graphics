@@ -448,8 +448,8 @@
     <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="RansterStateManager.h" />
-    <ClInclude Include="RenderTargetControll.h" />
-    <ClInclude Include="RenderTargetTextureClass.h" />
+    <ClInclude Include="RenderTargetController.h" />
+    <ClInclude Include="RenderTargetTexture.h" />
     <CLInclude Include="resource.h" />
     <ClInclude Include="ShaderController.h" />
     <ClInclude Include="ShadowMap.h" />
@@ -487,7 +487,9 @@
     <ClCompile Include="DataStucts.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DrawableGameObject.cpp" />
-    <ClCompile Include="Graphics\Graphics.cpp" />
+    <ClCompile Include="Graphics\Graphics.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="ImGuiManager.cpp" />
     <ClCompile Include="Input\Input.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -504,8 +506,12 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="RansterStateManager.cpp" />
-    <ClCompile Include="RenderTargetControll.cpp" />
-    <ClCompile Include="RenderTargetTextureClass.cpp" />
+    <ClCompile Include="RenderTargetController.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="RenderTargetTexture.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="ShaderController.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
