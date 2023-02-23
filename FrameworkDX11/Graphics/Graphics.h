@@ -2,6 +2,10 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
+#include <map>
+#include <memory>
+
+#include "Sampler.h"
 #include "Viewport.h"
 #include "SwapChain.h"
 #include "BackBuffer.h"
@@ -28,6 +32,7 @@ public:
 
 	inline ShaderController* GetShaderController() const noexcept { return m_pShaderController; }
 	inline RenderTargetController* GetRenderTargetController() const noexcept { return m_pRenderTargetController; }
+	inline std::shared_ptr<Bind::Sampler> GetSampler( std::string type ) const noexcept { return m_pSamplerStates.at( type ); }
 
 private:
 	void InitializeDirectX( HWND hWnd );
@@ -41,6 +46,7 @@ private:
 	// Pipeline components
 	ShaderController* m_pShaderController;
 	RenderTargetController* m_pRenderTargetController;
+	std::map<std::string, std::shared_ptr<Bind::Sampler>> m_pSamplerStates;
 
 	std::shared_ptr<Bind::Viewport> m_pViewport;
 	std::shared_ptr<Bind::BackBuffer> m_pBackBuffer;

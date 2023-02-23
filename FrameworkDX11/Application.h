@@ -49,8 +49,6 @@ private:
 	};
 
 	ID3D11Buffer* g_pScreenQuadVB = nullptr;
-	ID3D11SamplerState* m_pPointrLinear;
-	ID3D11SamplerState* m_pLINEARBORDER;
 	ShadowMap* DepthLight;
 	BillboardObject* BillBoradObject;
 

@@ -32,6 +32,9 @@ void Graphics::InitializeDirectX( HWND hWnd )
     m_pDepthStencil = std::make_shared<Bind::DepthStencil>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
     m_pViewport = std::make_shared<Bind::Viewport>( m_pContext.Get(), m_viewWidth, m_viewHeight );
     m_pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+
+    m_pSamplerStates.emplace( "Wrap", std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::WRAP ) );
+    m_pSamplerStates.emplace( "Border", std::make_shared<Bind::Sampler>( m_pDevice.Get(), Bind::Sampler::Type::BORDER ) );
 }
 
 void Graphics::InitializeShaders()

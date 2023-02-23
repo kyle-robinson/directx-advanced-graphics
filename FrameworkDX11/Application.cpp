@@ -221,30 +221,6 @@ HRESULT Application::InitWorld()
 
 HRESULT Application::InitDevice()
 {
-    //smaplers
-    D3D11_SAMPLER_DESC sampDesc;
-    ZeroMemory( &sampDesc, sizeof( sampDesc ) );
-    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    sampDesc.MinLOD = 0;
-    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-    HRESULT hr = m_gfx.GetDevice()->CreateSamplerState( &sampDesc, &m_pPointrLinear );
-    if ( FAILED( hr ) )
-        return hr;
-
-    sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-    sampDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-    sampDesc.BorderColor[0] = 1.0f;
-    sampDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
-    hr = m_gfx.GetDevice()->CreateSamplerState( &sampDesc, &m_pLINEARBORDER );
-    if ( FAILED( hr ) )
-        return hr;
-
     DepthLight = new ShadowMap( m_gfx.GetDevice(), m_gfx.GetWidth(), m_gfx.GetHeight() );
     RSControll = new RasterStateManager();
 
@@ -266,7 +242,7 @@ HRESULT Application::InitDevice()
     cmdesc.CullMode = D3D11_CULL_NONE;
     RSControll->CreatRasterizerState( m_gfx.GetDevice(), cmdesc, "RSCullNone" );
 
-    hr = InitMesh();
+    HRESULT hr = InitMesh();
     if ( FAILED( hr ) )
     {
         MessageBox( nullptr,
@@ -360,8 +336,8 @@ void Application::Draw()
     m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->SetRenderTarget( m_gfx.GetContext() );
 
     //set shadow samplers
-    m_gfx.GetContext()->PSSetSamplers( 1, 1, &m_pLINEARBORDER );
-    m_gfx.GetContext()->PSSetSamplers( 2, 1, &m_pLINEARBORDER );
+	m_gfx.GetSampler( "Border" )->Bind( m_gfx.GetContext(), 1u );
+	m_gfx.GetSampler( "Border" )->Bind( m_gfx.GetContext(), 2u );
 
     // get the game object world transform
     WorldAsFloat = _GameObject.GetTransfrom()->GetWorldMatrix();
@@ -611,7 +587,7 @@ void Application::Draw()
 
 
             m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Alpha" ).m_pVertexLayout );
-            m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
+            m_gfx.GetSampler( "Wrap" )->Bind( m_gfx.GetContext(), 0u );
             m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
@@ -646,7 +622,7 @@ void Application::Draw()
             m_gfx.GetRenderTargetController()->GetRenderTarget( "DownSample" )->SetRenderTarget( m_gfx.GetContext() );
 
             m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "SolidColour" ).m_pVertexLayout );
-            m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
+            m_gfx.GetSampler( "Wrap" )->Bind( m_gfx.GetContext(), 0u );
             m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
@@ -674,7 +650,7 @@ void Application::Draw()
 
 
             m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Gaussian1" ).m_pVertexLayout );
-            m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
+            m_gfx.GetSampler( "Wrap" )->Bind( m_gfx.GetContext(), 0u );
             m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
@@ -696,7 +672,7 @@ void Application::Draw()
 
 
             m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Gaussian2" ).m_pVertexLayout );
-            m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
+            m_gfx.GetSampler( "Wrap" )->Bind( m_gfx.GetContext(), 0u );
             m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
@@ -726,7 +702,7 @@ void Application::Draw()
             m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->SetRenderTarget( m_gfx.GetContext() );
 
             m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "SolidColour" ).m_pVertexLayout );
-            m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
+            m_gfx.GetSampler( "Wrap" )->Bind( m_gfx.GetContext(), 0u );
             m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
@@ -756,7 +732,7 @@ void Application::Draw()
             m_gfx.GetRenderTargetController()->GetRenderTarget( "DepthOfField" )->SetRenderTarget( m_gfx.GetContext() );
 
             m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "DepthOfField" ).m_pVertexLayout );
-            m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
+            m_gfx.GetSampler( "Wrap" )->Bind( m_gfx.GetContext(), 0u );
             m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
             m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "DepthOfField" ).m_pVertexShader, nullptr, 0 );
@@ -781,7 +757,7 @@ void Application::Draw()
         m_gfx.GetRenderTargetController()->GetRenderTarget( "Fade" )->SetRenderTarget( m_gfx.GetContext() );
 
         m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Fade" ).m_pVertexLayout );
-        m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
+        m_gfx.GetSampler( "Wrap" )->Bind( m_gfx.GetContext(), 0u );
         m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
         m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
         m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Fade" ).m_pVertexShader, nullptr, 0 );
@@ -812,7 +788,7 @@ void Application::Draw()
         m_gfx.GetContext()->ClearDepthStencilView( m_gfx.GetDepthStencil()->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
         m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Final" ).m_pVertexLayout );
-        m_gfx.GetContext()->PSSetSamplers( 0, 1, &m_pPointrLinear );
+        m_gfx.GetSampler( "Wrap" )->Bind( m_gfx.GetContext(), 0u );
         m_gfx.GetContext()->IASetVertexBuffers( 0, 1, pBuffers, &strides, &offsets );
         m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
@@ -934,8 +910,6 @@ void Application::Cleanup()
     if ( _pPostProcessingConstantBuffer )_pPostProcessingConstantBuffer->Release();
 
     if ( g_pScreenQuadVB ) g_pScreenQuadVB->Release();
-    if ( m_pPointrLinear ) m_pPointrLinear->Release();
-    if ( m_pPointrLinear ) m_pLINEARBORDER->Release();
 
     ID3D11Debug* debugDevice = nullptr;
     m_gfx.GetDevice()->QueryInterface( __uuidof( ID3D11Debug ), reinterpret_cast<void**>( &debugDevice ) );
