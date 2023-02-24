@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "TerrainJsonLoad.h"
 
 TerrainJsonLoad::TerrainJsonLoad() {}
@@ -7,7 +6,7 @@ TerrainJsonLoad::~TerrainJsonLoad() {}
 
 void TerrainJsonLoad::LoadData( std::string fileName, TerrainData& output )
 {
-	Document document;
+	rapidjson::Document document;
 	std::ifstream fileStream( "Resources/JSON/" + fileName + ".json" );
 	if ( !fileStream.is_open() )
 	{
@@ -15,7 +14,7 @@ void TerrainJsonLoad::LoadData( std::string fileName, TerrainData& output )
 	}
 	else
 	{
-		IStreamWrapper streamWrapper( fileStream );
+		rapidjson::IStreamWrapper streamWrapper( fileStream );
 		document.ParseStream( streamWrapper );
 		if ( document.HasParseError() )
 			document.SetNull();
@@ -66,9 +65,9 @@ void TerrainJsonLoad::LoadData( std::string fileName, TerrainData& output )
 
 void TerrainJsonLoad::StoreData( std::string fileName, TerrainData dataToStore )
 {
-	Document document;
+	rapidjson::Document document;
 	document.SetObject();
-	Document document1( &document.GetAllocator() );
+	rapidjson::Document document1( &document.GetAllocator() );
 
 	// Create first object
 	document1.SetObject();
@@ -77,7 +76,7 @@ void TerrainJsonLoad::StoreData( std::string fileName, TerrainData dataToStore )
 	document1.AddMember( "CellSpacing", dataToStore.CellSpacing, document1.GetAllocator() );
 	document1.AddMember( "Mode", dataToStore.Mode, document1.GetAllocator() );
 	document.AddMember( "Terrain_Data", document1, document.GetAllocator() );
-	Document document2( &document.GetAllocator() );
+	rapidjson::Document document2( &document.GetAllocator() );
 
 	// Create mode object
 	switch ( dataToStore.Mode )
@@ -103,7 +102,7 @@ void TerrainJsonLoad::StoreData( std::string fileName, TerrainData dataToStore )
 	StoreFile( fileName, document );
 }
 
-HeightMapSettings TerrainJsonLoad::LoadHeightMapSettings( Document& doc )
+HeightMapSettings TerrainJsonLoad::LoadHeightMapSettings( rapidjson::Document& doc )
 {
 	HeightMapSettings heightMapData;
 	for ( auto& object : doc["Terrain_Data_HeightMap"].GetObject() )
@@ -122,16 +121,16 @@ HeightMapSettings TerrainJsonLoad::LoadHeightMapSettings( Document& doc )
 	return heightMapData;
 }
 
-void TerrainJsonLoad::StoreHeightMapSettings( Document& doc, const HeightMapSettings heightMapData )
+void TerrainJsonLoad::StoreHeightMapSettings( rapidjson::Document& doc, const HeightMapSettings heightMapData )
 {
-	Value s;
+	rapidjson::Value s;
 	doc.SetObject();
 	s.SetString( heightMapData.HeightMapFile.c_str(), doc.GetAllocator() );
 	doc.AddMember( "HeightMap_File", s, doc.GetAllocator() );
 	doc.AddMember( "HeightMap_Scale", heightMapData.HeightScale, doc.GetAllocator() );
 }
 
-FaultLineSettings TerrainJsonLoad::LoadFaultLineSettings( Document& doc )
+FaultLineSettings TerrainJsonLoad::LoadFaultLineSettings( rapidjson::Document& doc )
 {
 	FaultLineSettings faultLineData;
 	for ( auto& object : doc["Terrain_Data_FaultLine"].GetObject() )
@@ -154,16 +153,15 @@ FaultLineSettings TerrainJsonLoad::LoadFaultLineSettings( Document& doc )
 	return faultLineData;
 }
 
-void TerrainJsonLoad::StoreFaultLineSettings( Document& doc, const FaultLineSettings faultLineData )
+void TerrainJsonLoad::StoreFaultLineSettings( rapidjson::Document& doc, const FaultLineSettings faultLineData )
 {
 	doc.SetObject();
 	doc.AddMember( "Seed", faultLineData.Seed, doc.GetAllocator() );
 	doc.AddMember( "Displacement", faultLineData.Displacement, doc.GetAllocator() );
 	doc.AddMember( "Iteration_Count", faultLineData.IterationCount, doc.GetAllocator() );
-
 }
 
-DiamondSquareSettings TerrainJsonLoad::LoadDiamondSquareSettings( Document& doc )
+DiamondSquareSettings TerrainJsonLoad::LoadDiamondSquareSettings( rapidjson::Document& doc )
 {
 	DiamondSquareSettings diamondSquareData;
 	for ( auto& object : doc["Terrain_Data_DiamondSquare"].GetObject() )
@@ -185,7 +183,7 @@ DiamondSquareSettings TerrainJsonLoad::LoadDiamondSquareSettings( Document& doc 
 	return diamondSquareData;
 }
 
-void TerrainJsonLoad::StoreDiamondSquareSettings( Document& doc, const DiamondSquareSettings diamondSquareData )
+void TerrainJsonLoad::StoreDiamondSquareSettings( rapidjson::Document& doc, const DiamondSquareSettings diamondSquareData )
 {
 	doc.SetObject();
 	doc.AddMember( "Seed", diamondSquareData.Seed, doc.GetAllocator() );
@@ -193,7 +191,7 @@ void TerrainJsonLoad::StoreDiamondSquareSettings( Document& doc, const DiamondSq
 	doc.AddMember( "Range", diamondSquareData.Range, doc.GetAllocator() );
 }
 
-TerrainNoiseSettings TerrainJsonLoad::LoadTerrainNoiseSettings( Document& doc )
+TerrainNoiseSettings TerrainJsonLoad::LoadTerrainNoiseSettings( rapidjson::Document& doc )
 {
 	TerrainNoiseSettings terrainNoiseData;
 	for ( auto& object : doc["Terrain_Data_Noise"].GetObject() )
@@ -220,7 +218,7 @@ TerrainNoiseSettings TerrainJsonLoad::LoadTerrainNoiseSettings( Document& doc )
 	return terrainNoiseData;
 }
 
-void TerrainJsonLoad::StoreTerrainNoiseSettings( Document& doc, const TerrainNoiseSettings terrainNoiseData )
+void TerrainJsonLoad::StoreTerrainNoiseSettings( rapidjson::Document& doc, const TerrainNoiseSettings terrainNoiseData )
 {
 	doc.SetObject();
 	doc.AddMember( "Seed", terrainNoiseData.Seed, doc.GetAllocator() );

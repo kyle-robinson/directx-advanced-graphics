@@ -1,15 +1,16 @@
 #pragma once
+#ifndef IMGUIMANAGER_H
+#define IMGUIMANAGER_H
 
-#include<Windows.h>
+#include <Windows.h>
 #include "imgui.h"
 #include "backends/imgui_impl_dx11.h"
 #include "backends/imgui_impl_win32.h"
-#include"misc/cpp/imgui_stdlib.h"
-#include"CameraController.h";
-//#include"C++HelperFunctions.h"
+#include "misc/cpp/imgui_stdlib.h"
 
-#include"TerrainJsonLoad.h"
-#include"structures.h"
+#include "CameraController.h";
+#include "TerrainJsonLoad.h"
+#include "Structures.h"
 
 class DrawableGameObject;
 class LightController;
@@ -19,9 +20,7 @@ class Terrain;
 class TerrainVoxel;
 class RasterizerController;
 class AnimatedModel;
-/// <summary>
-/// controlls the DImGui that controll parts of the application
-/// </summary>
+
 class ImGuiManager
 {
 public:
@@ -30,25 +29,22 @@ public:
 
 	void BeginRender();
 	void EndRender();
-	void Initialize(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* context);
+	void Initialize( HWND hWnd, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 
-
-	//menus
-	void DrawCamMenu(CameraController* Cams);
-	void ShaderMenu(ShaderController* Shader, PostProcessingCB* postSettings, RasterizerController* RasterState,bool &rtt);
-	void ObjectControl(DrawableGameObject* GameObject);
-	void LightControl(LightController* LightControl);
-	void BillBoradControl(BillboardObject* BillControl);
+	void DrawCamMenu( CameraController* cameraControl );
+	void ShaderMenu( ShaderController* shaderControl, PostProcessingCB* postSettings, RasterizerController* rasterControl, bool& rtt );
+	void ObjectControl( DrawableGameObject* gameObject );
+	void LightControl( LightController* lightControl );
+	void BillBoradControl( BillboardObject* billboardObject );
 	void BezierCurveSpline();
-	void TerrainControll(Terrain* terrain,TerrainVoxel* VoxelTerrain, ID3D11Device* device, ID3D11DeviceContext* _pImmediateContext);
-	void AnimationControll(AnimatedModel* AnnimationModel);
+	void TerrainControll( Terrain* terrain, TerrainVoxel* voxelTerrain, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	void AnimationControll( AnimatedModel* animModel );
 
+	inline std::vector<XMFLOAT3> GetPoints() const noexcept { return m_vPoints; }
 
-
-	vector<XMFLOAT3> points;
 private:
 	void SetBlackGoldStyle();
-
-
+	std::vector<XMFLOAT3> m_vPoints;
 };
 
+#endif

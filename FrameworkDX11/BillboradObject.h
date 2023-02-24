@@ -1,55 +1,42 @@
 #pragma once
+#ifndef BILLBOARDOBJECT_H
+#define BILLBOARDOBJECT_H
 
-#include <d3d11_1.h>
-#include <d3dcompiler.h>
-#include <directxmath.h>
-#include <directxcolors.h>
-#include <DirectXCollision.h>
-#include<string>
-#include<vector>
-#include "structures.h"
-#include "DDSTextureLoader.h"
-#include"ShaderController.h"
-using namespace DirectX;
-using namespace std;
+#include <vector>
+#include "Structures.h"
+#include "ShaderController.h"
 
-//vetex data that would be used to creat billboard
-struct SimpleVertexBill
+struct SimpleVertexBillboard
 {
 	XMFLOAT3 Pos;
 	XMFLOAT3 Normal;
 	XMFLOAT2 TexCoord;
-	XMFLOAT3 tangent;
-	XMFLOAT3 biTangent;
+	XMFLOAT3 Tangent;
+	XMFLOAT3 BiTangent;
 };
 
-/// <summary>
-/// controlls a set of instances of a billboard use a gemory shader to draw the vertex data
-/// </summary>
 class BillboardObject
 {
-
 public:
-	BillboardObject(string TexName,int numberToCreate, ID3D11Device* _pd3dDevice);
+	BillboardObject( std::string texName, int numToCreate, ID3D11Device* pDevice );
 	~BillboardObject();
 
-	void CreatBillboard(int Number, ID3D11Device* _pd3dDevice);
+	void CreateBillboard( int num, ID3D11Device* pDevice );
+	void Draw( ID3D11DeviceContext* pContext, ShaderController::ShaderData shaderData, ConstantBuffer* cbuffer, ID3D11Buffer* buffer );
+	void UpdatePositions( ID3D11DeviceContext* pContext );
 
-	void Draw(ID3D11DeviceContext* pContext,ShaderController::ShaderData Shader, ConstantBuffer* cb, ID3D11Buffer* _pConstantBuffer);
-	void SetTexture(string TexName, ID3D11Device* _pd3dDevice);
-
-	void UpdatePositions(ID3D11DeviceContext* pContext);
-	void SetPositions(vector<SimpleVertexBill> pos) { Positions = pos; }
-	vector<SimpleVertexBill> GetPosistions() { return Positions; }
+	void SetTexture( std::string texName, ID3D11Device* pDevice );
+	inline void SetPositions( std::vector<SimpleVertexBillboard> pos ) noexcept { m_vPositions = pos; }
+	inline std::vector<SimpleVertexBillboard> GetPosistions() const noexcept { return m_vPositions; }
 
 private:
 	void CleanUp();
 
-	int NumberOfBillBoards=0;
-
-	ID3D11Buffer* BillboardInstanceBuff;
-	ID3D11Buffer* BillboardVertBuff;
-	vector<SimpleVertexBill> Positions;
+	int m_iNumberOfBillBoards = 0;
+	ID3D11Buffer* m_pBillboardVertexBuffer;
+	ID3D11Buffer* m_pBillboardInstanceBuffer;
+	std::vector<SimpleVertexBillboard> m_vPositions;
 	ID3D11ShaderResourceView* m_pDiffuseResourceView;
 };
 
+#endif

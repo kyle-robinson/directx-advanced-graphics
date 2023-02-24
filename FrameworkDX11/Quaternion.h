@@ -25,7 +25,7 @@
 #include"Vector3.h"
 using namespace DirectX;
 
-// REMOVE ME! 
+// REMOVE ME!
 // Vector3 here should be removed, use your own Vector class instead throughout this class
 //struct Vector3
 //{
