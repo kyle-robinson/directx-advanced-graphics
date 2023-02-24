@@ -1,102 +1,95 @@
 #pragma once
-#include"../rapidjson/include/rapidjson/rapidjson.h"
+#ifndef TERRAINJSONLOAD_H
+#define TERRAINJSONLOAD_H
+
+#include "../rapidjson/include/rapidjson/rapidjson.h"
 #include <../rapidjson/include/rapidjson/writer.h>
 #include <../rapidjson/include/rapidjson/document.h>
 #include <../rapidjson/include/rapidjson/istreamwrapper.h>
 #include <../rapidjson/include/rapidjson/ostreamwrapper.h>
-#include<string>
-#include<fstream>
+using namespace rapidjson;
 
-//Data stucts to store data
-struct HightMapSettings
+#include <ostream>
+#include <fstream>
+
+struct HeightMapSettings
 {
-    std::string HightMapFile;
-    float HightScale;
+    std::string HeightMapFile;
+    float HeightScale;
 };
 
-struct FualtLineSettings
+struct FaultLineSettings
 {
     int Seed;
-    int iterationCount;
+    int IterationCount;
     float Displacement;
 };
 
-struct DimondSquareSettings
+struct DiamondSquareSettings
 {
     int Seed;
-    int range;
-    float HightScale;
+    int Range;
+    float HeightScale;
 };
 
 struct TerrainNoiseSettings
 {
     int Seed;
-    int NumberOfOctaves;
-    float Frequancy;
-    float HightScale;
+    int NumOfOctaves;
+    float Frequency;
+    float HeightScale;
 };
+
 struct TerrainData
 {
     int Width;
     int Depth;
-    float CellSpaceing;
-    int mode;
-    HightMapSettings _HightMapSettings;
-    FualtLineSettings _FaultLineSettings;
-    DimondSquareSettings _DimondSquareSettings;
-    TerrainNoiseSettings _NoiseSettings;
+    int Mode;
+    float CellSpacing;
+    HeightMapSettings HeightMapSettings;
+    FaultLineSettings FaultLineSettings;
+    DiamondSquareSettings DiamondSquareSettings;
+    TerrainNoiseSettings NoiseSettings;
 };
 
-
-using namespace std;
-using namespace rapidjson;
-
-
-// Check node is there
 template <typename DataFormat>
-bool CheckDataIsThere(const std::string& objectName, const DataFormat& document)
+bool CheckDataIsThere( const std::string& objectName, const DataFormat& document )
 {
-    return document.HasMember(objectName.c_str());;
+    return document.HasMember( objectName.c_str() );;
 }
-//store the file
-inline bool StoreFile(const std::string& fileName, const Document& document)
+
+inline bool StoreFile( const std::string& fileName, const Document& document )
 {
     // Write back to file
-    std::ofstream fileStream("Resources/JSON/" + fileName +".json");
-    OStreamWrapper wrapperStream(fileStream);
-    Writer<OStreamWrapper> writer(wrapperStream);
-    document.Accept(writer);
+    std::ofstream fileStream( "Resources/JSON/" + fileName + ".json" );
+    OStreamWrapper wrapperStream( fileStream );
+    Writer<OStreamWrapper> writer( wrapperStream );
+    document.Accept( writer );
     fileStream.close();
     return true;
 }
 
-
-
-/// <summary>
-/// loade and save data through the use of JSON
-/// </summary>
 class TerrainJsonLoad
 {
 public:
     TerrainJsonLoad();
     ~TerrainJsonLoad();
 
-
-    static void LoadData(std::string FileName, TerrainData& output);
-    static void StoreData(std::string FileName, TerrainData DataToStore);
+    static void LoadData( std::string fileName, TerrainData& output );
+    static void StoreData( std::string fileName, TerrainData dataToStore );
 
 private:
-    static HightMapSettings LoadHightMapSettings(Document& Doc);
-    static void StoreHightMapSettings(Document& Doc, const HightMapSettings Data);
+    static HeightMapSettings LoadHeightMapSettings( Document& Doc );
+    static void StoreHeightMapSettings( Document& Doc, const HeightMapSettings heightMapData );
 
-    static FualtLineSettings LoadFualtLineSettings(Document& Doc);
-    static void StoreFualtLineSettings(Document& Doc,const FualtLineSettings Data);
+    static FaultLineSettings LoadFaultLineSettings( Document& Doc );
+    static void StoreFaultLineSettings( Document& Doc, const FaultLineSettings faultLineData );
 
-    static DimondSquareSettings LoadDimondSquareSettings(Document& Doc);
-    static void StoreDimondSquareSettings(Document& Doc, const DimondSquareSettings Data);
+    static DiamondSquareSettings LoadDiamondSquareSettings( Document& Doc );
+    static void StoreDiamondSquareSettings( Document& Doc, const DiamondSquareSettings diamondSquareData );
 
-    static TerrainNoiseSettings LoadTerrainNoiseSettings(Document& Doc);
-    static void StoreTerrainNoiseSettings(Document& Doc, const TerrainNoiseSettings Data);
-
+    static TerrainNoiseSettings LoadTerrainNoiseSettings( Document& Doc );
+    static void StoreTerrainNoiseSettings( Document& Doc, const TerrainNoiseSettings terrainNoiseData );
 };
 
+#endif

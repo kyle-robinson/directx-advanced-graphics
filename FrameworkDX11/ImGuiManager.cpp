@@ -246,7 +246,7 @@ void ImGuiManager::ObjectControl(DrawableGameObject* GameObject)
             ImGui::Checkbox("On", &booldata);
 
             ImGui::Text("Parralax Options");
-            ImGui::InputFloat("Hight Scale",  &data.Material.HightScale, 0.00f, 0.0f, "%.2f");
+            ImGui::InputFloat("Height Scale",  &data.Material.HeightScale, 0.00f, 0.0f, "%.2f");
             ImGui::InputFloat("Max Layer", &data.Material.MaxLayers);
             ImGui::InputFloat("Min Layer", &data.Material.MinLayers);
 
@@ -474,15 +474,15 @@ void ImGuiManager::TerrainControll(Terrain* terrain, TerrainVoxel* VoxelTerrain,
             ImGui::Checkbox("Draw terrain", terrain->GetIsDraw());
             ImGui::Text("Terrain Data");
 
-            ImGui::Text("width = %i", terrain->GetHightMapWidth());
-            ImGui::Text("Hight = %i", terrain->GetHightMapHight());
+            ImGui::Text("width = %i", terrain->GetHeightMapWidth());
+            ImGui::Text("Height = %i", terrain->GetHeightMapHeight());
             ImGui::Text("Cell Spacing = %f", terrain->GetCellSpacing());
             switch (terrain->GetGenType())
             {
-            case TerrainGenType::HightMapLoad:
-                ImGui::Text("GenType: HightMap");
-                ImGui::Text(terrain->GetHightMapName().c_str());
-                ImGui::Text("Hight Scale = %i", terrain->GetHightScale());
+            case TerrainGenType::HeightMapLoad:
+                ImGui::Text("GenType: HeightMap");
+                ImGui::Text(terrain->GetHeightMapName().c_str());
+                ImGui::Text("Height Scale = %i", terrain->GetHeightScale());
                 break;
             case TerrainGenType::FaultLine:
                 ImGui::Text("GenType: FaultLine");
@@ -493,14 +493,14 @@ void ImGuiManager::TerrainControll(Terrain* terrain, TerrainVoxel* VoxelTerrain,
                 break;
             case TerrainGenType::Noise:
                 ImGui::Text("GenType: Noise");
-                ImGui::Text("Hight Scale = %i", terrain->GetHightScale());
+                ImGui::Text("Height Scale = %i", terrain->GetHeightScale());
                 ImGui::Text("Seed:  %i", terrain->GetSeed());
                 ImGui::Text("Fequancy:  %f", terrain->GetFequancy());
                 ImGui::Text("Number of ocatives:  %i", terrain->GetNumberOfOcatives());
                 break;
             case TerrainGenType::DiamondSquare:
                 ImGui::Text("GenType: Diamond Square");
-                ImGui::Text("Hight Scale = %i", terrain->GetHightScale());
+                ImGui::Text("Height Scale = %i", terrain->GetHeightScale());
                 ImGui::Text("Seed:  %i", terrain->GetSeed());
                 ImGui::Text("Range:  %i", terrain->GetRange());
                 break;
@@ -512,8 +512,8 @@ void ImGuiManager::TerrainControll(Terrain* terrain, TerrainVoxel* VoxelTerrain,
             {
                 //mode
                 static TerrainGenType Mode= (TerrainGenType)0;
-                const char* items[] = { "HightMapLoad", "FaultLine", "Noise", "DiamondSquare" };
-                static const char* current_item = "HightMapLoad";
+                const char* items[] = { "HeightMapLoad", "FaultLine", "Noise", "DiamondSquare" };
+                static const char* current_item = "HeightMapLoad";
 
                 if (ImGui::BeginCombo("##combo", current_item)) // The second parameter is the label previewed before opening the combo.
                 {
@@ -538,7 +538,7 @@ void ImGuiManager::TerrainControll(Terrain* terrain, TerrainVoxel* VoxelTerrain,
                 static float CellSpaceing=1.0f;
                 ImGui::InputFloat("CellSpaceing", &CellSpaceing);
 
-                static float HightScale=50.0f;
+                static float HeightScale=50.0f;
                 static float Frequancy = 0.01f;
                 static float Displacement = 0.01f;
                 static int seed=1234;
@@ -546,8 +546,8 @@ void ImGuiManager::TerrainControll(Terrain* terrain, TerrainVoxel* VoxelTerrain,
                 static int NumberOfOctives = 3;
                 switch (Mode)
                 {
-                case TerrainGenType::HightMapLoad:
-                    ImGui::InputFloat("HightScale", &HightScale);
+                case TerrainGenType::HeightMapLoad:
+                    ImGui::InputFloat("HeightScale", &HeightScale);
                     break;
                 case TerrainGenType::FaultLine:
                     ImGui::InputInt("Seed", &seed);
@@ -558,12 +558,12 @@ void ImGuiManager::TerrainControll(Terrain* terrain, TerrainVoxel* VoxelTerrain,
                     ImGui::InputInt("Seed", &seed);
                     ImGui::InputFloat("Frequancy", &Frequancy);
                     ImGui::InputInt("NumberOfOctives", &NumberOfOctives);
-                    ImGui::InputFloat("HightScale", &HightScale);
+                    ImGui::InputFloat("HeightScale", &HeightScale);
                     break;
                 case TerrainGenType::DiamondSquare:
                     ImGui::InputInt("Seed", &seed);
                     ImGui::InputInt("Range", &Range);
-                    ImGui::InputFloat("HightScale", &HightScale);
+                    ImGui::InputFloat("HeightScale", &HeightScale);
                     break;
                 default:
                     break;
@@ -572,7 +572,7 @@ void ImGuiManager::TerrainControll(Terrain* terrain, TerrainVoxel* VoxelTerrain,
                 if (ImGui::Button("Build Terrain")) {
                         switch (Mode)
                         {
-                        case TerrainGenType::HightMapLoad:
+                        case TerrainGenType::HeightMapLoad:
                             break;
                         case TerrainGenType::FaultLine:
                             terrain->SetFualtLineData(seed, Range, Displacement);
@@ -587,7 +587,7 @@ void ImGuiManager::TerrainControll(Terrain* terrain, TerrainVoxel* VoxelTerrain,
                             break;
                         }
 
-                    terrain->ReBuildTerrain(XMFLOAT2(width, Length), HightScale, CellSpaceing, Mode, device);
+                    terrain->ReBuildTerrain(XMFLOAT2(width, Length), HeightScale, CellSpaceing, Mode, device);
 
 
                 }
@@ -615,20 +615,20 @@ void ImGuiManager::TerrainControll(Terrain* terrain, TerrainVoxel* VoxelTerrain,
                 }
                 ImGui::EndTable();
 
-                ImGui::Text("Textuer Hight Level");
+                ImGui::Text("Textuer Height Level");
 
-                float Layer1MaxHight= terrain->GetTerrainData().Layer1MaxHight;
-                float Layer2MaxHight= terrain->GetTerrainData().Layer2MaxHight;
-                float Layer3MaxHight= terrain->GetTerrainData().Layer3MaxHight;
-                float Layer4MaxHight= terrain->GetTerrainData().Layer4MaxHight;
-                float Layer5MaxHight= terrain->GetTerrainData().Layer5MaxHight;
+                float Layer1MaxHeight= terrain->GetTerrainData().Layer1MaxHeight;
+                float Layer2MaxHeight= terrain->GetTerrainData().Layer2MaxHeight;
+                float Layer3MaxHeight= terrain->GetTerrainData().Layer3MaxHeight;
+                float Layer4MaxHeight= terrain->GetTerrainData().Layer4MaxHeight;
+                float Layer5MaxHeight= terrain->GetTerrainData().Layer5MaxHeight;
 
-                ImGui::SliderFloat("Layer1MaxHight", &Layer1MaxHight, 0.0f, Layer2MaxHight);
-                ImGui::SliderFloat("Layer2MaxHight", &Layer2MaxHight, Layer1MaxHight, Layer3MaxHight);
-                ImGui::SliderFloat("Layer3MaxHight", &Layer3MaxHight, Layer2MaxHight, Layer4MaxHight);
-                ImGui::SliderFloat("Layer4MaxHight", &Layer4MaxHight, Layer3MaxHight, Layer5MaxHight);
-                ImGui::SliderFloat("Layer5MaxHight", &Layer5MaxHight, Layer4MaxHight, 100000.0f);
-                terrain->SetTexHights(Layer1MaxHight, Layer2MaxHight, Layer3MaxHight, Layer4MaxHight, Layer5MaxHight);
+                ImGui::SliderFloat("Layer1MaxHeight", &Layer1MaxHeight, 0.0f, Layer2MaxHeight);
+                ImGui::SliderFloat("Layer2MaxHeight", &Layer2MaxHeight, Layer1MaxHeight, Layer3MaxHeight);
+                ImGui::SliderFloat("Layer3MaxHeight", &Layer3MaxHeight, Layer2MaxHeight, Layer4MaxHeight);
+                ImGui::SliderFloat("Layer4MaxHeight", &Layer4MaxHeight, Layer3MaxHeight, Layer5MaxHeight);
+                ImGui::SliderFloat("Layer5MaxHeight", &Layer5MaxHeight, Layer4MaxHeight, 100000.0f);
+                terrain->SetTexHeights(Layer1MaxHeight, Layer2MaxHeight, Layer3MaxHeight, Layer4MaxHeight, Layer5MaxHeight);
 
             }
             if (ImGui::CollapsingHeader("LOD Data"))
@@ -685,45 +685,45 @@ void ImGuiManager::TerrainControll(Terrain* terrain, TerrainVoxel* VoxelTerrain,
                 TerrainData Data;
                 TerrainJsonLoad::LoadData(FileName, Data);
                 TerrainGenType GenMode = (TerrainGenType)Data.mode;
-                double HightScale = 0;
+                double HeightScale = 0;
                 switch (GenMode)
                 {
-                case TerrainGenType::HightMapLoad:
-                    HightScale = Data._HightMapSettings.HightScale;
+                case TerrainGenType::HeightMapLoad:
+                    HeightScale = Data._HeightMapSettings.HeightScale;
                     break;
                 case TerrainGenType::FaultLine:
                     terrain->SetFualtLineData(Data._FaultLineSettings.Seed, Data._FaultLineSettings.iterationCount, Data._FaultLineSettings.Displacement);
-                    HightScale = terrain->GetHightScale();
+                    HeightScale = terrain->GetHeightScale();
                     break;
                 case TerrainGenType::Noise:
                     terrain->SetNoiseData(Data._NoiseSettings.Seed, Data._NoiseSettings.Frequancy, Data._NoiseSettings.NumberOfOctaves);
-                    HightScale = Data._NoiseSettings.HightScale;
+                    HeightScale = Data._NoiseSettings.HeightScale;
                     break;
                 case TerrainGenType::DiamondSquare:
                     terrain->SetDimondSquaerData(Data._DimondSquareSettings.Seed, Data._DimondSquareSettings.range);
-                    HightScale = Data._DimondSquareSettings.HightScale;
+                    HeightScale = Data._DimondSquareSettings.HeightScale;
                     break;
                 default:
                     break;
                 }
 
-                terrain->ReBuildTerrain(XMFLOAT2(Data.Width, Data.Depth), HightScale, Data.CellSpaceing, GenMode, device);
+                terrain->ReBuildTerrain(XMFLOAT2(Data.Width, Data.Depth), HeightScale, Data.CellSpaceing, GenMode, device);
             }
 
 
             if (ImGui::Button("Save")) {
 
                 TerrainData Data;
-                Data.Width = terrain->GetHightMapWidth();
-                Data.Depth = terrain->GetHightMapHight();
+                Data.Width = terrain->GetHeightMapWidth();
+                Data.Depth = terrain->GetHeightMapHeight();
                 Data.CellSpaceing = terrain->GetCellSpacing();
                 Data.mode = (int)terrain->GetGenType();
 
                 switch (terrain->GetGenType())
                 {
-                case TerrainGenType::HightMapLoad:
-                    Data._HightMapSettings.HightMapFile = terrain->GetHightMapName();
-                    Data._HightMapSettings.HightScale = terrain->GetHightScale();
+                case TerrainGenType::HeightMapLoad:
+                    Data.fHeightMapSettings.HeightMapFile = terrain->GetHeightMapName();
+                    Data.fHeightMapSettings.HeightScale = terrain->GetHeightScale();
                     break;
                 case TerrainGenType::FaultLine:
                     Data._FaultLineSettings.Seed = terrain->GetSeed();
@@ -732,13 +732,13 @@ void ImGuiManager::TerrainControll(Terrain* terrain, TerrainVoxel* VoxelTerrain,
                     break;
                 case TerrainGenType::Noise:
                     Data._NoiseSettings.Seed = terrain->GetSeed();
-                    Data._NoiseSettings.HightScale = terrain->GetHightScale();
+                    Data._NoiseSettings.HeightScale = terrain->GetHeightScale();
                     Data._NoiseSettings.Frequancy = terrain->GetFequancy();
                     Data._NoiseSettings.NumberOfOctaves = terrain->GetNumberOfOcatives();
                     break;
                 case TerrainGenType::DiamondSquare:
                     Data._DimondSquareSettings.Seed = terrain->GetSeed();
-                    Data._DimondSquareSettings.HightScale = terrain->GetHightScale();
+                    Data._DimondSquareSettings.HeightScale = terrain->GetHeightScale();
                     Data._DimondSquareSettings.range = terrain->GetRange();
                     break;
 

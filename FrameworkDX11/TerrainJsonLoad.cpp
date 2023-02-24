@@ -1,249 +1,230 @@
+#include "stdafx.h"
 #include "TerrainJsonLoad.h"
 
-TerrainJsonLoad::TerrainJsonLoad()
-{
-}
+TerrainJsonLoad::TerrainJsonLoad() {}
 
-TerrainJsonLoad::~TerrainJsonLoad()
-{
-}
+TerrainJsonLoad::~TerrainJsonLoad() {}
 
-void TerrainJsonLoad::LoadData(std::string FileName, TerrainData& output)
+void TerrainJsonLoad::LoadData( std::string fileName, TerrainData& output )
 {
-
 	Document document;
-
-
-	std::ifstream fileStream("Resources/JSON/"+FileName + ".json");
-	if (!fileStream.is_open())
+	std::ifstream fileStream( "Resources/JSON/" + fileName + ".json" );
+	if ( !fileStream.is_open() )
 	{
 		document.SetNull();
 	}
 	else
 	{
-		IStreamWrapper streamWrapper(fileStream);
-		document.ParseStream(streamWrapper);
-		if (document.HasParseError())
+		IStreamWrapper streamWrapper( fileStream );
+		document.ParseStream( streamWrapper );
+		if ( document.HasParseError() )
 			document.SetNull();
 		fileStream.close();
 	}
 
 	TerrainData objectData;
-
-
-	if (!document.IsNull())
+	if ( !document.IsNull() )
 	{
-		// Load from file
-
-		for (auto& m : document.GetObject())
+		// Load data from file
+		for ( auto& m : document.GetObject() )
 		{
-
-			if (m.value.HasMember("Width"))
+			if ( m.value.HasMember( "Width" ) )
 			{
-				output.Width = m.value.FindMember("Width")->value.GetInt();
+				output.Width = m.value.FindMember( "Width" )->value.GetInt();
 			}
-			if (m.value.HasMember("Depth"))
+			if ( m.value.HasMember( "Depth" ) )
 			{
-				output.Depth = m.value.FindMember("Depth")->value.GetInt();
+				output.Depth = m.value.FindMember( "Depth" )->value.GetInt();
 			}
-			 if (m.value.HasMember("CellSpaceing"))
+			if ( m.value.HasMember( "CellSpacing" ) )
 			{
-				 output.CellSpaceing = m.value.FindMember("CellSpaceing")->value.GetFloat();
+				output.CellSpacing = m.value.FindMember( "CellSpacing" )->value.GetFloat();
 			}
-			if (m.value.HasMember("Mode"))
+			if ( m.value.HasMember( "Mode" ) )
 			{
-				output.mode= m.value.FindMember("Mode")->value.GetInt();
-
-				switch (output.mode)
+				output.Mode = m.value.FindMember( "Mode" )->value.GetInt();
+				switch ( output.Mode )
 				{
 				case 0:
-					output._HightMapSettings = LoadHightMapSettings(document);
+					output.HeightMapSettings = LoadHeightMapSettings( document );
 					break;
 				case 1:
-					output._FaultLineSettings= LoadFualtLineSettings(document);
+					output.FaultLineSettings = LoadFaultLineSettings( document );
 					break;
 				case 2:
-					output._NoiseSettings= LoadTerrainNoiseSettings(document);
+					output.NoiseSettings = LoadTerrainNoiseSettings( document );
 					break;
 				case 3:
-					output._DimondSquareSettings= LoadDimondSquareSettings(document);
+					output.DiamondSquareSettings = LoadDiamondSquareSettings( document );
 					break;
 				}
 				return;
 			}
 		}
 	}
-
-
 }
 
-void TerrainJsonLoad::StoreData(std::string FileName, TerrainData DataToStore)
+void TerrainJsonLoad::StoreData( std::string fileName, TerrainData dataToStore )
 {
 	Document document;
 	document.SetObject();
-	Document document1(&document.GetAllocator());
+	Document document1( &document.GetAllocator() );
 
-	//creat object one
+	// Create first object
 	document1.SetObject();
-	document1.AddMember("Width", DataToStore.Width, document1.GetAllocator());
-	document1.AddMember("Depth", DataToStore.Depth, document1.GetAllocator());
-	document1.AddMember("CellSpaceing", DataToStore.CellSpaceing, document1.GetAllocator());
-	document1.AddMember("Mode", DataToStore.mode, document1.GetAllocator());
-	document.AddMember("Terrain_Data", document1, document.GetAllocator());
-	Document document2(&document.GetAllocator());
+	document1.AddMember( "Width", dataToStore.Width, document1.GetAllocator() );
+	document1.AddMember( "Depth", dataToStore.Depth, document1.GetAllocator() );
+	document1.AddMember( "CellSpacing", dataToStore.CellSpacing, document1.GetAllocator() );
+	document1.AddMember( "Mode", dataToStore.Mode, document1.GetAllocator() );
+	document.AddMember( "Terrain_Data", document1, document.GetAllocator() );
+	Document document2( &document.GetAllocator() );
 
-	//create mode object
-	switch (DataToStore.mode)
+	// Create mode object
+	switch ( dataToStore.Mode )
 	{
 	case 0:
-		StoreHightMapSettings(document2, DataToStore._HightMapSettings);
-		document.AddMember("Terrain_Data_HighMap", document2, document.GetAllocator());
+		StoreHeightMapSettings( document2, dataToStore.HeightMapSettings );
+		document.AddMember( "Terrain_Data_HeightMap", document2, document.GetAllocator() );
 		break;
 	case 1:
-		StoreFualtLineSettings(document2, DataToStore._FaultLineSettings);
-		document.AddMember("Terrain_Data_FualtLine", document2, document.GetAllocator());
+		StoreFaultLineSettings( document2, dataToStore.FaultLineSettings );
+		document.AddMember( "Terrain_Data_FaultLine", document2, document.GetAllocator() );
 		break;
 	case 2:
-		StoreTerrainNoiseSettings(document2, DataToStore._NoiseSettings);
-		document.AddMember("Terrain_Data_Noise", document2, document.GetAllocator());
+		StoreTerrainNoiseSettings( document2, dataToStore.NoiseSettings );
+		document.AddMember( "Terrain_Data_Noise", document2, document.GetAllocator() );
 		break;
 	case 3:
-		StoreDimondSquareSettings(document2, DataToStore._DimondSquareSettings);
-		document.AddMember("Terrain_Data_DimondSquare", document2, document.GetAllocator());
+		StoreDiamondSquareSettings( document2, dataToStore.DiamondSquareSettings );
+		document.AddMember( "Terrain_Data_DiamondSquare", document2, document.GetAllocator() );
 		break;
 	}
 
-
-	StoreFile(FileName, document);
-
+	StoreFile( fileName, document );
 }
 
-HightMapSettings TerrainJsonLoad::LoadHightMapSettings(Document& Doc)
+HeightMapSettings TerrainJsonLoad::LoadHeightMapSettings( Document& doc )
 {
-	HightMapSettings Data;
-
-	for (auto& Object : Doc["Terrain_Data_HighMap"].GetObject())
+	HeightMapSettings heightMapData;
+	for ( auto& object : doc["Terrain_Data_HeightMap"].GetObject() )
 	{
-		string ObjectName = Object.name.GetString();
-		if (ObjectName =="HightMapFile")
+		std::string objectName = object.name.GetString();
+		if ( objectName == "HeightMap_File" )
 		{
-			Data.HightMapFile = Object.value.GetString();
+			heightMapData.HeightMapFile = object.value.GetString();
 		}
-		else if (ObjectName =="Hight_Scale")
+		else if ( objectName == "HeightMap_Scale" )
 		{
-			Data.HightScale = Object.value.GetFloat();
+			heightMapData.HeightScale = object.value.GetFloat();
 		}
 	}
 
-	return Data;
+	return heightMapData;
 }
 
-void TerrainJsonLoad::StoreHightMapSettings(Document& Doc, const HightMapSettings Data)
+void TerrainJsonLoad::StoreHeightMapSettings( Document& doc, const HeightMapSettings heightMapData )
 {
-
-	Doc.SetObject();
 	Value s;
-	s.SetString(Data.HightMapFile.c_str(),Doc.GetAllocator() );
-	Doc.AddMember("HightMapFile", s, Doc.GetAllocator());
-	Doc.AddMember("Hight_Scale", Data.HightScale, Doc.GetAllocator());
-
+	doc.SetObject();
+	s.SetString( heightMapData.HeightMapFile.c_str(), doc.GetAllocator() );
+	doc.AddMember( "HeightMap_File", s, doc.GetAllocator() );
+	doc.AddMember( "HeightMap_Scale", heightMapData.HeightScale, doc.GetAllocator() );
 }
 
-FualtLineSettings TerrainJsonLoad::LoadFualtLineSettings(Document& Doc)
+FaultLineSettings TerrainJsonLoad::LoadFaultLineSettings( Document& doc )
 {
-	FualtLineSettings Data;
-	for (auto& Object : Doc["Terrain_Data_FualtLine"].GetObject())
+	FaultLineSettings faultLineData;
+	for ( auto& object : doc["Terrain_Data_FaultLine"].GetObject() )
 	{
-		string ObjectName = Object.name.GetString();
-		if (ObjectName=="Seed")
+		std::string objectName = object.name.GetString();
+		if ( objectName == "Seed" )
 		{
-			Data.Seed = Object.value.GetInt();
+			faultLineData.Seed = object.value.GetInt();
 		}
-		else if (ObjectName=="Displacement")
+		else if ( objectName == "Displacement" )
 		{
-			Data.Displacement = Object.value.GetFloat();
+			faultLineData.Displacement = object.value.GetFloat();
 		}
-		else if (ObjectName=="Iteration_Count")
+		else if ( objectName == "Iteration_Count" )
 		{
-			Data.iterationCount = Object.value.GetInt();
+			faultLineData.IterationCount = object.value.GetInt();
 		}
 	}
 
-	return Data;
+	return faultLineData;
 }
 
-void TerrainJsonLoad::StoreFualtLineSettings(Document& Doc, const FualtLineSettings Data)
+void TerrainJsonLoad::StoreFaultLineSettings( Document& doc, const FaultLineSettings faultLineData )
 {
-	Doc.SetObject();
-	Doc.AddMember("Seed", Data.Seed, Doc.GetAllocator());
-	Doc.AddMember("Displacement", Data.Displacement, Doc.GetAllocator());
-	Doc.AddMember("Iteration_Count", Data.iterationCount, Doc.GetAllocator());
+	doc.SetObject();
+	doc.AddMember( "Seed", faultLineData.Seed, doc.GetAllocator() );
+	doc.AddMember( "Displacement", faultLineData.Displacement, doc.GetAllocator() );
+	doc.AddMember( "Iteration_Count", faultLineData.IterationCount, doc.GetAllocator() );
 
 }
 
-DimondSquareSettings TerrainJsonLoad::LoadDimondSquareSettings(Document& Doc)
+DiamondSquareSettings TerrainJsonLoad::LoadDiamondSquareSettings( Document& doc )
 {
-	DimondSquareSettings Data;
-	for (auto& Object : Doc["Terrain_Data_DimondSquare"].GetObject())
+	DiamondSquareSettings diamondSquareData;
+	for ( auto& object : doc["Terrain_Data_DiamondSquare"].GetObject() )
 	{
-		string ObjectName = Object.name.GetString();
-		if (ObjectName=="Seed")
+		std::string objectName = object.name.GetString();
+		if ( objectName == "Seed" )
 		{
-			Data.Seed = Object.value.GetInt();
+			diamondSquareData.Seed = object.value.GetInt();
 		}
-		else if (ObjectName=="HightScale")
+		else if ( objectName == "HeightMap_Scale" )
 		{
-			Data.HightScale = Object.value.GetFloat();
+			diamondSquareData.HeightScale = object.value.GetFloat();
 		}
-		else if (ObjectName=="Range")
+		else if ( objectName == "Range" )
 		{
-			Data.range = Object.value.GetInt();
+			diamondSquareData.Range = object.value.GetInt();
 		}
 	}
-	return Data;
+	return diamondSquareData;
 }
 
-void TerrainJsonLoad::StoreDimondSquareSettings(Document& Doc, const DimondSquareSettings Data)
+void TerrainJsonLoad::StoreDiamondSquareSettings( Document& doc, const DiamondSquareSettings diamondSquareData )
 {
-
-	Doc.SetObject();
-	Doc.AddMember("Seed", Data.Seed, Doc.GetAllocator());
-	Doc.AddMember("HightScale", Data.HightScale, Doc.GetAllocator());
-	Doc.AddMember("Range", Data.range, Doc.GetAllocator());
-
+	doc.SetObject();
+	doc.AddMember( "Seed", diamondSquareData.Seed, doc.GetAllocator() );
+	doc.AddMember( "HeightMap_Scale", diamondSquareData.HeightScale, doc.GetAllocator() );
+	doc.AddMember( "Range", diamondSquareData.Range, doc.GetAllocator() );
 }
 
-TerrainNoiseSettings TerrainJsonLoad::LoadTerrainNoiseSettings(Document& Doc)
+TerrainNoiseSettings TerrainJsonLoad::LoadTerrainNoiseSettings( Document& doc )
 {
-	TerrainNoiseSettings Data;
-	for (auto& Object : Doc["Terrain_Data_Noise"].GetObject())
+	TerrainNoiseSettings terrainNoiseData;
+	for ( auto& object : doc["Terrain_Data_Noise"].GetObject() )
 	{
-		string ObjectName = Object.name.GetString();
-		if (ObjectName=="Seed")
+		std::string objectName = object.name.GetString();
+		if ( objectName == "Seed" )
 		{
-			Data.Seed = Object.value.GetInt();
+			terrainNoiseData.Seed = object.value.GetInt();
 		}
-		if (ObjectName == "HightScale")
+		if ( objectName == "HeightMap_Scale" )
 		{
-			Data.HightScale = Object.value.GetFloat();
+			terrainNoiseData.HeightScale = object.value.GetFloat();
 		}
-		if (ObjectName == "Number_Of_Octaves")
+		if ( objectName == "Number_Of_Octaves" )
 		{
-			Data.NumberOfOctaves = Object.value.GetInt();
+			terrainNoiseData.NumOfOctaves = object.value.GetInt();
 		}
-		if (ObjectName == "Frequancy")
+		if ( objectName == "Frequency" )
 		{
-			Data.Frequancy = Object.value.GetFloat();
+			terrainNoiseData.Frequency = object.value.GetFloat();
 		}
 	}
-	return Data;
+
+	return terrainNoiseData;
 }
 
-void TerrainJsonLoad::StoreTerrainNoiseSettings(Document& Doc, const TerrainNoiseSettings Data)
+void TerrainJsonLoad::StoreTerrainNoiseSettings( Document& doc, const TerrainNoiseSettings terrainNoiseData )
 {
-	Doc.SetObject();
-	Doc.AddMember("Seed", Data.Seed, Doc.GetAllocator());
-	Doc.AddMember("HightScale", Data.HightScale, Doc.GetAllocator());
-	Doc.AddMember("Frequancy", Data.Frequancy, Doc.GetAllocator());
-	Doc.AddMember("Number_Of_Octaves", Data.NumberOfOctaves, Doc.GetAllocator());
+	doc.SetObject();
+	doc.AddMember( "Seed", terrainNoiseData.Seed, doc.GetAllocator() );
+	doc.AddMember( "HightScale", terrainNoiseData.HeightScale, doc.GetAllocator() );
+	doc.AddMember( "Frequancy", terrainNoiseData.Frequency, doc.GetAllocator() );
+	doc.AddMember( "Number_Of_Octaves", terrainNoiseData.NumOfOctaves, doc.GetAllocator() );
 }
