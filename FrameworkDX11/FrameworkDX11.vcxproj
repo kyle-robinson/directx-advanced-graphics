@@ -448,8 +448,8 @@
     <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Input\Keyboard.h" />
     <ClInclude Include="Input\Mouse.h" />
-    <ClInclude Include="Light.h" />
-    <ClInclude Include="LightControll.h" />
+    <ClInclude Include="LightData.h" />
+    <ClInclude Include="LightController.h" />
     <ClInclude Include="M3dLoader.h" />
     <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="Quaternion.h" />
@@ -517,8 +517,10 @@
     <ClCompile Include="Input\Mouse.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Light.cpp" />
-    <ClCompile Include="LightControll.cpp" />
+    <ClCompile Include="LightData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="LightController.cpp" />
     <ClCompile Include="M3dLoader.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>

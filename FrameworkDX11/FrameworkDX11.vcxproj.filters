@@ -12,10 +12,10 @@
     <ClCompile Include="CameraController.cpp">
       <Filter>Objects\Camera</Filter>
     </ClCompile>
-    <ClCompile Include="LightControll.cpp">
+    <ClCompile Include="LightController.cpp">
       <Filter>Objects\Light</Filter>
     </ClCompile>
-    <ClCompile Include="Light.cpp">
+    <ClCompile Include="LightData.cpp">
       <Filter>Objects\Light</Filter>
     </ClCompile>
     <ClCompile Include="Terrain.cpp">
@@ -147,10 +147,10 @@
     <ClInclude Include="CameraController.h">
       <Filter>Objects\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="LightControll.h">
+    <ClInclude Include="LightController.h">
       <Filter>Objects\Light</Filter>
     </ClInclude>
-    <ClInclude Include="Light.h">
+    <ClInclude Include="LightData.h">
       <Filter>Objects\Light</Filter>
     </ClInclude>
     <ClInclude Include="Terrain.h">
