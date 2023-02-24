@@ -1,43 +1,26 @@
 #pragma once
+#ifndef DRAWABLEGAMEOBJECT_H_
+#define DRAWABLEGAMEOBJECT_H_
 
-#include <d3d11_1.h>
-#include <d3dcompiler.h>
-#include <directxcolors.h>
-#include <DirectXCollision.h>
-#include "DDSTextureLoader.h"
-#include "resource.h"
-#include <iostream>
-#include "structures.h"
 #include "Transform.h"
-#include"Appearance.h"
-using namespace DirectX;
+#include "Appearance.h"
 
-
-/// <summary>
-/// manage a drawable object
-/// created from https://github.com/ThomasMillard123/FGAGC
-/// </summary>
 class DrawableGameObject
 {
 public:
 	DrawableGameObject();
 	~DrawableGameObject();
 
-	void cleanup();
+	void Update( float dt, ID3D11DeviceContext* pContext );
+	void Draw( ID3D11DeviceContext* pContext );
+	void CleanUp();
 
-
-	void								update(float t, ID3D11DeviceContext* pContext);
-	void								draw(ID3D11DeviceContext* pContext);
-
-	Appearance* GetAppearance() const { return _pApperance; }
-	Transform* GetTransfrom() const { return _pTransform; }
-
-
+	inline Appearance* GetAppearance() const noexcept { return m_pApperance; }
+	inline Transform* GetTransfrom() const noexcept { return m_pTransform; }
 
 protected:
-
-	Transform* _pTransform;
-	Appearance* _pApperance;
-
+	Transform* m_pTransform;
+	Appearance* m_pApperance;
 };
 
+#endif
