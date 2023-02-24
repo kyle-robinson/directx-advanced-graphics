@@ -1,84 +1,75 @@
-#include "LightControll.h"
+#include "stdafx.h"
+#include "LightController.h"
 
-LightControll::LightControll()
+LightController::LightController() {}
+
+LightController::~LightController() {}
+
+LightData* LightController::GetLight( std::string name )
 {
-}
-
-LightControll::~LightControll()
-{
-}
-
-Light_Data* LightControll::GetLight(string Name)
-{
-    for (auto LightData : _pLightData) {
-        if (LightData->GetName() == Name) {
-            return LightData;
-      }
-    }
-  
-}
-
-Light_Data* LightControll::GetLight(int No)
-{
-    return _pLightData[No];
-}
-
-void LightControll::AddLight(string Name, bool Enabled, LightType _LightType, XMFLOAT4 Pos, XMFLOAT4 Colour, float Angle, float ConstantAttenuation, float LinearAttenuation, float QuadraticAttenuation)
-{
-    Light_Data* LightDat = new Light_Data(Name, Enabled, _LightType, Pos, Colour, Angle, ConstantAttenuation, LinearAttenuation, QuadraticAttenuation);
-
-    _pLightData.push_back(LightDat);
-
-}
-
-void LightControll::AddLight(string Name, bool Enabled, LightType _LightType, XMFLOAT4 Pos, XMFLOAT4 Colour, float Angle, float ConstantAttenuation, float LinearAttenuation, float QuadraticAttenuation, ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext)
-{
-    Light_Data* LightDat = new Light_Data(Name, Enabled, _LightType, Pos, Colour, Angle, ConstantAttenuation, LinearAttenuation, QuadraticAttenuation, pd3dDevice, pContext);
-    _pLightData.push_back(LightDat);
-}
-
-void LightControll::AddLight(Light light)
-{
-    Light_Data* LightDat = new Light_Data(light);
-
-    _pLightData.push_back(LightDat);
-}
-
-void LightControll::update(float t, ID3D11DeviceContext* pContext)
-{
-    for (auto LightData : _pLightData) {
-        LightData->update(t, pContext);
-    }
-}
-
-void LightControll::draw(ID3D11DeviceContext* pContext, ID3D11Buffer* _pConstantBuffer,   ConstantBuffer* CB)
-{
-    for (auto LightData : _pLightData) {
-
-        XMFLOAT4X4 WorldAsFloat1 = LightData->GetLightObject()->GetTransfrom()->GetWorldMatrix();
-        XMMATRIX mGO = XMLoadFloat4x4(&WorldAsFloat1);
-        CB->mWorld = XMMatrixTranspose(mGO);
-        pContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, CB, 0, 0);
-
-        LightData->draw(pContext);
-    }
-}
-
-void LightControll::RemoveAllLights()
-{
-    for (int i = 0; i < _pLightData.size(); i++)
+    for ( auto lightData : m_vLightData )
     {
-        delete _pLightData[i];
-         _pLightData[i]=nullptr;
+        if ( lightData->GetName() == name )
+        {
+            return lightData;
+        }
     }
-
-    _pLightData.clear();
-
 }
 
+LightData* LightController::GetLight( int num )
+{
+    return m_vLightData[num];
+}
 
+void LightController::AddLight( std::string name, bool enabled, LightType lightType, XMFLOAT4 pos, XMFLOAT4 colour, float angle, float constantAttenuation, float linearAttenuation, float quadraticAttenuation )
+{
+    LightData* lightData = new LightData( name, enabled, lightType, pos, colour, angle, constantAttenuation, linearAttenuation, quadraticAttenuation );
+    m_vLightData.push_back( lightData );
+}
 
-void LightControll::CleanUp()
+void LightController::AddLight( std::string name, bool enabled, LightType lightType, XMFLOAT4 pos, XMFLOAT4 colour, float angle, float constantAttenuation, float linearAttenuation, float quadraticAttenuation, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
+{
+    LightData* lightData = new LightData( name, enabled, lightType, pos, colour, angle, constantAttenuation, linearAttenuation, quadraticAttenuation, pDevice, pContext );
+    m_vLightData.push_back( lightData );
+}
+
+void LightController::AddLight( Light light )
+{
+    LightData* lightData = new LightData( light );
+    m_vLightData.push_back( lightData );
+}
+
+void LightController::Update( float dt, ID3D11DeviceContext* pContext )
+{
+    for ( auto lightData : m_vLightData )
+    {
+        lightData->Update( dt, pContext );
+    }
+}
+
+void LightController::Draw( ID3D11DeviceContext* pContext, ID3D11Buffer* buffer, ConstantBuffer* cbuffer )
+{
+    for ( auto lightData : m_vLightData )
+    {
+        XMFLOAT4X4 worldAsFloat1 = lightData->GetLightObject()->GetTransfrom()->GetWorldMatrix();
+        XMMATRIX mGO = XMLoadFloat4x4( &worldAsFloat1 );
+        cbuffer->mWorld = XMMatrixTranspose( mGO );
+        pContext->UpdateSubresource( buffer, 0, nullptr, cbuffer, 0, 0 );
+        lightData->Draw( pContext );
+    }
+}
+
+void LightController::RemoveAllLights()
+{
+    for ( int i = 0; i < m_vLightData.size(); i++ )
+    {
+        delete m_vLightData[i];
+        m_vLightData[i] = nullptr;
+    }
+    m_vLightData.clear();
+}
+
+void LightController::CleanUp()
 {
     RemoveAllLights();
 }

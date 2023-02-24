@@ -17,7 +17,6 @@ DrawableGameObject::~DrawableGameObject()
 
 void DrawableGameObject::CleanUp()
 {
-
 	if ( m_pTransform )
 	{
 		delete m_pTransform;

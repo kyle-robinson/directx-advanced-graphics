@@ -1,40 +1,31 @@
 #pragma once
+#ifndef LIGHTCONTROLLER_H
+#define LIGHTCONTROLLER_H
 
+#include "LightData.h"
+#include <vector>
 
-#include"Light.h"
-#include<vector>
-
-/// <summary>
-/// manages the lights in the appliaction
-/// </summary>
-
-class LightControll
+class LightController
 {
-
-
 public:
-	LightControll();
-	~LightControll();
+	LightController();
+	~LightController();
 
-	vector<Light_Data*> GetLightList() { return _pLightData; }
-	Light_Data* GetLight(string Name);
-	Light_Data* GetLight(int No);
+	inline std::vector<LightData*> GetLightList() const noexcept { return m_vLightData; }
+	LightData* GetLight( std::string name );
+	LightData* GetLight( int num );
 
-	void AddLight(string Name,bool Enabled, LightType _LightType, XMFLOAT4 Pos, XMFLOAT4 Colour, float Angle, float ConstantAttenuation, float LinearAttenuation, float QuadraticAttenuation);
-	void AddLight(string Name, bool Enabled, LightType _LightType, XMFLOAT4 Pos, XMFLOAT4 Colour, float Angle, float ConstantAttenuation, float LinearAttenuation, float QuadraticAttenuation, ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext);
-	void AddLight(Light light);
+	void AddLight( std::string name, bool enabled, LightType lightType, XMFLOAT4 pos, XMFLOAT4 colour, float angle, float constantAttenuation, float linearAttenuation, float quadraticAttenuation );
+	void AddLight( std::string name, bool enabled, LightType lightType, XMFLOAT4 pos, XMFLOAT4 colour, float angle, float constantAttenuation, float linearAttenuation, float quadraticAttenuation, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	void AddLight( Light light );
 
-
-	void update(float t, ID3D11DeviceContext* pContext);
-	void draw(ID3D11DeviceContext* pContext, ID3D11Buffer* _pConstantBuffer, ConstantBuffer* CB);
-
+	void Update( float dt, ID3D11DeviceContext* pContext );
+	void Draw( ID3D11DeviceContext* pContext, ID3D11Buffer* buffer, ConstantBuffer* cbuffer );
 	void RemoveAllLights();
 
-
 private:
-
-	vector<Light_Data*> _pLightData;
-
 	void CleanUp();
+	std::vector<LightData*> m_vLightData;
 };
 
+#endif
