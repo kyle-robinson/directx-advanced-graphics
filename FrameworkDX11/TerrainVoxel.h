@@ -1,20 +1,15 @@
 #pragma once
-#include"TerrainAppearence.h"
-#include"Transform.h"
-#include<vector>
-#include<DirectXMath.h>
-#include"ShaderController.h"
-#include"CameraController.h"
-#include<DirectXCollision.h>
+#ifndef TERRAINVOXEL_H
+#define TERRAINVOXEL_H
+
+#include "Transform.h"
+#include "ShaderController.h"
+#include "CameraController.h"
+#include "TerrainAppearence.h"
 
 // Noise generator : https://github.com/Auburn/FastNoiseLite
-#include"fastNoiseLite\Cpp\FastNoiseLite.h"
+#include "fastNoiseLite\Cpp\FastNoiseLite.h"
 
-/// <summary>
-/// Bolck types
-/// sets the textuer
-/// coud be used for other propities
-/// </summary>
 enum class BlockType
 {
     Air = 0,
@@ -24,115 +19,104 @@ enum class BlockType
     Stone
 };
 
-/// <summary>
-/// cube data cb
-/// </summary>
 struct VoxelCube
 {
-    int CubeType=0;
-    XMFLOAT3 Pad1;
+    int CubeType = 0;
+    XMFLOAT3 Padding;
 };
-/// <summary>
-/// cube data
-/// </summary>
+
 class Block
 {
 public:
-    Block(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext);
+    Block( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
     ~Block();
 
+    void InitMesh_Cube(
+        bool lXNegative, bool lXPositive,
+        bool lYNegative, bool lYPositive,
+        bool lZNegative, bool lZPositive,
+        ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 
-    void CreatCube(bool lXNegative, bool lXPositive, bool lYNegative, bool lYPositive, bool lZNegative, bool lZPositive, ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext);
-    void SetIsActive(bool isActive) { _IsActive = isActive; }
-    bool GetIsActive() { return _IsActive; }
+    inline bool GetIsActive() const noexcept { return m_bIsActive; }
+    inline void SetIsActive( bool isActive ) noexcept { m_bIsActive = isActive; }
 
+    inline Transform* GetTransForm() const noexcept { return m_pCubeTransform; }
+    inline TerrainAppearence* GetAppearance() noexcept { return m_pCubeAppearance; }
 
-
-    Transform* GetTransForm() { return _CubeTransform; }
-    TerrainAppearence* GetApparance() { return _CubeApparace; }
-
-    void SetBlockType(BlockType Block);
-    BlockType GetBlockType() {
-        return _BlockType;
-    }
-    VoxelCube GetCubeData() { return _CubeData; }
-
+    void SetBlockType( BlockType block );
+    inline VoxelCube GetCubeData() const noexcept { return m_cubeData; }
+    inline BlockType GetBlockType() const noexcept { return m_eBlockType; }
 
 private:
     void CleanUp();
-    TerrainAppearence* _CubeApparace=nullptr;
-    Transform* _CubeTransform=nullptr;
+    Transform* m_pCubeTransform = nullptr;
+    TerrainAppearence* m_pCubeAppearance = nullptr;
 
-    bool _IsActive = false;
-    BlockType _BlockType = BlockType::Air;
-    VoxelCube _CubeData;
+    VoxelCube m_cubeData;
+    bool m_bIsActive = false;
+    BlockType m_eBlockType = BlockType::Air;
 };
 
-
-/// <summary>
-/// chunck gneration
-/// controll cubes in a area
-/// </summary>
 class Chunk
 {
 public:
-	Chunk(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos, XMFLOAT3 Size);
-    Chunk(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos, XMFLOAT3 Size,int Seed, float Frequancy, int Octave);
-	~Chunk();
-    void Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderControll, ConstantBuffer* buffer, ID3D11Buffer* _pConstantBuffer, CameraController* camControll, ID3D11Buffer* VoxelCB);
+    Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos, XMFLOAT3 size );
+    Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos, XMFLOAT3 size, int seed, float frequency, int octave );
+    ~Chunk();
+    void Draw(
+        ID3D11DeviceContext* pContext, ShaderController* shaderControl,
+        ConstantBuffer* cbuffer, ID3D11Buffer* buffer,
+        CameraController* camControl, ID3D11Buffer* voxelCb );
 
-    Transform* GetTrnasfor() { return _ChunkTransform; }
+    inline Transform* GetTransform() const noexcept { return m_pChunkTransform; }
+    inline int GetMaxHeight() const noexcept { return m_iMaxHeight; }
+    inline void SetSeed( int seed ) noexcept { m_iSeed = seed; }
 
-    int GetMaxHight() { return _MaxHight; }
-    void SetSeed(int seed) { _Seed = seed; }
 private:
-    void GenrateTerrain(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext);
+    void GenrateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
     void CleanUp();
 
-    std::vector< std::vector< std::vector<Block*>>> _AllCubeInChuck;
-    std::vector<Block*> _CubeToDraw;
-    XMFLOAT3 _Pos;
-    int _XSize = 16;
-    int _ZSize = 16;
-    int _MaxHight = 0;
+    int m_iXSize = 16;
+    int m_iZSize = 16;
+    int m_iSeed = 1338;
+    int m_iOctaves = 3;
+    int m_iMaxHeight = 0;
+    float m_fFrequency = 0.01f;
 
-    Transform* _ChunkTransform;
-
-    int _Seed= 1338;
-    float _Frequancy=0.01;
-    int _Octaves = 3;
+    XMFLOAT3 m_fPos;
+    Transform* m_pChunkTransform;
+    std::vector<Block*> m_vCubesToDraw;
+    std::vector<std::vector< std::vector<Block*>>> m_vAllCubesInChunk;
 };
 
-
-/// <summary>
-/// controlls all chunks
-/// </summary>
 class TerrainVoxel
 {
 public:
-    TerrainVoxel(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext,ShaderController* shader, int NumberOfChunks_X, int NumberOfChunks_Z);
+    TerrainVoxel( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ShaderController* shaderControl, int numOfChunks_X, int numOfChunks_Z );
     ~TerrainVoxel();
 
-    void Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderControll, ConstantBuffer* buffer, ID3D11Buffer* _pConstantBuffer, CameraController* camControll);
-    bool* GetIsDraw() { return &_IsDraw; }
-    int GetNumberOfChunks() { return _NumberOfChunks; }
+    void Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer* cbuffer, ID3D11Buffer* buffer, CameraController* camControl );
+    void RebuildMap( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, int seed, int numOfChunks_X, int numOfChunks_Z, float frequency, int octave );
 
-    void RebuildMap(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext,int Seed, int NumberOfChunks_X, int NumberOfChunks_Z,float Frequancy, int Octave);
+    inline bool* GetIsDraw() noexcept { return &m_bToDraw; }
+    inline int GetNumberOfChunks() const noexcept { return m_iNumOfChunks; }
+
 private:
     void CleanUp();
 
+    int m_iNumOfChunks = 0;
+    int m_iNumOfChunksX = 0;
+    int m_iNumOfChunksZ = 0;
 
-    std::vector< std::vector<Chunk*>> _ChunkData;
-    int _NumberOfChunks=0;
-    int _NumberOfChunksX = 0;
-    int _NumberOfChunksZ = 0;
-    XMFLOAT3 _DefaultChunkSize;
-    vector<ID3D11ShaderResourceView*> _pGroundTextureRV;
-    bool _IsDraw=false;
-    ID3D11Buffer* _CubeInfoCB = nullptr;
+    int m_iSeed = 1338;
+    int m_iOctaves = 3;
+    bool m_bToDraw = false;
+    float m_fFrequency = 0.01f;
 
-    int _Seed = 1338;
-    float _Frequancy = 0.01;
-    int _Octaves = 3;
+    XMFLOAT3 m_fDefaultChunkSize;
+    ID3D11Buffer* m_pCubeInfoCB = nullptr;
+    std::vector<std::vector<Chunk*>> m_vChunkData;
+    std::vector<ID3D11ShaderResourceView*> m_pGroundTextureRV;
 };
 
+#endif
