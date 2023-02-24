@@ -12,7 +12,7 @@
 #include"structures.h"
 
 class DrawableGameObject;
-class LightControll;
+class LightController;
 class ShaderController;
 class BillboardObject;
 class Terrain;
@@ -37,7 +37,7 @@ public:
 	void DrawCamMenu(CameraController* Cams);
 	void ShaderMenu(ShaderController* Shader, PostProcessingCB* postSettings, RasterizerController* RasterState,bool &rtt);
 	void ObjectControl(DrawableGameObject* GameObject);
-	void LightControl(LightControll* LightControl);
+	void LightControl(LightController* LightControl);
 	void BillBoradControl(BillboardObject* BillControl);
 	void BezierCurveSpline();
 	void TerrainControll(Terrain* terrain,TerrainVoxel* VoxelTerrain, ID3D11Device* device, ID3D11DeviceContext* _pImmediateContext);

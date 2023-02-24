@@ -7,7 +7,7 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     UNREFERENCED_PARAMETER( nCmdShow );
 
     Application* theApp = new Application();
-    if ( FAILED( theApp->Initialise( hInstance, 1280, 720 ) ) )
+    if ( FAILED( theApp->Initialize( hInstance, 1280, 720 ) ) )
         return -1;
 
     // Main message loop

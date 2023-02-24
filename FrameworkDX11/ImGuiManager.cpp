@@ -1,6 +1,6 @@
 #include "ImGuiManager.h"
 #include"DrawableGameObject.h"
-#include"LightControll.h"
+#include"LightController.h"
 #include"ShaderController.h"
 #include"BillboradObject.h"
 #include"Terrain.h"
@@ -290,7 +290,7 @@ static bool Load2 = false;
 
 static Light CurrLightData;
 
-void ImGuiManager::LightControl(LightControll* LightControl)
+void ImGuiManager::LightControl(LightController* LightControl)
 {
 
     if (!Load2) {

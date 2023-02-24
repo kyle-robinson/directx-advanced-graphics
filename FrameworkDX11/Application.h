@@ -2,80 +2,80 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include "WindowContainer.h"
 #include "Input.h"
+#include "ImGuiManager.h"
+#include "WindowContainer.h"
 
-#include "DDSTextureLoader.h"
 #include "resource.h"
+#include "Structures.h"
+#include "DDSTextureLoader.h"
+
+#include "ShadowMap.h"
+#include "LightController.h"
+#include "CameraController.h"
+
+#include "Terrain.h"
+#include "TerrainVoxel.h"
+
+#include "AnimatedModel.h"
+#include "BillboradObject.h"
 #include "DrawableGameObject.h"
-#include "structures.h"
-
-#include"CameraController.h"
-#include"ImGuiManager.h"
-
-#include"LightControll.h"
-#include"ShadowMap.h"
-#include"BillboradObject.h"
-#include"Terrain.h"
-
-#include"TerrainVoxel.h"
-#include"AnimatedModel.h"
 
 class Application : public WindowContainer
 {
 private:
-	ID3D11Buffer* _pConstantBuffer;
-	ID3D11Buffer* _pLightConstantBuffer;
-	ID3D11Buffer* _pPostProcessingConstantBuffer;
+	// Constant buffers
+	ID3D11Buffer* m_pCB;
+	ID3D11Buffer* m_pLightCB;
+	ID3D11Buffer* m_pPostProcessingCB;
+	PostProcessingCB m_ppSettings;
+	bool m_bIsRTT = false;
 
-	//post processing
-	//--------------------------------------------------------
-	PostProcessingCB postSettings;
-
-	bool isRTT = false;
-
-
-	//full screen quad
+	// Fullscreen quad
 	struct SCREEN_VERTEX
 	{
 		XMFLOAT3 pos;
 		XMFLOAT2 tex;
 	};
+	ID3D11Buffer* m_pScreenQuadVB = nullptr;
+	XMMATRIX m_mProjection;
+	XMMATRIX m_mView;
 
-	ID3D11Buffer* g_pScreenQuadVB = nullptr;
-	ShadowMap* DepthLight;
-	BillboardObject* BillBoradObject;
+	// Objects
+	DrawableGameObject m_cube;
+	DrawableGameObject m_ground;
+	BillboardObject* m_pBillboard;
+	AnimatedModel* m_pAnimModel;
 
-	XMMATRIX _View;
-	XMMATRIX _Projection;
+	// Lights
+	LightController* m_pLightController;
+	ShadowMap* m_pDepthLight;
 
-	DrawableGameObject _GameObject;
-	DrawableGameObject _GameObjectFloor;
-	Terrain* _Terrain;
-	TerrainVoxel* _VoxelTerrain;
+	// Input
+	CameraController* m_pCamController;
+	ImGuiManager* m_pImGuiManager;
+	Camera* m_pCamera;
 	Input* m_pInput;
-	CameraController* _pCamControll;
-	ImGuiManager* DimGuiManager;
-	LightControll* _pLightContol;
-	Camera* _Camrea;
-	AnimatedModel* AnimmationObject;
+
+	// Terrain
+	TerrainVoxel* m_pVoxelTerrain;
+	Terrain* m_pTerrain;
 
 public:
 	Application();
 	~Application();
 
-	HRESULT Initialise( HINSTANCE hInstance, int width, int height );
+	HRESULT Initialize( HINSTANCE hInstance, int width, int height );
 	void Update();
 	void Draw();
 
 private:
-	float calculateDeltaTime();
-	void setupLightForRender();
+	float CalculateDeltaTime();
+	void SetupLightForRender();
 	HRESULT InitDevice();
-	void Cleanup();
-
 	HRESULT	InitMesh();
 	HRESULT	InitWorld();
+	void Cleanup();
 };
 
 #endif

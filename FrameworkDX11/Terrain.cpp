@@ -1,52 +1,104 @@
+#include "stdafx.h"
 #include "Terrain.h"
-#include<ostream>
-#include<fstream>
-#include<DirectXMath.h>
+#include <ostream>
+#include <fstream>
+
+// Noise Generator : https://github.com/Auburn/FastNoiseLite
+#include "fastNoiseLite\Cpp\FastNoiseLite.h"
 #include "DirectXPackedVector.h"
-#include<algorithm>
 
-// noise genrater userd : https://github.com/Auburn/FastNoiseLite
-#include"fastNoiseLite\Cpp\FastNoiseLite.h"
-
-Terrain::Terrain(std::string HightMapName, XMFLOAT2 size, double Scale, TerrainGenType GenType, ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext, ShaderController* ShaderControll):
-    HightMapName(HightMapName),
-    _HightMapHight(size.y),
-    _HightMapWidth(size.x),
-    _HightScale(Scale),
-    _TerrainCreationType(GenType)
+#pragma region FRUSTUM
+void ExtractFrustumPlanes( XMFLOAT4 frustumPlane[6], CXMMATRIX m )
 {
-	_pTransform = new Transform();
-    _pApperance = new TerrainAppearence(_HightMapHight, _HightMapWidth,1.0f, _HightmapData);
+    XMFLOAT4X4 viewProj;
+    XMStoreFloat4x4( &viewProj, m );
+    // Left Frustum Plane
+    // Add first column of the matrix to the fourth column
+    frustumPlane[0].x = viewProj._14 + viewProj._11;
+    frustumPlane[0].y = viewProj._24 + viewProj._21;
+    frustumPlane[0].z = viewProj._34 + viewProj._31;
+    frustumPlane[0].w = viewProj._44 + viewProj._41;
 
-    ShaderControll->NewTessellationShader("Terrain", L"Terrain.hlsl", pd3dDevice, pContext);
+    // Right Frustum Plane
+    // Subtract first column of matrix from the fourth column
+    frustumPlane[1].x = viewProj._14 - viewProj._11;
+    frustumPlane[1].y = viewProj._24 - viewProj._21;
+    frustumPlane[1].z = viewProj._34 - viewProj._31;
+    frustumPlane[1].w = viewProj._44 - viewProj._41;
 
-    CreateHightData();
-    BuildHightMap(pd3dDevice);
+    // Top Frustum Plane
+    // Subtract second column of matrix from the fourth column
+    frustumPlane[2].x = viewProj._14 - viewProj._12;
+    frustumPlane[2].y = viewProj._24 - viewProj._22;
+    frustumPlane[2].z = viewProj._34 - viewProj._32;
+    frustumPlane[2].w = viewProj._44 - viewProj._42;
 
-    _pApperance->setHightdata(_HightmapData);
-    _pApperance->CalcAllPatchBoundsY();
-    _pApperance->InitMeshGround(pd3dDevice);
+    // Bottom Frustum Plane
+    // Add second column of the matrix to the fourth column
+    frustumPlane[3].x = viewProj._14 + viewProj._12;
+    frustumPlane[3].y = viewProj._24 + viewProj._22;
+    frustumPlane[3].z = viewProj._34 + viewProj._32;
+    frustumPlane[3].w = viewProj._44 + viewProj._42;
 
+    // Near Frustum Plane
+    // We could add the third column to the fourth column to get the near plane,
+    // but we don't have to do this because the third column IS the near plane
+    frustumPlane[4].x = viewProj._13;
+    frustumPlane[4].y = viewProj._23;
+    frustumPlane[4].z = viewProj._33;
+    frustumPlane[4].w = viewProj._43;
 
-    D3D11_BUFFER_DESC bd = {};
+    // Far Frustum Plane
+    // Subtract third column of matrix from the fourth column
+    frustumPlane[5].x = viewProj._14 - viewProj._13;
+    frustumPlane[5].y = viewProj._24 - viewProj._23;
+    frustumPlane[5].z = viewProj._34 - viewProj._33;
+    frustumPlane[5].w = viewProj._44 - viewProj._43;
+
+    // Normalize the plane equations.
+    for ( int i = 0; i < 6; ++i )
+    {
+        XMVECTOR v = XMPlaneNormalize( XMLoadFloat4( &frustumPlane[i] ) );
+        XMStoreFloat4( &frustumPlane[i], v );
+    }
+}
+#pragma endregion
+
+Terrain::Terrain( std::string heightMapName, XMFLOAT2 size, double scale, TerrainGenType genType, ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ShaderController* shaderControl ) :
+    m_sHeightMapName( heightMapName ),
+    m_iHeightMapHeight( size.y ),
+    m_iHeightMapWidth( size.x ),
+    m_fHeightScale( scale ),
+    m_eTerrainCreationType( genType )
+{
+    m_pTransform = new Transform();
+    m_pApperance = new TerrainAppearence( m_iHeightMapHeight, m_iHeightMapWidth, 1.0f, m_vHeightMapData );
+    shaderControl->NewTessellationShader( "Terrain", L"Terrain.hlsl", pDevice, pContext );
+
+    CreateHeightData();
+    BuildHeightMap( pDevice );
+
+    m_pApperance->SetHeightData( m_vHeightMapData );
+    m_pApperance->CalcAllPatchBoundsY();
+    m_pApperance->InitMesh_Quad( pDevice );
+
     // Create the light constant buffer
+    D3D11_BUFFER_DESC bd = {};
     bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(TerrainCB);
+    bd.ByteWidth = sizeof( TerrainCB );
     bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     bd.CPUAccessFlags = 0;
-   HRESULT hr = pd3dDevice->CreateBuffer(&bd, nullptr, &_TerrainConstantBuffer);
+    HRESULT hr = pDevice->CreateBuffer( &bd, nullptr, &m_pTerrainCB );
 
-   _TerrainCB.MaxDist = 500.0f;
-   _TerrainCB.MinDist = 20.0f;
-   _TerrainCB.MaxTess = 6.0f;
-   _TerrainCB.MinTess = 0.0f;
-
-
-   _TerrainCB.Layer1MaxHight = 20.0f;
-   _TerrainCB.Layer2MaxHight = 30.0f;
-   _TerrainCB.Layer3MaxHight = 40.0f;
-   _TerrainCB.Layer4MaxHight = 50.0f;
-   _TerrainCB.Layer5MaxHight = 55.0f;
+    m_terrainSettings.MaxDist = 500.0f;
+    m_terrainSettings.MinDist = 20.0f;
+    m_terrainSettings.MaxTess = 6.0f;
+    m_terrainSettings.MinTess = 0.0f;
+    m_terrainSettings.Layer1MaxHeight = 20.0f;
+    m_terrainSettings.Layer2MaxHeight = 30.0f;
+    m_terrainSettings.Layer3MaxHeight = 40.0f;
+    m_terrainSettings.Layer4MaxHeight = 50.0f;
+    m_terrainSettings.Layer5MaxHeight = 55.0f;
 }
 
 Terrain::~Terrain()
@@ -54,405 +106,306 @@ Terrain::~Terrain()
     CleanUp();
 }
 
-void Terrain::Update()
+void Terrain::Update() {}
+
+void Terrain::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer* cbuffer, ID3D11Buffer* buffer, CameraController* camControl )
 {
-}
-
-void ExtractFrustumPlanes(XMFLOAT4 FrustumPlane[6], CXMMATRIX m)
-{
-    XMFLOAT4X4 viewProj;
-    XMStoreFloat4x4(&viewProj, m);
-    // Left Frustum Plane
-// Add first column of the matrix to the fourth column
-    FrustumPlane[0].x = viewProj._14 + viewProj._11;
-    FrustumPlane[0].y = viewProj._24 + viewProj._21;
-    FrustumPlane[0].z = viewProj._34 + viewProj._31;
-    FrustumPlane[0].w = viewProj._44 + viewProj._41;
-
-    // Right Frustum Plane
-    // Subtract first column of matrix from the fourth column
-    FrustumPlane[1].x = viewProj._14 - viewProj._11;
-    FrustumPlane[1].y = viewProj._24 - viewProj._21;
-    FrustumPlane[1].z = viewProj._34 - viewProj._31;
-    FrustumPlane[1].w = viewProj._44 - viewProj._41;
-
-    // Top Frustum Plane
-    // Subtract second column of matrix from the fourth column
-    FrustumPlane[2].x = viewProj._14 - viewProj._12;
-    FrustumPlane[2].y = viewProj._24 - viewProj._22;
-    FrustumPlane[2].z = viewProj._34 - viewProj._32;
-    FrustumPlane[2].w = viewProj._44 - viewProj._42;
-
-    // Bottom Frustum Plane
-    // Add second column of the matrix to the fourth column
-    FrustumPlane[3].x = viewProj._14 + viewProj._12;
-    FrustumPlane[3].y = viewProj._24 + viewProj._22;
-    FrustumPlane[3].z = viewProj._34 + viewProj._32;
-    FrustumPlane[3].w = viewProj._44 + viewProj._42;
-
-    // Near Frustum Plane
-    // We could add the third column to the fourth column to get the near plane,
-    // but we don't have to do this because the third column IS the near plane
-    FrustumPlane[4].x = viewProj._13;
-    FrustumPlane[4].y = viewProj._23;
-    FrustumPlane[4].z = viewProj._33;
-    FrustumPlane[4].w = viewProj._43;
-
-    // Far Frustum Plane
-    // Subtract third column of matrix from the fourth column
-    FrustumPlane[5].x = viewProj._14 - viewProj._13;
-    FrustumPlane[5].y = viewProj._24 - viewProj._23;
-    FrustumPlane[5].z = viewProj._34 - viewProj._33;
-    FrustumPlane[5].w = viewProj._44 - viewProj._43;
-
-    // Normalize the plane equations.
-    for (int i = 0; i < 6; ++i)
+    if ( m_bToDraw )
     {
-        XMVECTOR v = XMPlaneNormalize(XMLoadFloat4(&FrustumPlane[i]));
-        XMStoreFloat4(&FrustumPlane[i], v);
-    }
-}
+        pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST );
+        pContext->IASetInputLayout( shaderControl->GetShaderByName( "Terrain" ).m_pVertexLayout );
 
+        XMFLOAT4X4 worldAsFloat = m_pTransform->GetWorldMatrix();
+        XMMATRIX mGO = XMLoadFloat4x4( &worldAsFloat );
+        cbuffer->mWorld = XMMatrixTranspose( mGO );
+        pContext->UpdateSubresource( buffer, 0, nullptr, buffer, 0, 0 );
 
-void Terrain::Draw(ID3D11DeviceContext* pContext, ShaderController* ShaderControll, ConstantBuffer* buffer, ID3D11Buffer* _pConstantBuffer, CameraController* camControll)
-{
-    if (_IsDraw) {
-        pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
-        pContext->IASetInputLayout(ShaderControll->GetShaderByName("Terrain").m_pVertexLayout);
+        // Setup frustrum planes for culling terrain when not in view
+        XMFLOAT4X4 viewAsFloats = camControl->GetCam( 0 )->GetView();
+        XMFLOAT4X4 projectionAsFloats = camControl->GetCam( 0 )->GetProjection();
 
-        XMFLOAT4X4 WorldAsFloat = _pTransform->GetWorldMatrix();
-        XMMATRIX mGO = XMLoadFloat4x4(&WorldAsFloat);
-        buffer->mWorld = XMMatrixTranspose(mGO);
-        pContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, buffer, 0, 0);
-
-        //frustrum Planes for culling terrain when not in view
-        XMFLOAT4X4 viewAsFloats = camControll->GetCam(0)->GetView();
-        XMFLOAT4X4 projectionAsFloats = camControll->GetCam(0)->GetProjection();
-
-        XMMATRIX RTTview = XMLoadFloat4x4(&viewAsFloats);
-        XMMATRIX RTTprojection = XMLoadFloat4x4(&projectionAsFloats);
+        XMMATRIX RTTview = XMLoadFloat4x4( &viewAsFloats );
+        XMMATRIX RTTprojection = XMLoadFloat4x4( &projectionAsFloats );
         XMMATRIX viewProject = RTTview * RTTprojection;
         XMFLOAT4 worldPlanes[6];
-        ExtractFrustumPlanes(worldPlanes, viewProject);
-        _TerrainCB.WorldFrustumPlanes[0] = worldPlanes[0];
-        _TerrainCB.WorldFrustumPlanes[1] = worldPlanes[1];
-        _TerrainCB.WorldFrustumPlanes[2] = worldPlanes[2];
-        _TerrainCB.WorldFrustumPlanes[3] = worldPlanes[3];
-        _TerrainCB.WorldFrustumPlanes[4] = worldPlanes[4];
-        _TerrainCB.WorldFrustumPlanes[5] = worldPlanes[5];
+        ExtractFrustumPlanes( worldPlanes, viewProject );
+        m_terrainSettings.WorldFrustumPlanes[0] = worldPlanes[0];
+        m_terrainSettings.WorldFrustumPlanes[1] = worldPlanes[1];
+        m_terrainSettings.WorldFrustumPlanes[2] = worldPlanes[2];
+        m_terrainSettings.WorldFrustumPlanes[3] = worldPlanes[3];
+        m_terrainSettings.WorldFrustumPlanes[4] = worldPlanes[4];
+        m_terrainSettings.WorldFrustumPlanes[5] = worldPlanes[5];
+        m_terrainSettings.gEyePosition = camControl->GetCam( 0 )->GetPositionFloat4();
+        pContext->UpdateSubresource( m_pTerrainCB, 0, nullptr, &m_terrainSettings, 0, 0 );
 
-        _TerrainCB.gEyePosition = camControll->GetCam(0)->GetPositionFloat4();
+        // Setup shaders
+        pContext->VSSetShader( shaderControl->GetShaderByName( "Terrain" ).m_pVertexShader, nullptr, 0 );
+        pContext->VSSetConstantBuffers( 0, 1, &buffer );
+        pContext->HSSetConstantBuffers( 4, 1, &m_pTerrainCB );
+        pContext->VSSetShaderResources( 1, 1, &m_pHeightMapSRV );
 
-        //_TerrainCB.gEyePosition = XMFLOAT4();
-        pContext->UpdateSubresource(_TerrainConstantBuffer, 0, nullptr, &_TerrainCB, 0, 0);
+        pContext->HSSetShader( shaderControl->GetShaderByName( "Terrain" ).m_pHullShader, nullptr, 0 );
+        pContext->HSSetConstantBuffers( 0, 1, &buffer );
+        pContext->HSSetConstantBuffers( 4, 1, &m_pTerrainCB );
+        pContext->HSSetShaderResources( 1, 1, &m_pHeightMapSRV );
 
-        //Shader Set
-        pContext->VSSetShader(ShaderControll->GetShaderByName("Terrain").m_pVertexShader, nullptr, 0);
-        pContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
-        pContext->HSSetConstantBuffers(4, 1, &_TerrainConstantBuffer);
-        pContext->VSSetShaderResources(1, 1, &_HeightMapSRV);
+        pContext->DSSetShader( shaderControl->GetShaderByName( "Terrain" ).m_pDomainShader, nullptr, 0 );
+        pContext->DSSetConstantBuffers( 0, 1, &buffer );
+        pContext->DSSetConstantBuffers( 4, 1, &m_pTerrainCB );
+        pContext->DSSetShaderResources( 1, 1, &m_pHeightMapSRV );
 
-        pContext->HSSetShader(ShaderControll->GetShaderByName("Terrain").m_pHullShader, nullptr, 0);
-        pContext->HSSetConstantBuffers(0, 1, &_pConstantBuffer);
-        pContext->HSSetConstantBuffers(4, 1, &_TerrainConstantBuffer);
-        pContext->HSSetShaderResources(1, 1, &_HeightMapSRV);
+        pContext->PSSetShaderResources( 0, 1, m_pApperance->GetTextureResourceView().data() );
+        pContext->PSSetConstantBuffers( 4, 1, &m_pTerrainCB );
+        pContext->PSSetShaderResources( 0, 1, &m_pBlendMap );
+        pContext->PSSetShaderResources( 1, 1, &m_pHeightMapSRV );
+        pContext->PSSetShaderResources( 2, 5, m_pApperance->GetTextureResourceView().data() );
+        pContext->PSSetShader( shaderControl->GetShaderByName( "Terrain" ).m_pPixelShader, nullptr, 0 );
+        m_pApperance->Draw( pContext );
 
-        pContext->DSSetShader(ShaderControll->GetShaderByName("Terrain").m_pDomainShader, nullptr, 0);
-        pContext->DSSetConstantBuffers(0, 1, &_pConstantBuffer);
-        pContext->DSSetConstantBuffers(4, 1, &_TerrainConstantBuffer);
-        pContext->DSSetShaderResources(1, 1, &_HeightMapSRV);
-
-        pContext->PSSetShaderResources(0, 1, _pApperance->GetTextureResourceView().data());
-        pContext->PSSetConstantBuffers(4, 1, &_TerrainConstantBuffer);
-        pContext->PSSetShaderResources(0, 1, &_BlendMap);
-        pContext->PSSetShaderResources(1, 1, &_HeightMapSRV);
-        pContext->PSSetShaderResources(2, 5, _pApperance->GetTextureResourceView().data());
-        pContext->PSSetShader(ShaderControll->GetShaderByName("Terrain").m_pPixelShader, nullptr, 0);
-
-        _pApperance->Draw(pContext);
-
-        // FX sets tessellation stages, but it does not disable them.  So do that here
-        // to turn off tessellation.
-        pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        pContext->HSSetShader(0, 0, 0);
-        pContext->DSSetShader(0, 0, 0);
+        // As HLSL sets tessellation stages, but does not disable them, do that here
+        pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+        pContext->HSSetShader( 0, 0, 0 );
+        pContext->DSSetShader( 0, 0, 0 );
     }
 }
 
-
-
-void Terrain::SetHightScale(float HightScale)
+void Terrain::FaultHeightFormation()
 {
-    _HightScale = HightScale;
-}
+    m_vHeightMapData.clear();
+    m_vHeightMapData.resize( m_iHeightMapHeight * m_iHeightMapWidth, 0 );
 
-void Terrain::SetCellSpacing(float cellSpaceing)
-{
-    _CellSpaceing = cellSpaceing;
-}
-/// <summary>
-/// using lines to genrate hight map
-/// </summary>
-void Terrain::FaultHightFromation()
-{
-    _HightmapData.clear();
-    _HightmapData.resize(_HightMapHight * _HightMapWidth, 0);
-    RandomGen::random<int>(0, 255, 0);
-    RandomGen::randomFloat<float>(0, 255, 0);
-    for (size_t i = 0; i < _NumberOfIterations; i++)
+    for ( size_t i = 0; i < m_iNumOfIterations; i++ )
     {
-        //line formula ax + bz = c
-        //get line data
-       float  v = RandomGen::randomFloat<float>(0, RAND_MAX, _Seed);
-       float  a = sin(v);
-       float   b = cos(v);
+        // Line formula : ax + bz = c
+        float v = RandomGen::randomFloat<float>( 0, RAND_MAX, m_iSeed );
+        float a = sin( v );
+        float b = cos( v );
+        float d = std::sqrt( m_iHeightMapHeight * m_iHeightMapHeight + m_iHeightMapWidth * m_iHeightMapWidth );
+        float c = RandomGen::randomFloat<float>( -d / 2, d / 2, m_iSeed );
 
-        float d = std::sqrt(_HightMapHight * _HightMapHight + _HightMapWidth * _HightMapWidth);
-        float  c = RandomGen::randomFloat<float>(-d / 2, d / 2, _Seed);
-
-       for (UINT z = 0; z < _HightMapHight; ++z)
-       {
-           for (UINT x = 0; x < _HightMapWidth; ++x)
-           {
-               //one side of line go up
-               if (a * x + b * z - c > 0)
-                   _HightmapData[z * _HightMapWidth + x] += _Displacement;
-               //other side of line go down
-               else
-                   _HightmapData[z * _HightMapWidth + x] -= _Displacement;
-           }
-       }
-
+        for ( UINT z = 0; z < m_iHeightMapHeight; ++z )
+        {
+            for ( UINT x = 0; x < m_iHeightMapWidth; ++x )
+            {
+                if ( a * x + b * z - c > 0 )
+                {
+                    // One side of the line goes up
+                    m_vHeightMapData[z * m_iHeightMapWidth + x] += m_fDisplacement;
+                }
+                else
+                {
+                    // The other side of the line goes down
+                    m_vHeightMapData[z * m_iHeightMapWidth + x] -= m_fDisplacement;
+                }
+            }
+        }
     }
 }
-/// <summary>
-/// useing noise to genrate hight map
-/// </summary>
-void Terrain::HightFromNoise()
+
+void Terrain::HeightFromNoise()
 {
     FastNoiseLite noise;
-    noise.SetSeed(_Seed);
-    noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-    noise.SetFrequency(_Frequancy);
-    noise.SetFractalOctaves(_NumberOfOctaves);
+    noise.SetSeed( m_iSeed );
+    noise.SetNoiseType( FastNoiseLite::NoiseType_Perlin );
+    noise.SetFrequency( m_fFrequency );
+    noise.SetFractalOctaves( m_iNumOfOctaves );
 
     // Gather noise data
-    _HightmapData.resize(_HightMapHight * _HightMapWidth, 0);
     int index = 0;
+    m_vHeightMapData.resize( m_iHeightMapHeight * m_iHeightMapWidth, 0 );
 
-    for (int y = 0; y < _HightMapHight; y++)
+    for ( int y = 0; y < m_iHeightMapHeight; y++ )
     {
-        for (int x = 0; x < _HightMapWidth; x++)
+        for ( int x = 0; x < m_iHeightMapWidth; x++ )
         {
-            //get value between 0 and 1 * by hight scale
-            _HightmapData[y * _HightMapWidth + x] =  ((noise.GetNoise((float)x, (float)y) + 1) / 2)* _HightScale;
+            // Get value between 0 and 1 * by height scale
+            m_vHeightMapData[y * m_iHeightMapWidth + x] = ( ( noise.GetNoise( (float)x, (float)y ) + 1 ) / 2 ) * m_fHeightScale;
         }
     }
-
 }
-/// <summary>
-/// using dimonand squaer to get hight map
-/// </summary>
-void Terrain::DiamondSquareHightMap()
+
+void Terrain::DiamondSquareHeightMap()
 {
-    _2DHightMap.clear();
-    _2DHightMap.resize(_HightMapWidth);
+    m_v2DHeightMap.clear();
+    m_v2DHeightMap.resize( m_iHeightMapWidth );
 
-    for (size_t i = 0; i < _2DHightMap.size(); i++)
+    for ( size_t i = 0; i < m_v2DHeightMap.size(); i++ )
     {
-        _2DHightMap[i].resize(_HightMapWidth);
+        m_v2DHeightMap[i].resize( m_iHeightMapWidth );
     }
-    RandomGen::random<int>(0, 255, 0);
-    //seed map
-    _2DHightMap[0][0] = RandomGen::random<int>(0, 255,_Seed);
-    _2DHightMap[0][_HightMapWidth - 1] = RandomGen::random<int>(0, 255, _Seed);
-    _2DHightMap[_HightMapWidth - 1][0] = RandomGen::random<int>(0, 255, _Seed);
-    _2DHightMap[_HightMapWidth - 1][_HightMapWidth - 1] = RandomGen::random<int>(0, 255, _Seed);
 
-    int sideLength = _HightMapWidth / 2;
+    // Generate a seed for the map
+    m_v2DHeightMap[0][0] = RandomGen::random<int>( 0, 255, m_iSeed );
+    m_v2DHeightMap[0][m_iHeightMapWidth - 1] = RandomGen::random<int>( 0, 255, m_iSeed );
+    m_v2DHeightMap[m_iHeightMapWidth - 1][0] = RandomGen::random<int>( 0, 255, m_iSeed );
+    m_v2DHeightMap[m_iHeightMapWidth - 1][m_iHeightMapWidth - 1] = RandomGen::random<int>( 0, 255, m_iSeed );
 
-    Diamond(_HightMapWidth);
-    Square(_HightMapWidth);
+    int sideLength = m_iHeightMapWidth / 2;
+    Diamond( m_iHeightMapWidth );
+    Square( m_iHeightMapWidth );
+    m_iRange /= 2;
 
-    _Range /= 2;
-
-    while (sideLength >= 2)
+    while ( sideLength >= 2 )
     {
-        Diamond(sideLength + 1);
-        Square(sideLength + 1);
+        Diamond( sideLength + 1 );
+        Square( sideLength + 1 );
         sideLength /= 2;
-        _Range /= 2;
+        m_iRange /= 2;
     }
 
-    //convert to 1d Hight Map
-
-    _HightmapData.resize(_HightMapWidth * _HightMapWidth);
-    for (int z = 0; z < _HightMapWidth; ++z)
+    // Convert to 1D height map
+    m_vHeightMapData.resize( m_iHeightMapWidth * m_iHeightMapWidth );
+    for ( int z = 0; z < m_iHeightMapWidth; ++z )
     {
-        for (int x = 0; x < _HightMapWidth; ++x)
+        for ( int x = 0; x < m_iHeightMapWidth; ++x )
         {
-
-            _HightmapData[z * _HightMapWidth + x] = (_2DHightMap[x][z] / 255) * _HightScale;
-
+            m_vHeightMapData[z * m_iHeightMapWidth + x] = ( m_v2DHeightMap[x][z] / 255 ) * m_fHeightScale;
         }
     }
 }
 
-//diceide on what genration type to use
-void Terrain::CreateHightData()
+void Terrain::CreateHeightData()
 {
-
-    switch (_TerrainCreationType)
+    switch ( m_eTerrainCreationType )
     {
-    case TerrainGenType::HightMapLoad:
-        LoadHightMap();
+    case TerrainGenType::HeightMapLoad:
+        LoadHeightMap();
         break;
     case TerrainGenType::FaultLine:
-        FaultHightFromation();
+        FaultHeightFormation();
         break;
     case TerrainGenType::Noise:
-        HightFromNoise();
+        HeightFromNoise();
         break;
     case TerrainGenType::DiamondSquare:
-        DiamondSquareHightMap();
+        DiamondSquareHeightMap();
         break;
     default:
-        LoadHightMap();
+        LoadHeightMap();
         break;
     }
     Smooth();
 }
 
-void Terrain::SetMaxTess(float maxTess)
+void Terrain::SetMaxTess( float maxTess )
 {
-    _TerrainCB.MaxTess = maxTess;
+    m_terrainSettings.MaxTess = maxTess;
 }
 
-void Terrain::SetMinTess(float minTess)
+void Terrain::SetMinTess( float minTess )
 {
-    _TerrainCB.MinTess = minTess;
+    m_terrainSettings.MinTess = minTess;
 }
 
-void Terrain::SetMaxTessDist(float maxTessDist)
+void Terrain::SetMaxTessDist( float maxTessDist )
 {
-    _TerrainCB.MaxDist = maxTessDist;
+    m_terrainSettings.MaxDist = maxTessDist;
 }
 
-void Terrain::SetMinTessDist(float minTessDist)
+void Terrain::SetMinTessDist( float minTessDist )
 {
-    _TerrainCB.MinDist = minTessDist;
+    m_terrainSettings.MinDist = minTessDist;
 }
 
-
-
-bool Terrain::InBounds(int i, int j)
+bool Terrain::InBounds( int i, int j )
 {
     // True if ij are valid indices; false otherwise.
     return
-        i >= 0 && i < (int)_HightMapHight&&
-        j >= 0 && j < (int)_HightMapWidth;
+        i >= 0 && i < (int)m_iHeightMapHeight &&
+        j >= 0 && j < (int)m_iHeightMapWidth;
 }
 
-float Terrain::Average(int i, int j)
+float Terrain::Average( int i, int j )
 {
-
-    //use values around to smoot value
     float avg = 0.0f;
     float num = 0.0f;
-    // Use int to allow negatives. If we use UINT, @ i=0, m=i-1=UINT_MAX
-    // and no iterations of the outer for loop occur.
-    for (int m = i - 1; m <= i + 1; ++m)
+
+    for ( int m = i - 1; m <= i + 1; ++m )
     {
-        for (int n = j - 1; n <= j + 1; ++n)
+        for ( int n = j - 1; n <= j + 1; ++n )
         {
-            if (InBounds(m, n))
+            if ( InBounds( m, n ) )
             {
-                avg += _HightmapData[m * _HightMapWidth + n];
+                avg += m_vHeightMapData[m * m_iHeightMapWidth + n];
                 num += 1.0f;
             }
         }
     }
+
     return avg / num;
 }
 
-//smooth hight data to from better terrain
 void Terrain::Smooth()
 {
-    std::vector<float> dest(_HightmapData.size());
-    for (UINT i = 0; i < _HightMapHight; ++i)
+    std::vector<float> dest( m_vHeightMapData.size() );
+    for ( UINT i = 0; i < m_iHeightMapHeight; ++i )
     {
-        for (UINT j = 0; j < _HightMapWidth; ++j)
+        for ( UINT j = 0; j < m_iHeightMapWidth; ++j )
         {
-            dest[i * _HightMapWidth + j] = Average(i, j);
+            dest[i * m_iHeightMapWidth + j] = Average( i, j );
         }
     }
-    // Replace the old heightmap with the filtered one.
-    _HightmapData = dest;
+
+    m_vHeightMapData = dest;
 }
 
-void Terrain::SetBlendMap(std::string name, ID3D11Device* pd3dDevice)
+void Terrain::SetBlendMap( std::string name, ID3D11Device* pd3dDevice )
 {
-    wstring wide_string = wstring(name.begin(), name.end());
+    std::wstring wide_string = std::wstring( name.begin(), name.end() );
     const wchar_t* result = wide_string.c_str();
-    CreateDDSTextureFromFile(pd3dDevice, result, nullptr, &_BlendMap);
+    CreateDDSTextureFromFile( pd3dDevice, result, nullptr, &m_pBlendMap );
 }
 
-float Terrain::GetHightWorld(float x, float z)
+float Terrain::GetHeightWorld( float x, float z )
 {
     return 0.0f;
 }
 
-float Terrain::GetHight(float x, float z)
+float Terrain::GetHeight( float x, float z )
 {
-    return _HightmapData[x * _HightMapWidth + z];
+    return m_vHeightMapData[x * m_iHeightMapWidth + z];
 }
 
-void Terrain::ReBuildTerrain(XMFLOAT2 size, double Scale, float CellSpaceing, TerrainGenType GenType, ID3D11Device* pd3dDevice)
+void Terrain::ReBuildTerrain( XMFLOAT2 size, double scale, float cellSpacing, TerrainGenType genType, ID3D11Device* pDevice )
 {
+    m_fHeightScale = scale;
+    m_iHeightMapWidth = size.x;
+    m_iHeightMapHeight = size.y;
+    m_eTerrainCreationType = genType;
+    m_fCellSpacing = cellSpacing;
 
+    CreateHeightData();
+    BuildHeightMap( pDevice );
 
+    m_pApperance->SetWidth( size.x );
+    m_pApperance->SetDepth( size.y );
+    m_pApperance->SetCellSpacing( m_fCellSpacing );
 
-    _HightMapHight=size.y;
-    _HightMapWidth=size.x;
-    _HightScale=Scale;
-    _TerrainCreationType=GenType;
-    _CellSpaceing = CellSpaceing;
-    CreateHightData();
-    BuildHightMap(pd3dDevice);
-
-    _pApperance->SetWidth(size.x);
-    _pApperance->SetDepth(size.y);
-    _pApperance->SetCellSpaceing(CellSpaceing);
-
-    _pApperance->setHightdata(_HightmapData);
-    _pApperance->CalcAllPatchBoundsY();
-    _pApperance->InitMeshGround(pd3dDevice);
-
-
+    m_pApperance->SetHeightData( m_vHeightMapData );
+    m_pApperance->CalcAllPatchBoundsY();
+    m_pApperance->InitMesh_Quad( pDevice );
 }
 
-void Terrain::SetTexHights(float Hight1, float Hight2, float Hight3, float Hight4, float Hight5)
+void Terrain::SetTexHeights( float height1, float height2, float height3, float height4, float height5 )
 {
-    _TerrainCB.Layer1MaxHight = Hight1;
-    _TerrainCB.Layer2MaxHight = Hight2;
-    _TerrainCB.Layer3MaxHight = Hight3;
-    _TerrainCB.Layer4MaxHight = Hight4;
-    _TerrainCB.Layer5MaxHight = Hight5;
+    m_terrainSettings.Layer1MaxHeight = height1;
+    m_terrainSettings.Layer2MaxHeight = height2;
+    m_terrainSettings.Layer3MaxHeight = height3;
+    m_terrainSettings.Layer4MaxHeight = height4;
+    m_terrainSettings.Layer5MaxHeight = height5;
 }
 
-void Terrain::SetTex(vector<string> texGroundName, ID3D11Device* pd3dDevice)
+void Terrain::SetTex( std::vector<std::string> texGroundName, ID3D11Device* pDevice )
 {
-    _pApperance->SetTex(texGroundName, pd3dDevice);
-    _TexGround = texGroundName;
+    m_pApperance->SetTexture( texGroundName, pDevice );
+    m_vTexGround = texGroundName;
 }
 
-//hight map into shader resrouce to give vertex hight in shader
-void Terrain::BuildHightMap(ID3D11Device* pd3dDevice)
+void Terrain::BuildHeightMap( ID3D11Device* pDevice )
 {
-    HRESULT hr;
     D3D11_TEXTURE2D_DESC texDesc;
-    texDesc.Width = _HightMapWidth;
-    texDesc.Height = _HightMapHight;
+    texDesc.Width = m_iHeightMapWidth;
+    texDesc.Height = m_iHeightMapHeight;
     texDesc.MipLevels = 1;
     texDesc.ArraySize = 1;
     texDesc.Format = DXGI_FORMAT_R16_FLOAT;
@@ -462,148 +415,158 @@ void Terrain::BuildHightMap(ID3D11Device* pd3dDevice)
     texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     texDesc.CPUAccessFlags = 0;
     texDesc.MiscFlags = 0;
-    // HALF is defined in xnamath.h, for storing 16-bit float.
-    std::vector<DirectX::PackedVector::HALF> hmap(_HightmapData.size());
-    std::transform(_HightmapData.begin(), _HightmapData.end(),
-        hmap.begin(), DirectX::PackedVector::XMConvertFloatToHalf);
+    std::vector<DirectX::PackedVector::HALF> hmap( m_vHeightMapData.size() );
+    std::transform( m_vHeightMapData.begin(), m_vHeightMapData.end(),
+        hmap.begin(), DirectX::PackedVector::XMConvertFloatToHalf );
+
     D3D11_SUBRESOURCE_DATA data;
     data.pSysMem = &hmap[0];
-    data.SysMemPitch = _HightMapWidth * sizeof(DirectX::PackedVector::HALF);
+    data.SysMemPitch = m_iHeightMapWidth * sizeof( DirectX::PackedVector::HALF );
     data.SysMemSlicePitch = 0;
     ID3D11Texture2D* hmapTex = 0;
-    hr = pd3dDevice->CreateTexture2D(&texDesc, &data, &hmapTex);
+    HRESULT hr = pDevice->CreateTexture2D( &texDesc, &data, &hmapTex );
+    if ( FAILED( hr ) )
+        return;
+
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Format = texDesc.Format;
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MostDetailedMip = 0;
     srvDesc.Texture2D.MipLevels = -1;
-    hr= pd3dDevice->CreateShaderResourceView(
-        hmapTex, &srvDesc, &_HeightMapSRV);
-    // SRV saves reference.
-   hmapTex->Release();
+    hr = pDevice->CreateShaderResourceView( hmapTex, &srvDesc, &m_pHeightMapSRV );
+    if ( FAILED( hr ) )
+        return;
+
+    hmapTex->Release();
 }
 
-// load hight map data
-void Terrain::LoadHightMap()
+void Terrain::LoadHeightMap()
 {
-    // A height for each vertex
-    std::vector<unsigned char> in(_HightMapWidth * _HightMapHight);
+    // Set a height for each vertex
+    std::vector<unsigned char> in( m_iHeightMapWidth * m_iHeightMapHeight );
 
-    // Open the file.
+    // Open the file
     std::ifstream inFile;
-    inFile.open(HightMapName, std::ios_base::binary);
+    inFile.open( m_sHeightMapName, std::ios_base::binary );
 
-    if (inFile)
+    if ( inFile )
     {
-        // Read the RAW bytes.
-        inFile.read((char*)&in[0], (std::streamsize)in.size());
-        // Done with file.
-
+        // Read the RAW bytes
+        inFile.read( (char*)&in[0], (std::streamsize)in.size() );
         inFile.close();
     }
 
-    // Copy the array data into a float array and scale it. mHeightmap.resize(heightmapHeight * heightmapWidth, 0);
-    _HightmapData.resize(_HightMapHight * _HightMapWidth,0);
-    for (UINT i = 0; i < _HightMapHight * _HightMapWidth; ++i)
+    // Copy the array data into a float array and scale it
+    m_vHeightMapData.resize( m_iHeightMapHeight * m_iHeightMapWidth, 0 );
+    for ( UINT i = 0; i < m_iHeightMapHeight * m_iHeightMapWidth; ++i )
     {
-        _HightmapData[i] = (in[i] / 255.0f) * _HightScale;
+        m_vHeightMapData[i] = ( in[i] / 255.0f ) * m_fHeightScale;
     }
-
-
 }
 
-/// <summary>
-/// dimond step
-/// </summary>
-/// <param name="sideLength"></param>
-void Terrain::Diamond(int sideLength)
+void Terrain::Diamond( int sideLength )
 {
     int halfSide = sideLength / 2;
 
-    for (int y = 0; y < _HightMapWidth / (sideLength - 1); y++)
+    for ( int y = 0; y < m_iHeightMapWidth / ( sideLength - 1 ); y++ )
     {
-        for (int x = 0; x < _HightMapWidth / (sideLength - 1); x++)
+        for ( int x = 0; x < m_iHeightMapWidth / ( sideLength - 1 ); x++ )
         {
-            int center_x = x * (sideLength - 1) + halfSide;
-            int center_y = y * (sideLength - 1) + halfSide;
+            int center_x = x * ( sideLength - 1 ) + halfSide;
+            int center_y = y * ( sideLength - 1 ) + halfSide;
 
-            //advrage of points on vertex
-            int avg = (_2DHightMap[x * (sideLength - 1)][y * (sideLength - 1)] +
-                _2DHightMap[x * (sideLength - 1)][(y + 1) * (sideLength - 1)] +
-                _2DHightMap[(x + 1) * (sideLength - 1)][y * (sideLength - 1)] +
-                _2DHightMap[(x + 1) * (sideLength - 1)][(y + 1) * (sideLength - 1)]) / 4.0f;
+            // Get average of points on vertex
+            int avg = ( m_v2DHeightMap[x * ( sideLength - 1 )][y * ( sideLength - 1 )] +
+                m_v2DHeightMap[x * ( sideLength - 1 )][( y + 1 ) * ( sideLength - 1 )] +
+                m_v2DHeightMap[( x + 1 ) * ( sideLength - 1 )][y * ( sideLength - 1 )] +
+                m_v2DHeightMap[( x + 1 ) * ( sideLength - 1 )][( y + 1 ) * ( sideLength - 1 )] ) / 4.0f;
 
-            //add randome number to it
-            _2DHightMap[center_x][center_y] = avg + RandomGen::random<int>(-_Range, _Range,_Seed);
+            // Add a random number
+            m_v2DHeightMap[center_x][center_y] = avg + RandomGen::random<int>( -m_iRange, m_iRange, m_iSeed );
         }
     }
 }
-// Averaging helper function for square step to ignore out of bounds points
-void Terrain::average(int x, int y, int sideLength)
+
+void Terrain::Average( int x, int y, int sideLength )
 {
-    float counter = 0;
-    float accumulator = 0;
-
+    float counter = 0.0f;
+    float accumulator = 0.0f;
     int halfSide = sideLength / 2;
-    //get points of data
-    if (x != 0)
+
+    // Get points of data
+    if ( x != 0 )
     {
         counter += 1.0f;
-        accumulator += _2DHightMap[y][x - halfSide];
+        accumulator += m_v2DHeightMap[y][x - halfSide];
     }
-    if (y != 0)
+    if ( y != 0 )
     {
         counter += 1.0f;
-        accumulator += _2DHightMap[y - halfSide][x];
+        accumulator += m_v2DHeightMap[y - halfSide][x];
     }
-    if (x != _HightMapWidth - 1)
+    if ( x != m_iHeightMapWidth - 1 )
     {
         counter += 1.0f;
-        accumulator += _2DHightMap[y][x + halfSide];
+        accumulator += m_v2DHeightMap[y][x + halfSide];
     }
-    if (y != _HightMapWidth - 1)
+    if ( y != m_iHeightMapWidth - 1 )
     {
         counter += 1.0f;
-        accumulator += _2DHightMap[y + halfSide][x];
+        accumulator += m_v2DHeightMap[y + halfSide][x];
     }
 
-    //avrage then add random valuae to it
-    _2DHightMap[y][x] = (accumulator / counter) + RandomGen::random<int>(-_Range, _Range,_Seed);
+    // Get the average, then add a random value to it
+    m_v2DHeightMap[y][x] = ( accumulator / counter ) + RandomGen::random<int>( -m_iRange, m_iRange, m_iSeed );
 }
-//squaer data
-void Terrain::Square(int sideLength)
+
+void Terrain::Square( int sideLength )
 {
     int halfLength = sideLength / 2;
 
-    for (int y = 0; y < _HightMapWidth / (sideLength - 1); y++)
+    for ( int y = 0; y < m_iHeightMapWidth / ( sideLength - 1 ); y++ )
     {
-        for (int x = 0; x < _HightMapWidth / (sideLength - 1); x++)
+        for ( int x = 0; x < m_iHeightMapWidth / ( sideLength - 1 ); x++ )
         {
             // Top
-            average(x * (sideLength - 1) + halfLength, y * (sideLength - 1), sideLength);
+            Average( x * ( sideLength - 1 ) + halfLength, y * ( sideLength - 1 ), sideLength );
+
             // Right
-            average((x + 1) * (sideLength - 1), y * (sideLength - 1) + halfLength,
-                sideLength);
+            Average( ( x + 1 ) * ( sideLength - 1 ), y * ( sideLength - 1 ) + halfLength, sideLength );
+
             // Bottom
-            average(x * (sideLength - 1) + halfLength, (y + 1) * (sideLength - 1), sideLength);
+            Average( x * ( sideLength - 1 ) + halfLength, ( y + 1 ) * ( sideLength - 1 ), sideLength );
+
             // Left
-            average(x * (sideLength - 1), y * (sideLength - 1) + halfLength, sideLength);
+            Average( x * ( sideLength - 1 ), y * ( sideLength - 1 ) + halfLength, sideLength );
         }
     }
 }
 
 void Terrain::CleanUp()
 {
-    if (_pTransform)delete _pTransform;
-    _pTransform = nullptr;
-
-    if (_pApperance)delete _pApperance;
-    _pApperance = nullptr;
-    if (_HeightMapSRV)_HeightMapSRV->Release();
-    _HeightMapSRV = nullptr;
-    if (_BlendMap)_BlendMap->Release();
-    _BlendMap = nullptr;
-    if (_TerrainConstantBuffer)_TerrainConstantBuffer->Release();
-    _TerrainConstantBuffer = nullptr;
-
+    if ( m_pTransform )
+    {
+        delete m_pTransform;
+        m_pTransform = nullptr;
+    }
+    if ( m_pApperance )
+    {
+        delete m_pApperance;
+        m_pApperance = nullptr;
+    }
+    if ( m_pHeightMapSRV )
+    {
+        m_pHeightMapSRV->Release();
+        m_pHeightMapSRV = nullptr;
+    }
+    if ( m_pBlendMap )
+    {
+        m_pBlendMap->Release();
+        m_pBlendMap = nullptr;
+    }
+    if ( m_pTerrainCB )
+    {
+        m_pTerrainCB->Release();
+        m_pTerrainCB = nullptr;
+    }
 }

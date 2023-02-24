@@ -25,7 +25,7 @@ public:
 	~Appearance();
 
 	HRESULT	InitMesh_Cube( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
-	HRESULT	InitMesh_Quad( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	HRESULT	InitMesh_Quad( ID3D11Device* pDevice );
 
 	template <typename VertexType>
 	HRESULT SetVertexBuffer( ID3D11Device* pDevice, const VertexType* vertices, UINT count );

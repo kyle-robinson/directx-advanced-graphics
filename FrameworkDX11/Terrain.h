@@ -1,162 +1,151 @@
 #pragma once
-#include"C++HelperFunctions.h"
-#include"TerrainAppearence.h"
-#include"Transform.h"
-#include"ShaderController.h"
-#include"structures.h"
-#include"CameraController.h"
+#ifndef TERRAIN_H
+#define TERRAIN_H
+
+#include "Transform.h"
+#include "Structures.h"
+#include "CameraController.h"
+#include "ShaderController.h"
+#include "TerrainAppearence.h"
+#include "C++HelperFunctions.h"
 
 enum class TerrainGenType
 {
-	HightMapLoad=0,
+	HeightMapLoad = 0,
+	DiamondSquare,
 	FaultLine,
-	Noise,
-	DiamondSquare
+	Noise
 };
 
-/// <summary>
-/// Cotroller of plane created terrain
-/// </summary>
 class Terrain
 {
 public:
-	Terrain(std::string HightMapName,XMFLOAT2 size,double Scale, TerrainGenType GenType, ID3D11Device* pd3dDevice, ID3D11DeviceContext* pContext, ShaderController* ShaderControll);
+	Terrain( std::string heightMapName, XMFLOAT2 size, double scale, TerrainGenType genType,
+		ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ShaderController* shaderControl );
 	~Terrain();
 
 	void Update();
-	void Draw(ID3D11DeviceContext* pContext,ShaderController* ShaderControll, ConstantBuffer* buffer, ID3D11Buffer* _pConstantBuffer, CameraController* camControll);
+	void Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl,
+		ConstantBuffer* cbuffer, ID3D11Buffer* buffer, CameraController* camControl );
 
-	TerrainGenType GetGenType() { return _TerrainCreationType; }
-	void CreateHightData();
+	inline TerrainGenType GetGenType() const noexcept { return m_eTerrainCreationType; }
+	inline TerrainCB GetTerrainData() const noexcept { return m_terrainSettings; }
+	void CreateHeightData();
 
-	TerrainCB GetTerrainData() { return _TerrainCB; }
-	void SetMaxTess(float maxTess);
-	void SetMinTess(float minTess);
-	void SetMaxTessDist(float maxTessDist);
-	void SetMinTessDist(float minTessDist);
+	void SetMaxTess( float maxTess );
+	void SetMinTess( float minTess );
+	void SetMaxTessDist( float maxTessDist );
+	void SetMinTessDist( float minTessDist );
 
-	bool InBounds(int i, int j);
-	float Average(int i, int j);
+	bool InBounds( int i, int j );
+	float Average( int i, int j );
 	void Smooth();
 
+	inline TerrainAppearence* GetApperance() const noexcept { return m_pApperance; }
+	inline Transform* GetTransfrom() const noexcept { return m_pTransform; }
+	void SetBlendMap( std::string name, ID3D11Device* pDevice );
 
-	TerrainAppearence* GetApperance() { return _pApperance; }
-	Transform* GetTransfrom() { return _pTransform; }
-	void SetBlendMap(std::string name, ID3D11Device* pd3dDevice);
+	inline int GetHeightMapWidth() const noexcept { return m_iHeightMapWidth; }
+	inline int GetHeightMapHeight() const noexcept { return m_iHeightMapHeight; }
+	inline std::string GetHeightMapName() const noexcept { return m_sHeightMapName; }
 
-	std::string GetHightMapName() { return HightMapName; }
-	int GetHightMapWidth() { return _HightMapWidth; }
-	int GetHightMapHight() { return _HightMapHight; }
+	inline void SetHeightScale( float heightScale ) noexcept { m_fHeightScale = heightScale; }
+	inline int GetHeightScale() const noexcept { return m_fHeightScale; }
 
-	void SetHightScale(float HightScale);
-	int GetHightScale() { return _HightScale; }
+	inline void SetCellSpacing( float cellSpacing ) noexcept { m_fCellSpacing = cellSpacing; }
+	inline float GetCellSpacing() const noexcept { return m_fCellSpacing; }
 
-	void SetCellSpacing(float cellSpaceing);
-	float GetCellSpacing() { return _CellSpaceing; }
-	
-	float GetHightWorld(float x, float z);
-	float GetHight(float x, float z);
+	float GetHeightWorld( float x, float z );
+	float GetHeight( float x, float z );
 
+	inline bool* GetIsDraw() noexcept { return &m_bToDraw; }
+	void ReBuildTerrain( XMFLOAT2 size, double scale, float cellSpacing, TerrainGenType genType, ID3D11Device* pDevice );
 
-	bool* GetIsDraw() { return &_IsDraw; }
+	void SetTexHeights( float height1, float height2, float height3, float height4, float height5 );
+	inline std::vector<std::string> GetTexNames() const noexcept { return m_vTexGround; }
+	void SetTex( std::vector<std::string> texGroundName, ID3D11Device* pDevice );
 
-	void ReBuildTerrain(XMFLOAT2 size, double Scale,float CellSpaceing, TerrainGenType GenType, ID3D11Device* pd3dDevice);
-
-	void SetTexHights(float Hight1, float Hight2, float Hight3, float Hight4, float Hight5);
-	void SetTex(vector<string> texGroundName, ID3D11Device* pd3dDevice);
-	vector<string> GetTexNames() { return _TexGround; }
-
-
-	void SetDimondSquaerData(int seed, int range) {
-		_Seed = seed;
-		RandomGen::random<int>(0, 255, 0);
-		_Range = range;
-		_RangeStore = range;
-	}
-	void SetNoiseData(int seed, float frequancy, int numberOfOctaves) {
-		_Seed = seed;
-		_Frequancy = frequancy;
-		_NumberOfOctaves = numberOfOctaves;
-	}
-	
-	void SetFualtLineData(int seed, int numberOfIteration, float Displacement) {
-		_Seed = seed;
-		RandomGen::random<int>(0, 255, 0);
-		_NumberOfIterations = numberOfIteration;
-		_Displacement = Displacement;
+	inline void SetDiamondSquareData( int seed, int range )
+	{
+		m_iSeed = seed;
+		RandomGen::random<int>( 0, 255, 0 );
+		m_iRange = range;
+		m_iRangeStore = range;
 	}
 
-	void SetHightMapLoadData() {
-
+	inline void SetNoiseData( int seed, float frequency, int numOfOctaves )
+	{
+		m_iSeed = seed;
+		m_fFrequency = frequency;
+		m_iNumOfOctaves = numOfOctaves;
 	}
 
-	int GetSeed() { return _Seed; }
-	int GetRange() { return _RangeStore; }
-	int GetNumberOfOcatives() {
-		return _NumberOfOctaves;
+	inline void SetFaultLineData( int seed, int numOfIteration, float displacement )
+	{
+		m_iSeed = seed;
+		RandomGen::random<int>( 0, 255, 0 );
+		m_iNumOfIterations = numOfIteration;
+		m_fDisplacement = displacement;
 	}
-	float GetFequancy() { return _Frequancy; }
-	int GetNumberOfIterations() { return _NumberOfIterations; }
-	float GetDisplacment() { return _Displacement; }
+
+	inline int GetSeed() const noexcept { return m_iSeed; }
+	inline int GetRange() const noexcept { return m_iRangeStore; }
+	inline int GetNumOfOcatves() const noexcept { return m_iNumOfOctaves; }
+	inline int GetNumOfIterations() const noexcept { return m_iNumOfIterations; }
+	inline float GetDisplacement() const noexcept { return m_fDisplacement; }
+	inline float GetFrequency() const noexcept { return m_fFrequency; }
+
 private:
-	void BuildHightMap(ID3D11Device* pd3dDevice);
+	void BuildHeightMap( ID3D11Device* pDevice );
+	void LoadHeightMap();
+	void FaultHeightFormation();
+	void HeightFromNoise();
 
-	void LoadHightMap();
-	void FaultHightFromation();
-	void HightFromNoise();
-
-
-	void DiamondSquareHightMap();
-	void Diamond(int sideLength);
-	void Square(int sideLength);
-	void average(int x, int y, int sideLength);
+	void DiamondSquareHeightMap();
+	void Diamond( int sideLength );
+	void Square( int sideLength );
+	void Average( int x, int y, int sideLength );
 
 	void CleanUp();
-private:
-	
-	bool _IsDraw = false;
 
+	int m_iSeed;
+	bool m_bToDraw = false;
+	std::string m_sHeightMapName;
+	TerrainGenType m_eTerrainCreationType;
 
-	TerrainGenType _TerrainCreationType;
-	//Hight map data
-	std::string HightMapName;
-	
+	// Diamond square data
+	int m_iRange = 196;
+	int m_iRangeStore = 196;
+	std::vector<std::vector<float>> m_v2DHeightMap;
 
-	//genration Data;
-	int _Seed;
+	// Fault line
+	float m_fDisplacement = 0.5f;
+	int m_iNumOfIterations = 800;
 
-	//DiamondSquare Data
-	vector<vector<float>> _2DHightMap;
-	int _Range = 196;
-	int _RangeStore = 196;
+	// Noise
+	int m_iNumOfOctaves = 3;
+	float m_fFrequency = 0.1f;
 
-	//fualt line
-	int _NumberOfIterations=800;
-	int _Displacement=0.5f;
-	//noise
-	float _Frequancy=0.1f;
-	int _NumberOfOctaves=3;
+	// Height map data
+	float m_fHeightScale;
+	int m_iHeightMapWidth;
+	int m_iHeightMapHeight;
+	std::vector<float> m_vHeightMapData;
+	ID3D11ShaderResourceView* m_pHeightMapSRV;
 
-	//Hight Data
-	vector<float> _HightmapData;
-	float _HightScale;
-	int _HightMapWidth;
-	int _HightMapHight;
-	ID3D11ShaderResourceView* _HeightMapSRV;
+	// Grid data
+	XMFLOAT2 m_fGridSize;
+	Transform* m_pTransform;
+	TerrainAppearence* m_pApperance;
 
-	//Grid Data
-	XMFLOAT2 _GridSize;
+	// Texture data
+	float m_fCellSpacing = 1.0f;
+	std::vector<std::string> m_vTexGround;
+	ID3D11ShaderResourceView* m_pBlendMap;
 
-	Transform* _pTransform;
-	TerrainAppearence* _pApperance;
-
-	//Tex data
-	float _CellSpaceing = 1.0f;
-	ID3D11ShaderResourceView* _BlendMap;
-	vector<string> _TexGround;
-	//Shader Data
-	TerrainCB _TerrainCB;
-	ID3D11Buffer* _TerrainConstantBuffer=  nullptr;
-
+	// Shader data
+	TerrainCB m_terrainSettings;
+	ID3D11Buffer* m_pTerrainCB = nullptr;
 };
 
+#endif

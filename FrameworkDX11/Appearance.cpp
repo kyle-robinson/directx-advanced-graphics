@@ -214,7 +214,7 @@ HRESULT Appearance::InitMesh_Cube( ID3D11Device* pDevice, ID3D11DeviceContext* p
 	return hr;
 }
 
-HRESULT Appearance::InitMesh_Quad( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
+HRESULT Appearance::InitMesh_Quad( ID3D11Device* pDevice )
 {
 	// Create quad with height data
 	int cols = 2;
