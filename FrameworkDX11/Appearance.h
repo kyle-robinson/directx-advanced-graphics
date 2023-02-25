@@ -2,7 +2,6 @@
 #ifndef APPEARANCE_H
 #define APPEARANCE_H
 
-#include "DDSTextureLoader.h"
 #include "Structures.h"
 #include "DataStucts.h"
 #include <vector>

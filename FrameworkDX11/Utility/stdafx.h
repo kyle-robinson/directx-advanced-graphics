@@ -27,7 +27,10 @@
 using namespace DirectX;
 
 // Classes
+#include "Vector3.h"
+#include "Quaternion.h"
 #include "ErrorLogger.h"
 #include "StringHelper.h"
+#include "DDSTextureLoader.h"
 
 #endif

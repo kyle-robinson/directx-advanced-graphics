@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "DrawableGameObject.h"
-#include "DDSTextureLoader.h"
 #include "Structures.h"
 #include "resource.h"
 

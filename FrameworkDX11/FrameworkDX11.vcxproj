@@ -476,6 +476,7 @@
     <ClInclude Include="Utility\ErrorLogger.h" />
     <ClInclude Include="Utility\stdafx.h" />
     <ClInclude Include="Utility\StringHelper.h" />
+    <ClInclude Include="Utility\Timer.h" />
     <ClInclude Include="Vector3.h" />
     <ClInclude Include="Window\RenderWindow.h" />
     <ClInclude Include="Window\WindowContainer.h" />
@@ -576,6 +577,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Utility\StringHelper.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Utility\Timer.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Vector3.cpp">

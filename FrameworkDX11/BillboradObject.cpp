@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "BillboradObject.h"
-#include "DDSTextureLoader.h"
 
 BillboardObject::BillboardObject( std::string texName, int numToCreate, ID3D11Device* pDevice )
 {

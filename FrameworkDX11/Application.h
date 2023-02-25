@@ -6,20 +6,12 @@
 #include "ImGuiManager.h"
 #include "WindowContainer.h"
 
-#include "resource.h"
-#include "Structures.h"
-#include "ConstantBuffer.h"
-#include "DDSTextureLoader.h"
-
-#include "ShadowMap.h"
-#include "LightController.h"
-#include "CameraController.h"
-
+#include "Timer.h"
 #include "Terrain.h"
 #include "TerrainVoxel.h"
-
 #include "AnimatedModel.h"
 #include "BillboradObject.h"
+#include "LightController.h"
 #include "DrawableGameObject.h"
 
 class Application : public WindowContainer
@@ -56,6 +48,7 @@ private:
 	ImGuiManager* m_pImGuiManager;
 	Camera* m_pCamera;
 	Input* m_pInput;
+	Timer m_timer;
 
 	// Terrain
 	TerrainVoxel* m_pVoxelTerrain;

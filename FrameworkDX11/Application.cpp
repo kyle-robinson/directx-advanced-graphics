@@ -213,20 +213,20 @@ HRESULT Application::InitDevice()
 }
 void Application::Update()
 {
-    float t = CalculateDeltaTime(); // capped at 60 fps
-    if ( t == 0.0f )
+    float dt = m_timer.GetDeltaTime(); // capped at 60 fps
+    if ( dt == 0.0f )
         return;
 
-    m_pInput->Update( t );
+    m_pInput->Update( dt );
     m_pCamController->Update();
     m_pTerrain->Update();
 
     // Update the cube transform, material etc.
-    m_cube.Update( t, m_gfx.GetContext() );
-    m_ground.Update( t, m_gfx.GetContext() );
-    m_pLightController->Update( t, m_gfx.GetContext() );
+    m_cube.Update( dt, m_gfx.GetContext() );
+    m_ground.Update( dt, m_gfx.GetContext() );
+    m_pLightController->Update( dt, m_gfx.GetContext() );
     m_pBillboard->UpdatePositions( m_gfx.GetContext() );
-    m_pAnimModel->Update( t );
+    m_pAnimModel->Update( dt );
 }
 
 void Application::Draw()
@@ -642,34 +642,6 @@ void Application::Draw()
     m_pImGuiManager->EndRender();
 
     m_gfx.GetSwapChain()->Present( 1, 0 );
-}
-
-float Application::CalculateDeltaTime()
-{
-    //Update our time
-    static float deltaTime = 0.0f;
-    static ULONGLONG timeStart = 0;
-    ULONGLONG timeCur = GetTickCount64();
-    if ( timeStart == 0 )
-        timeStart = timeCur;
-    deltaTime = ( timeCur - timeStart ) / 1000.0f;
-    timeStart = timeCur;
-
-    float FPS60 = 1.0f / 60.0f;
-    static float cummulativeTime = 0;
-
-    // cap the framerate at 60 fps
-    cummulativeTime += deltaTime;
-    if ( cummulativeTime >= FPS60 )
-    {
-        cummulativeTime = cummulativeTime - FPS60;
-    }
-    else
-    {
-        return 0;
-    }
-
-    return deltaTime;
 }
 
 void Application::SetupLightForRender()

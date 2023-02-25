@@ -132,6 +132,9 @@
     <ClCompile Include="DataStucts.cpp">
       <Filter>Utility\Data</Filter>
     </ClCompile>
+    <ClCompile Include="Utility\Timer.cpp">
+      <Filter>Utility\Helper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -374,6 +377,9 @@
     </ClInclude>
     <ClInclude Include="Graphics\VertexBuffer.h">
       <Filter>Graphics\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Timer.h">
+      <Filter>Utility\Helper</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "TerrainAppearence.h"
-#include "DDSTextureLoader.h"
 
 static const float Infinity = FLT_MAX;
 

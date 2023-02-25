@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "AnimatedModel.h"
-#include "DDSTextureLoader.h"
 
 AnimatedModel::AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ShaderController* shaderControl )
     : m_sModelName( modelFile )
