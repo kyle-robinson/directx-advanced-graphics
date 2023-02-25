@@ -222,7 +222,7 @@ void TerrainJsonLoad::StoreTerrainNoiseSettings( rapidjson::Document& doc, const
 {
 	doc.SetObject();
 	doc.AddMember( "Seed", terrainNoiseData.Seed, doc.GetAllocator() );
-	doc.AddMember( "HightScale", terrainNoiseData.HeightScale, doc.GetAllocator() );
-	doc.AddMember( "Frequancy", terrainNoiseData.Frequency, doc.GetAllocator() );
+	doc.AddMember( "HeightMap_Scale", terrainNoiseData.HeightScale, doc.GetAllocator() );
+	doc.AddMember( "Frequency", terrainNoiseData.Frequency, doc.GetAllocator() );
 	doc.AddMember( "Number_Of_Octaves", terrainNoiseData.NumOfOctaves, doc.GetAllocator() );
 }

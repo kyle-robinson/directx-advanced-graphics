@@ -357,6 +357,7 @@ void TerrainAppearence::CalcAllPatchBoundsY()
 		}
 	}
 }
+
 void TerrainAppearence::Draw( ID3D11DeviceContext* pContext )
 {
 	if ( m_bToDraw )

@@ -66,8 +66,8 @@ void ExtractFrustumPlanes( XMFLOAT4 frustumPlane[6], CXMMATRIX m )
 
 Terrain::Terrain( std::string heightMapName, XMFLOAT2 size, double scale, TerrainGenType genType, ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ShaderController* shaderControl ) :
     m_sHeightMapName( heightMapName ),
-    m_iHeightMapHeight( size.y ),
     m_iHeightMapWidth( size.x ),
+    m_iHeightMapHeight( size.y ),
     m_fHeightScale( scale ),
     m_eTerrainCreationType( genType )
 {
@@ -155,12 +155,12 @@ void Terrain::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderContr
         pContext->DSSetConstantBuffers( 4, 1, &m_pTerrainCB );
         pContext->DSSetShaderResources( 1, 1, &m_pHeightMapSRV );
 
+        pContext->PSSetShader( shaderControl->GetShaderByName( "Terrain" ).m_pPixelShader, nullptr, 0 );
         pContext->PSSetShaderResources( 0, 1, m_pApperance->GetTextureResourceView().data() );
         pContext->PSSetConstantBuffers( 4, 1, &m_pTerrainCB );
         pContext->PSSetShaderResources( 0, 1, &m_pBlendMap );
         pContext->PSSetShaderResources( 1, 1, &m_pHeightMapSRV );
         pContext->PSSetShaderResources( 2, 5, m_pApperance->GetTextureResourceView().data() );
-        pContext->PSSetShader( shaderControl->GetShaderByName( "Terrain" ).m_pPixelShader, nullptr, 0 );
         m_pApperance->Draw( pContext );
 
         // As HLSL sets tessellation stages, but does not disable them, do that here
@@ -416,13 +416,13 @@ void Terrain::BuildHeightMap( ID3D11Device* pDevice )
     texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     texDesc.CPUAccessFlags = 0;
     texDesc.MiscFlags = 0;
-    std::vector<DirectX::PackedVector::HALF> hmap( m_vHeightMapData.size() );
+    std::vector<PackedVector::HALF> hmap( m_vHeightMapData.size() );
     std::transform( m_vHeightMapData.begin(), m_vHeightMapData.end(),
-        hmap.begin(), DirectX::PackedVector::XMConvertFloatToHalf );
+        hmap.begin(), PackedVector::XMConvertFloatToHalf );
 
     D3D11_SUBRESOURCE_DATA data;
     data.pSysMem = &hmap[0];
-    data.SysMemPitch = m_iHeightMapWidth * sizeof( DirectX::PackedVector::HALF );
+    data.SysMemPitch = m_iHeightMapWidth * sizeof( PackedVector::HALF );
     data.SysMemSlicePitch = 0;
     ID3D11Texture2D* hmapTex = 0;
     HRESULT hr = pDevice->CreateTexture2D( &texDesc, &data, &hmapTex );

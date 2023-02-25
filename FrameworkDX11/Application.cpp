@@ -13,69 +13,68 @@ Application::~Application()
     Cleanup();
 }
 
-HRESULT Application::Initialize( HINSTANCE hInstance, int width, int height )
+bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 {
-    if ( !m_window.Initialize( m_pInput, hInstance,
-        "DirectX 11 Advanced Graphics & Rendering", "TutorialWindowClass",
-        width, height ) )
-        return 0;
+    if ( !m_window.Initialize( m_pInput, hInstance, "DirectX 11 Advanced Graphics & Rendering", "TutorialWindowClass", width, height ) )
+        return false;
 
     m_gfx.Initialize( m_window.GetHWND(), width, height );
 
-    if ( FAILED( InitDevice() ) )
-    {
-        Cleanup();
-        return 0;
-    }
+    if ( !InitDevice() )
+        return false;
 
-    m_pImGuiManager->Initialize( m_window.GetHWND(), m_gfx.GetDevice(), m_gfx.GetContext() );
+    if ( !m_pImGuiManager->Initialize( m_window.GetHWND(), m_gfx.GetDevice(), m_gfx.GetContext() ) )
+        return false;
 
-    return S_OK;
+    return true;
 }
 
-HRESULT Application::InitMesh()
+bool Application::InitMesh()
 {
-    // Create object meshes
-    HRESULT hr = m_cube.GetAppearance()->InitMesh_Cube( m_gfx.GetDevice(), m_gfx.GetContext() );
-    if ( FAILED( hr ) )
-        return hr;
+    try
+    {
+        // Create object meshes
+        HRESULT hr = m_cube.GetAppearance()->InitMesh_Cube( m_gfx.GetDevice(), m_gfx.GetContext() );
+        COM_ERROR_IF_FAILED( hr, "Failed to create CUBE mesh!" );
 
-    hr = m_ground.GetAppearance()->InitMesh_Quad( m_gfx.GetDevice() );
-    if ( FAILED( hr ) )
-        return hr;
-    m_ground.GetTransfrom()->SetPosition( -5, -2, 5 );
+        hr = m_ground.GetAppearance()->InitMesh_Quad( m_gfx.GetDevice() );
+        COM_ERROR_IF_FAILED( hr, "Failed to create GROUND mesh!" );
+        m_ground.GetTransfrom()->SetPosition( -5, -2, 5 );
+
+        // Create the constant buffers
+        hr = m_matrixCB.Initialize( m_gfx.GetDevice(), m_gfx.GetContext() );
+        COM_ERROR_IF_FAILED( hr, "Failed to create MATRIX constant buffer!" );
+
+        hr = m_lightCB.Initialize( m_gfx.GetDevice(), m_gfx.GetContext() );
+        COM_ERROR_IF_FAILED( hr, "Failed to create LIGHT constant buffer!" );
+
+        hr = m_postProcessingCB.Initialize( m_gfx.GetDevice(), m_gfx.GetContext() );
+        COM_ERROR_IF_FAILED( hr, "Failed to create POST PROCESSING constant buffer!" );
+    }
+    catch ( COMException& exception )
+    {
+        ErrorLogger::Log( exception );
+        return false;
+    }
 
     // Terrain generation
     m_pTerrain = new Terrain( "Resources/Textures/coastMountain513.raw", XMFLOAT2( 513, 513 ),
         100, TerrainGenType::HeightMapLoad, m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController() );
-
     std::vector<std::string> texGround;
     texGround.push_back( "Resources/Textures/grass.dds" );
     texGround.push_back( "Resources/Textures/darkdirt.dds" );
     texGround.push_back( "Resources/Textures/lightdirt.dds" );
     texGround.push_back( "Resources/Textures/stone.dds" );
     texGround.push_back( "Resources/Textures/snow.dds" );
-
     m_pTerrain->SetTex( texGround, m_gfx.GetDevice() );
     m_pTerrain->SetBlendMap( "Resources/Textures/blend.dds", m_gfx.GetDevice() );
     m_pVoxelTerrain = new TerrainVoxel( m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController(), 3, 3 );
 
     // Create miscellaneous objects
     m_pBillboard = new BillboardObject( "Resources/Textures/bricks_TEX.dds", 2, m_gfx.GetDevice() );
-    m_pAnimModel = new AnimatedModel( "Resources/AnimModel/soldier.m3d",
-        m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController() );
+    m_pAnimModel = new AnimatedModel( "Resources/AnimModel/soldier.m3d", m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController() );
 
-    // Create the constant buffers
-    hr = m_matrixCB.Initialize( m_gfx.GetDevice(), m_gfx.GetContext() );
-    COM_ERROR_IF_FAILED( hr, "Failed to create MATRIX constant buffer!" );
-
-    hr = m_lightCB.Initialize( m_gfx.GetDevice(), m_gfx.GetContext() );
-    COM_ERROR_IF_FAILED( hr, "Failed to create LIGHT constant buffer!" );
-
-    hr = m_postProcessingCB.Initialize( m_gfx.GetDevice(), m_gfx.GetContext() );
-    COM_ERROR_IF_FAILED( hr, "Failed to create POST PROCESSING constant buffer!" );
-
-    return hr;
+    return true;
 }
 
 std::vector<float> CubicBezierBasis( float u )
@@ -114,7 +113,7 @@ std::vector<XMFLOAT3> CubicBezierCurve( std::vector<XMFLOAT3> controlPoints )
     return points;
 }
 
-HRESULT Application::InitWorld()
+bool Application::InitWorld()
 {
     // Initialize the camrea
     m_pCamController = new CameraController();
@@ -136,6 +135,14 @@ HRESULT Application::InitWorld()
 
     m_pInput->AddCamControl( m_pCamController );
 
+    // Setup bezier spline
+    std::vector<XMFLOAT3> a = {
+        XMFLOAT3{ 0.0f,0.0f,0.0f },
+        XMFLOAT3{ 2.0f,1.0f,0.0f },
+        XMFLOAT3{ 5.0f,0.6f,0.0f },
+        XMFLOAT3{ 6.0f,0.0f,0.0f } };
+    m_pImGuiManager->SetPoints( CubicBezierCurve( a ) );
+
     // Post settings
     m_postProcessingCB.data.UseColour = false;
     m_postProcessingCB.data.Color = XMFLOAT4{ 1.0f,1.0f,1.0f,0.0f };
@@ -149,55 +156,56 @@ HRESULT Application::InitWorld()
     m_postProcessingCB.data.FocalWidth = 100.0f;
     m_postProcessingCB.data.BlurAttenuation = 0.5f;
 
-    SCREEN_VERTEX svQuad[4];
-    svQuad[0].pos = XMFLOAT3( -1.0f, 1.0f, 0.0f );
-    svQuad[0].tex = XMFLOAT2( 0.0f, 0.0f );
-    svQuad[1].pos = XMFLOAT3( 1.0f, 1.0f, 0.0f );
-    svQuad[1].tex = XMFLOAT2( 1.0f, 0.0f );
-    svQuad[2].pos = XMFLOAT3( -1.0f, -1.0f, 0.0f );
-    svQuad[2].tex = XMFLOAT2( 0.0f, 1.0f );
-    svQuad[3].pos = XMFLOAT3( 1.0f, -1.0f, 0.0f );
-    svQuad[3].tex = XMFLOAT2( 1.0f, 1.0f );
-
-    D3D11_BUFFER_DESC bd = {};
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof( SCREEN_VERTEX ) * 4;
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bd.CPUAccessFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA InitData = {};
-    InitData.pSysMem = svQuad;
-    HRESULT hr = m_gfx.GetDevice()->CreateBuffer( &bd, &InitData, &m_pScreenQuadVB );
-    if ( FAILED( hr ) )
-        return hr;
-    std::vector<XMFLOAT3> a = {
-        XMFLOAT3{ 0.0f,0.0f,0.0f },
-        XMFLOAT3{ 2.0f,1.0f,0.0f },
-        XMFLOAT3{ 5.0f,0.6f,0.0f },
-        XMFLOAT3{ 6.0f,0.0f,0.0f } };
-    m_pImGuiManager->SetPoints( CubicBezierCurve( a ) );
-
-    return S_OK;
-}
-
-HRESULT Application::InitDevice()
-{
-    m_pDepthLight = new ShadowMap( m_gfx.GetDevice(), m_gfx.GetWidth(), m_gfx.GetHeight() );
-
-    HRESULT hr = InitMesh();
-    if ( FAILED( hr ) )
+    try
     {
-        MessageBox( nullptr,
-            L"Failed to initialise mesh.", L"Error", MB_OK );
-        return hr;
+        SCREEN_VERTEX svQuad[4];
+        svQuad[0].pos = XMFLOAT3( -1.0f, 1.0f, 0.0f );
+        svQuad[0].tex = XMFLOAT2( 0.0f, 0.0f );
+        svQuad[1].pos = XMFLOAT3( 1.0f, 1.0f, 0.0f );
+        svQuad[1].tex = XMFLOAT2( 1.0f, 0.0f );
+        svQuad[2].pos = XMFLOAT3( -1.0f, -1.0f, 0.0f );
+        svQuad[2].tex = XMFLOAT2( 0.0f, 1.0f );
+        svQuad[3].pos = XMFLOAT3( 1.0f, -1.0f, 0.0f );
+        svQuad[3].tex = XMFLOAT2( 1.0f, 1.0f );
+
+        D3D11_BUFFER_DESC bd = {};
+        bd.Usage = D3D11_USAGE_DEFAULT;
+        bd.ByteWidth = sizeof( SCREEN_VERTEX ) * 4;
+        bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        bd.CPUAccessFlags = 0;
+
+        D3D11_SUBRESOURCE_DATA InitData = {};
+        InitData.pSysMem = svQuad;
+        HRESULT hr = m_gfx.GetDevice()->CreateBuffer( &bd, &InitData, &m_pScreenQuadVB );
+        COM_ERROR_IF_FAILED( hr, "Failed to create SCREEN vertex buffer!" );
+    }
+    catch ( COMException& exception )
+    {
+        ErrorLogger::Log( exception );
+        return false;
     }
 
-    hr = InitWorld();
-    if ( FAILED( hr ) )
+    return true;
+}
+
+bool Application::InitDevice()
+{
+    // Create shadow map light
+    m_pDepthLight = new ShadowMap( m_gfx.GetDevice(), m_gfx.GetWidth(), m_gfx.GetHeight() );
+
+    try
     {
-        MessageBox( nullptr,
-            L"Failed to initialise world.", L"Error", MB_OK );
-        return hr;
+	    // Initialize scene objects and data
+        HRESULT hr = InitMesh();
+        COM_ERROR_IF_FAILED( hr, "Failed to initialize OBJECT DATA!" );
+
+        hr = InitWorld();
+        COM_ERROR_IF_FAILED( hr, "Failed to initialize WORLD DATA!" );
+    }
+    catch ( COMException& exception )
+    {
+        ErrorLogger::Log( exception );
+        return false;
     }
 
     // Create lights
@@ -209,8 +217,9 @@ HRESULT Application::InitDevice()
         XMFLOAT4( 0.0f, 5.0f, 0.0f, 0.0f ), XMFLOAT4( Colors::White ),
         XMConvertToRadians( 10.0f ), 1.0f, 0.0f, 0.0f, m_gfx.GetDevice(), m_gfx.GetContext() );
 
-    return S_OK;
+    return true;
 }
+
 void Application::Update()
 {
     float dt = m_timer.GetDeltaTime(); // capped at 60 fps

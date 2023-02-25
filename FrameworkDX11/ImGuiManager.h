@@ -29,7 +29,7 @@ public:
 
 	void BeginRender();
 	void EndRender();
-	void Initialize( HWND hWnd, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	bool Initialize( HWND hWnd, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 
 	void CameraMenu( CameraController* cameraControl );
 	void ShaderMenu( ShaderController* shaderControl, PostProcessingCB* postSettings, RasterizerController* rasterControl, bool& rtt );

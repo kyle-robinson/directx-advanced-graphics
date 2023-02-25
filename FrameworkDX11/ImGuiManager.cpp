@@ -22,10 +22,11 @@ ImGuiManager::~ImGuiManager()
     ImGui::DestroyContext();
 }
 
-void ImGuiManager::Initialize( HWND hWnd, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
+bool ImGuiManager::Initialize( HWND hWnd, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
-    ImGui_ImplWin32_Init( hWnd );
-    ImGui_ImplDX11_Init( pDevice, pContext );
+    if ( !ImGui_ImplWin32_Init( hWnd ) || !ImGui_ImplDX11_Init( pDevice, pContext ) )
+        return false;
+    return true;
 }
 
 void ImGuiManager::BeginRender()

@@ -87,9 +87,6 @@
     <ClCompile Include="DDSTextureLoader.cpp">
       <Filter>Utility\Texture</Filter>
     </ClCompile>
-    <ClCompile Include="PerlinNoise.cpp">
-      <Filter>Utility\Math</Filter>
-    </ClCompile>
     <ClCompile Include="Transform.cpp">
       <Filter>Objects\Components</Filter>
     </ClCompile>
@@ -134,6 +131,9 @@
     </ClCompile>
     <ClCompile Include="Utility\Timer.cpp">
       <Filter>Utility\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="PerlinNoise.cpp">
+      <Filter>Utility\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

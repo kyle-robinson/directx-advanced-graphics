@@ -58,16 +58,15 @@ public:
 	Application();
 	~Application();
 
-	HRESULT Initialize( HINSTANCE hInstance, int width, int height );
+	bool Initialize( HINSTANCE hInstance, int width, int height );
 	void Update();
 	void Draw();
 
 private:
-	float CalculateDeltaTime();
 	void SetupLightForRender();
-	HRESULT InitDevice();
-	HRESULT	InitMesh();
-	HRESULT	InitWorld();
+	bool InitDevice();
+	bool InitMesh();
+	bool InitWorld();
 	void Cleanup();
 };
 
