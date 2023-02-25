@@ -47,14 +47,15 @@ void LightController::Update( float dt, ID3D11DeviceContext* pContext )
     }
 }
 
-void LightController::Draw( ID3D11DeviceContext* pContext, ID3D11Buffer* buffer, ConstantBuffer* cbuffer )
+void LightController::Draw( ID3D11DeviceContext* pContext, ConstantBuffer<MatrixBuffer>& buffer )
 {
     for ( auto lightData : m_vLightData )
     {
         XMFLOAT4X4 worldAsFloat1 = lightData->GetLightObject()->GetTransfrom()->GetWorldMatrix();
         XMMATRIX mGO = XMLoadFloat4x4( &worldAsFloat1 );
-        cbuffer->mWorld = XMMatrixTranspose( mGO );
-        pContext->UpdateSubresource( buffer, 0, nullptr, cbuffer, 0, 0 );
+        buffer.data.mWorld = XMMatrixTranspose( mGO );
+        if ( !buffer.ApplyChanges() )
+            return;
         lightData->Draw( pContext );
     }
 }

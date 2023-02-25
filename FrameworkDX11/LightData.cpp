@@ -153,21 +153,21 @@ void LightData::SetAngle( float angle )
 	m_lightData.SpotAngle = angle;
 }
 
-void LightData::CreateShadowMap( ID3D11DeviceContext* pContext, std::vector<DrawableGameObject*> objects, ID3D11Buffer** buffer )
+void LightData::CreateShadowMap( ID3D11DeviceContext* pContext, std::vector<DrawableGameObject*> objects, ConstantBuffer<MatrixBuffer>& buffer )
 {
 	m_pShadow->SetShadowMap( pContext );
 
-	ConstantBuffer cb1;
-	cb1.mView = GetLightData().mView;
-	cb1.mProjection = GetLightData().mProjection;
-	cb1.vOutputColor = XMFLOAT4( 0, 0, 0, 0 );
+	buffer.data.mView = GetLightData().mView;
+	buffer.data.mProjection = GetLightData().mProjection;
+	buffer.data.vOutputColor = XMFLOAT4( 0, 0, 0, 0 );
 
 	for ( DrawableGameObject* object : objects )
 	{
 		XMFLOAT4X4 worldAsFloat = object->GetTransfrom()->GetWorldMatrix();
 		XMMATRIX mGO = XMLoadFloat4x4( &worldAsFloat );
-		cb1.mWorld = XMMatrixTranspose( mGO );
-		pContext->UpdateSubresource( *buffer, 0, nullptr, &cb1, 0, 0 );
+		buffer.data.mWorld = XMMatrixTranspose( mGO );
+		if ( !buffer.ApplyChanges() )
+			return;
 		object->Draw( pContext );
 	}
 }

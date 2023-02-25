@@ -4,6 +4,7 @@
 
 #include <vector>
 #include "Structures.h"
+#include "ConstantBuffer.h"
 #include "ShaderController.h"
 
 struct SimpleVertexBillboard
@@ -22,7 +23,7 @@ public:
 	~BillboardObject();
 
 	void CreateBillboard( int num, ID3D11Device* pDevice );
-	void Draw( ID3D11DeviceContext* pContext, ShaderController::ShaderData shaderData, ConstantBuffer* cbuffer, ID3D11Buffer* buffer );
+	void Draw( ID3D11DeviceContext* pContext, ShaderController::ShaderData shaderData, ConstantBuffer<MatrixBuffer>& buffer );
 	void UpdatePositions( ID3D11DeviceContext* pContext );
 
 	void SetTexture( std::string texName, ID3D11Device* pDevice );

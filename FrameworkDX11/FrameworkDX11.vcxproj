@@ -437,12 +437,18 @@
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="DrawableGameObject.h" />
     <ClInclude Include="Graphics\BackBuffer.h" />
+    <ClInclude Include="Graphics\ConstantBuffer.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Graphics\DepthStencil.h" />
     <ClInclude Include="Graphics\Graphics.h" />
+    <ClInclude Include="Graphics\IndexBuffer.h" />
     <ClInclude Include="Graphics\Rasterizer.h" />
     <ClInclude Include="Graphics\Sampler.h" />
     <ClInclude Include="Graphics\SamplerController.h" />
     <ClInclude Include="Graphics\SwapChain.h" />
+    <ClInclude Include="Graphics\VertexBuffer.h" />
     <ClInclude Include="Graphics\Viewport.h" />
     <ClInclude Include="ImGuiManager.h" />
     <ClInclude Include="Input\Input.h" />

@@ -20,7 +20,7 @@ public:
 	void AddLight( Light light );
 
 	void Update( float dt, ID3D11DeviceContext* pContext );
-	void Draw( ID3D11DeviceContext* pContext, ID3D11Buffer* buffer, ConstantBuffer* cbuffer );
+	void Draw( ID3D11DeviceContext* pContext, ConstantBuffer<MatrixBuffer>& buffer );
 	void RemoveAllLights();
 
 private:

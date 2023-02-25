@@ -4,6 +4,7 @@
 
 #include "Camera.h"
 #include "ShadowMap.h"
+#include "ConstantBuffer.h"
 #include "DrawableGameObject.h"
 
 class LightData
@@ -37,7 +38,7 @@ public:
 	void SetAngle( float angle );
 
 	inline ShadowMap* GetShadow() const noexcept { return m_pShadow; }
-	void CreateShadowMap( ID3D11DeviceContext* pContext, std::vector<DrawableGameObject*> objects, ID3D11Buffer** buffer );
+	void CreateShadowMap( ID3D11DeviceContext* pContext, std::vector<DrawableGameObject*> objects, ConstantBuffer<MatrixBuffer>& buffer );
 
 private:
 	void CleanUp();

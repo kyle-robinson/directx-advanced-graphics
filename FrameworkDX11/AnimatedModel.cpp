@@ -84,7 +84,7 @@ AnimatedModel::~AnimatedModel()
     CleanUp();
 }
 
-void AnimatedModel::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer* buffer, ID3D11Buffer* cbuffer )
+void AnimatedModel::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer<MatrixBuffer>& buffer )
 {
     pContext->IASetInputLayout( shaderControl->GetShaderByName( "Animation" ).m_pVertexLayout );
     pContext->VSSetShader( shaderControl->GetShaderByName( "Animation" ).m_pVertexShader, nullptr, 0 );
@@ -92,8 +92,9 @@ void AnimatedModel::Draw( ID3D11DeviceContext* pContext, ShaderController* shade
 
     XMFLOAT4X4 WorldAsFloat = m_pTransformData->GetWorldMatrix();
     XMMATRIX mGO = XMLoadFloat4x4( &WorldAsFloat );
-    buffer->mWorld = XMMatrixTranspose( mGO );
-    pContext->UpdateSubresource( cbuffer, 0, nullptr, buffer, 0, 0 );
+    buffer.data.mWorld = XMMatrixTranspose( mGO );
+    if ( !buffer.ApplyChanges() )
+        return;
     for ( size_t i = 0; i < m_vFinalTransforms.size(); i++ )
     {
         XMMATRIX mbone = XMLoadFloat4x4( &m_vFinalTransforms[i] );

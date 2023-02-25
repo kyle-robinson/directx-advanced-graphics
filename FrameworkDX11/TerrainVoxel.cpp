@@ -169,12 +169,12 @@ TerrainVoxel::~TerrainVoxel()
     CleanUp();
 }
 
-void TerrainVoxel::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer* cbuffer, ID3D11Buffer* buffer, CameraController* camControl )
+void TerrainVoxel::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer<MatrixBuffer>& buffer, CameraController* camControl )
 {
     if ( m_bToDraw )
     {
         pContext->VSSetShader( shaderControl->GetShaderByName( "Voxel" ).m_pVertexShader, nullptr, 0 );
-        pContext->VSSetConstantBuffers( 0, 1, &buffer );
+        pContext->VSSetConstantBuffers( 0, 1, buffer.GetAddressOf() );
         pContext->PSSetShader( shaderControl->GetShaderByName( "Voxel" ).m_pPixelShader, nullptr, 0 );
         pContext->PSSetShaderResources( 0, 5, m_pGroundTextureRV.data() );
         pContext->PSSetConstantBuffers( 3, 1, &m_pCubeInfoCB );
@@ -213,7 +213,7 @@ void TerrainVoxel::Draw( ID3D11DeviceContext* pContext, ShaderController* shader
                 maxVertex = XMFLOAT3( m_fDefaultChunkSize.x, z->GetMaxHeight(), m_fDefaultChunkSize.x );
                 if ( !AabbOutsideFrustumTest( CenterPoint, minVertex, maxVertex, planes ) )
                 {
-                    z->Draw( pContext, shaderControl, cbuffer, buffer, camControl, m_pCubeInfoCB );
+                    z->Draw( pContext, shaderControl, buffer, camControl, m_pCubeInfoCB );
                 }
             }
         }
@@ -291,7 +291,7 @@ Chunk::Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos
     m_vAllCubesInChunk.resize( m_iXSize );
     m_pChunkTransform = new Transform();
     m_pChunkTransform->SetPosition( pos );
-    GenrateTerrain( pDevice, pContext );
+    GenerateTerrain( pDevice, pContext );
 }
 
 Chunk::Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos, XMFLOAT3 Size, int Seed, float Frequancy, int Octave )
@@ -302,7 +302,7 @@ Chunk::Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos
     m_vAllCubesInChunk.resize( m_iXSize );
     m_pChunkTransform = new Transform();
     m_pChunkTransform->SetPosition( pos );
-    GenrateTerrain( pDevice, pContext );
+    GenerateTerrain( pDevice, pContext );
 }
 
 Chunk::~Chunk()
@@ -310,10 +310,8 @@ Chunk::~Chunk()
     CleanUp();
 }
 
-void Chunk::Draw(
-    ID3D11DeviceContext* pContext, ShaderController* shaderControl,
-    ConstantBuffer* cbuffer, ID3D11Buffer* buffer,
-    CameraController* camControl, ID3D11Buffer* voxelCb )
+void Chunk::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl,
+    ConstantBuffer<MatrixBuffer>& buffer, CameraController* camControl, ID3D11Buffer* voxelCb )
 {
     // Setup frustrum planes for culling terrain when not in view
     XMFLOAT4X4 viewAsFloats = camControl->GetCam( 2 )->GetView();
@@ -350,8 +348,9 @@ void Chunk::Draw(
             {
                 XMFLOAT4X4 WorldAsFloat = x->GetTransForm()->GetWorldMatrix();
                 XMMATRIX mGO = XMLoadFloat4x4( &WorldAsFloat );
-                cbuffer->mWorld = XMMatrixTranspose( mGO );
-                pContext->UpdateSubresource( buffer, 0, nullptr, buffer, 0, 0 );
+                buffer.data.mWorld = XMMatrixTranspose( mGO );
+                if ( !buffer.ApplyChanges() )
+                    return;
                 VoxelCube data = x->GetCubeData();
                 pContext->UpdateSubresource( voxelCb, 0, nullptr, &data, 0, 0 );
                 x->GetAppearance()->Draw( pContext );
@@ -360,7 +359,7 @@ void Chunk::Draw(
     }
 }
 
-void Chunk::GenrateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
+void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
     int MaxHight = 100;
     FastNoiseLite noise;

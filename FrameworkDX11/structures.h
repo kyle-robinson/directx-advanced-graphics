@@ -5,7 +5,7 @@
 #include <DirectXMath.h>
 using namespace DirectX;
 
-struct ConstantBuffer
+struct MatrixBuffer
 {
 	XMMATRIX mWorld;
 	XMMATRIX mView;
@@ -85,9 +85,9 @@ struct Light
 	XMMATRIX mProjection;
 };
 
-struct LightPropertiesConstantBuffer
+struct LightPropertiesCB
 {
-	LightPropertiesConstantBuffer()
+	LightPropertiesCB()
 		: EyePosition( 0.0f, 0.0f, 0.0f, 1.0f )
 		, GlobalAmbient( 0.2f, 0.2f, 0.8f, 1.0f )
 	{}

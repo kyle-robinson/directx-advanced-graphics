@@ -7,6 +7,7 @@
 #include "Transform.h"
 #include "DataStucts.h"
 #include "Appearance.h"
+#include "ConstantBuffer.h"
 #include "ShaderController.h"
 
 #include <assimp/Importer.hpp>
@@ -19,7 +20,7 @@ public:
     AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ShaderController* shaderControl );
     ~AnimatedModel();
 
-    void Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer* buffer, ID3D11Buffer* cbuffer );
+    void Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer<MatrixBuffer>& buffer );
     void Update( float dt );
 
     inline Skeleton* GetSkeleton() noexcept { return &m_skeletonData; }

@@ -366,6 +366,15 @@
     <ClInclude Include="DataStucts.h">
       <Filter>Utility\Data</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\ConstantBuffer.h">
+      <Filter>Graphics\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\IndexBuffer.h">
+      <Filter>Graphics\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\VertexBuffer.h">
+      <Filter>Graphics\Buffers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Window">
@@ -490,6 +499,9 @@
     </Filter>
     <Filter Include="Utility\Data">
       <UniqueIdentifier>{982fc4a6-973c-49e7-aaa2-fe0eab433720}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Buffers">
+      <UniqueIdentifier>{41ac2fc9-d3d8-4506-a011-5b89b9f4ca14}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

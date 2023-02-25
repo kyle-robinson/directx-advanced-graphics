@@ -3,10 +3,6 @@
 
 Application::Application()
 {
-    m_pCB = nullptr;
-    m_pLightCB = nullptr;
-    m_pPostProcessingCB = nullptr;
-
     m_pLightController = new LightController();
     m_pImGuiManager = new ImGuiManager();
     m_pInput = new Input();
@@ -69,41 +65,15 @@ HRESULT Application::InitMesh()
     m_pAnimModel = new AnimatedModel( "Resources/AnimModel/soldier.m3d",
         m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController() );
 
-    // Create the constant buffer
-    D3D11_BUFFER_DESC bd = {};
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof( SimpleVertex ) * 24;
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bd.CPUAccessFlags = 0;
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof( WORD ) * 36;
-    bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bd.CPUAccessFlags = 0;
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof( ConstantBuffer );
-    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bd.CPUAccessFlags = 0;
-    hr = m_gfx.GetDevice()->CreateBuffer( &bd, nullptr, &m_pCB );
-    if ( FAILED( hr ) )
-        return hr;
+    // Create the constant buffers
+    hr = m_matrixCB.Initialize( m_gfx.GetDevice(), m_gfx.GetContext() );
+    COM_ERROR_IF_FAILED( hr, "Failed to create MATRIX constant buffer!" );
 
-    // Create the light constant buffer
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof( LightPropertiesConstantBuffer );
-    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bd.CPUAccessFlags = 0;
-    hr = m_gfx.GetDevice()->CreateBuffer( &bd, nullptr, &m_pLightCB );
-    if ( FAILED( hr ) )
-        return hr;
+    hr = m_lightCB.Initialize( m_gfx.GetDevice(), m_gfx.GetContext() );
+    COM_ERROR_IF_FAILED( hr, "Failed to create LIGHT constant buffer!" );
 
-    // Create the post processing constant buffer
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof( PostProcessingCB );
-    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bd.CPUAccessFlags = 0;
-    hr = m_gfx.GetDevice()->CreateBuffer( &bd, nullptr, &m_pPostProcessingCB );
-    if ( FAILED( hr ) )
-        return hr;
+    hr = m_postProcessingCB.Initialize( m_gfx.GetDevice(), m_gfx.GetContext() );
+    COM_ERROR_IF_FAILED( hr, "Failed to create POST PROCESSING constant buffer!" );
 
     return hr;
 }
@@ -167,17 +137,17 @@ HRESULT Application::InitWorld()
     m_pInput->AddCamControl( m_pCamController );
 
     // Post settings
-    m_ppSettings.UseColour = false;
-    m_ppSettings.Color = XMFLOAT4{ 1.0f,1.0f,1.0f,0.0f };
-    m_ppSettings.UseBloom = false;
-    m_ppSettings.UseDepthOfF = false;
-    m_ppSettings.UseHDR = false;
-    m_ppSettings.UseBlur = false;
-    m_ppSettings.FadeAmount = 1.0f;
-    m_ppSettings.FarPlane = 100.0f;
-    m_ppSettings.FocalDistance = 100.0f;
-    m_ppSettings.FocalWidth = 100.0f;
-    m_ppSettings.BlurAttenuation = 0.5f;
+    m_postProcessingCB.data.UseColour = false;
+    m_postProcessingCB.data.Color = XMFLOAT4{ 1.0f,1.0f,1.0f,0.0f };
+    m_postProcessingCB.data.UseBloom = false;
+    m_postProcessingCB.data.UseDepthOfF = false;
+    m_postProcessingCB.data.UseHDR = false;
+    m_postProcessingCB.data.UseBlur = false;
+    m_postProcessingCB.data.FadeAmount = 1.0f;
+    m_postProcessingCB.data.FarPlane = 100.0f;
+    m_postProcessingCB.data.FocalDistance = 100.0f;
+    m_postProcessingCB.data.FocalWidth = 100.0f;
+    m_postProcessingCB.data.BlurAttenuation = 0.5f;
 
     SCREEN_VERTEX svQuad[4];
     svQuad[0].pos = XMFLOAT3( -1.0f, 1.0f, 0.0f );
@@ -282,9 +252,9 @@ void Application::Draw()
         m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
         m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
         m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "DepthLight" ).m_pVertexShader, nullptr, 0 );
-        m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &m_pCB );
+        m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, m_matrixCB.GetAddressOf() );
         m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "DepthLight" ).m_pPixelShader, nullptr, 0 );
-        m_pLightController->GetLight( i )->CreateShadowMap( m_gfx.GetContext(), gameObjects, &m_pCB );
+        m_pLightController->GetLight( i )->CreateShadowMap( m_gfx.GetContext(), gameObjects, m_matrixCB );
     }
 
     // Render 3d objects
@@ -305,27 +275,28 @@ void Application::Draw()
     XMMATRIX RTTview = XMLoadFloat4x4( &viewAsFloats );
     XMMATRIX RTTprojection = XMLoadFloat4x4( &projectionAsFloats );
     XMMATRIX viewProject = RTTview * RTTprojection;
-    // store this and the view / projection in a constant buffer for the vertex shader to use
-    ConstantBuffer cb1;
-    cb1.mWorld = XMMatrixTranspose( mGO );
-    cb1.mView = XMMatrixTranspose( RTTview );
-    cb1.mProjection = XMMatrixTranspose( RTTprojection );
-    cb1.vOutputColor = XMFLOAT4( 0, 0, 0, 0 );
-    cb1.camPos = XMFLOAT4(
+
+    // Store values to use in vertex shader
+    m_matrixCB.data.mWorld = XMMatrixTranspose( mGO );
+    m_matrixCB.data.mView = XMMatrixTranspose( RTTview );
+    m_matrixCB.data.mProjection = XMMatrixTranspose( RTTprojection );
+    m_matrixCB.data.vOutputColor = XMFLOAT4( 0, 0, 0, 0 );
+    m_matrixCB.data.camPos = XMFLOAT4(
         m_pCamController->GetCurentCam()->GetPosition().x,
         m_pCamController->GetCurentCam()->GetPosition().y,
         m_pCamController->GetCurentCam()->GetPosition().z, 0.0f );
-    m_gfx.GetContext()->UpdateSubresource( m_pCB, 0, nullptr, &cb1, 0, 0 );
+    if ( !m_matrixCB.ApplyChanges() )
+        return;
     SetupLightForRender();
 
     // Render the cube
     m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
     m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
     m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderData().m_pVertexShader, nullptr, 0 );
-    m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &m_pCB );
-    m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, &m_pLightCB );
+    m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, m_matrixCB.GetAddressOf() );
+    m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
     m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderData().m_pPixelShader, nullptr, 0 );
-    m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, &m_pLightCB );
+    m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
 
     ID3D11ShaderResourceView* ShadowMaps[2];
     ShadowMaps[0] = m_pLightController->GetLight( 0 )->GetShadow()->DepthMapSRV();
@@ -337,27 +308,28 @@ void Application::Draw()
     m_cube.Draw( m_gfx.GetContext() );
 
     m_gfx.GetRasterizerController()->SetState( "None", m_gfx.GetContext() );
-    m_pAnimModel->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), &cb1, m_pCB );
+    m_pAnimModel->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), m_matrixCB );
     m_gfx.GetRasterizerController()->SetOverrideState( m_gfx.GetContext() );
 
     m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pVertexShader, nullptr, 0 );
-    m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &m_pCB );
-    m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, &m_pLightCB );
+    m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, m_matrixCB.GetAddressOf() );
+    m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
     m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pPixelShader, nullptr, 0 );
-    m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, &m_pLightCB );
+    m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
 
     WorldAsFloat = m_ground.GetTransfrom()->GetWorldMatrix();
     mGO = XMLoadFloat4x4( &WorldAsFloat );
-    cb1.mWorld = XMMatrixTranspose( mGO );
-    m_gfx.GetContext()->UpdateSubresource( m_pCB, 0, nullptr, &cb1, 0, 0 );
+    m_matrixCB.data.mWorld = XMMatrixTranspose( mGO );
+    if ( !m_matrixCB.ApplyChanges() )
+        return;
     m_ground.GetAppearance()->SetTextures( m_gfx.GetContext() );
     m_ground.Draw( m_gfx.GetContext() );
 
     // Render terrain
-    m_pVoxelTerrain->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), &cb1, m_pCB, m_pCamController );
-    m_pTerrain->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), &cb1, m_pCB, m_pCamController );
-    m_gfx.GetContext()->HSSetConstantBuffers( 2, 1, &m_pLightCB );
-    m_pBillboard->Draw( m_gfx.GetContext(), m_gfx.GetShaderController()->GetGeometryData(), &cb1, m_pCB );
+    m_pVoxelTerrain->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), m_matrixCB, m_pCamController );
+    m_pTerrain->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), m_matrixCB, m_pCamController );
+    m_gfx.GetContext()->HSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
+    m_pBillboard->Draw( m_gfx.GetContext(), m_gfx.GetShaderController()->GetGeometryData(), m_matrixCB );
     m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
 
     // Post 2d
@@ -390,18 +362,19 @@ void Application::Draw()
         RTTprojection = XMLoadFloat4x4( &projectionAsFloats );
 
         // store this and the view / projection in a constant buffer for the vertex shader to use
-        cb1.mWorld = XMMatrixTranspose( mGO );
-        cb1.mView = XMMatrixTranspose( RTTview );
-        cb1.mProjection = XMMatrixTranspose( RTTprojection );
-        cb1.vOutputColor = XMFLOAT4( 0, 0, 0, 0 );
-        m_gfx.GetContext()->UpdateSubresource( m_pCB, 0, nullptr, &cb1, 0, 0 );
+        m_matrixCB.data.mWorld = XMMatrixTranspose( mGO );
+        m_matrixCB.data.mView = XMMatrixTranspose( RTTview );
+        m_matrixCB.data.mProjection = XMMatrixTranspose( RTTprojection );
+        m_matrixCB.data.vOutputColor = XMFLOAT4( 0, 0, 0, 0 );
+		if ( !m_matrixCB.ApplyChanges() )
+			return;
 
         // Render the cube
         m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderData().m_pVertexShader, nullptr, 0 );
-        m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &m_pCB );
-        m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, &m_pLightCB );
+        m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, m_matrixCB.GetAddressOf() );
+        m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
         m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderData().m_pPixelShader, nullptr, 0 );
-        m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, &m_pLightCB );
+        m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
 
         // Set textures to buffer
         ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
@@ -409,16 +382,16 @@ void Application::Draw()
         m_cube.Draw( m_gfx.GetContext() );
 
         // Lights
-        m_pLightController->Draw( m_gfx.GetContext(), m_pCB, &cb1 );
+        m_pLightController->Draw( m_gfx.GetContext(), m_matrixCB );
     }
     else
     {
         m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pVertexShader, nullptr, 0 );
-        m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &m_pCB );
-        m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, &m_pLightCB );
+        m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, m_matrixCB.GetAddressOf() );
+        m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
         m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pPixelShader, nullptr, 0 );
-        m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, &m_pLightCB );
-        m_pLightController->Draw( m_gfx.GetContext(), m_pCB, &cb1 );
+        m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
+        m_pLightController->Draw( m_gfx.GetContext(), m_matrixCB );
         m_gfx.GetRasterizerController()->SetState( "Back", m_gfx.GetContext() );
 
         // Render 3d objects
@@ -435,29 +408,31 @@ void Application::Draw()
         XMMATRIX RTTprojection = XMLoadFloat4x4( &projectionAsFloats );
 
         // store this and the view / projection in a constant buffer for the vertex shader to use
-        ConstantBuffer cb1;
-        cb1.mWorld = XMMatrixTranspose( mGO );
-        cb1.mView = XMMatrixTranspose( RTTview );
-        cb1.mProjection = XMMatrixTranspose( RTTprojection );
-        cb1.vOutputColor = XMFLOAT4( 0, 0, 0, 0 );
-        m_gfx.GetContext()->UpdateSubresource( m_pCB, 0, nullptr, &cb1, 0, 0 );
+        m_matrixCB.data.mWorld = XMMatrixTranspose( mGO );
+        m_matrixCB.data.mView = XMMatrixTranspose( RTTview );
+        m_matrixCB.data.mProjection = XMMatrixTranspose( RTTprojection );
+        m_matrixCB.data.vOutputColor = XMFLOAT4( 0, 0, 0, 0 );
+        if ( !m_matrixCB.ApplyChanges() )
+            return;
 
         // Render the cube
         m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
         m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
         m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Depth" ).m_pVertexShader, nullptr, 0 );
-        m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &m_pCB );
+        m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, m_matrixCB.GetAddressOf() );
         m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Depth" ).m_pPixelShader, nullptr, 0 );
-        m_gfx.GetContext()->UpdateSubresource( m_pPostProcessingCB, 0, nullptr, &m_ppSettings, 0, 0 );
-        m_gfx.GetContext()->PSSetConstantBuffers( 1, 1, &m_pPostProcessingCB );
+        if ( !m_postProcessingCB.ApplyChanges() )
+            return;
+        m_gfx.GetContext()->PSSetConstantBuffers( 1, 1, m_postProcessingCB.GetAddressOf() );
         m_cube.Draw( m_gfx.GetContext() );
 
         WorldAsFloat = m_ground.GetTransfrom()->GetWorldMatrix();
         mGO = XMLoadFloat4x4( &WorldAsFloat );
-        cb1.mWorld = XMMatrixTranspose( mGO );
-        m_gfx.GetContext()->UpdateSubresource( m_pCB, 0, nullptr, &cb1, 0, 0 );
+        m_matrixCB.data.mWorld = XMMatrixTranspose( mGO );
+        if ( !m_matrixCB.ApplyChanges() )
+            return;
         m_ground.Draw( m_gfx.GetContext() );
-        m_pLightController->Draw( m_gfx.GetContext(), m_pCB, &cb1 );
+        m_pLightController->Draw( m_gfx.GetContext(), m_matrixCB );
 
         // Setup the viewport
         D3D11_VIEWPORT vp2;
@@ -474,7 +449,7 @@ void Application::Draw()
         ID3D11Buffer* pBuffers[1] = { m_pScreenQuadVB };
 
         // Bloom alpha
-        if ( &m_ppSettings.UseBloom )
+        if ( &m_postProcessingCB.data.UseBloom )
         {
             m_gfx.GetRenderTargetController()->GetRenderTarget( "Alpha" )->SetRenderTarget( m_gfx.GetContext() );
             m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Alpha" ).m_pVertexLayout );
@@ -483,15 +458,16 @@ void Application::Draw()
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
             m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Alpha" ).m_pVertexShader, nullptr, 0 );
             m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Alpha" ).m_pPixelShader, nullptr, 0 );
-            m_gfx.GetContext()->UpdateSubresource( m_pPostProcessingCB, 0, nullptr, &m_ppSettings, 0, 0 );
-            m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &m_pPostProcessingCB );
+            if ( !m_postProcessingCB.ApplyChanges() )
+                return;
+            m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
             ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
             m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
             m_gfx.GetContext()->Draw( 4, 0 );
         }
 
         // Blur passes
-        if ( m_ppSettings.UseBlur || m_ppSettings.UseBloom || m_ppSettings.UseDepthOfF )
+        if ( m_postProcessingCB.data.UseBlur || m_postProcessingCB.data.UseBloom || m_postProcessingCB.data.UseDepthOfF )
         {
             // Setup the viewport
             D3D11_VIEWPORT vp2;
@@ -511,10 +487,11 @@ void Application::Draw()
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
             m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "SolidColour" ).m_pVertexShader, nullptr, 0 );
             m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "SolidColour" ).m_pPixelShader, nullptr, 0 );
-            m_gfx.GetContext()->UpdateSubresource( m_pPostProcessingCB, 0, nullptr, &m_ppSettings, 0, 0 );
-            m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &m_pPostProcessingCB );
+            if ( !m_postProcessingCB.ApplyChanges() )
+                return;
+            m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
 
-            if ( m_ppSettings.UseBloom )
+            if ( m_postProcessingCB.data.UseBloom )
             {
                 ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Alpha" )->GetTexture();
             }
@@ -533,8 +510,9 @@ void Application::Draw()
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
             m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Gaussian1" ).m_pVertexShader, nullptr, 0 );
             m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Gaussian1" ).m_pPixelShader, nullptr, 0 );
-            m_gfx.GetContext()->UpdateSubresource( m_pPostProcessingCB, 0, nullptr, &m_ppSettings, 0, 0 );
-            m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &m_pPostProcessingCB );
+            if ( !m_postProcessingCB.ApplyChanges() )
+                return;
+            m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
             ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "DownSample" )->GetTexture();
             m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
             m_gfx.GetContext()->Draw( 4, 0 );
@@ -547,8 +525,9 @@ void Application::Draw()
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
             m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Gaussian2" ).m_pVertexShader, nullptr, 0 );
             m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Gaussian2" ).m_pPixelShader, nullptr, 0 );
-            m_gfx.GetContext()->UpdateSubresource( m_pPostProcessingCB, 0, nullptr, &m_ppSettings, 0, 0 );
-            m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &m_pPostProcessingCB );
+            if ( !m_postProcessingCB.ApplyChanges() )
+                return;
+            m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
             ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Gaussian1" )->GetTexture();
             m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
             m_gfx.GetContext()->Draw( 4, 0 );
@@ -571,8 +550,9 @@ void Application::Draw()
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
             m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "SolidColour" ).m_pVertexShader, nullptr, 0 );
             m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "SolidColour" ).m_pPixelShader, nullptr, 0 );
-            m_gfx.GetContext()->UpdateSubresource( m_pPostProcessingCB, 0, nullptr, &m_ppSettings, 0, 0 );
-            m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &m_pPostProcessingCB );
+            if ( !m_postProcessingCB.ApplyChanges() )
+                return;
+			m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
             ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Gaussian2" )->GetTexture();
             m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
             m_gfx.GetContext()->Draw( 4, 0 );
@@ -580,7 +560,7 @@ void Application::Draw()
 
         ID3D11ShaderResourceView* ResourceView2;
         ID3D11ShaderResourceView* ResourceView3;
-        if ( m_ppSettings.UseDepthOfF )
+        if ( m_postProcessingCB.data.UseDepthOfF )
         {
             // Depth of field
             m_gfx.GetRenderTargetController()->GetRenderTarget( "DepthOfField" )->SetRenderTarget( m_gfx.GetContext() );
@@ -590,8 +570,9 @@ void Application::Draw()
             m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
             m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "DepthOfField" ).m_pVertexShader, nullptr, 0 );
             m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "DepthOfField" ).m_pPixelShader, nullptr, 0 );
-            m_gfx.GetContext()->UpdateSubresource( m_pPostProcessingCB, 0, nullptr, &m_ppSettings, 0, 0 );
-            m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &m_pPostProcessingCB );
+            if ( !m_postProcessingCB.ApplyChanges() )
+                return;
+            m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
             ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
             ResourceView2 = m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->GetTexture();
             ResourceView3 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Depth" )->GetTexture();
@@ -609,14 +590,15 @@ void Application::Draw()
         m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
         m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Fade" ).m_pVertexShader, nullptr, 0 );
         m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Fade" ).m_pPixelShader, nullptr, 0 );
-        m_gfx.GetContext()->UpdateSubresource( m_pPostProcessingCB, 0, nullptr, &m_ppSettings, 0, 0 );
-        m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &m_pPostProcessingCB );
+        if ( !m_postProcessingCB.ApplyChanges() )
+            return;
+		m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
 
-        if ( m_ppSettings.UseBlur )
+        if ( m_postProcessingCB.data.UseBlur )
         {
             ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->GetTexture();
         }
-        else if ( m_ppSettings.UseDepthOfF )
+        else if ( m_postProcessingCB.data.UseDepthOfF )
         {
             ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "DepthOfField" )->GetTexture();
         }
@@ -640,8 +622,9 @@ void Application::Draw()
         m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Final" ).m_pPixelShader, nullptr, 0 );
         ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Fade" )->GetTexture();
         ResourceView2 = m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->GetTexture();
-        m_gfx.GetContext()->UpdateSubresource( m_pPostProcessingCB, 0, nullptr, &m_ppSettings, 0, 0 );
-        m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, &m_pPostProcessingCB );
+        if ( !m_postProcessingCB.ApplyChanges() )
+            return;
+        m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
         m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
         m_gfx.GetContext()->PSSetShaderResources( 1, 1, &ResourceView2 );
         m_gfx.GetContext()->Draw( 4, 0 );
@@ -651,7 +634,7 @@ void Application::Draw()
     m_pImGuiManager->CameraMenu( m_pCamController );
     m_pImGuiManager->ObjectMenu( &m_cube );
     m_pImGuiManager->LightMenu( m_pLightController );
-    m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_ppSettings, m_gfx.GetRasterizerController(), m_bIsRTT );
+    m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_postProcessingCB.data, m_gfx.GetRasterizerController(), m_bIsRTT );
     m_pImGuiManager->BillboardMenu( m_pBillboard );
     m_pImGuiManager->BezierSplineMenu();
     m_pImGuiManager->TerrainMenu( m_pTerrain, m_pVoxelTerrain, m_gfx.GetDevice(), m_gfx.GetContext() );
@@ -691,11 +674,11 @@ float Application::CalculateDeltaTime()
 
 void Application::SetupLightForRender()
 {
-    LightPropertiesConstantBuffer lightProperties;
-    lightProperties.EyePosition = m_pCamController->GetCam( 0 )->GetPositionFloat4();
-    lightProperties.Lights[0] = m_pLightController->GetLight( 0 )->GetLightData();
-    lightProperties.Lights[1] = m_pLightController->GetLight( 1 )->GetLightData();
-    m_gfx.GetContext()->UpdateSubresource( m_pLightCB, 0, nullptr, &lightProperties, 0, 0 );
+    m_lightCB.data.EyePosition = m_pCamController->GetCam( 0 )->GetPositionFloat4();
+    m_lightCB.data.Lights[0] = m_pLightController->GetLight( 0 )->GetLightData();
+    m_lightCB.data.Lights[1] = m_pLightController->GetLight( 1 )->GetLightData();
+    if ( !m_lightCB.ApplyChanges() )
+        return;
 }
 
 void Application::Cleanup()
@@ -707,7 +690,7 @@ void Application::Cleanup()
     m_pInput = nullptr;
 
     delete m_pCamController;
-    m_pCB = nullptr;
+    m_pCamController = nullptr;
 
     delete m_pLightController;
     m_pLightController = nullptr;
@@ -732,12 +715,6 @@ void Application::Cleanup()
     // Remove any bound render target or depth/stencil buffer
     ID3D11RenderTargetView* nullViews[] = { nullptr };
     m_gfx.GetContext()->OMSetRenderTargets( _countof( nullViews ), nullViews, nullptr );
-
-    if ( m_pLightCB )
-        m_pLightCB->Release();
-
-    if ( m_pCB ) m_pCB->Release();
-    if ( m_pPostProcessingCB )m_pPostProcessingCB->Release();
 
     if ( m_pScreenQuadVB ) m_pScreenQuadVB->Release();
 

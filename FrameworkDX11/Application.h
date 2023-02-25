@@ -8,6 +8,7 @@
 
 #include "resource.h"
 #include "Structures.h"
+#include "ConstantBuffer.h"
 #include "DDSTextureLoader.h"
 
 #include "ShadowMap.h"
@@ -25,11 +26,9 @@ class Application : public WindowContainer
 {
 private:
 	// Constant buffers
-	ID3D11Buffer* m_pCB;
-	ID3D11Buffer* m_pLightCB;
-	ID3D11Buffer* m_pPostProcessingCB;
-	PostProcessingCB m_ppSettings;
-	bool m_bIsRTT = false;
+	ConstantBuffer<MatrixBuffer> m_matrixCB;
+	ConstantBuffer<LightPropertiesCB> m_lightCB;
+	ConstantBuffer<PostProcessingCB> m_postProcessingCB;
 
 	// Fullscreen quad
 	struct SCREEN_VERTEX
@@ -37,6 +36,7 @@ private:
 		XMFLOAT3 pos;
 		XMFLOAT2 tex;
 	};
+	bool m_bIsRTT = false;
 	ID3D11Buffer* m_pScreenQuadVB = nullptr;
 	XMMATRIX m_mProjection;
 	XMMATRIX m_mView;

@@ -6,6 +6,7 @@
 #include "ShaderController.h"
 #include "CameraController.h"
 #include "TerrainAppearence.h"
+#include "ConstantBuffer.h"
 
 // Noise generator : https://github.com/Auburn/FastNoiseLite
 #include "fastNoiseLite\Cpp\FastNoiseLite.h"
@@ -65,15 +66,14 @@ public:
     ~Chunk();
     void Draw(
         ID3D11DeviceContext* pContext, ShaderController* shaderControl,
-        ConstantBuffer* cbuffer, ID3D11Buffer* buffer,
-        CameraController* camControl, ID3D11Buffer* voxelCb );
+        ConstantBuffer<MatrixBuffer>& cbuffer, CameraController* camControl, ID3D11Buffer* voxelCb );
 
     inline Transform* GetTransform() const noexcept { return m_pChunkTransform; }
     inline int GetMaxHeight() const noexcept { return m_iMaxHeight; }
     inline void SetSeed( int seed ) noexcept { m_iSeed = seed; }
 
 private:
-    void GenrateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+    void GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
     void CleanUp();
 
     int m_iXSize = 16;
@@ -95,7 +95,7 @@ public:
     TerrainVoxel( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ShaderController* shaderControl, int numOfChunks_X, int numOfChunks_Z );
     ~TerrainVoxel();
 
-    void Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer* cbuffer, ID3D11Buffer* buffer, CameraController* camControl );
+    void Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer<MatrixBuffer>& buffer, CameraController* camControl );
     void RebuildMap( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, int seed, int numOfChunks_X, int numOfChunks_Z, float frequency, int octave );
 
     inline bool* GetIsDraw() noexcept { return &m_bToDraw; }

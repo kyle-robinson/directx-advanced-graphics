@@ -8,6 +8,7 @@
 #include "ShaderController.h"
 #include "TerrainAppearence.h"
 #include "C++HelperFunctions.h"
+#include "ConstantBuffer.h"
 
 enum class TerrainGenType
 {
@@ -26,7 +27,7 @@ public:
 
 	void Update();
 	void Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl,
-		ConstantBuffer* cbuffer, ID3D11Buffer* buffer, CameraController* camControl );
+		ConstantBuffer<MatrixBuffer>& buffer, CameraController* camControl );
 
 	inline TerrainGenType GetGenType() const noexcept { return m_eTerrainCreationType; }
 	inline TerrainCB GetTerrainData() const noexcept { return m_terrainSettings; }

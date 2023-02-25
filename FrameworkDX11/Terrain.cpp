@@ -108,7 +108,7 @@ Terrain::~Terrain()
 
 void Terrain::Update() {}
 
-void Terrain::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer* cbuffer, ID3D11Buffer* buffer, CameraController* camControl )
+void Terrain::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer<MatrixBuffer>& buffer, CameraController* camControl )
 {
     if ( m_bToDraw )
     {
@@ -117,8 +117,9 @@ void Terrain::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderContr
 
         XMFLOAT4X4 worldAsFloat = m_pTransform->GetWorldMatrix();
         XMMATRIX mGO = XMLoadFloat4x4( &worldAsFloat );
-        cbuffer->mWorld = XMMatrixTranspose( mGO );
-        pContext->UpdateSubresource( buffer, 0, nullptr, buffer, 0, 0 );
+        buffer.data.mWorld = XMMatrixTranspose( mGO );
+		if ( !buffer.ApplyChanges() )
+			return;
 
         // Setup frustrum planes for culling terrain when not in view
         XMFLOAT4X4 viewAsFloats = camControl->GetCam( 0 )->GetView();
@@ -140,17 +141,17 @@ void Terrain::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderContr
 
         // Setup shaders
         pContext->VSSetShader( shaderControl->GetShaderByName( "Terrain" ).m_pVertexShader, nullptr, 0 );
-        pContext->VSSetConstantBuffers( 0, 1, &buffer );
+        pContext->VSSetConstantBuffers( 0, 1, buffer.GetAddressOf() );
         pContext->HSSetConstantBuffers( 4, 1, &m_pTerrainCB );
         pContext->VSSetShaderResources( 1, 1, &m_pHeightMapSRV );
 
         pContext->HSSetShader( shaderControl->GetShaderByName( "Terrain" ).m_pHullShader, nullptr, 0 );
-        pContext->HSSetConstantBuffers( 0, 1, &buffer );
+        pContext->HSSetConstantBuffers( 0, 1, buffer.GetAddressOf() );
         pContext->HSSetConstantBuffers( 4, 1, &m_pTerrainCB );
         pContext->HSSetShaderResources( 1, 1, &m_pHeightMapSRV );
 
         pContext->DSSetShader( shaderControl->GetShaderByName( "Terrain" ).m_pDomainShader, nullptr, 0 );
-        pContext->DSSetConstantBuffers( 0, 1, &buffer );
+        pContext->DSSetConstantBuffers( 0, 1, buffer.GetAddressOf() );
         pContext->DSSetConstantBuffers( 4, 1, &m_pTerrainCB );
         pContext->DSSetShaderResources( 1, 1, &m_pHeightMapSRV );
 

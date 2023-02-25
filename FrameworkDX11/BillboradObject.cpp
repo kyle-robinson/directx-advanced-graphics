@@ -57,7 +57,7 @@ void BillboardObject::CreateBillboard( int num, ID3D11Device* pDevice )
     pDevice->CreateBuffer( &billboardBufferDesc, &initData, &m_pBillboardVertexBuffer );
 }
 
-void BillboardObject::Draw( ID3D11DeviceContext* pContext, ShaderController::ShaderData shaderData, ConstantBuffer* cbuffer, ID3D11Buffer* buffer )
+void BillboardObject::Draw( ID3D11DeviceContext* pContext, ShaderController::ShaderData shaderData, ConstantBuffer<MatrixBuffer>& buffer )
 {
     pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_POINTLIST );
     pContext->IASetInputLayout( shaderData.m_pVertexLayout );
@@ -65,8 +65,9 @@ void BillboardObject::Draw( ID3D11DeviceContext* pContext, ShaderController::Sha
     UINT strides[2] = { sizeof( SimpleVertexBillboard ), sizeof( SimpleVertexBillboard ) };
     UINT offsets[2] = { 0, 0 };
 
-    cbuffer->mWorld = XMMatrixIdentity();
-    pContext->UpdateSubresource( buffer, 0, nullptr, cbuffer, 0, 0 );
+    buffer.data.mWorld = XMMatrixIdentity();
+    if ( !buffer.ApplyChanges() )
+        return;
 
     // Load vertex buffers
     ID3D11Buffer* vertBillInstBuffers[2] = { m_pBillboardVertexBuffer, m_pBillboardInstanceBuffer };
@@ -74,11 +75,11 @@ void BillboardObject::Draw( ID3D11DeviceContext* pContext, ShaderController::Sha
 
 	// Set shaders
     pContext->VSSetShader( shaderData.m_pVertexShader, nullptr, 0 );
-    pContext->VSSetConstantBuffers( 0, 1, &buffer );
+    pContext->VSSetConstantBuffers( 0, 1, buffer.GetAddressOf() );
 
     // Geometry shader is used to create the plane of the billboard
     pContext->GSSetShader( shaderData.m_pGeometryShader, nullptr, 0 );
-    pContext->GSSetConstantBuffers( 0, 1, &buffer );
+    pContext->GSSetConstantBuffers( 0, 1, buffer.GetAddressOf() );
     pContext->PSSetShaderResources( 0, 1, &m_pDiffuseResourceView );
     pContext->PSSetShader( shaderData.m_pPixelShader, nullptr, 0 );
     pContext->DrawInstanced( 1, m_iNumberOfBillBoards, 0, 0 );
