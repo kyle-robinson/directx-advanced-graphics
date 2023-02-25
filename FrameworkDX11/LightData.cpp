@@ -68,7 +68,7 @@ void LightData::Update( float dt, ID3D11DeviceContext* pContext )
 		if ( m_pLightObject->GetAppearance() )
 		{
 			m_pLightObject->GetTransfrom()->SetPosition( m_lightData.Position.x, m_lightData.Position.y, m_lightData.Position.z );
-			m_pLightObject->update( dt, pContext );
+			m_pLightObject->Update( dt, pContext );
 		}
 	}
 
@@ -168,7 +168,7 @@ void LightData::CreateShadowMap( ID3D11DeviceContext* pContext, std::vector<Draw
 		XMMATRIX mGO = XMLoadFloat4x4( &worldAsFloat );
 		cb1.mWorld = XMMatrixTranspose( mGO );
 		pContext->UpdateSubresource( *buffer, 0, nullptr, &cb1, 0, 0 );
-		object->draw( pContext );
+		object->Draw( pContext );
 	}
 }
 

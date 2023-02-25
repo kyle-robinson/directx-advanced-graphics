@@ -1,12 +1,13 @@
+#include "stdafx.h"
 #include "ImGuiManager.h"
-#include "DrawableGameObject.h"
 #include "LightController.h"
+#include "DrawableGameObject.h"
+#include "RasterizerController.h"
 #include "ShaderController.h"
 #include "BillboradObject.h"
-#include "Terrain.h"
-#include "TerrainVoxel.h"
-#include "RasterizerController.h"
 #include "AnimatedModel.h"
+#include "TerrainVoxel.h"
+#include "Terrain.h"
 
 ImGuiManager::ImGuiManager()
 {
@@ -21,12 +22,11 @@ ImGuiManager::~ImGuiManager()
     ImGui::DestroyContext();
 }
 
-void ImGuiManager::Initialize( HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* context )
+void ImGuiManager::Initialize( HWND hWnd, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
     ImGui_ImplWin32_Init( hWnd );
-    ImGui_ImplDX11_Init( device, context );
+    ImGui_ImplDX11_Init( pDevice, pContext );
 }
-
 
 void ImGuiManager::BeginRender()
 {
@@ -41,53 +41,47 @@ void ImGuiManager::EndRender()
     ImGui_ImplDX11_RenderDrawData( ImGui::GetDrawData() );
 }
 
-//cam controll menu
-static const char* current_item = NULL;
-static string name;
-static bool Load = false;
-void ImGuiManager::DrawCamMenu( CameraController* Cams )
+void ImGuiManager::CameraMenu( CameraController* cameraControl )
 {
+    static const char* cCurrentItem = NULL;
+    static bool bLoad = false;
+    static std::string sName;
+
     ImGui::ShowMetricsWindow();
-    if ( !Load )
+    if ( !bLoad )
     {
-        name = Cams->GetCurentCam()->GetCamName();
-        current_item = name.c_str();
-        Load = true;
+        sName = cameraControl->GetCurentCam()->GetCamName();
+        cCurrentItem = sName.c_str();
+        bLoad = true;
     }
 
-    if ( ImGui::Begin( "Cam Controls", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    if ( ImGui::Begin( "Camera Control", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
         if ( ImGui::CollapsingHeader( "Camera Controls" ) )
         {
-            ImGui::Text( "W                 Forward" );
-            ImGui::Text( "A                 Left" );
-            ImGui::Text( "S                 Backward" );
-            ImGui::Text( "D                 Right" );
-            ImGui::Text( "Leftmouse + move                 Look" );
+            ImGui::Text( "WASD      Move" );
+            ImGui::Text( "LMouse    Look" );
             ImGui::Separator();
-
         }
-        if ( ImGui::CollapsingHeader( "Cam Select" ) )
+
+        if ( ImGui::CollapsingHeader( "Camera Select" ) )
         {
-
-            if ( ImGui::BeginCombo( "##combo", current_item ) ) // The second parameter is the label previewed before opening the combo.
+            if ( ImGui::BeginCombo( "##Combo", cCurrentItem ) )
             {
-                for ( int n = 0; n < Cams->GetCamList().size(); n++ )
+                for ( int n = 0; n < cameraControl->GetCamList().size(); n++ )
                 {
-                    bool is_selected = ( current_item == Cams->GetCamList()[n]->GetCamName().c_str() ); // You can store your selection however you want, outside or inside your objects
-                    if ( ImGui::Selectable( Cams->GetCamList()[n]->GetCamName().c_str(), is_selected ) )
+                    bool is_selected = ( cCurrentItem == cameraControl->GetCamList()[n]->GetCamName().c_str() );
+                    if ( ImGui::Selectable( cameraControl->GetCamList()[n]->GetCamName().c_str(), is_selected ) )
                     {
-
-                        name = Cams->GetCamList()[n]->GetCamName();
-                        Cams->SetCam( n );
-                        current_item = name.c_str();
+                        sName = cameraControl->GetCamList()[n]->GetCamName();
+                        cameraControl->SetCam( n );
+                        cCurrentItem = sName.c_str();
                     }
+
                     if ( is_selected )
                     {
-                        ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
-
+                        ImGui::SetItemDefaultFocus();
                     }
-
                 }
                 ImGui::EndCombo();
             }
@@ -96,55 +90,46 @@ void ImGuiManager::DrawCamMenu( CameraController* Cams )
     ImGui::End();
 }
 
-//post processing and shader controll menus
-static const char* current_Shader = NULL;
-static string Shadername;
-static bool LoadShader = false;
-static string current_RasterState = "";
-void ImGuiManager::ShaderMenu( ShaderController* Shader, PostProcessingCB* postSettings, RasterizerController* RasterState, bool& rtt )
+void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB* postSettings, RasterizerController* rasterControl, bool& rtt )
 {
-    if ( !LoadShader )
+    static std::string sCurrentRasterState = "";
+    static const char* cCurrentShader = NULL;
+    static bool bLoadShader = false;
+    static std::string sShaderName;
+
+    if ( !bLoadShader )
     {
-        Shadername = Shader->GetShaderData().m_sName;
-        current_Shader = Shadername.c_str();
-
-
-
-        LoadShader = true;
+        sShaderName = shaderControl->GetShaderData().m_sName;
+        cCurrentShader = sShaderName.c_str();
+        bLoadShader = true;
     }
 
     if ( ImGui::Begin( "Shader Controls", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
-
         if ( ImGui::CollapsingHeader( "Shader Select" ) )
         {
-
-            if ( ImGui::BeginCombo( "##combo", current_Shader ) ) // The second parameter is the label previewed before opening the combo.
+            if ( ImGui::BeginCombo( "##Combo", cCurrentShader ) )
             {
-                for ( int n = 0; n < Shader->GetShaderList().size(); n++ )
+                for ( int n = 0; n < shaderControl->GetShaderList().size(); n++ )
                 {
-                    bool is_selected = ( current_Shader == Shader->GetShaderList()[n].m_sName.c_str() ); // You can store your selection however you want, outside or inside your objects
-                    if ( ImGui::Selectable( Shader->GetShaderList()[n].m_sName.c_str(), is_selected ) )
+                    bool is_selected = ( cCurrentShader == shaderControl->GetShaderList()[n].m_sName.c_str() );
+                    if ( ImGui::Selectable( shaderControl->GetShaderList()[n].m_sName.c_str(), is_selected ) )
                     {
-
-                        Shadername = Shader->GetShaderList()[n].m_sName;
-                        Shader->SetShaderData( n );
-                        current_Shader = Shadername.c_str();
+                        sShaderName = shaderControl->GetShaderList()[n].m_sName;
+                        shaderControl->SetShaderData( n );
+                        cCurrentShader = sShaderName.c_str();
                     }
+
                     if ( is_selected )
                     {
-                        ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
-
+                        ImGui::SetItemDefaultFocus();
                     }
-
                 }
                 ImGui::EndCombo();
             }
-
-
-
         }
-        if ( ImGui::CollapsingHeader( "Post Processing" ) )
+
+        if ( ImGui::CollapsingHeader( "Post-Processing" ) )
         {
             PostProcessingCB* currentPPCB = postSettings;
 
@@ -161,47 +146,37 @@ void ImGuiManager::ShaderMenu( ShaderController* Shader, PostProcessingCB* postS
             currentPPCB->UseBloom = useBloom;
 
             bool useDOF = currentPPCB->UseDepthOfF;
-            ImGui::Checkbox( "DepthOfField", &useDOF );
+            ImGui::Checkbox( "Depth Of Field", &useDOF );
             currentPPCB->UseDepthOfF = useDOF;
 
             ImGui::InputFloat( "DOF Far", &currentPPCB->FarPlane );
             if ( currentPPCB->FarPlane < 0 )
-            {
                 currentPPCB->FarPlane = 0;
-            }
 
-
-            ImGui::InputFloat( "DOF Foacal width", &currentPPCB->focalwidth );
-            ImGui::InputFloat( "DOF Focal Dis", &currentPPCB->focalDistance );
-            ImGui::InputFloat( "DOF Attuenation", &currentPPCB->blerAttenuation );
+            ImGui::InputFloat( "DOF Foacl Width", &currentPPCB->FocalWidth );
+            ImGui::InputFloat( "DOF Focal Distance", &currentPPCB->FocalDistance );
+            ImGui::InputFloat( "DOF Attuenation", &currentPPCB->BlurAttenuation );
 
             bool useblue = currentPPCB->UseBlur;
-
             ImGui::Checkbox( "Blur", &useblue );
             currentPPCB->UseBlur = useblue;
 
-
             ImGui::Checkbox( "RTT", &rtt );
-
-            ImGui::SliderFloat( "FadeLevel", &currentPPCB->fadeAmount, 0.0f, 1.0f, "%.3f" );
-
-
+            ImGui::SliderFloat( "FadeLevel", &currentPPCB->FadeAmount, 0.0f, 1.0f, "%.3f" );
         }
-        if ( ImGui::CollapsingHeader( "Raster Select" ) )
+
+        if ( ImGui::CollapsingHeader( "Rasterizer Select" ) )
         {
-
-            if ( ImGui::BeginCombo( "##RScombo", current_RasterState.c_str() ) ) // The second parameter is the label previewed before opening the combo.
+            if ( ImGui::BeginCombo( "##RScombo", sCurrentRasterState.c_str() ) )
             {
-                for ( int n = 0; n < RasterState->GetStateNames().size(); n++ )
+                for ( int n = 0; n < rasterControl->GetStateNames().size(); n++ )
                 {
-                    bool is_selected = ( current_RasterState == RasterState->GetStateNames()[n].c_str() ); // You can store your selection however you want, outside or inside your objects
-                    if ( ImGui::Selectable( RasterState->GetStateNames()[n].c_str(), is_selected ) )
+                    bool is_selected = ( sCurrentRasterState == rasterControl->GetStateNames()[n].c_str() );
+                    if ( ImGui::Selectable( rasterControl->GetStateNames()[n].c_str(), is_selected ) )
                     {
-
-                        RasterState->SetState( RasterState->GetStateNames()[n].c_str() );
-                        current_RasterState = RasterState->GetStateNames()[n].c_str();
+                        rasterControl->SetState( rasterControl->GetStateNames()[n].c_str() );
+                        sCurrentRasterState = rasterControl->GetStateNames()[n].c_str();
                     }
-
                 }
                 ImGui::EndCombo();
             }
@@ -210,28 +185,26 @@ void ImGuiManager::ShaderMenu( ShaderController* Shader, PostProcessingCB* postS
     ImGui::End();
 }
 
-
-//objec control menue
-static float rotationX, rotationY, rotationZ;
-static float pos[] = { 0.0f,0.0f,0.0f };
-void ImGuiManager::ObjectControl( DrawableGameObject* GameObject )
+void ImGuiManager::ObjectMenu( DrawableGameObject* gameObject )
 {
-    if ( ImGui::Begin( "object Controll", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
-    {
-        if ( ImGui::CollapsingHeader( "contolls" ) )
-        {
-            ImGui::SliderFloat( "Rotation X", &rotationX, 0, 360 );
-            ImGui::SliderFloat( "Rotation Y", &rotationY, 0, 360 );
-            ImGui::SliderFloat( "Rotation Z", &rotationZ, 0, 360 );
-            GameObject->GetTransfrom()->SetRotation( rotationX, rotationY, rotationZ );
+    static float rotationX, rotationY, rotationZ;
+    static float pos[] = { 0.0f,0.0f,0.0f };
 
+    if ( ImGui::Begin( "Object Control", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    {
+        if ( ImGui::CollapsingHeader( "Controls" ) )
+        {
+            ImGui::Text( "Rotation" );
+            ImGui::SliderFloat( "X##Rotation", &rotationX, 0, 360 );
+            ImGui::SliderFloat( "Y##Rotation", &rotationY, 0, 360 );
+            ImGui::SliderFloat( "Z##Rotation", &rotationZ, 0, 360 );
+            gameObject->GetTransfrom()->SetRotation( rotationX, rotationY, rotationZ );
 
             ImGui::Text( "Position" );
-            ImGui::InputFloat( "X", &pos[0] );
-            ImGui::InputFloat( "Y", &pos[1] );
-            ImGui::InputFloat( "Z", &pos[2] );
-            GameObject->GetTransfrom()->SetPosition( pos[0], pos[1], pos[2] );
-
+            ImGui::InputFloat( "X##Position", &pos[0] );
+            ImGui::InputFloat( "Y##Position", &pos[1] );
+            ImGui::InputFloat( "Z##Position", &pos[2] );
+            gameObject->GetTransfrom()->SetPosition( pos[0], pos[1], pos[2] );
 
             if ( ImGui::Button( "Reset" ) )
             {
@@ -243,21 +216,19 @@ void ImGuiManager::ObjectControl( DrawableGameObject* GameObject )
                 pos[2] = 0.0f;
             }
         }
-        if ( ImGui::CollapsingHeader( "Tex Controll" ) )
-        {
 
-            MaterialPropertiesConstantBuffer data = GameObject->GetAppearance()->getMaterialPropertiesConstantBuffer();
+        if ( ImGui::CollapsingHeader( "Texture Control" ) )
+        {
+            MaterialPropertiesConstantBuffer data = gameObject->GetAppearance()->getMaterialPropertiesConstantBuffer();
 
             bool booldata = data.Material.UseTexture;
             ImGui::Text( "Texture" );
             ImGui::Checkbox( "On", &booldata );
 
-            ImGui::Text( "Parralax Options" );
+            ImGui::Text( "Parallax Options" );
             ImGui::InputFloat( "Height Scale", &data.Material.HeightScale, 0.00f, 0.0f, "%.2f" );
             ImGui::InputFloat( "Max Layer", &data.Material.MaxLayers );
             ImGui::InputFloat( "Min Layer", &data.Material.MinLayers );
-
-
             data.Material.UseTexture = booldata;
 
             ImGui::Text( "Diffuse" );
@@ -265,230 +236,192 @@ void ImGuiManager::ObjectControl( DrawableGameObject* GameObject )
             ImGui::InputFloat( "dG", &data.Material.Diffuse.y );
             ImGui::InputFloat( "dB", &data.Material.Diffuse.z );
 
-
             ImGui::Text( "Specular" );
             ImGui::InputFloat( "sR", &data.Material.Specular.x );
             ImGui::InputFloat( "sG", &data.Material.Specular.y );
             ImGui::InputFloat( "sB", &data.Material.Specular.z );
             ImGui::InputFloat( "power", &data.Material.SpecularPower );
 
-            ImGui::Text( "emissive" );
+            ImGui::Text( "Emissive" );
             ImGui::InputFloat( "eR", &data.Material.Emissive.x );
             ImGui::InputFloat( "eG", &data.Material.Emissive.y );
             ImGui::InputFloat( "eB", &data.Material.Emissive.z );
 
-
-            ImGui::Text( "ambient" );
+            ImGui::Text( "Ambient" );
             ImGui::InputFloat( "aR", &data.Material.Ambient.x );
             ImGui::InputFloat( "aG", &data.Material.Ambient.y );
             ImGui::InputFloat( "aB", &data.Material.Ambient.z );
 
-
-            GameObject->GetAppearance()->SetMaterial( data );
+            gameObject->GetAppearance()->SetMaterial( data );
         }
     }
     ImGui::End();
 }
 
-//light control menu
-static const char* current_item1 = NULL;
-static string name1;
-static bool Load2 = false;
-
-static Light CurrLightData;
-
-void ImGuiManager::LightControl( LightController* LightControl )
+void ImGuiManager::LightMenu( LightController* lightControl )
 {
+    static const char* cCurrentItemL = NULL;
+    static Light currLightData;
+    static bool bLoadL = false;
+    static std::string nameL;
 
-    if ( !Load2 )
+    if ( !bLoadL )
     {
-        name1 = LightControl->GetLight( 0 )->GetName();
-        CurrLightData = LightControl->GetLightList()[0]->GetLightData();
-        current_item1 = name1.c_str();
-        Load2 = true;
+        nameL = lightControl->GetLight( 0 )->GetName();
+        currLightData = lightControl->GetLightList()[0]->GetLightData();
+        cCurrentItemL = nameL.c_str();
+        bLoadL = true;
     }
 
     if ( ImGui::Begin( "Light Control", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
-        if ( ImGui::CollapsingHeader( "contolls" ) )
+        if ( ImGui::CollapsingHeader( "Controls" ) )
         {
-            if ( ImGui::BeginCombo( "##combo", current_item1 ) ) // The second parameter is the label previewed before opening the combo.
+            if ( ImGui::BeginCombo( "##Combo", cCurrentItemL ) )
             {
-                for ( int n = 0; n < LightControl->GetLightList().size(); n++ )
+                for ( int n = 0; n < lightControl->GetLightList().size(); n++ )
                 {
-                    bool is_selected = ( current_item1 == LightControl->GetLightList()[n]->GetName().c_str() ); // You can store your selection however you want, outside or inside your objects
-                    if ( ImGui::Selectable( LightControl->GetLightList()[n]->GetName().c_str(), is_selected ) )
+                    bool is_selected = ( cCurrentItemL == lightControl->GetLightList()[n]->GetName().c_str() );
+                    if ( ImGui::Selectable( lightControl->GetLightList()[n]->GetName().c_str(), is_selected ) )
                     {
-
-                        name1 = LightControl->GetLightList()[n]->GetName().c_str();
-
-
-                        CurrLightData = LightControl->GetLightList()[n]->GetLightData();
-                        current_item1 = name1.c_str();
+                        nameL = lightControl->GetLightList()[n]->GetName().c_str();
+                        currLightData = lightControl->GetLightList()[n]->GetLightData();
+                        cCurrentItemL = nameL.c_str();
                     }
+
                     if ( is_selected )
                     {
-                        ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
-
+                        ImGui::SetItemDefaultFocus();
                     }
-
                 }
                 ImGui::EndCombo();
             }
 
-            CurrLightData = LightControl->GetLight( name1 )->GetLightData();
+            currLightData = lightControl->GetLight( nameL )->GetLightData();
 
             ImGui::Text( "Position" );
-            ImGui::InputFloat( "X", &CurrLightData.Position.x );
-            ImGui::InputFloat( "Y", &CurrLightData.Position.y );
-            ImGui::InputFloat( "Z", &CurrLightData.Position.z );
+            ImGui::InputFloat( "X", &currLightData.Position.x );
+            ImGui::InputFloat( "Y", &currLightData.Position.y );
+            ImGui::InputFloat( "Z", &currLightData.Position.z );
 
-
-            bool enable = CurrLightData.Enabled;
+            bool enable = currLightData.Enabled;
             ImGui::Checkbox( "Enabled", &enable );
-            CurrLightData.Enabled = enable;
+            currLightData.Enabled = enable;
 
-            float Colour[] = { CurrLightData.Color.x ,CurrLightData.Color.y,CurrLightData.Color.z,CurrLightData.Color.w };
+            float Colour[] = { currLightData.Color.x, currLightData.Color.y, currLightData.Color.z, currLightData.Color.w };
             ImGui::ColorPicker4( "Colour", Colour, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_DisplayRGB );
-            CurrLightData.Color = { Colour[0],Colour[1],Colour[2],Colour[3] };
+            currLightData.Color = { Colour[0],Colour[1],Colour[2],Colour[3] };
 
-            ImGui::Text( "Shdows Direction" );
+            ImGui::Text( "Shadows Direction" );
+            XMFLOAT3 lightDirection = lightControl->GetLight( cCurrentItemL )->GetCamera()->GetRot();
 
-            XMFLOAT3 LightDirection = LightControl->GetLight( current_item1 )->CamLight->GetRot();
+            ImGui::SliderAngle( "Pitch", &lightDirection.x, 0.995f * -90.0f, 0.995f * 90.0f );
+            ImGui::SliderAngle( "Yaw", &lightDirection.y, -180.0f, 180.0f );
 
-            ImGui::SliderAngle( "Pitch", &LightDirection.x, 0.995f * -90.0f, 0.995f * 90.0f );
-            ImGui::SliderAngle( "Yaw", &LightDirection.y, -180.0f, 180.0f );
-
-            LightControl->GetLight( current_item1 )->CamLight->SetRot( LightDirection );
-
-            switch ( LightControl->GetLight( name1 )->GetLightData().LightType )
+            lightControl->GetLight( cCurrentItemL )->GetCamera()->SetRot( lightDirection );
+            switch ( lightControl->GetLight( nameL )->GetLightData().LightType )
             {
-
             case LightType::PointLight:
-                ImGui::Text( "attenuation" );
-                ImGui::SliderFloat( "Constant", &CurrLightData.ConstantAttenuation, 1.0f, 10.0f, "%.2f" );
-                ImGui::SliderFloat( "Linear", &CurrLightData.LinearAttenuation, 0.0f, 5.0f, "%.4f" );
-                ImGui::SliderFloat( "Quadratic", &CurrLightData.QuadraticAttenuation, 0.0f, 2.0f, "%.7f" );
+                ImGui::Text( "Attenuation" );
+                ImGui::SliderFloat( "Constant", &currLightData.ConstantAttenuation, 1.0f, 10.0f, "%.2f" );
+                ImGui::SliderFloat( "Linear", &currLightData.LinearAttenuation, 0.0f, 5.0f, "%.4f" );
+                ImGui::SliderFloat( "Quadratic", &currLightData.QuadraticAttenuation, 0.0f, 2.0f, "%.7f" );
                 break;
 
             case LightType::SpotLight:
             {
-                ImGui::Text( "attenuation" );
-                ImGui::SliderFloat( "Constant", &CurrLightData.ConstantAttenuation, 1.0f, 10.0f, "%.2f" );
-                ImGui::SliderFloat( "Linear", &CurrLightData.LinearAttenuation, 0.0f, 5.0f, "%.4f" );
-                ImGui::SliderFloat( "Quadratic", &CurrLightData.QuadraticAttenuation, 0.0f, 2.0f, "%.7f" );
+                ImGui::Text( "Attenuation" );
+                ImGui::SliderFloat( "Constant", &currLightData.ConstantAttenuation, 1.0f, 10.0f, "%.2f" );
+                ImGui::SliderFloat( "Linear", &currLightData.LinearAttenuation, 0.0f, 5.0f, "%.4f" );
+                ImGui::SliderFloat( "Quadratic", &currLightData.QuadraticAttenuation, 0.0f, 2.0f, "%.7f" );
 
-                float SpotAngle = XMConvertToDegrees( CurrLightData.SpotAngle );
+                float SpotAngle = XMConvertToDegrees( currLightData.SpotAngle );
                 ImGui::InputFloat( "Spot Angle", &SpotAngle );
-                CurrLightData.SpotAngle = XMConvertToRadians( SpotAngle );
-
+                currLightData.SpotAngle = XMConvertToRadians( SpotAngle );
             }
             break;
 
             case LightType::DirectionalLight:
                 ImGui::Text( "Direction" );
-                ImGui::InputFloat( "A", &CurrLightData.Direction.x );
-                ImGui::InputFloat( "B", &CurrLightData.Direction.y );
-                ImGui::InputFloat( "C", &CurrLightData.Direction.z );
-
-
-                break;
-
-            default:
+                ImGui::InputFloat( "A", &currLightData.Direction.x );
+                ImGui::InputFloat( "B", &currLightData.Direction.y );
+                ImGui::InputFloat( "C", &currLightData.Direction.z );
                 break;
             }
 
-
-            LightControl->GetLight( name1 )->SetLightData( CurrLightData );
-
-
+            lightControl->GetLight( nameL )->SetLightData( currLightData );
         }
-
     }
     ImGui::End();
 }
 
-
-//billboard controll menu
-static const char* current_item_Bill = NULL;
-static string nameBill;
-//static bool Load2 = false;
-static vector<SimpleVertexBill> billpos;
-static int picked = 0;
-void ImGuiManager::BillBoradControl( BillboardObject* BillControl )
+void ImGuiManager::BillboardMenu( BillboardObject* billboardObject )
 {
-    billpos = BillControl->GetPosistions();
-    if ( ImGui::Begin( "BillBoard Control", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    static int iPicked = 0;
+    static std::string nameBB;
+    static const char* cCurrentItemBB = NULL;
+    static std::vector<SimpleVertexBillboard> vBbVerts;
+    vBbVerts = billboardObject->GetPosistions();
+
+    if ( ImGui::Begin( "Billboard Control", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
-        if ( ImGui::BeginCombo( "##combo", current_item_Bill ) ) // The second parameter is the label previewed before opening the combo.
+        if ( ImGui::BeginCombo( "##Combo", cCurrentItemBB ) )
         {
-            for ( int n = 0; n < BillControl->GetPosistions().size(); n++ )
+            for ( int n = 0; n < billboardObject->GetPosistions().size(); n++ )
             {
-                string name = "Billboard ";
-                name += to_string( n );
-                bool is_selected = ( current_item_Bill == name.c_str() ); // You can store your selection however you want, outside or inside your objects
+                std::string name = "Billboard ";
+                name += std::to_string( n );
+                bool is_selected = ( cCurrentItemBB == name.c_str() );
                 if ( ImGui::Selectable( name.c_str(), is_selected ) )
                 {
-
-                    nameBill = name;
-
-
-                    billpos = BillControl->GetPosistions();
-                    picked = n;
-                    current_item_Bill = nameBill.c_str();
+                    iPicked = n;
+                    nameBB = name;
+                    cCurrentItemBB = nameBB.c_str();
+                    vBbVerts = billboardObject->GetPosistions();
                 }
+
                 if ( is_selected )
                 {
-                    ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
-                    billpos = BillControl->GetPosistions();
+                    ImGui::SetItemDefaultFocus();
+                    vBbVerts = billboardObject->GetPosistions();
                 }
-
             }
             ImGui::EndCombo();
-
         }
-        ImGui::Text( "Pos" );
-        ImGui::InputFloat( "x", &billpos[picked].Pos.x );
-        ImGui::InputFloat( "y", &billpos[picked].Pos.y );
-        ImGui::InputFloat( "z", &billpos[picked].Pos.z );
 
-        BillControl->SetPositions( billpos );
-
-
+        ImGui::Text( "Position" );
+        ImGui::InputFloat( "X", &vBbVerts[iPicked].Pos.x );
+        ImGui::InputFloat( "Y", &vBbVerts[iPicked].Pos.y );
+        ImGui::InputFloat( "Z", &vBbVerts[iPicked].Pos.z );
+        billboardObject->SetPositions( vBbVerts );
     }
     ImGui::End();
-
-
 }
 
-void ImGuiManager::BezierCurveSpline()
+void ImGuiManager::BezierSplineMenu()
 {
-    if ( ImGui::Begin( "BezierCurveSpline", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    if ( ImGui::Begin( "Bezier Curve Spline", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
         float lines[120];
-        for ( int n = 0; n < points.size(); n++ )
-            lines[n] = points[n].y;
-        ImGui::PlotLines( "G", lines, points.size() );
-
-
+        for ( int n = 0; n < m_vPoints.size(); n++ )
+            lines[n] = m_vPoints[n].y;
+        ImGui::PlotLines( "G", lines, m_vPoints.size() );
     }
     ImGui::End();
 }
 
-
-void ImGuiManager::TerrainControll( Terrain* terrain, TerrainVoxel* VoxelTerrain, ID3D11Device* device, ID3D11DeviceContext* _pImmediateContext )
+void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
-    if ( ImGui::Begin( "Terrain", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    if ( ImGui::Begin( "Terrain Control", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
-
         if ( ImGui::CollapsingHeader( "Terrain" ) )
         {
-            ImGui::Checkbox( "Draw terrain", terrain->GetIsDraw() );
+            ImGui::Checkbox( "Draw Terrain", terrain->GetIsDraw() );
             ImGui::Text( "Terrain Data" );
-
-            ImGui::Text( "width = %i", terrain->GetHeightMapWidth() );
+            ImGui::Text( "Width = %i", terrain->GetHeightMapWidth() );
             ImGui::Text( "Height = %i", terrain->GetHeightMapHeight() );
             ImGui::Text( "Cell Spacing = %f", terrain->GetCellSpacing() );
+
             switch ( terrain->GetGenType() )
             {
             case TerrainGenType::HeightMapLoad:
@@ -496,141 +429,140 @@ void ImGuiManager::TerrainControll( Terrain* terrain, TerrainVoxel* VoxelTerrain
                 ImGui::Text( terrain->GetHeightMapName().c_str() );
                 ImGui::Text( "Height Scale = %i", terrain->GetHeightScale() );
                 break;
+
             case TerrainGenType::FaultLine:
                 ImGui::Text( "GenType: FaultLine" );
                 ImGui::Text( "Seed:  %i", terrain->GetSeed() );
-                ImGui::Text( "Displacment:  %f", terrain->GetDisplacment() );
-                ImGui::Text( "Number Of iterations:  %i", terrain->GetNumberOfIterations() );
-
+                ImGui::Text( "Displacment:  %f", terrain->GetDisplacement() );
+                ImGui::Text( "Number Of iterations:  %i", terrain->GetNumOfIterations() );
                 break;
+
             case TerrainGenType::Noise:
                 ImGui::Text( "GenType: Noise" );
                 ImGui::Text( "Height Scale = %i", terrain->GetHeightScale() );
                 ImGui::Text( "Seed:  %i", terrain->GetSeed() );
-                ImGui::Text( "Fequancy:  %f", terrain->GetFequancy() );
-                ImGui::Text( "Number of ocatives:  %i", terrain->GetNumberOfOcatives() );
+                ImGui::Text( "Frequency:  %f", terrain->GetFrequency() );
+                ImGui::Text( "Number of Octaves:  %i", terrain->GetNumOfOctaves() );
                 break;
+
             case TerrainGenType::DiamondSquare:
                 ImGui::Text( "GenType: Diamond Square" );
                 ImGui::Text( "Height Scale = %i", terrain->GetHeightScale() );
                 ImGui::Text( "Seed:  %i", terrain->GetSeed() );
                 ImGui::Text( "Range:  %i", terrain->GetRange() );
                 break;
-            default:
-                break;
             }
 
             if ( ImGui::CollapsingHeader( "Build Data" ) )
             {
-                //mode
-                static TerrainGenType Mode = (TerrainGenType)0;
+                static TerrainGenType mode = (TerrainGenType)0;
                 const char* items[] = { "HeightMapLoad", "FaultLine", "Noise", "DiamondSquare" };
                 static const char* current_item = "HeightMapLoad";
 
-                if ( ImGui::BeginCombo( "##combo", current_item ) ) // The second parameter is the label previewed before opening the combo.
+                if ( ImGui::BeginCombo( "##Combo", current_item ) )
                 {
                     for ( int n = 0; n < IM_ARRAYSIZE( items ); n++ )
                     {
-                        bool is_selected = ( current_item == items[n] ); // You can store your selection however you want, outside or inside your objects
+                        bool is_selected = ( current_item == items[n] );
                         if ( ImGui::Selectable( items[n], is_selected ) )
                         {
                             current_item = items[n];
-                            Mode = (TerrainGenType)n;
+                            mode = (TerrainGenType)n;
                             if ( is_selected )
-                                ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
+                                ImGui::SetItemDefaultFocus();
                         }
                     }
                     ImGui::EndCombo();
                 }
 
                 static int width = 514;
-                ImGui::InputInt( "width", &width );
+                ImGui::InputInt( "Width", &width );
                 static int Length = 514;
                 ImGui::InputInt( "Length", &Length );
 
-                static float CellSpaceing = 1.0f;
-                ImGui::InputFloat( "CellSpaceing", &CellSpaceing );
+                static float cellSpacing = 1.0f;
+                ImGui::InputFloat( "CellSpacing", &cellSpacing );
 
-                static float HeightScale = 50.0f;
-                static float Frequancy = 0.01f;
-                static float Displacement = 0.01f;
+                static float heightScale = 50.0f;
+                static float frequency = 0.01f;
+                static float displacement = 0.01f;
                 static int seed = 1234;
-                static int Range = 196;
-                static int NumberOfOctives = 3;
-                switch ( Mode )
+                static int range = 196;
+                static int numberOfOctaves = 3;
+
+                switch ( mode )
                 {
                 case TerrainGenType::HeightMapLoad:
-                    ImGui::InputFloat( "HeightScale", &HeightScale );
+                    ImGui::InputFloat( "HeightScale", &heightScale );
                     break;
+
                 case TerrainGenType::FaultLine:
                     ImGui::InputInt( "Seed", &seed );
-                    ImGui::InputInt( "NumberOfIteration", &Range );
-                    ImGui::InputFloat( "Displacement", &Displacement );
+                    ImGui::InputInt( "NumberOfIteration", &range );
+                    ImGui::InputFloat( "Displacement", &displacement );
                     break;
+
                 case TerrainGenType::Noise:
                     ImGui::InputInt( "Seed", &seed );
-                    ImGui::InputFloat( "Frequancy", &Frequancy );
-                    ImGui::InputInt( "NumberOfOctives", &NumberOfOctives );
-                    ImGui::InputFloat( "HeightScale", &HeightScale );
+                    ImGui::InputFloat( "Frequency", &frequency );
+                    ImGui::InputInt( "NumberOfOctaves", &numberOfOctaves );
+                    ImGui::InputFloat( "HeightScale", &heightScale );
                     break;
+
                 case TerrainGenType::DiamondSquare:
                     ImGui::InputInt( "Seed", &seed );
-                    ImGui::InputInt( "Range", &Range );
-                    ImGui::InputFloat( "HeightScale", &HeightScale );
-                    break;
-                default:
+                    ImGui::InputInt( "Range", &range );
+                    ImGui::InputFloat( "HeightScale", &heightScale );
                     break;
                 }
 
                 if ( ImGui::Button( "Build Terrain" ) )
                 {
-                    switch ( Mode )
+                    switch ( mode )
                     {
                     case TerrainGenType::HeightMapLoad:
                         break;
+
                     case TerrainGenType::FaultLine:
-                        terrain->SetFualtLineData( seed, Range, Displacement );
+                        terrain->SetFaultLineData( seed, range, displacement );
                         break;
+
                     case TerrainGenType::Noise:
-                        terrain->SetNoiseData( seed, Frequancy, NumberOfOctives );
+                        terrain->SetNoiseData( seed, frequency, numberOfOctaves );
                         break;
+
                     case TerrainGenType::DiamondSquare:
-                        terrain->SetDimondSquaerData( seed, Range );
-                        break;
-                    default:
+                        terrain->SetDiamondSquareData( seed, range );
                         break;
                     }
 
-                    terrain->ReBuildTerrain( XMFLOAT2( width, Length ), HeightScale, CellSpaceing, Mode, device );
-
-
+                    terrain->ReBuildTerrain( XMFLOAT2( width, Length ), heightScale, cellSpacing, mode, pDevice );
                 }
             }
-            if ( ImGui::CollapsingHeader( "Textuer Data" ) )
+
+            if ( ImGui::CollapsingHeader( "Texture Data" ) )
             {
-                ImGui::BeginTable( "Textuer Name", 3 );
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text( "Name" );
-
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text( "Water" );
-
-                for ( size_t i = 0; i < terrain->GetTexNames().size(); i++ )
+                if ( ImGui::BeginTable( "Texture Name", 3 ) )
                 {
-                    string data = terrain->GetTexNames()[i];
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
-                    ImGui::Text( data.c_str() );
+                    ImGui::Text( "Name" );
 
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "Water" );
+
+                    for ( size_t i = 0; i < terrain->GetTexNames().size(); i++ )
+                    {
+                        std::string data = terrain->GetTexNames()[i];
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::Text( data.c_str() );
+                    }
+                    ImGui::EndTable();
                 }
-                ImGui::EndTable();
 
-                ImGui::Text( "Textuer Height Level" );
-
+                ImGui::Text( "Texture Height Level" );
                 float Layer1MaxHeight = terrain->GetTerrainData().Layer1MaxHeight;
                 float Layer2MaxHeight = terrain->GetTerrainData().Layer2MaxHeight;
                 float Layer3MaxHeight = terrain->GetTerrainData().Layer3MaxHeight;
@@ -643,20 +575,20 @@ void ImGuiManager::TerrainControll( Terrain* terrain, TerrainVoxel* VoxelTerrain
                 ImGui::SliderFloat( "Layer4MaxHeight", &Layer4MaxHeight, Layer3MaxHeight, Layer5MaxHeight );
                 ImGui::SliderFloat( "Layer5MaxHeight", &Layer5MaxHeight, Layer4MaxHeight, 100000.0f );
                 terrain->SetTexHeights( Layer1MaxHeight, Layer2MaxHeight, Layer3MaxHeight, Layer4MaxHeight, Layer5MaxHeight );
-
             }
+
             if ( ImGui::CollapsingHeader( "LOD Data" ) )
             {
-                float FloatMinTess = terrain->GetTerrainData().MinTess;
-                float FloatMaxTess = terrain->GetTerrainData().MaxTess;
-                ImGui::SliderFloat( "minTess", &FloatMinTess, 0.0f, 6.0f );
-                ImGui::SliderFloat( "maxTess", &FloatMaxTess, 0.0f, 6.0f );
-                if ( FloatMaxTess < FloatMinTess )
+                float floatMinTess = terrain->GetTerrainData().MinTess;
+                float floatMaxTess = terrain->GetTerrainData().MaxTess;
+                ImGui::SliderFloat( "Min Tess", &floatMinTess, 0.0f, 6.0f );
+                ImGui::SliderFloat( "Max Tess", &floatMaxTess, 0.0f, 6.0f );
+                if ( floatMaxTess < floatMaxTess )
                 {
-                    FloatMaxTess = FloatMinTess;
+                    floatMaxTess = floatMinTess;
                 }
-                terrain->SetMaxTess( FloatMaxTess );
-                terrain->SetMinTess( FloatMinTess );
+                terrain->SetMaxTess( floatMaxTess );
+                terrain->SetMinTess( floatMinTess );
 
                 float maxTessDist = terrain->GetTerrainData().MaxDist;
                 float minTessDist = terrain->GetTerrainData().MinDist;
@@ -669,208 +601,204 @@ void ImGuiManager::TerrainControll( Terrain* terrain, TerrainVoxel* VoxelTerrain
                 terrain->SetMaxTessDist( maxTessDist );
                 terrain->SetMinTessDist( minTessDist );
             }
+
             if ( ImGui::CollapsingHeader( "Transfrom Data" ) )
             {
                 ImGui::Text( "Rotation" );
                 XMFLOAT3 RotationTerrain = terrain->GetTransfrom()->GetRotation();
-                ImGui::SliderFloat( "Rotation X", &RotationTerrain.x, 0, 360 );
-                ImGui::SliderFloat( "Rotation Y", &RotationTerrain.y, 0, 360 );
-                ImGui::SliderFloat( "Rotation Z", &RotationTerrain.z, 0, 360 );
+                ImGui::SliderFloat( "X##Rotation", &RotationTerrain.x, 0, 360 );
+                ImGui::SliderFloat( "Y##Rotation", &RotationTerrain.y, 0, 360 );
+                ImGui::SliderFloat( "Z##Rotation", &RotationTerrain.z, 0, 360 );
                 terrain->GetTransfrom()->SetRotation( RotationTerrain );
 
                 ImGui::Text( "Position" );
                 XMFLOAT3 posTerrain = terrain->GetTransfrom()->GetPosition();
-                ImGui::InputFloat( "Position X", &posTerrain.x );
-                ImGui::InputFloat( "Position Y", &posTerrain.y );
-                ImGui::InputFloat( "Position Z", &posTerrain.z );
+                ImGui::InputFloat( "X##Position", &posTerrain.x );
+                ImGui::InputFloat( "Y##Position", &posTerrain.y );
+                ImGui::InputFloat( "Z##Position", &posTerrain.z );
                 terrain->GetTransfrom()->SetPosition( posTerrain );
 
                 ImGui::Text( "Scale" );
                 XMFLOAT3 scaleTerrain = terrain->GetTransfrom()->GetScale();
-                ImGui::InputFloat( "Scale X", &scaleTerrain.x );
-                ImGui::InputFloat( "Scale Y", &scaleTerrain.y );
-                ImGui::InputFloat( "Scale Z", &scaleTerrain.z );
+                ImGui::InputFloat( "X##Scale", &scaleTerrain.x );
+                ImGui::InputFloat( "Y##Scale", &scaleTerrain.y );
+                ImGui::InputFloat( "Z##Scale", &scaleTerrain.z );
                 terrain->GetTransfrom()->SetScale( scaleTerrain );
             }
 
-
-            static string FileName;
-            //ImGui::InputText("FileName", &FileName);
+            static std::string fileName;
+            ImGui::InputText( "File Name", &fileName );
             if ( ImGui::Button( "Load" ) )
             {
-
                 TerrainData Data;
-                TerrainJsonLoad::LoadData( FileName, Data );
-                TerrainGenType GenMode = (TerrainGenType)Data.mode;
+                TerrainJsonLoad::LoadData( fileName, Data );
+                TerrainGenType GenMode = (TerrainGenType)Data.Mode;
                 double HeightScale = 0;
+
                 switch ( GenMode )
                 {
                 case TerrainGenType::HeightMapLoad:
-                    HeightScale = Data._HeightMapSettings.HeightScale;
+                    HeightScale = Data.HeightMapSettings.HeightScale;
                     break;
+
                 case TerrainGenType::FaultLine:
-                    terrain->SetFualtLineData( Data._FaultLineSettings.Seed, Data._FaultLineSettings.iterationCount, Data._FaultLineSettings.Displacement );
+                    terrain->SetFaultLineData( Data.FaultLineSettings.Seed, Data.FaultLineSettings.IterationCount, Data.FaultLineSettings.Displacement );
                     HeightScale = terrain->GetHeightScale();
                     break;
+
                 case TerrainGenType::Noise:
-                    terrain->SetNoiseData( Data._NoiseSettings.Seed, Data._NoiseSettings.Frequancy, Data._NoiseSettings.NumberOfOctaves );
-                    HeightScale = Data._NoiseSettings.HeightScale;
+                    terrain->SetNoiseData( Data.NoiseSettings.Seed, Data.NoiseSettings.Frequency, Data.NoiseSettings.NumOfOctaves );
+                    HeightScale = Data.NoiseSettings.HeightScale;
                     break;
+
                 case TerrainGenType::DiamondSquare:
-                    terrain->SetDimondSquaerData( Data._DimondSquareSettings.Seed, Data._DimondSquareSettings.range );
-                    HeightScale = Data._DimondSquareSettings.HeightScale;
-                    break;
-                default:
+                    terrain->SetDiamondSquareData( Data.DiamondSquareSettings.Seed, Data.DiamondSquareSettings.Range );
+                    HeightScale = Data.DiamondSquareSettings.HeightScale;
                     break;
                 }
 
-                terrain->ReBuildTerrain( XMFLOAT2( Data.Width, Data.Depth ), HeightScale, Data.CellSpaceing, GenMode, device );
+                terrain->ReBuildTerrain( XMFLOAT2( Data.Width, Data.Depth ), HeightScale, Data.CellSpacing, GenMode, pDevice );
             }
-
 
             if ( ImGui::Button( "Save" ) )
             {
-
                 TerrainData Data;
                 Data.Width = terrain->GetHeightMapWidth();
                 Data.Depth = terrain->GetHeightMapHeight();
-                Data.CellSpaceing = terrain->GetCellSpacing();
-                Data.mode = (int)terrain->GetGenType();
+                Data.CellSpacing = terrain->GetCellSpacing();
+                Data.Mode = (int)terrain->GetGenType();
 
                 switch ( terrain->GetGenType() )
                 {
                 case TerrainGenType::HeightMapLoad:
-                    Data.fHeightMapSettings.HeightMapFile = terrain->GetHeightMapName();
-                    Data.fHeightMapSettings.HeightScale = terrain->GetHeightScale();
-                    break;
-                case TerrainGenType::FaultLine:
-                    Data._FaultLineSettings.Seed = terrain->GetSeed();
-                    Data._FaultLineSettings.iterationCount = terrain->GetNumberOfIterations();
-                    Data._FaultLineSettings.Displacement = terrain->GetDisplacment();
-                    break;
-                case TerrainGenType::Noise:
-                    Data._NoiseSettings.Seed = terrain->GetSeed();
-                    Data._NoiseSettings.HeightScale = terrain->GetHeightScale();
-                    Data._NoiseSettings.Frequancy = terrain->GetFequancy();
-                    Data._NoiseSettings.NumberOfOctaves = terrain->GetNumberOfOcatives();
-                    break;
-                case TerrainGenType::DiamondSquare:
-                    Data._DimondSquareSettings.Seed = terrain->GetSeed();
-                    Data._DimondSquareSettings.HeightScale = terrain->GetHeightScale();
-                    Data._DimondSquareSettings.range = terrain->GetRange();
+                    Data.HeightMapSettings.HeightMapFile = terrain->GetHeightMapName();
+                    Data.HeightMapSettings.HeightScale = terrain->GetHeightScale();
                     break;
 
+                case TerrainGenType::FaultLine:
+                    Data.FaultLineSettings.Seed = terrain->GetSeed();
+                    Data.FaultLineSettings.IterationCount = terrain->GetNumOfIterations();
+                    Data.FaultLineSettings.Displacement = terrain->GetDisplacement();
+                    break;
+
+                case TerrainGenType::Noise:
+                    Data.NoiseSettings.Seed = terrain->GetSeed();
+                    Data.NoiseSettings.HeightScale = terrain->GetHeightScale();
+                    Data.NoiseSettings.Frequency = terrain->GetFrequency();
+                    Data.NoiseSettings.NumOfOctaves = terrain->GetNumOfOctaves();
+                    break;
+
+                case TerrainGenType::DiamondSquare:
+                    Data.DiamondSquareSettings.Seed = terrain->GetSeed();
+                    Data.DiamondSquareSettings.HeightScale = terrain->GetHeightScale();
+                    Data.DiamondSquareSettings.Range = terrain->GetRange();
+                    break;
                 }
 
-                TerrainJsonLoad::StoreData( FileName, Data );
+                TerrainJsonLoad::StoreData( fileName, Data );
             }
-
         }
+
         if ( ImGui::CollapsingHeader( "Voxel Terrain" ) )
         {
-            ImGui::Checkbox( "Draw Voxel", VoxelTerrain->GetIsDraw() );
-            ImGui::Text( "Number Of Chunks: %i", VoxelTerrain->GetNumberOfChunks() );
+            ImGui::Checkbox( "Draw Voxel", voxelTerrain->GetIsDraw() );
+            ImGui::Text( "Number Of Chunks: %i", voxelTerrain->GetNumberOfChunks() );
 
             if ( ImGui::CollapsingHeader( "Rebuild World" ) )
             {
                 static int seed;
                 ImGui::InputInt( "Seed Vox", &seed );
                 static float Frequancy;
-                ImGui::InputFloat( "Frequancy Vox", &Frequancy );
+                ImGui::InputFloat( "Frequency Vox", &Frequancy );
                 static int Octave;
                 ImGui::InputInt( "Octave Vox", &Octave );
                 static int NumberOfChuncksX = 0;
-                ImGui::InputInt( "Number of chunk x", &NumberOfChuncksX );
+                ImGui::InputInt( "Number of Chunk X", &NumberOfChuncksX );
                 static int NumberOfChuncksZ = 0;
-                ImGui::InputInt( "Number of chunk z", &NumberOfChuncksZ );
+                ImGui::InputInt( "Number of Chunk Z", &NumberOfChuncksZ );
                 if ( ImGui::Button( "Build" ) )
                 {
-
-                    VoxelTerrain->RebuildMap( device, _pImmediateContext, seed, NumberOfChuncksX, NumberOfChuncksZ, Frequancy, Octave );
-
-
-
+                    voxelTerrain->RebuildMap( pDevice, pContext, seed, NumberOfChuncksX, NumberOfChuncksZ, Frequancy, Octave );
                 }
             }
-
         }
     }
     ImGui::End();
 }
 
-void ImGuiManager::AnimationControll( AnimatedModel* AnnimationModel )
+void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
 {
-    if ( ImGui::Begin( "Annimation", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    if ( ImGui::Begin( "Animation", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
-
         if ( ImGui::CollapsingHeader( "Model Data" ) )
         {
-            std::string ModelName = "Model Name ";
-            ModelName += AnnimationModel->GetModelName().c_str();
-            ImGui::Text( ModelName.c_str() );
-            ImGui::BeginTable( "SubSetData", 5 );
-
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::Text( "ID" );
-            ImGui::TableNextColumn();
-            ImGui::Text( "FaceCount" );
-            ImGui::TableNextColumn();
-            ImGui::Text( "VertexCount" );
-            ImGui::TableNextColumn();
-            ImGui::Text( "Diffuse Tex" );
-            ImGui::TableNextColumn();
-            ImGui::Text( "Normal Map" );
-            for ( size_t i = 0; i < AnnimationModel->GetSubsets().size(); i++ )
+            std::string modelName = "Model Name: ";
+            modelName += animModel->GetModelName().c_str();
+            ImGui::Text( modelName.c_str() );
+            if ( ImGui::BeginTable( "SubSetData", 5 ) )
             {
-                Subset data = AnnimationModel->GetSubsets()[i];
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::Text( "%i", data.Id );
+                ImGui::Text( "ID" );
                 ImGui::TableNextColumn();
-                ImGui::Text( "%i", data.FaceCount );
+                ImGui::Text( "Face Count" );
                 ImGui::TableNextColumn();
-                ImGui::Text( "%i", data.VertexCount );
+                ImGui::Text( "Vertex Count" );
                 ImGui::TableNextColumn();
-                wstring DiffMapA = AnnimationModel->GetMaterrialData()[i].DiffuseMapName.c_str();
-                ImGui::Text( StringHelpers::ws2s( DiffMapA ).c_str() );
+                ImGui::Text( "Diffuse Tex" );
                 ImGui::TableNextColumn();
-                wstring normMapA = AnnimationModel->GetMaterrialData()[i].NormalMapName.c_str();
-                ImGui::Text( StringHelpers::ws2s( normMapA ).c_str() );
+                ImGui::Text( "Normal Map" );
+                for ( size_t i = 0; i < animModel->GetSubsets().size(); i++ )
+                {
+                    Subset data = animModel->GetSubsets()[i];
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "%i", data.m_uId );
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "%i", data.m_uFaceCount );
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "%i", data.m_uVertexCount );
+                    ImGui::TableNextColumn();
+                    std::wstring diffuseMap = animModel->GetMaterialData()[i].DiffuseMapName.c_str();
+                    ImGui::Text( StringHelpers::ws2s( diffuseMap ).c_str() );
+                    ImGui::TableNextColumn();
+                    std::wstring normalMap = animModel->GetMaterialData()[i].NormalMapName.c_str();
+                    ImGui::Text( StringHelpers::ws2s( normalMap ).c_str() );
+                }
+                ImGui::EndTable();
             }
-            ImGui::EndTable();
+
             ImGui::Text( "Model Place" );
-
-            static float ModelPos[3] = {
-                AnnimationModel->GetTransformData()->GetPosition().x,
-                AnnimationModel->GetTransformData()->GetPosition().y,
-                AnnimationModel->GetTransformData()->GetPosition().z
+            static float modelPos[3] = {
+                animModel->GetTransformData()->GetPosition().x,
+                animModel->GetTransformData()->GetPosition().y,
+                animModel->GetTransformData()->GetPosition().z
             };
-            ImGui::InputFloat3( "Model Position", ModelPos );
-            AnnimationModel->GetTransformData()->SetPosition( XMFLOAT3( ModelPos ) );
-            static float ModelScale[3] = {
-                AnnimationModel->GetTransformData()->GetScale().x,
-                AnnimationModel->GetTransformData()->GetScale().y,
-                AnnimationModel->GetTransformData()->GetScale().z
+            ImGui::InputFloat3( "Model Position", modelPos );
+            animModel->GetTransformData()->SetPosition( XMFLOAT3( modelPos ) );
+
+            static float modelScale[3] = {
+                animModel->GetTransformData()->GetScale().x,
+                animModel->GetTransformData()->GetScale().y,
+                animModel->GetTransformData()->GetScale().z
             };
-            ImGui::InputFloat3( "Model Scale", ModelScale );
-            AnnimationModel->GetTransformData()->SetScale( XMFLOAT3( ModelScale ) );
-            static float ModelRotation[3] = {
-                AnnimationModel->GetTransformData()->GetRotation().x,
-                AnnimationModel->GetTransformData()->GetRotation().y,
-                AnnimationModel->GetTransformData()->GetRotation().z
+            ImGui::InputFloat3( "Model Scale", modelScale );
+            animModel->GetTransformData()->SetScale( XMFLOAT3( modelScale ) );
+
+            static float modelRotation[3] = {
+                animModel->GetTransformData()->GetRotation().x,
+                animModel->GetTransformData()->GetRotation().y,
+                animModel->GetTransformData()->GetRotation().z
             };
-            ImGui::InputFloat3( "Model Rotation", ModelRotation );
-            AnnimationModel->GetTransformData()->SetRotation( XMFLOAT3( ModelRotation ) );
-
-
-
+            ImGui::InputFloat3( "Model Rotation", modelRotation );
+            animModel->GetTransformData()->SetRotation( XMFLOAT3( modelRotation ) );
         }
+
         if ( ImGui::CollapsingHeader( "Bone Data" ) )
         {
-            if ( ImGui::BeginChild( "BoneList", ImVec2( 500, 100 ), true, ImGuiWindowFlags_HorizontalScrollbar ) )
+            if ( ImGui::BeginChild( "Bone List", ImVec2( 500, 100 ), true, ImGuiWindowFlags_HorizontalScrollbar ) )
             {
-                ImGui::BeginTable( "BoneInfo", 3 );
+                ImGui::BeginTable( "Bone Info", 3 );
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -880,16 +808,16 @@ void ImGuiManager::AnimationControll( AnimatedModel* AnnimationModel )
                 ImGui::TableNextColumn();
                 ImGui::Text( "Child" );
 
-                for ( size_t i = 0; i < AnnimationModel->GetSkeleton()->GetBoneData().size(); i++ )
+                for ( size_t i = 0; i < animModel->GetSkeleton()->GetBoneData().size(); i++ )
                 {
-                    Bone* data = AnnimationModel->GetSkeleton()->GetBoneData()[i];
+                    Bone* data = animModel->GetSkeleton()->GetBoneData()[i];
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::Text( "%i", i );
                     ImGui::TableNextColumn();
                     ImGui::Text( "%i", data->Getparent() );
                     ImGui::TableNextColumn();
-                    string childData = "";
+                    std::string childData = "";
                     for ( size_t i = 0; i < data->GetChild().size(); i++ )
                     {
                         if ( data->GetChild()[i] == -1 )
@@ -898,12 +826,11 @@ void ImGuiManager::AnimationControll( AnimatedModel* AnnimationModel )
                         }
                         else if ( i == data->GetChild().size() - 1 )
                         {
-                            childData += to_string( data->GetChild()[i] );
+                            childData += std::to_string( data->GetChild()[i] );
                         }
                         else
                         {
-                            childData += to_string( data->GetChild()[i] ) + ", ";
-
+                            childData += std::to_string( data->GetChild()[i] ) + ", ";
                         }
                     }
                     ImGui::Text( childData.c_str() );
@@ -914,97 +841,92 @@ void ImGuiManager::AnimationControll( AnimatedModel* AnnimationModel )
             ImGui::EndChild();
 
             ImGui::Text( "Edit Bone" );
-            static int BoneNum = 0;
-            static int BoneNumPrev = -1;
-            static float BonePos[3];
-            static float BoneScale[3];
-
-            ImGui::InputInt( "Bone No:", &BoneNum );
-
-            if ( BoneNum > AnnimationModel->GetSkeleton()->BoneCount() )
+            static int boneNum = 0;
+            static int boneNumPrev = -1;
+            static float bonePos[3];
+            static float boneScale[3];
+            ImGui::InputInt( "Bone No:", &boneNum );
+            if ( boneNum > animModel->GetSkeleton()->BoneCount() )
             {
-                BoneNum = AnnimationModel->GetSkeleton()->BoneCount() - 1;
+                boneNum = animModel->GetSkeleton()->BoneCount() - 1;
             }
-            else if ( BoneNum < 0 )
+            else if ( boneNum < 0 )
             {
-                BoneNum = 0;
-            }
-            if ( BoneNum != BoneNumPrev )
-            {
-                BonePos[0] = AnnimationModel->GetSkeleton()->GetBoneData()[BoneNum]->GetWorldPos().x;
-                BonePos[1] = AnnimationModel->GetSkeleton()->GetBoneData()[BoneNum]->GetWorldPos().y;
-                BonePos[2] = AnnimationModel->GetSkeleton()->GetBoneData()[BoneNum]->GetWorldPos().z;
-
-                BoneScale[0] = AnnimationModel->GetSkeleton()->GetBoneData()[BoneNum]->GetWorldScale().x;
-                BoneScale[1] = AnnimationModel->GetSkeleton()->GetBoneData()[BoneNum]->GetWorldScale().y;
-                BoneScale[2] = AnnimationModel->GetSkeleton()->GetBoneData()[BoneNum]->GetWorldScale().z;
-                BoneNumPrev = BoneNum;
+                boneNum = 0;
             }
 
+            if ( boneNum != boneNumPrev )
+            {
+                bonePos[0] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldPos().x;
+                bonePos[1] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldPos().y;
+                bonePos[2] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldPos().z;
+                boneScale[0] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldScale().x;
+                boneScale[1] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldScale().y;
+                boneScale[2] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldScale().z;
+                boneNumPrev = boneNum;
+            }
 
-            ImGui::InputFloat3( "Bone Position", BonePos );
-            ImGui::InputFloat3( "Bone Scale", BoneScale );
-
-            static float BoneRotation[3];
-            ImGui::InputFloat3( "Bone Rotation", BoneRotation );
+            ImGui::InputFloat3( "Bone Position", bonePos );
+            ImGui::InputFloat3( "Bone Scale", boneScale );
+            static float boneRotation[3];
+            ImGui::InputFloat3( "Bone Rotation", boneRotation );
 
             if ( ImGui::Button( "SetBone" ) )
             {
-                AnnimationModel->GetSkeleton()->SetBonePosition( BoneNum, XMFLOAT3( BonePos ) );
-
-                XMMATRIX rotation = XMMatrixRotationX( XMConvertToRadians( BoneRotation[0] ) ) * XMMatrixRotationY( XMConvertToRadians( BoneRotation[1] ) ) * XMMatrixRotationZ( XMConvertToRadians( BoneRotation[2] ) );
+                animModel->GetSkeleton()->SetBonePosition( boneNum, XMFLOAT3( bonePos ) );
+                XMMATRIX rotation = XMMatrixRotationX(
+                    XMConvertToRadians( boneRotation[0] ) ) *
+                    XMMatrixRotationY( XMConvertToRadians( boneRotation[1] ) ) *
+                    XMMatrixRotationZ( XMConvertToRadians( boneRotation[2] ) );
                 XMFLOAT4 orientation;
                 XMStoreFloat4( &orientation, XMQuaternionRotationMatrix( rotation ) );
-                AnnimationModel->GetSkeleton()->SetBoneRotQuat( BoneNum, XMFLOAT4( orientation ) );
-
-                AnnimationModel->GetSkeleton()->SetBoneScale( BoneNum, XMFLOAT3( BoneScale ) );
+                animModel->GetSkeleton()->SetBoneRotQuat( boneNum, XMFLOAT4( orientation ) );
+                animModel->GetSkeleton()->SetBoneScale( boneNum, XMFLOAT3( boneScale ) );
             }
-
         }
-        if ( ImGui::CollapsingHeader( "Annimation Data" ) )
+
+        if ( ImGui::CollapsingHeader( "Animation Data" ) )
         {
-            //set animation
-            static std::vector<std::string> AnimationName = AnnimationModel->GetSkeleton()->mAnimationClips();
+            // Set animation
+            static std::vector<std::string> animationName = animModel->GetSkeleton()->AnimationClips();
+            static const char* cCurrentItem = animationName[0].c_str();
 
-            static const char* current_item2 = AnimationName[0].c_str();
-
-            if ( ImGui::BeginCombo( "##combo", current_item2 ) ) // The second parameter is the label previewed before opening the combo.
+            if ( ImGui::BeginCombo( "##Combo", cCurrentItem ) )
             {
-                for ( int n = 0; n < AnimationName.size(); n++ )
+                for ( int n = 0; n < animationName.size(); n++ )
                 {
-                    bool is_selected = ( current_item2 == AnimationName[n].c_str() ); // You can store your selection however you want, outside or inside your objects
-                    if ( ImGui::Selectable( AnimationName[n].c_str(), is_selected ) )
+                    bool is_selected = ( cCurrentItem == animationName[n].c_str() );
+                    if ( ImGui::Selectable( animationName[n].c_str(), is_selected ) )
                     {
-                        current_item2 = AnimationName[n].c_str();
-
+                        cCurrentItem = animationName[n].c_str();
                         if ( is_selected )
                         {
-                            ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
-                            AnnimationModel->SetAnnimation( AnimationName[n] );
+                            ImGui::SetItemDefaultFocus();
+                            animModel->SetAnimation( animationName[n] );
                         }
                     }
                 }
                 ImGui::EndCombo();
             }
-            AnnimationModel->SetAnnimation( current_item2 );
-            static bool isLoop = AnnimationModel->GetIsLoop();
+
+            animModel->SetAnimation( cCurrentItem );
+            static bool isLoop = animModel->GetIsLoop();
             ImGui::Checkbox( "Loop Animation", &isLoop );
-            AnnimationModel->SetIsLoop( isLoop );
-            float TimePos = AnnimationModel->GetTimePos();
+            animModel->SetIsLoop( isLoop );
+            float TimePos = animModel->GetTimePos();
+
             if ( !isLoop )
             {
-
-                ImGui::InputFloat( "Animtion Time position", &TimePos );
-                AnnimationModel->SetTimePos( TimePos );
+                ImGui::InputFloat( "Animation Time Position", &TimePos );
+                animModel->SetTimePos( TimePos );
             }
 
-            //current animation
-            ImGui::Text( "Current Animation: %s", AnnimationModel->GetClipName().c_str() );
-            ImGui::Text( "Current Animation Start: %f", AnnimationModel->GetSkeleton()->GetClipStartTime( AnnimationModel->GetClipName() ) );
-            ImGui::Text( "Current Animation End: %f", AnnimationModel->GetSkeleton()->GetClipEndTime( AnnimationModel->GetClipName() ) );
-            ImGui::Text( "Current Time: %f", AnnimationModel->GetTimePos() );
+            // Current animation data
+            ImGui::Text( "Current Animation: %s", animModel->GetClipName().c_str() );
+            ImGui::Text( "Current Animation Start: %f", animModel->GetSkeleton()->GetClipStartTime( animModel->GetClipName() ) );
+            ImGui::Text( "Current Animation End: %f", animModel->GetSkeleton()->GetClipEndTime( animModel->GetClipName() ) );
+            ImGui::Text( "Current Time: %f", animModel->GetTimePos() );
         }
-
     }
     ImGui::End();
 }
@@ -1067,16 +989,13 @@ void ImGuiManager::SetBlackGoldStyle()
     style->ItemSpacing = ImVec2( 10, 2 );
     style->IndentSpacing = 12;
     style->ScrollbarSize = 10;
-
     style->WindowRounding = 4;
     style->FrameRounding = 4;
     style->PopupRounding = 4;
     style->ScrollbarRounding = 6;
     style->GrabRounding = 4;
     style->TabRounding = 4;
-
     style->WindowTitleAlign = ImVec2( 1.0f, 0.5f );
     style->WindowMenuButtonPosition = ImGuiDir_Right;
-
     style->DisplaySafeAreaPadding = ImVec2( 4, 4 );
 }

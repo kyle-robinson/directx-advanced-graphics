@@ -90,7 +90,7 @@ public:
 
 	inline int GetSeed() const noexcept { return m_iSeed; }
 	inline int GetRange() const noexcept { return m_iRangeStore; }
-	inline int GetNumOfOcatves() const noexcept { return m_iNumOfOctaves; }
+	inline int GetNumOfOctaves() const noexcept { return m_iNumOfOctaves; }
 	inline int GetNumOfIterations() const noexcept { return m_iNumOfIterations; }
 	inline float GetDisplacement() const noexcept { return m_fDisplacement; }
 	inline float GetFrequency() const noexcept { return m_fFrequency; }

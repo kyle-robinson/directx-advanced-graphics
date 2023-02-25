@@ -12,14 +12,14 @@
 #include "TerrainJsonLoad.h"
 #include "Structures.h"
 
-class DrawableGameObject;
+class AnimatedModel;
 class LightController;
+class DrawableGameObject;
+class RasterizerController;
 class ShaderController;
 class BillboardObject;
-class Terrain;
 class TerrainVoxel;
-class RasterizerController;
-class AnimatedModel;
+class Terrain;
 
 class ImGuiManager
 {
@@ -31,14 +31,14 @@ public:
 	void EndRender();
 	void Initialize( HWND hWnd, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 
-	void DrawCamMenu( CameraController* cameraControl );
+	void CameraMenu( CameraController* cameraControl );
 	void ShaderMenu( ShaderController* shaderControl, PostProcessingCB* postSettings, RasterizerController* rasterControl, bool& rtt );
-	void ObjectControl( DrawableGameObject* gameObject );
-	void LightControl( LightController* lightControl );
-	void BillBoradControl( BillboardObject* billboardObject );
-	void BezierCurveSpline();
-	void TerrainControll( Terrain* terrain, TerrainVoxel* voxelTerrain, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
-	void AnimationControll( AnimatedModel* animModel );
+	void ObjectMenu( DrawableGameObject* gameObject );
+	void LightMenu( LightController* lightControl );
+	void BillboardMenu( BillboardObject* billboardObject );
+	void TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	void AnimationMenu( AnimatedModel* animModel );
+	void BezierSplineMenu();
 
 	inline std::vector<XMFLOAT3> GetPoints() const noexcept { return m_vPoints; }
 

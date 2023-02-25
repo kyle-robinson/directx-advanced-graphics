@@ -27,6 +27,7 @@ public:
 
 	void CreateView();
 	void CreateProjectionMatrix( float screenDepth, float screenNear );
+	inline Camera* GetCamera() const noexcept { return m_pCamLight; }
 
 	void SetColour( XMFLOAT4 colour );
 	void SetPos( XMFLOAT4 pos );
