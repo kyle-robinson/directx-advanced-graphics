@@ -44,16 +44,16 @@ HRESULT Application::InitMesh()
     if ( FAILED( hr ) )
         return hr;
 
-    hr = m_ground.GetAppearance()->InitMesh_Quad( m_gfx.GetDevice(), m_gfx.GetContext() );
+    hr = m_ground.GetAppearance()->InitMesh_Quad( m_gfx.GetDevice() );
     if ( FAILED( hr ) )
         return hr;
     m_ground.GetTransfrom()->SetPosition( -5, -2, 5 );
 
     // Terrain generation
     m_pTerrain = new Terrain( "Resources/Textures/coastMountain513.raw", XMFLOAT2( 513, 513 ),
-        100, TerrainGenType::HightMapLoad, m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController() );
+        100, TerrainGenType::HeightMapLoad, m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController() );
 
-    std::vector<string> texGround;
+    std::vector<std::string> texGround;
     texGround.push_back( "Resources/Textures/grass.dds" );
     texGround.push_back( "Resources/Textures/darkdirt.dds" );
     texGround.push_back( "Resources/Textures/lightdirt.dds" );
@@ -108,7 +108,7 @@ HRESULT Application::InitMesh()
     return hr;
 }
 
-vector<float> CubicBezierBasis( float u )
+std::vector<float> CubicBezierBasis( float u )
 {
     float compla = 1 - u; // complement of u
     // compute value of basis functions for given value of u
@@ -117,17 +117,17 @@ vector<float> CubicBezierBasis( float u )
     float BF2 = 3.0 * u * u * compla;
     float BF3 = u * u * u;
 
-    vector<float> bfArray = { BF0, BF1, BF2, BF3 };
+    std::vector<float> bfArray = { BF0, BF1, BF2, BF3 };
     return bfArray;
 }
 
-vector<XMFLOAT3> CubicBezierCurve( vector<XMFLOAT3> controlPoints )
+std::vector<XMFLOAT3> CubicBezierCurve( std::vector<XMFLOAT3> controlPoints )
 {
-    vector<XMFLOAT3> points;
+    std::vector<XMFLOAT3> points;
     for ( float i = 0.0f; i < 1.0f; i += 0.1f )
     {
         // Calculate value of each basis function for current u
-        vector<float> basisFnValues = CubicBezierBasis( i );
+        std::vector<float> basisFnValues = CubicBezierBasis( i );
 
         XMFLOAT3 sum = XMFLOAT3{ 0.0f,0.0f,0.0f };
         for ( int cPointIndex = 0; cPointIndex <= 3; cPointIndex++ )
@@ -138,7 +138,7 @@ vector<XMFLOAT3> CubicBezierCurve( vector<XMFLOAT3> controlPoints )
             sum.z += controlPoints[cPointIndex].z * basisFnValues[cPointIndex];
         }
 
-        DirectX::XMFLOAT3 point = sum; // point for current u on cubic Bezier curve
+        XMFLOAT3 point = sum; // point for current u on cubic Bezier curve
         points.push_back( point );
     }
     return points;
@@ -200,12 +200,12 @@ HRESULT Application::InitWorld()
     HRESULT hr = m_gfx.GetDevice()->CreateBuffer( &bd, &InitData, &m_pScreenQuadVB );
     if ( FAILED( hr ) )
         return hr;
-    vector<XMFLOAT3> a = {
+    std::vector<XMFLOAT3> a = {
         XMFLOAT3{ 0.0f,0.0f,0.0f },
         XMFLOAT3{ 2.0f,1.0f,0.0f },
         XMFLOAT3{ 5.0f,0.6f,0.0f },
         XMFLOAT3{ 6.0f,0.0f,0.0f } };
-    m_pImGuiManager->points = CubicBezierCurve( a );
+    m_pImGuiManager->SetPoints( CubicBezierCurve( a ) );
 
     return S_OK;
 }
@@ -272,7 +272,7 @@ void Application::Draw()
     m_gfx.GetContext()->RSSetViewports( 1, &vp );
 
     // Move objects that will be shadowed into list
-    vector<DrawableGameObject*> gameObjects;
+    std::vector<DrawableGameObject*> gameObjects;
     gameObjects.push_back( &m_cube );
     gameObjects.push_back( &m_ground );
 
@@ -281,9 +281,9 @@ void Application::Draw()
     {
         m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
         m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "m_pDepthLight" ).m_pVertexShader, nullptr, 0 );
+        m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "DepthLight" ).m_pVertexShader, nullptr, 0 );
         m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, &m_pCB );
-        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "m_pDepthLight" ).m_pPixelShader, nullptr, 0 );
+        m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "DepthLight" ).m_pPixelShader, nullptr, 0 );
         m_pLightController->GetLight( i )->CreateShadowMap( m_gfx.GetContext(), gameObjects, &m_pCB );
     }
 
@@ -374,10 +374,9 @@ void Application::Draw()
         vp2.TopLeftY = 0;
         m_gfx.GetContext()->RSSetViewports( 1, &vp2 );
 
+		// Clear the back buffer and depth stencil view
         m_gfx.GetContext()->OMSetRenderTargets( 1, m_gfx.GetBackBuffer()->GetPtr(), m_gfx.GetDepthStencil()->GetDSV() );
-        // Clear the back buffer
         m_gfx.GetContext()->ClearRenderTargetView( m_gfx.GetBackBuffer()->Get(), Colors::LightBlue );
-        // Clear the depth buffer to 1.0 (max depth)
         m_gfx.GetContext()->ClearDepthStencilView( m_gfx.GetDepthStencil()->GetDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
         // get the game object world transform
@@ -391,7 +390,6 @@ void Application::Draw()
         RTTprojection = XMLoadFloat4x4( &projectionAsFloats );
 
         // store this and the view / projection in a constant buffer for the vertex shader to use
-        //ConstantBuffer cb1;
         cb1.mWorld = XMMatrixTranspose( mGO );
         cb1.mView = XMMatrixTranspose( RTTview );
         cb1.mProjection = XMMatrixTranspose( RTTprojection );
@@ -650,14 +648,14 @@ void Application::Draw()
     }
 
     m_pImGuiManager->BeginRender();
-    m_pImGuiManager->DrawCamMenu( m_pCamController );
-    m_pImGuiManager->ObjectControl( &m_cube );
-    m_pImGuiManager->LightControl( m_pLightController );
+    m_pImGuiManager->CameraMenu( m_pCamController );
+    m_pImGuiManager->ObjectMenu( &m_cube );
+    m_pImGuiManager->LightMenu( m_pLightController );
     m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_ppSettings, m_gfx.GetRasterizerController(), m_bIsRTT );
-    m_pImGuiManager->BillBoradControl( m_pBillboard );
-    m_pImGuiManager->BezierCurveSpline();
-    m_pImGuiManager->TerrainControll( m_pTerrain, m_pVoxelTerrain, m_gfx.GetDevice(), m_gfx.GetContext() );
-    m_pImGuiManager->AnimationControll( m_pAnimModel );
+    m_pImGuiManager->BillboardMenu( m_pBillboard );
+    m_pImGuiManager->BezierSplineMenu();
+    m_pImGuiManager->TerrainMenu( m_pTerrain, m_pVoxelTerrain, m_gfx.GetDevice(), m_gfx.GetContext() );
+    m_pImGuiManager->AnimationMenu( m_pAnimModel );
     m_pImGuiManager->EndRender();
 
     m_gfx.GetSwapChain()->Present( 1, 0 );

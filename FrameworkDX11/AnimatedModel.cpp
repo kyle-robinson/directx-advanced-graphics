@@ -76,7 +76,7 @@ AnimatedModel::AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D
 
     m_vFinalTransforms.resize( m_skeletonData.BoneCount() );
     m_vFinalTransforms = m_skeletonData.GetFinalTransforms( m_sClipName, 0 );
-    m_skeletonData.InverKin( 18, XMFLOAT3( 0, 0, 0 ) );
+    m_skeletonData.InverseKin( 18, XMFLOAT3( 0, 0, 0 ) );
 }
 
 AnimatedModel::~AnimatedModel()

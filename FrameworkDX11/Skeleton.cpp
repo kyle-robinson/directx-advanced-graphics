@@ -183,7 +183,6 @@ void Skeleton::InverseKin( int endEffector, XMFLOAT3 target )
 	float maxErrand = 0;
 	float maxItr = 2;
 
-	XMFLOAT3 target = target;
 	XMFLOAT3 endeffector = XMFLOAT3(
 		m_vBoneData[endEffector]->GetRealPos().x,
 		m_vBoneData[endEffector]->GetRealPos().y,

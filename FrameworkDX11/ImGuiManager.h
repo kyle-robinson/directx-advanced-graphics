@@ -41,6 +41,7 @@ public:
 	void BezierSplineMenu();
 
 	inline std::vector<XMFLOAT3> GetPoints() const noexcept { return m_vPoints; }
+	inline void SetPoints( std::vector<XMFLOAT3> points ) noexcept { m_vPoints = points; }
 
 private:
 	void SetBlackGoldStyle();

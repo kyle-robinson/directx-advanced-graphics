@@ -627,7 +627,7 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
             }
 
             static std::string fileName;
-            ImGui::InputText( "File Name", &fileName );
+            //ImGui::InputText( "File Name", &fileName );
             if ( ImGui::Button( "Load" ) )
             {
                 TerrainData Data;
