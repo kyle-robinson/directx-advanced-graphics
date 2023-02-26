@@ -80,7 +80,7 @@ Terrain::Terrain( std::string heightMapName, XMFLOAT2 size, double scale, Terrai
 
     m_pApperance->SetHeightData( m_vHeightMapData );
     m_pApperance->CalcAllPatchBoundsY();
-    m_pApperance->InitMesh_Quad( pDevice );
+    m_pApperance->InitMesh_Terrain( pDevice );
 
     // Create the light constant buffer
     D3D11_BUFFER_DESC bd = {};
@@ -384,7 +384,7 @@ void Terrain::ReBuildTerrain( XMFLOAT2 size, double scale, float cellSpacing, Te
 
     m_pApperance->SetHeightData( m_vHeightMapData );
     m_pApperance->CalcAllPatchBoundsY();
-    m_pApperance->InitMesh_Quad( pDevice );
+    m_pApperance->InitMesh_Terrain( pDevice );
 }
 
 void Terrain::SetTexHeights( float height1, float height2, float height3, float height4, float height5 )
