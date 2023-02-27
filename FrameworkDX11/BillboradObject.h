@@ -4,6 +4,7 @@
 
 #include <vector>
 #include "Structures.h"
+#include "VertexBuffer.h"
 #include "ConstantBuffer.h"
 #include "ShaderController.h"
 
@@ -34,10 +35,10 @@ private:
 	void CleanUp();
 
 	int m_iNumberOfBillBoards = 0;
-	ID3D11Buffer* m_pBillboardVertexBuffer;
-	ID3D11Buffer* m_pBillboardInstanceBuffer;
 	std::vector<SimpleVertexBillboard> m_vPositions;
 	ID3D11ShaderResourceView* m_pDiffuseResourceView;
+	VertexBuffer<SimpleVertexBillboard> m_billboardVB;
+	VertexBuffer<SimpleVertexBillboard> m_billboardInstanceVB;
 };
 
 #endif

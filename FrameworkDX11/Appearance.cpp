@@ -3,8 +3,6 @@
 
 Appearance::Appearance()
 {
-	m_pVertexBuffer = nullptr;
-	m_pIndexBuffer = nullptr;
 	m_pTextureResourceView = nullptr;
 	m_pSamplerLinear = nullptr;
 }
@@ -27,18 +25,17 @@ void Appearance::Draw( ID3D11DeviceContext* pContext )
 	// Set vertex buffer
 	UINT stride = sizeof( SimpleVertex );
 	UINT offset = 0;
-	pContext->IASetVertexBuffers( 0, 1, &m_pVertexBuffer, &stride, &offset );
-	pContext->IASetIndexBuffer( m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0 );
+	pContext->IASetVertexBuffers( 0, 1, m_simpleVB.GetAddressOf(), m_simpleVB.StridePtr(), &offset );
+	pContext->IASetIndexBuffer( m_simpleIB.Get(), DXGI_FORMAT_R16_UINT, 0 );
 	pContext->PSSetSamplers( 0, 1, &m_pSamplerLinear );
-	pContext->DrawIndexed( m_iNumberOfVert, 0, 0 );
+	pContext->DrawIndexed( m_simpleIB.IndexCount(), 0, 0 );
 }
 
 void Appearance::Draw( ID3D11DeviceContext* pContext, int vertToDraw, int start )
 {
-	UINT stride = m_uVertexStride;
 	UINT offset = 0;
-	pContext->IASetVertexBuffers( 0, 1, &m_pVertexBuffer, &stride, &offset );
-	pContext->IASetIndexBuffer( m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0 );
+	pContext->IASetVertexBuffers( 0, 1, m_skinnedVB.GetAddressOf(), m_skinnedVB.StridePtr(), &offset );
+	pContext->IASetIndexBuffer( m_skinnedIB.Get(), DXGI_FORMAT_R16_UINT, 0 );
 	pContext->PSSetSamplers( 0, 1, &m_pSamplerLinear );
 	pContext->DrawIndexed( vertToDraw, start, 0 );
 }
@@ -50,7 +47,7 @@ void Appearance::SetTextures( ID3D11DeviceContext* pContext )
 	pContext->PSSetShaderResources( 2, 1, &m_pParallaxMapResourceView );
 }
 
-HRESULT Appearance::InitMesh_Cube( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
+bool Appearance::InitMesh_Cube( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
 	// Create vertex buffer
 	SimpleVertex vertices[] =
@@ -113,23 +110,6 @@ HRESULT Appearance::InitMesh_Cube( ID3D11Device* pDevice, ID3D11DeviceContext* p
 	// Calculate tangent and bitangents
 	CalculateModelVectors( vertices, NUM_VERTICES );
 
-	D3D11_BUFFER_DESC bd = {};
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof( SimpleVertex ) * NUM_VERTICES;
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bd.CPUAccessFlags = 0;
-
-	D3D11_SUBRESOURCE_DATA InitData = {};
-	InitData.pSysMem = vertices;
-	HRESULT hr = pDevice->CreateBuffer( &bd, &InitData, &m_pVertexBuffer );
-	if ( FAILED( hr ) )
-		return hr;
-
-	// Set vertex buffer
-	UINT stride = sizeof( SimpleVertex );
-	UINT offset = 0;
-	pContext->IASetVertexBuffers( 0, 1, &m_pVertexBuffer, &stride, &offset );
-
 	// Create index buffer
 	WORD indices[] =
 	{
@@ -152,48 +132,45 @@ HRESULT Appearance::InitMesh_Cube( ID3D11Device* pDevice, ID3D11DeviceContext* p
 		33,34,35
 	};
 
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof( WORD ) * NUM_VERTICES;
-	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	bd.CPUAccessFlags = 0;
-	InitData.pSysMem = indices;
-	hr = pDevice->CreateBuffer( &bd, &InitData, &m_pIndexBuffer );
-	if ( FAILED( hr ) )
-		return hr;
+	try
+	{
+		// Create vertex buffer
+		HRESULT hr = m_simpleVB.Initialize( pDevice, vertices, ARRAYSIZE( vertices ) );
+		COM_ERROR_IF_FAILED( hr, "Failed to create CUBE VERTEX BUFFER!" );
 
-	// Set index buffer
-	pContext->IASetIndexBuffer( m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0 );
-	pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-	m_iNumberOfVert = NUM_VERTICES;
+		// Create index buffer
+		hr = m_simpleIB.Initialize( pDevice, indices, ARRAYSIZE( indices ) );
+		COM_ERROR_IF_FAILED( hr, "Failed to create CUBE INDEX BUFFER!" );
+		pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
-	// Setup textures
-	hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_TEX.dds", nullptr, &m_pTextureResourceView );
-	if ( FAILED( hr ) )
-		return hr;
+		// Create textures
+		hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_TEX.dds", nullptr, &m_pTextureResourceView );
+		hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_NORM.dds", nullptr, &m_pNormalMapResourceView );
+		hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_DISP.dds", nullptr, &m_pParallaxMapResourceView );
+		COM_ERROR_IF_FAILED( hr, "Failed to create a CUBE TEXTURE!" );
 
-	hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_NORM.dds", nullptr, &m_pNormalMapResourceView );
-	if ( FAILED( hr ) )
-		return hr;
+		// Create sampler
+		D3D11_SAMPLER_DESC sampDesc;
+		ZeroMemory( &sampDesc, sizeof( sampDesc ) );
+		sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		sampDesc.MinLOD = 0;
+		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		hr = pDevice->CreateSamplerState( &sampDesc, &m_pSamplerLinear );
+		COM_ERROR_IF_FAILED( hr, "Failed to create a CUBE SAMPLER!" );
 
-	hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_DISP.dds", nullptr, &m_pParallaxMapResourceView );
-	if ( FAILED( hr ) )
-		return hr;
-
-	// Create sampler
-	D3D11_SAMPLER_DESC sampDesc;
-	ZeroMemory( &sampDesc, sizeof( sampDesc ) );
-	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	sampDesc.MinLOD = 0;
-	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	hr = pDevice->CreateSamplerState( &sampDesc, &m_pSamplerLinear );
-
-	// Create material constant buffer
-	hr = m_materialCB.Initialize( pDevice, pContext );
-	COM_ERROR_IF_FAILED( hr, "Failed to create MATERIAL constant buffer!" );
+		// Create material constant buffer
+		hr = m_materialCB.Initialize( pDevice, pContext );
+		COM_ERROR_IF_FAILED( hr, "Failed to create MATERIAL constant buffer!" );
+	}
+	catch ( COMException& exception )
+	{
+		ErrorLogger::Log( exception );
+		return false;
+	}
 
 	// Setup material properties
 	m_materialCB.data.Material.Diffuse = XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f );
@@ -206,10 +183,10 @@ HRESULT Appearance::InitMesh_Cube( ID3D11Device* pDevice, ID3D11DeviceContext* p
 	m_materialCB.data.Material.MaxLayers = 15.0f;
 	m_materialCB.data.Material.MinLayers = 10.0f;
 
-	return hr;
+	return true;
 }
 
-HRESULT Appearance::InitMesh_Quad( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
+bool Appearance::InitMesh_Quad( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
 	// Create quad with height data
 	int cols = 2;
@@ -248,7 +225,7 @@ HRESULT Appearance::InitMesh_Quad( ID3D11Device* pDevice, ID3D11DeviceContext* p
 	}
 
 	// Create indices
-	std::vector<WORD>indices;
+	std::vector<WORD> indices;
 	for ( UINT i = 0; i < rows - 1; i++ )
 	{
 		for ( UINT j = 0; j < cols - 1; j++ )
@@ -262,56 +239,44 @@ HRESULT Appearance::InitMesh_Quad( ID3D11Device* pDevice, ID3D11DeviceContext* p
 		}
 	}
 
-	// Create vertex buffer
-	D3D11_BUFFER_DESC bd;
-	ZeroMemory( &bd, sizeof( bd ) );
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof( SimpleVertex ) * v.size();
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bd.CPUAccessFlags = 0;
-	D3D11_SUBRESOURCE_DATA InitData;
-	ZeroMemory( &InitData, sizeof( InitData ) );
-	InitData.pSysMem = &v[0];
-	HRESULT hr = pDevice->CreateBuffer( &bd, &InitData, &m_pVertexBuffer );
+	try
+	{
+		// Create vertex buffer
+		HRESULT hr = m_simpleVB.Initialize( pDevice, &v[0], v.size() );
+		COM_ERROR_IF_FAILED( hr, "Failed to create QUAD VERTEX BUFFER!" );
 
-	// Create index buffer
-	ZeroMemory( &bd, sizeof( bd ) );
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof( WORD ) * indices.size();
-	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	bd.CPUAccessFlags = 0;
-	ZeroMemory( &InitData, sizeof( InitData ) );
-	InitData.pSysMem = &indices[0];
-	hr = pDevice->CreateBuffer( &bd, &InitData, &m_pIndexBuffer );
+		// Create index buffer
+		hr = m_simpleIB.Initialize( pDevice, &indices[0], indices.size() );
+		COM_ERROR_IF_FAILED( hr, "Failed to create QUAD INDEX BUFFER!" );
 
-	m_iNumberOfVert = indices.size();
+		// Create textures
+		hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_TEX.dds", nullptr, &m_pTextureResourceView );
+		hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_NORM.dds", nullptr, &m_pNormalMapResourceView );
+		hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_DISP.dds", nullptr, &m_pParallaxMapResourceView );
+		COM_ERROR_IF_FAILED( hr, "Failed to create a QUAD TEXTURE!" );
 
-	hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_TEX.dds", nullptr, &m_pTextureResourceView );
-	if ( FAILED( hr ) )
-		return hr;
+		// Create sampler
+		D3D11_SAMPLER_DESC sampDesc;
+		ZeroMemory( &sampDesc, sizeof( sampDesc ) );
+		sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		sampDesc.MinLOD = 0;
+		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		hr = pDevice->CreateSamplerState( &sampDesc, &m_pSamplerLinear );
+		COM_ERROR_IF_FAILED( hr, "Failed to create a QUAD SAMPLER!" );
 
-	hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_NORM.dds", nullptr, &m_pNormalMapResourceView );
-	if ( FAILED( hr ) )
-		return hr;
-
-	hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_DISP.dds", nullptr, &m_pParallaxMapResourceView );
-	if ( FAILED( hr ) )
-		return hr;
-
-	D3D11_SAMPLER_DESC sampDesc;
-	ZeroMemory( &sampDesc, sizeof( sampDesc ) );
-	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	sampDesc.MinLOD = 0;
-	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	hr = pDevice->CreateSamplerState( &sampDesc, &m_pSamplerLinear );
-
-	// Create material constant buffer
-	hr = m_materialCB.Initialize( pDevice, pContext );
-	COM_ERROR_IF_FAILED( hr, "Failed to create MATERIAL constant buffer!" );
+		// Create material constant buffer
+		hr = m_materialCB.Initialize( pDevice, pContext );
+		COM_ERROR_IF_FAILED( hr, "Failed to create MATERIAL constant buffer!" );
+	}
+	catch ( COMException& exception )
+	{
+		ErrorLogger::Log( exception );
+		return false;
+	}
 
 	m_materialCB.data.Material.Diffuse = XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f );
 	m_materialCB.data.Material.Specular = XMFLOAT4( 1.0f, 0.2f, 0.2f, 1.0f );
@@ -323,40 +288,37 @@ HRESULT Appearance::InitMesh_Quad( ID3D11Device* pDevice, ID3D11DeviceContext* p
 	m_materialCB.data.Material.MaxLayers = 15.0f;
 	m_materialCB.data.Material.MinLayers = 10.0f;
 
-	return hr;
+	return true;
 }
 
-HRESULT Appearance::SetVertexBuffer( ID3D11Device* pDevice, std::vector<SkinedVertex> vertices, UINT count )
+bool Appearance::SetVertexBuffer( ID3D11Device* pDevice, std::vector<SkinnedVertex>& vertices )
 {
-	m_uVertexStride = sizeof( SkinedVertex );
-	D3D11_BUFFER_DESC bd = {};
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof( SkinedVertex ) * count;
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bd.CPUAccessFlags = 0;
-
-	D3D11_SUBRESOURCE_DATA InitData = {};
-	InitData.pSysMem = &vertices[0];
-	HRESULT hr = pDevice->CreateBuffer( &bd, &InitData, &m_pVertexBuffer );
-	if ( FAILED( hr ) )
-		return hr;
+	try
+	{
+		HRESULT hr = m_skinnedVB.Initialize( pDevice, &vertices[0], vertices.size() );
+		COM_ERROR_IF_FAILED( hr, "Failed to create SKINNED VERTEX BUFFER!" );
+	}
+	catch ( COMException& exception )
+	{
+		ErrorLogger::Log( exception );
+		return false;
+	}
+	return true;
 }
 
-HRESULT Appearance::SetIndices( ID3D11Device* device, const USHORT* indices, UINT count )
+bool Appearance::SetIndices( ID3D11Device* pDevice, std::vector<WORD>& indices )
 {
-	D3D11_BUFFER_DESC ibd;
-	ibd.Usage = D3D11_USAGE_DEFAULT;
-	ibd.ByteWidth = sizeof( USHORT ) * count;
-	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	ibd.CPUAccessFlags = 0;
-	ibd.MiscFlags = 0;
-	ibd.StructureByteStride = 0;
-
-	D3D11_SUBRESOURCE_DATA iinitData;
-	iinitData.pSysMem = indices;
-
-	HRESULT HR = device->CreateBuffer( &ibd, &iinitData, &m_pIndexBuffer );
-	return HR;
+	try
+	{
+		HRESULT hr = m_skinnedIB.Initialize( pDevice, &indices[0], indices.size() );
+		COM_ERROR_IF_FAILED( hr, "Failed to create SKINNED INDEX BUFFER!" );
+	}
+	catch ( COMException& exception )
+	{
+		ErrorLogger::Log( exception );
+		return false;
+	}
+	return true;
 }
 
 void Appearance::CalculateTangentBinormalLH( SimpleVertex v0, SimpleVertex v1, SimpleVertex v2, XMFLOAT3& normal, XMFLOAT3& Tangent, XMFLOAT3& binormal )
@@ -546,14 +508,6 @@ void Appearance::CalculateModelVectors( SimpleVertex* vertices, int vertexCount 
 
 void Appearance::CleanUp()
 {
-	if ( m_pVertexBuffer )
-		m_pVertexBuffer->Release();
-	m_pVertexBuffer = nullptr;
-
-	if ( m_pIndexBuffer )
-		m_pIndexBuffer->Release();
-	m_pIndexBuffer = nullptr;
-
 	if ( m_pTextureResourceView )
 		m_pTextureResourceView->Release();
 	m_pTextureResourceView = nullptr;

@@ -34,7 +34,7 @@ namespace Bind
 				return;
 			}
 		}
-		inline void Bind( ID3D11DeviceContext* context, DepthStencil* depthStencil, float clearColor[4] ) noexcept
+		inline void Bind( ID3D11DeviceContext* context, DepthStencil* depthStencil, const float* clearColor ) noexcept
 		{
 			context->OMSetRenderTargets( 1u, backBufferView.GetAddressOf(), depthStencil->GetDSV() );
 			context->ClearRenderTargetView( backBufferView.Get(), clearColor );

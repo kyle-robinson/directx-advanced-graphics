@@ -21,17 +21,17 @@ class M3DLoader
 {
 public:
 	bool LoadM3d( const std::string& filename,
-		std::vector<SkinedVertex>& vertices,
-		std::vector<USHORT>& indices,
+		std::vector<SkinnedVertex>& vertices,
+		std::vector<WORD>& indices,
 		std::vector<Subset >& subsets,
 		std::vector<M3dMaterial>& mats,
 		Skeleton& skinInfo );
-	std::vector<USHORT> index;
+	std::vector<WORD> index;
 private:
 	void ReadMaterials( std::ifstream& fin, UINT numMaterials, std::vector<M3dMaterial>& mats );
 	void ReadSubsetTable( std::ifstream& fin, UINT numSubsets, std::vector<Subset>& subsets );
-	void ReadSkinnedVertices( std::ifstream& fin, UINT numVertices, std::vector<SkinedVertex>& vertices );
-	void ReadTriangles( std::ifstream& fin, UINT numTriangles, std::vector<USHORT>& indices );
+	void ReadSkinnedVertices( std::ifstream& fin, UINT numVertices, std::vector<SkinnedVertex>& vertices );
+	void ReadTriangles( std::ifstream& fin, UINT numTriangles, std::vector<WORD>& indices );
 	void ReadBoneOffsets( std::ifstream& fin, UINT numBones, std::vector<XMFLOAT4X4>& boneOffsets );
 	void ReadBoneHierarchy( std::ifstream& fin, UINT numBones, std::vector<int>& boneIndexToParentIndex );
 	void ReadAnimationClips( std::ifstream& fin, UINT numBones, UINT numAnimationClips, std::map<std::string, AnimationClip>& animations );

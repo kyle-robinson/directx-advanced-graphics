@@ -16,20 +16,34 @@
 
 class Application : public WindowContainer
 {
+public:
+	Application();
+	~Application();
+
+	bool Initialize( HINSTANCE hInstance, int width, int height );
+	void Update();
+	void Draw();
+
 private:
+	void SetupLightForRender();
+	bool InitDevice();
+	bool InitMesh();
+	bool InitWorld();
+	void Cleanup();
+
 	// Constant buffers
 	ConstantBuffer<MatrixBuffer> m_matrixCB;
 	ConstantBuffer<LightPropertiesCB> m_lightCB;
 	ConstantBuffer<PostProcessingCB> m_postProcessingCB;
 
 	// Fullscreen quad
-	struct SCREEN_VERTEX
+	struct ScreenVertex
 	{
 		XMFLOAT3 pos;
 		XMFLOAT2 tex;
 	};
 	bool m_bIsRTT = false;
-	ID3D11Buffer* m_pScreenQuadVB = nullptr;
+	VertexBuffer<ScreenVertex> m_screenVB;
 	XMMATRIX m_mProjection;
 	XMMATRIX m_mView;
 
@@ -54,21 +68,6 @@ private:
 	// Terrain
 	TerrainVoxel* m_pVoxelTerrain;
 	Terrain* m_pTerrain;
-
-public:
-	Application();
-	~Application();
-
-	bool Initialize( HINSTANCE hInstance, int width, int height );
-	void Update();
-	void Draw();
-
-private:
-	void SetupLightForRender();
-	bool InitDevice();
-	bool InitMesh();
-	bool InitWorld();
-	void Cleanup();
 };
 
 #endif

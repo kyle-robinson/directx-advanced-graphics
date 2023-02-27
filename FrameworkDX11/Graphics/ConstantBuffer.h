@@ -29,7 +29,7 @@ public:
 	{
 		if ( buffer.Get() != nullptr )
 			buffer.Reset();
-		
+
 		this->context = context;
 
 		D3D11_BUFFER_DESC constantBufferDesc = { 0 };

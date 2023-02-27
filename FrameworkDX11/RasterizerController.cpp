@@ -23,7 +23,7 @@ void RasterizerController::SetOverrideState( ID3D11DeviceContext* pContext )
     }
     else
     {
-        pContext->RSSetState( m_vRasterStates.begin()->second->Get() );
+        m_vRasterStates.begin()->second->Bind( pContext );
     }
 }
 

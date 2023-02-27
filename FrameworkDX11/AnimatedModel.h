@@ -60,18 +60,18 @@ public:
     }
 
 private:
-    void ProcessMesh( aiMesh* mesh, const aiScene* scene, const XMMATRIX& transformMatrix, std::vector<SkinedVertex>& verts, std::vector<USHORT>& index );
-    void ProcessNode( aiNode* node, const aiScene* scene, const XMMATRIX& parentTransformMatrix, std::vector<SkinedVertex>& verts, std::vector<USHORT>& index );
+    void ProcessMesh( aiMesh* mesh, const aiScene* scene, const XMMATRIX& transformMatrix, std::vector<SkinnedVertex>& verts, std::vector<WORD>& index );
+    void ProcessNode( aiNode* node, const aiScene* scene, const XMMATRIX& parentTransformMatrix, std::vector<SkinnedVertex>& verts, std::vector<WORD>& index );
     void CleanUp();
 
     Appearance* m_pAppearance;
     std::string m_sModelName;
 
-    std::vector<USHORT> m_vIndex;
-    std::vector<USHORT> m_vIndex2;
+    std::vector<WORD> m_vIndex;
+    std::vector<WORD> m_vIndex2;
     std::vector<Subset> m_vSubsets;
     std::vector<M3dMaterial> m_vMat;
-    std::vector<SkinedVertex> m_vSkinVert;
+    std::vector<SkinnedVertex> m_vSkinVert;
 
     Skeleton m_skeletonData;
     Transform* m_pTransformData;

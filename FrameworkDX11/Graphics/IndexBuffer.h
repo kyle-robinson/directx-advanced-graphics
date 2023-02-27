@@ -31,7 +31,7 @@ public:
 	{
 		if ( buffer.Get() != nullptr )
 			buffer.Reset();
-		
+
 		this->indexCount = indexCount;
 
 		D3D11_BUFFER_DESC indexBufferDesc = { 0 };

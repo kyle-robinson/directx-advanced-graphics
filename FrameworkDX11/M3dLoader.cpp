@@ -2,8 +2,8 @@
 #include "M3dLoader.h"
 
 bool M3DLoader::LoadM3d( const std::string& filename,
-	std::vector<SkinedVertex>& vertices,
-	std::vector<USHORT>& indices,
+	std::vector<SkinnedVertex>& vertices,
+	std::vector<WORD>& indices,
 	std::vector<Subset>& subsets,
 	std::vector<M3dMaterial>& mats,
 	Skeleton& skinInfo )
@@ -90,7 +90,7 @@ void M3DLoader::ReadSubsetTable( std::ifstream& fin, UINT numSubsets, std::vecto
 	}
 }
 
-void M3DLoader::ReadSkinnedVertices( std::ifstream& fin, UINT numVertices, std::vector<SkinedVertex>& vertices )
+void M3DLoader::ReadSkinnedVertices( std::ifstream& fin, UINT numVertices, std::vector<SkinnedVertex>& vertices )
 {
 	std::string ignore;
 	vertices.resize( numVertices );
@@ -118,7 +118,7 @@ void M3DLoader::ReadSkinnedVertices( std::ifstream& fin, UINT numVertices, std::
 	}
 }
 
-void M3DLoader::ReadTriangles( std::ifstream& fin, UINT numTriangles, std::vector<USHORT>& indices )
+void M3DLoader::ReadTriangles( std::ifstream& fin, UINT numTriangles, std::vector<WORD>& indices )
 {
 	std::string ignore;
 	indices.resize( numTriangles * 3 );

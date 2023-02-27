@@ -61,7 +61,7 @@ struct Subset
 
 // Vertex data
 typedef unsigned char BYTE;
-struct SkinedVertex
+struct SkinnedVertex
 {
 	XMFLOAT3 Pos;
 	XMFLOAT3 Normal;

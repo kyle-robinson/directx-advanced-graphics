@@ -119,20 +119,8 @@ void TerrainAppearence::InitMesh_Cube(
 		{ XMFLOAT3( 1.0f, 1.0f, 1.0f ), XMFLOAT3( 0.0f, 0.0f, 1.0f ), XMFLOAT2( 0.0f, 0.0f ) }, // 22
 	};
 
-	// Create vertex buffer
-	D3D11_BUFFER_DESC bd = {};
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof( SimpleVertex ) * NUM_VERTICES;
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bd.CPUAccessFlags = 0;
 
-	D3D11_SUBRESOURCE_DATA InitData = {};
-	InitData.pSysMem = vertices;
-	HRESULT hr = pDevice->CreateBuffer( &bd, &InitData, &m_pVertexBuffer );
-	if ( FAILED( hr ) )
-		return;
-
-	// Create index buffer
+	// Store indices
 	std::vector<WORD> ind;
 	if ( !lYPositive )
 	{
@@ -195,26 +183,31 @@ void TerrainAppearence::InitMesh_Cube(
 		ind.push_back( 35 );
 	}
 
-	if ( ind.size() > 0 )
+	try
 	{
-		bd.Usage = D3D11_USAGE_DEFAULT;
-		bd.ByteWidth = sizeof( WORD ) * ind.size();
-		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-		bd.CPUAccessFlags = 0;
-		InitData.pSysMem = &ind[0];
-		hr = pDevice->CreateBuffer( &bd, &InitData, &m_pIndexBuffer );
-		if ( FAILED( hr ) )
-			return ;
+		// Create vertex buffer
+		HRESULT hr = m_simpleVB.Initialize( pDevice, vertices, NUM_VERTICES );
+		COM_ERROR_IF_FAILED( hr, "Failed to create TERRAIN CUBE VERTEX BUFFER!" );
 
-		pContext->IASetIndexBuffer( m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0 );
+		if ( ind.size() > 0 )
+		{
+			// Create index buffer
+			hr = m_simpleIB.Initialize( pDevice, &ind[0], ind.size() );
+			COM_ERROR_IF_FAILED( hr, "Failed to create TERRAIN CUBE INDEX BUFFER!" );
+			pContext->IASetIndexBuffer( m_simpleIB.Get(), DXGI_FORMAT_R16_UINT, 0 );
+		}
+		else
+		{
+			m_bToDraw = false;
+		}
+
+		pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 	}
-	else
+	catch ( COMException& exception )
 	{
-		m_bToDraw = false;
+		ErrorLogger::Log( exception );
+		return;
 	}
-
-	pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-	m_iNumberOfVert = ind.size();
 }
 
 void TerrainAppearence::SetTexture( std::vector<std::string> texName, ID3D11Device* pDevice )
@@ -293,23 +286,22 @@ void TerrainAppearence::BuildPatchVertex( ID3D11Device* pDevice )
 		}
 	}
 
-	D3D11_BUFFER_DESC vbd;
-	vbd.Usage = D3D11_USAGE_DEFAULT;
-	vbd.ByteWidth = sizeof( TerrainVertex ) * patchVertices.size();
-	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vbd.CPUAccessFlags = 0;
-	vbd.MiscFlags = 0;
-	vbd.StructureByteStride = 0;
-	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = &patchVertices[0];
-	HRESULT hr = pDevice->CreateBuffer( &vbd, &vinitData, &m_pVertexBuffer );
-	if ( FAILED( hr ) )
+	try
+	{
+		// Create vertex buffer
+		HRESULT hr = m_terrainVB.Initialize( pDevice, &patchVertices[0], patchVertices.size() );
+		COM_ERROR_IF_FAILED( hr, "Failed to create TERRAIN VERTEX BUFFER!" );
+	}
+	catch ( COMException& exception )
+	{
+		ErrorLogger::Log( exception );
 		return;
+	}
 }
 
 void TerrainAppearence::BuildPatchIndex( ID3D11Device* pDevice )
 {
-	std::vector<USHORT> indices( m_iNumPatchQuadFaces * 4 );
+	std::vector<WORD> indices( m_iNumPatchQuadFaces * 4 );
 
 	// Iterate over each quad and compute indices.
 	int k = 0;
@@ -328,20 +320,17 @@ void TerrainAppearence::BuildPatchIndex( ID3D11Device* pDevice )
 		}
 	}
 
-	D3D11_BUFFER_DESC ibd;
-	ibd.Usage = D3D11_USAGE_DEFAULT;
-	ibd.ByteWidth = sizeof( USHORT ) * indices.size();
-	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	ibd.CPUAccessFlags = 0;
-	ibd.MiscFlags = 0;
-	ibd.StructureByteStride = 0;
-	D3D11_SUBRESOURCE_DATA iinitData;
-	iinitData.pSysMem = &indices[0];
-	HRESULT hr = pDevice->CreateBuffer( &ibd, &iinitData, &m_pIndexBuffer );
-	if ( FAILED( hr ) )
+	try
+	{
+		// Create index buffer
+		HRESULT hr = m_terrainIB.Initialize( pDevice, &indices[0], indices.size() );
+		COM_ERROR_IF_FAILED( hr, "Failed to create TERRAIN INDEX BUFFER!" );
+	}
+	catch ( COMException& exception )
+	{
+		ErrorLogger::Log( exception );
 		return;
-
-	m_iNumberOfVert = m_iNumPatchQuadFaces * 4;
+	}
 }
 
 void TerrainAppearence::CalcAllPatchBoundsY()
@@ -362,15 +351,11 @@ void TerrainAppearence::Draw( ID3D11DeviceContext* pContext )
 {
 	if ( m_bToDraw )
 	{
-		pContext->PSSetConstantBuffers( 1, 1, m_materialCB.GetAddressOf() );
-
-		// Set vertex buffer
-		UINT stride = sizeof( SimpleVertex );
 		UINT offset = 0;
-
-		pContext->IASetVertexBuffers( 0, 1, &m_pVertexBuffer, &stride, &offset );
-		pContext->IASetIndexBuffer( m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0 );
-		pContext->DrawIndexed( m_iNumberOfVert, 0, 0 );
+		pContext->PSSetConstantBuffers( 1, 1, m_materialCB.GetAddressOf() );
+		pContext->IASetVertexBuffers( 0, 1, m_terrainVB.GetAddressOf(), m_terrainVB.StridePtr(), &offset );
+		pContext->IASetIndexBuffer( m_terrainIB.Get(), DXGI_FORMAT_R16_UINT, 0 );
+		pContext->DrawIndexed( m_terrainIB.IndexCount(), 0, 0 );
 	}
 }
 

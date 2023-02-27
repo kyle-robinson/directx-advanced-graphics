@@ -58,6 +58,9 @@ private:
     int m_fHeightMapHeight;
     float m_fCellSpacing;
 
+    VertexBuffer<TerrainVertex> m_terrainVB;
+    IndexBuffer m_terrainIB;
+
     std::vector<float> m_vHeightMapData;
     std::vector<XMFLOAT2> m_vPatchBoundsY;
     std::vector<ID3D11ShaderResourceView*> m_vGroundTextureRV;
