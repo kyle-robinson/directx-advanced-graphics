@@ -127,14 +127,19 @@ bool Application::InitWorld()
     // Initialize the camrea
     m_pCamController = new CameraController();
 
-    m_pCamera = new Camera( XMFLOAT3( 0.0f, 0, -5 ), XMFLOAT3( 0.0f, 0.0f, 0.0f ),
+    m_pCamera = new Camera( XMFLOAT3( 0.0f, 0.0f, -5.0f ), XMFLOAT3( 0.0f, 0.0f, 0.0f ),
         XMFLOAT3( 0.0f, 1.0f, 0.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 175.0f );
     m_pCamera->SetCamName( "Light Camera" );
     m_pCamController->AddCam( m_pCamera );
 
-    m_pCamera = new Camera( XMFLOAT3( 0.0f, 0, -5 ), XMFLOAT3( 0.0f, 0.0f, 0.0f ),
+    m_pCamera = new Camera( XMFLOAT3( 0.0f, 0.0f, -5.0f ), XMFLOAT3( 0.0f, 0.0f, 0.0f ),
         XMFLOAT3( 0.0f, 1.0f, 0.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 175.0f );
     m_pCamera->SetCamName( "Free Camera" );
+    m_pCamController->AddCam( m_pCamera );
+
+    m_pCamera = new Camera( XMFLOAT3( 0.0f, 0.0f, -5 ), XMFLOAT3( 0.0f, 0.0f, 0.0f ),
+        XMFLOAT3( 0.0f, 1.0f, 0.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 50.0f );
+    m_pCamera->SetCamName( "Voxel Camera" );
     m_pCamController->AddCam( m_pCamera );
 
     m_pInput->AddCamControl( m_pCamController );

@@ -1,44 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Camera.cpp">
-      <Filter>Objects\Camera</Filter>
-    </ClCompile>
-    <ClCompile Include="Vector3.cpp">
-      <Filter>Utility\Math</Filter>
-    </ClCompile>
     <ClCompile Include="Application.cpp" />
-    <ClCompile Include="CameraController.cpp">
-      <Filter>Objects\Camera</Filter>
-    </ClCompile>
-    <ClCompile Include="LightController.cpp">
-      <Filter>Objects\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="LightData.cpp">
-      <Filter>Objects\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="Terrain.cpp">
-      <Filter>Objects\Terrain</Filter>
-    </ClCompile>
-    <ClCompile Include="TerrainAppearence.cpp">
-      <Filter>Objects\Terrain</Filter>
-    </ClCompile>
-    <ClCompile Include="TerrainJsonLoad.cpp">
-      <Filter>Objects\Terrain</Filter>
-    </ClCompile>
-    <ClCompile Include="TerrainVoxel.cpp">
-      <Filter>Objects\Terrain</Filter>
-    </ClCompile>
-    <ClCompile Include="Bone.cpp">
-      <Filter>Objects\Animation</Filter>
-    </ClCompile>
-    <ClCompile Include="AnimatedModel.cpp">
-      <Filter>Objects\Animation</Filter>
-    </ClCompile>
-    <ClCompile Include="Skeleton.cpp">
-      <Filter>Objects\Animation</Filter>
-    </ClCompile>
     <ClCompile Include="..\External\imgui\imgui.cpp">
       <Filter>Resources\DImGUI</Filter>
     </ClCompile>
@@ -84,84 +47,97 @@
     <ClCompile Include="Utility\stdafx.cpp">
       <Filter>Utility\PCH</Filter>
     </ClCompile>
-    <ClCompile Include="DDSTextureLoader.cpp">
-      <Filter>Utility\Texture</Filter>
-    </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <Filter>Objects\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="Appearance.cpp">
-      <Filter>Objects\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="DrawableGameObject.cpp">
-      <Filter>Objects\Drawables</Filter>
-    </ClCompile>
-    <ClCompile Include="BillboradObject.cpp">
-      <Filter>Objects\Drawables</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGuiManager.cpp">
-      <Filter>Graphics\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="ShadowMap.cpp">
-      <Filter>Graphics\Shadows</Filter>
-    </ClCompile>
-    <ClCompile Include="ShaderController.cpp">
-      <Filter>Graphics\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderTargetController.cpp">
-      <Filter>Graphics\RenderTarget</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderTargetTexture.cpp">
-      <Filter>Graphics\RenderTarget</Filter>
-    </ClCompile>
-    <ClCompile Include="RasterizerController.cpp">
-      <Filter>Graphics\Rasterizer</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\Graphics.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\SamplerController.cpp">
       <Filter>Graphics\Sampler</Filter>
     </ClCompile>
-    <ClCompile Include="M3dLoader.cpp">
-      <Filter>Utility\Model</Filter>
-    </ClCompile>
-    <ClCompile Include="DataStucts.cpp">
-      <Filter>Utility\Data</Filter>
-    </ClCompile>
     <ClCompile Include="Utility\Timer.cpp">
       <Filter>Utility\Helper</Filter>
     </ClCompile>
-    <ClCompile Include="PerlinNoise.cpp">
+    <ClCompile Include="Terrain\Terrain.cpp">
+      <Filter>Objects\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="Terrain\TerrainAppearence.cpp">
+      <Filter>Objects\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="Terrain\TerrainJsonLoad.cpp">
+      <Filter>Objects\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="Terrain\TerrainVoxel.cpp">
+      <Filter>Objects\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\ImGuiManager.cpp">
+      <Filter>Graphics\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\RasterizerController.cpp">
+      <Filter>Graphics\Rasterizer</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\RenderTargetController.cpp">
+      <Filter>Graphics\RenderTarget</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\RenderTargetTexture.cpp">
+      <Filter>Graphics\RenderTarget</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\ShaderController.cpp">
+      <Filter>Graphics\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\ShadowMap.cpp">
+      <Filter>Graphics\Shadows</Filter>
+    </ClCompile>
+    <ClCompile Include="Animation\AnimatedModel.cpp">
+      <Filter>Objects\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="Animation\Bone.cpp">
+      <Filter>Objects\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="Animation\Skeleton.cpp">
+      <Filter>Objects\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Camera.cpp">
+      <Filter>Objects\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\CameraController.cpp">
+      <Filter>Objects\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Appearance.cpp">
+      <Filter>Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Transform.cpp">
+      <Filter>Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\LightController.cpp">
+      <Filter>Objects\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\LightData.cpp">
+      <Filter>Objects\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\DrawableGameObject.cpp">
+      <Filter>Objects\Drawables</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\BillboradObject.cpp">
+      <Filter>Objects\Drawables</Filter>
+    </ClCompile>
+    <ClCompile Include="WinMain.cpp" />
+    <ClCompile Include="Utility\DataStucts.cpp">
+      <Filter>Utility\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\DDSTextureLoader.cpp">
+      <Filter>Utility\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\M3dLoader.cpp">
+      <Filter>Utility\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\Vector3.cpp">
+      <Filter>Utility\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\PerlinNoise.cpp">
       <Filter>Utility\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h">
-      <Filter>Objects\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="Quaternion.h">
-      <Filter>Utility\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Vector3.h">
-      <Filter>Utility\Math</Filter>
-    </ClInclude>
     <ClInclude Include="Application.h" />
-    <ClInclude Include="CameraController.h">
-      <Filter>Objects\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="LightController.h">
-      <Filter>Objects\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="LightData.h">
-      <Filter>Objects\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="Terrain.h">
-      <Filter>Objects\Terrain</Filter>
-    </ClInclude>
-    <ClInclude Include="TerrainAppearence.h">
-      <Filter>Objects\Terrain</Filter>
-    </ClInclude>
     <ClInclude Include="..\rapidjson\include\rapidjson\allocators.h">
       <Filter>Resources\Json</Filter>
     </ClInclude>
@@ -225,23 +201,8 @@
     <ClInclude Include="..\rapidjson\include\rapidjson\writer.h">
       <Filter>Resources\Json</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainJsonLoad.h">
-      <Filter>Objects\Terrain</Filter>
-    </ClInclude>
     <ClInclude Include="..\FastNoiseLite-master\Cpp\FastNoiseLite.h">
       <Filter>Resources\LibNoise</Filter>
-    </ClInclude>
-    <ClInclude Include="TerrainVoxel.h">
-      <Filter>Objects\Terrain</Filter>
-    </ClInclude>
-    <ClInclude Include="Bone.h">
-      <Filter>Objects\Animation</Filter>
-    </ClInclude>
-    <ClInclude Include="AnimatedModel.h">
-      <Filter>Objects\Animation</Filter>
-    </ClInclude>
-    <ClInclude Include="Skeleton.h">
-      <Filter>Objects\Animation</Filter>
     </ClInclude>
     <ClInclude Include="..\External\imgui\imconfig.h">
       <Filter>Resources\DImGUI</Filter>
@@ -285,12 +246,6 @@
     <ClInclude Include="Utility\StringHelper.h">
       <Filter>Utility\Helper</Filter>
     </ClInclude>
-    <ClInclude Include="C++HelperFunctions.h">
-      <Filter>Utility\Helper</Filter>
-    </ClInclude>
-    <CLInclude Include="resource.h">
-      <Filter>Resources</Filter>
-    </CLInclude>
     <ClInclude Include="Utility\ErrorLogger.h">
       <Filter>Utility\Errors</Filter>
     </ClInclude>
@@ -299,42 +254,6 @@
     </ClInclude>
     <ClInclude Include="Utility\stdafx.h">
       <Filter>Utility\PCH</Filter>
-    </ClInclude>
-    <ClInclude Include="DDSTextureLoader.h">
-      <Filter>Utility\Texture</Filter>
-    </ClInclude>
-    <ClInclude Include="PerlinNoise.h">
-      <Filter>Utility\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>Objects\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Appearance.h">
-      <Filter>Objects\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="BillboradObject.h">
-      <Filter>Objects\Drawables</Filter>
-    </ClInclude>
-    <ClInclude Include="DrawableGameObject.h">
-      <Filter>Objects\Drawables</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGuiManager.h">
-      <Filter>Graphics\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ShadowMap.h">
-      <Filter>Graphics\Shadows</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderController.h">
-      <Filter>Graphics\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderTargetTexture.h">
-      <Filter>Graphics\RenderTarget</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderTargetController.h">
-      <Filter>Graphics\RenderTarget</Filter>
-    </ClInclude>
-    <ClInclude Include="RasterizerController.h">
-      <Filter>Graphics\Rasterizer</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\Sampler.h">
       <Filter>Graphics\Sampler</Filter>
@@ -360,15 +279,6 @@
     <ClInclude Include="Graphics\SamplerController.h">
       <Filter>Graphics\Sampler</Filter>
     </ClInclude>
-    <ClInclude Include="M3dLoader.h">
-      <Filter>Utility\Model</Filter>
-    </ClInclude>
-    <ClInclude Include="Structures.h">
-      <Filter>Utility\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="DataStucts.h">
-      <Filter>Utility\Data</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\ConstantBuffer.h">
       <Filter>Graphics\Buffers</Filter>
     </ClInclude>
@@ -380,6 +290,96 @@
     </ClInclude>
     <ClInclude Include="Utility\Timer.h">
       <Filter>Utility\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\Resource.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain\Terrain.h">
+      <Filter>Objects\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain\TerrainAppearence.h">
+      <Filter>Objects\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain\TerrainJsonLoad.h">
+      <Filter>Objects\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain\TerrainVoxel.h">
+      <Filter>Objects\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\ImGuiManager.h">
+      <Filter>Graphics\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\RasterizerController.h">
+      <Filter>Graphics\Rasterizer</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\RenderTargetController.h">
+      <Filter>Graphics\RenderTarget</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\RenderTargetTexture.h">
+      <Filter>Graphics\RenderTarget</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\ShaderController.h">
+      <Filter>Graphics\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\ShadowMap.h">
+      <Filter>Graphics\Shadows</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation\AnimatedModel.h">
+      <Filter>Objects\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation\Bone.h">
+      <Filter>Objects\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation\Skeleton.h">
+      <Filter>Objects\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Camera.h">
+      <Filter>Objects\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\CameraController.h">
+      <Filter>Objects\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Appearance.h">
+      <Filter>Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Transform.h">
+      <Filter>Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\LightData.h">
+      <Filter>Objects\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\LightController.h">
+      <Filter>Objects\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\DrawableGameObject.h">
+      <Filter>Objects\Drawables</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\BillboradObject.h">
+      <Filter>Objects\Drawables</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\DataStucts.h">
+      <Filter>Utility\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Structures.h">
+      <Filter>Utility\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\C++HelperFunctions.h">
+      <Filter>Utility\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\DDSTextureLoader.h">
+      <Filter>Utility\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\M3dLoader.h">
+      <Filter>Utility\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Vector3.h">
+      <Filter>Utility\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Quaternion.h">
+      <Filter>Utility\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\PerlinNoise.h">
+      <Filter>Utility\Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -725,13 +725,13 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="assimp-vc142-mtd.lib">
-      <Filter>Resources</Filter>
-    </Library>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="Tutorial01.rc">
+    <ResourceCompile Include="Resources\Tutorial01.rc">
       <Filter>Resources</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\External\lib\assimp-vc142-mtd.lib">
+      <Filter>Resources</Filter>
+    </Library>
   </ItemGroup>
 </Project>

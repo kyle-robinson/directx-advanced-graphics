@@ -3,7 +3,7 @@
 #define INPUT_H
 
 #include "WindowContainer.h"
-#include "../CameraController.h"
+#include "CameraController.h"
 
 class Input : public WindowContainer
 {

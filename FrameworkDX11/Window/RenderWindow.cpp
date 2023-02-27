@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "../Resource.h"
+#include "Resource.h"
 #include "WindowContainer.h"
 
 bool RenderWindow::Initialize( WindowContainer* pWindowContainer, HINSTANCE hInstance, const std::string& windowName, const std::string& windowClass, int width, int height )

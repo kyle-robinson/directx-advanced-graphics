@@ -99,8 +99,8 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>$(ProjectDir);$(ProjectDir)Graphics;$(ProjectDir)Input;$(ProjectDir)Utility;$(ProjectDir)Window;$(SolutionDir)External/imgui;$(SolutionDir)External/rapidjson;$(SolutionDir)External;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir);$(SolutionDir)External/lib/_x64/_Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)Animation;$(ProjectDir)Graphics;$(ProjectDir)Input;$(ProjectDir)Objects;$(ProjectDir)Resources;$(ProjectDir)Terrain;$(ProjectDir)Utility;$(ProjectDir)Window;$(SolutionDir)External/imgui;$(SolutionDir)External/rapidjson;$(SolutionDir)External;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)External/lib;$(SolutionDir)External/lib/_x64/_Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -425,17 +425,10 @@
     <ClInclude Include="..\rapidjson\include\rapidjson\stringbuffer.h" />
     <ClInclude Include="..\rapidjson\include\rapidjson\uri.h" />
     <ClInclude Include="..\rapidjson\include\rapidjson\writer.h" />
-    <ClInclude Include="AnimatedModel.h" />
-    <ClInclude Include="Appearance.h" />
+    <ClInclude Include="Animation\AnimatedModel.h" />
+    <ClInclude Include="Animation\Bone.h" />
+    <ClInclude Include="Animation\Skeleton.h" />
     <ClInclude Include="Application.h" />
-    <ClInclude Include="BillboradObject.h" />
-    <ClInclude Include="Bone.h" />
-    <ClInclude Include="C++HelperFunctions.h" />
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="CameraController.h" />
-    <ClInclude Include="DataStucts.h" />
-    <ClInclude Include="DDSTextureLoader.h" />
-    <ClInclude Include="DrawableGameObject.h" />
     <ClInclude Include="Graphics\BackBuffer.h" />
     <ClInclude Include="Graphics\ConstantBuffer.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -443,44 +436,50 @@
     </ClInclude>
     <ClInclude Include="Graphics\DepthStencil.h" />
     <ClInclude Include="Graphics\Graphics.h" />
+    <ClInclude Include="Graphics\ImGuiManager.h" />
     <ClInclude Include="Graphics\IndexBuffer.h" />
     <ClInclude Include="Graphics\Rasterizer.h" />
+    <ClInclude Include="Graphics\RasterizerController.h" />
+    <ClInclude Include="Graphics\RenderTargetController.h" />
+    <ClInclude Include="Graphics\RenderTargetTexture.h" />
     <ClInclude Include="Graphics\Sampler.h" />
     <ClInclude Include="Graphics\SamplerController.h" />
+    <ClInclude Include="Graphics\ShaderController.h" />
+    <ClInclude Include="Graphics\ShadowMap.h" />
     <ClInclude Include="Graphics\SwapChain.h" />
     <ClInclude Include="Graphics\VertexBuffer.h" />
     <ClInclude Include="Graphics\Viewport.h" />
-    <ClInclude Include="ImGuiManager.h" />
     <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Input\Keyboard.h" />
     <ClInclude Include="Input\Mouse.h" />
-    <ClInclude Include="LightData.h" />
-    <ClInclude Include="LightController.h" />
-    <ClInclude Include="M3dLoader.h" />
-    <ClInclude Include="PerlinNoise.h" />
-    <ClInclude Include="Quaternion.h" />
-    <ClInclude Include="RasterizerController.h" />
-    <ClInclude Include="RenderTargetController.h" />
-    <ClInclude Include="RenderTargetTexture.h" />
-    <CLInclude Include="resource.h" />
-    <ClInclude Include="ShaderController.h" />
-    <ClInclude Include="ShadowMap.h" />
-    <ClInclude Include="Skeleton.h" />
-    <ClInclude Include="Structures.h" />
-    <ClInclude Include="Terrain.h" />
-    <ClInclude Include="TerrainAppearence.h" />
-    <ClInclude Include="TerrainJsonLoad.h" />
-    <ClInclude Include="TerrainVoxel.h" />
-    <ClInclude Include="Transform.h" />
+    <ClInclude Include="Objects\Appearance.h" />
+    <ClInclude Include="Objects\BillboradObject.h" />
+    <ClInclude Include="Objects\Camera.h" />
+    <ClInclude Include="Objects\CameraController.h" />
+    <ClInclude Include="Objects\DrawableGameObject.h" />
+    <ClInclude Include="Objects\LightController.h" />
+    <ClInclude Include="Objects\LightData.h" />
+    <ClInclude Include="Objects\Transform.h" />
+    <ClInclude Include="Resources\Resource.h" />
+    <ClInclude Include="Terrain\Terrain.h" />
+    <ClInclude Include="Terrain\TerrainAppearence.h" />
+    <ClInclude Include="Terrain\TerrainJsonLoad.h" />
+    <ClInclude Include="Terrain\TerrainVoxel.h" />
+    <ClInclude Include="Utility\C++HelperFunctions.h" />
     <ClInclude Include="Utility\COMException.h" />
+    <ClInclude Include="Utility\DataStucts.h" />
+    <ClInclude Include="Utility\DDSTextureLoader.h" />
     <ClInclude Include="Utility\ErrorLogger.h" />
+    <ClInclude Include="Utility\M3dLoader.h" />
+    <ClInclude Include="Utility\PerlinNoise.h" />
+    <ClInclude Include="Utility\Quaternion.h" />
     <ClInclude Include="Utility\stdafx.h" />
     <ClInclude Include="Utility\StringHelper.h" />
+    <ClInclude Include="Utility\Structures.h" />
     <ClInclude Include="Utility\Timer.h" />
-    <ClInclude Include="Vector3.h" />
+    <ClInclude Include="Utility\Vector3.h" />
     <ClInclude Include="Window\RenderWindow.h" />
     <ClInclude Include="Window\WindowContainer.h" />
-    <ResourceCompile Include="Tutorial01.rc" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\External\imgui\imgui.cpp" />
@@ -490,35 +489,20 @@
     <ClCompile Include="..\External\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="..\External\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\External\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="AnimatedModel.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Appearance.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="Animation\AnimatedModel.cpp" />
+    <ClCompile Include="Animation\Bone.cpp" />
+    <ClCompile Include="Animation\Skeleton.cpp" />
     <ClCompile Include="Application.cpp" />
-    <ClCompile Include="BillboradObject.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Bone.cpp" />
-    <ClCompile Include="Camera.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="CameraController.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="DataStucts.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="DDSTextureLoader.cpp" />
-    <ClCompile Include="DrawableGameObject.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="Graphics\Graphics.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Graphics\ImGuiManager.cpp" />
+    <ClCompile Include="Graphics\RasterizerController.cpp" />
+    <ClCompile Include="Graphics\RenderTargetController.cpp" />
+    <ClCompile Include="Graphics\RenderTargetTexture.cpp" />
     <ClCompile Include="Graphics\SamplerController.cpp" />
-    <ClCompile Include="ImGuiManager.cpp" />
+    <ClCompile Include="Graphics\ShaderController.cpp" />
+    <ClCompile Include="Graphics\ShadowMap.cpp" />
     <ClCompile Include="Input\Input.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
@@ -528,51 +512,25 @@
     <ClCompile Include="Input\Mouse.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="LightData.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="LightController.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="M3dLoader.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="PerlinNoise.cpp" />
-    <ClCompile Include="RasterizerController.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="RenderTargetController.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="RenderTargetTexture.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="ShaderController.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="ShadowMap.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Skeleton.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Terrain.cpp" />
-    <ClCompile Include="TerrainAppearence.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="TerrainJsonLoad.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="TerrainVoxel.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="Objects\Appearance.cpp" />
+    <ClCompile Include="Objects\BillboradObject.cpp" />
+    <ClCompile Include="Objects\Camera.cpp" />
+    <ClCompile Include="Objects\CameraController.cpp" />
+    <ClCompile Include="Objects\DrawableGameObject.cpp" />
+    <ClCompile Include="Objects\LightController.cpp" />
+    <ClCompile Include="Objects\LightData.cpp" />
+    <ClCompile Include="Objects\Transform.cpp" />
+    <ClCompile Include="Terrain\Terrain.cpp" />
+    <ClCompile Include="Terrain\TerrainAppearence.cpp" />
+    <ClCompile Include="Terrain\TerrainJsonLoad.cpp" />
+    <ClCompile Include="Terrain\TerrainVoxel.cpp" />
+    <ClCompile Include="Utility\DataStucts.cpp" />
+    <ClCompile Include="Utility\DDSTextureLoader.cpp" />
     <ClCompile Include="Utility\ErrorLogger.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Utility\M3dLoader.cpp" />
+    <ClCompile Include="Utility\PerlinNoise.cpp" />
     <ClCompile Include="Utility\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
@@ -582,21 +540,17 @@
     <ClCompile Include="Utility\Timer.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Vector3.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="Utility\Vector3.cpp" />
     <ClCompile Include="Window\RenderWindow.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Window\WindowContainer.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Textures\coastMountain513.raw" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="assimp-vc142-mtd.lib" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\blend.dds" />
@@ -999,6 +953,12 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS</EntryPointName>
       <FileType>Document</FileType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resources\Tutorial01.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\External\lib\assimp-vc142-mtd.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
