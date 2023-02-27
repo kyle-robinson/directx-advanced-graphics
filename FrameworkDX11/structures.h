@@ -40,7 +40,7 @@ struct _Material
 	float Padding1;
 };
 
-struct MaterialPropertiesConstantBuffer
+struct MaterialPropertiesCB
 {
 	_Material Material;
 };

@@ -73,11 +73,10 @@ private:
     std::vector<M3dMaterial> m_vMat;
     std::vector<SkinedVertex> m_vSkinVert;
 
-    cbSkinned m_skinData;
     Skeleton m_skeletonData;
     Transform* m_pTransformData;
     std::vector<XMFLOAT4X4> m_vFinalTransforms;
-    ID3D11Buffer* m_pFinalTransformsCB = nullptr;
+    ConstantBuffer<SkinnedCB> m_finalTransformsCB;
 
     std::vector<ID3D11ShaderResourceView*> m_pTextureResourceView;
     std::vector<ID3D11ShaderResourceView*> m_pNormalMapResourceView;

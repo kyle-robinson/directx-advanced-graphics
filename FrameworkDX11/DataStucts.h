@@ -71,7 +71,7 @@ struct SkinedVertex
 	XMFLOAT4 BoneIndices;
 };
 
-struct cbSkinned
+struct SkinnedCB
 {
 	XMMATRIX m_mBoneTransforms[96];
 };

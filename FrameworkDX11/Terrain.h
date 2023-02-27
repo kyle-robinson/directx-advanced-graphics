@@ -13,9 +13,9 @@
 enum class TerrainGenType
 {
 	HeightMapLoad = 0,
-	DiamondSquare,
 	FaultLine,
-	Noise
+	Noise,
+	DiamondSquare
 };
 
 class Terrain
@@ -30,7 +30,7 @@ public:
 		ConstantBuffer<MatrixBuffer>& buffer, CameraController* camControl );
 
 	inline TerrainGenType GetGenType() const noexcept { return m_eTerrainCreationType; }
-	inline TerrainCB GetTerrainData() const noexcept { return m_terrainSettings; }
+	inline TerrainCB GetTerrainData() const noexcept { return m_terrainCB.data; }
 	void CreateHeightData();
 
 	void SetMaxTess( float maxTess );
@@ -64,7 +64,7 @@ public:
 
 	void SetTexHeights( float height1, float height2, float height3, float height4, float height5 );
 	inline std::vector<std::string> GetTexNames() const noexcept { return m_vTexGround; }
-	void SetTex( std::vector<std::string> texGroundName, ID3D11Device* pDevice );
+	void SetTexture( std::vector<std::string> texGroundName, ID3D11Device* pDevice );
 
 	inline void SetDiamondSquareData( int seed, int range )
 	{
@@ -145,8 +145,7 @@ private:
 	ID3D11ShaderResourceView* m_pBlendMap;
 
 	// Shader data
-	TerrainCB m_terrainSettings;
-	ID3D11Buffer* m_pTerrainCB = nullptr;
+	ConstantBuffer<TerrainCB> m_terrainCB;
 };
 
 #endif

@@ -38,15 +38,15 @@ void TerrainAppearence::InitMesh_Terrain( ID3D11Device* pDevice )
 	BuildPatchVertex( pDevice );
 	BuildPatchIndex( pDevice );
 
-	m_material.Material.Diffuse = XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f );
-	m_material.Material.Specular = XMFLOAT4( 1.0f, 0.2f, 0.2f, 1.0f );
-	m_material.Material.SpecularPower = 32.0f;
-	m_material.Material.UseTexture = true;
-	m_material.Material.Emissive = XMFLOAT4( 0.0f, 0.0f, 0.0f, 1.0f );
-	m_material.Material.Ambient = XMFLOAT4( 0.1f, 0.1f, 0.1f, 1.0f );
-	m_material.Material.HeightScale = 0.1f;
-	m_material.Material.MaxLayers = 15.0f;
-	m_material.Material.MinLayers = 10.0f;
+	m_materialCB.data.Material.Diffuse = XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f );
+	m_materialCB.data.Material.Specular = XMFLOAT4( 1.0f, 0.2f, 0.2f, 1.0f );
+	m_materialCB.data.Material.SpecularPower = 32.0f;
+	m_materialCB.data.Material.UseTexture = true;
+	m_materialCB.data.Material.Emissive = XMFLOAT4( 0.0f, 0.0f, 0.0f, 1.0f );
+	m_materialCB.data.Material.Ambient = XMFLOAT4( 0.1f, 0.1f, 0.1f, 1.0f );
+	m_materialCB.data.Material.HeightScale = 0.1f;
+	m_materialCB.data.Material.MaxLayers = 15.0f;
+	m_materialCB.data.Material.MinLayers = 10.0f;
 }
 
 void TerrainAppearence::InitMesh_Cube(
@@ -262,7 +262,7 @@ void TerrainAppearence::SetDepth( float depth )
 void TerrainAppearence::BuildPatchVertex( ID3D11Device* pDevice )
 {
 	// Build the terrain grid
-	std::vector<TerrainVert> patchVertices( m_iNumPatchVertRows * m_iNumPatchVertCols );
+	std::vector<TerrainVertex> patchVertices( m_iNumPatchVertRows * m_iNumPatchVertCols );
 	float halfWidth = 0.5f * GetWidth();
 	float halfDepth = 0.5f * GetDepth();
 	float patchWidth = GetWidth() / ( m_iNumPatchVertCols - 1 );
@@ -295,7 +295,7 @@ void TerrainAppearence::BuildPatchVertex( ID3D11Device* pDevice )
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_DEFAULT;
-	vbd.ByteWidth = sizeof( TerrainVert ) * patchVertices.size();
+	vbd.ByteWidth = sizeof( TerrainVertex ) * patchVertices.size();
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
@@ -362,8 +362,7 @@ void TerrainAppearence::Draw( ID3D11DeviceContext* pContext )
 {
 	if ( m_bToDraw )
 	{
-		ID3D11Buffer* materialCB = GetMaterialConstantBuffer();
-		pContext->PSSetConstantBuffers( 1, 1, &materialCB );
+		pContext->PSSetConstantBuffers( 1, 1, m_materialCB.GetAddressOf() );
 
 		// Set vertex buffer
 		UINT stride = sizeof( SimpleVertex );

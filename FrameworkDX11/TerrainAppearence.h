@@ -4,7 +4,7 @@
 
 #include "Appearance.h"
 
-struct TerrainVert
+struct TerrainVertex
 {
     XMFLOAT3 Pos;
     XMFLOAT2 Tex;
@@ -18,7 +18,7 @@ public:
     TerrainAppearence( UINT width, UINT length, float cellSpacing, std::vector<float> heightMap );
     ~TerrainAppearence();
 
-    void InitMesh_Terrain( ID3D11Device* pd3dDevice );
+    void InitMesh_Terrain( ID3D11Device* pDevice );
     void InitMesh_Cube(
         bool lXNegative, bool lXPositive,
         bool lYNegative, bool lYPositive,

@@ -34,6 +34,7 @@ private:
 	XMMATRIX m_mView;
 
 	// Objects
+	DrawableGameObject m_sky;
 	DrawableGameObject m_cube;
 	DrawableGameObject m_ground;
 	BillboardObject* m_pBillboard;

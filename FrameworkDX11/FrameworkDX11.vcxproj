@@ -100,7 +100,7 @@
     <GenerateManifest>true</GenerateManifest>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
     <IncludePath>$(ProjectDir);$(ProjectDir)Graphics;$(ProjectDir)Input;$(ProjectDir)Utility;$(ProjectDir)Window;$(SolutionDir)External/imgui;$(SolutionDir)External/rapidjson;$(SolutionDir)External;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir);$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir);$(SolutionDir)External/lib/_x64/_Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -186,7 +186,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;assimp-vc142-mtd.lib;dxguid.lib;winmm.lib;comctl32.lib;assimp-vc142-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;assimp-vc142-mtd.lib;dxguid.lib;winmm.lib;comctl32.lib;DirectXTK.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <LargeAddressAware>true</LargeAddressAware>

@@ -38,17 +38,17 @@ LightData::LightData( std::string name, bool enabled, LightType lightType, XMFLO
 	m_pLightObject->GetAppearance()->InitMesh_Cube( pDevice, pContext );
 	m_pLightObject->GetTransfrom()->SetScale( 0.2f, 0.2f, 0.2f );
 
-	MaterialPropertiesConstantBuffer material;
-	material.Material.Diffuse = XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f );
-	material.Material.Specular = XMFLOAT4( 1.0f, 0.2f, 0.2f, 1.0f );
-	material.Material.SpecularPower = 32.0f;
-	material.Material.UseTexture = true;
-	material.Material.Emissive = XMFLOAT4( 100.0f, 100.0f, 100.0f, 1.0f );
-	material.Material.Ambient = XMFLOAT4( 0.1f, 0.1f, 0.1f, 1.0f );
-	material.Material.HeightScale = 0.1f;
-	material.Material.MaxLayers = 15.0f;
-	material.Material.MinLayers = 10.0f;
-	m_pLightObject->GetAppearance()->SetMaterial( material );
+	MaterialPropertiesCB materialData;
+	materialData.Material.Diffuse = XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f );
+	materialData.Material.Specular = XMFLOAT4( 1.0f, 0.2f, 0.2f, 1.0f );
+	materialData.Material.SpecularPower = 32.0f;
+	materialData.Material.UseTexture = true;
+	materialData.Material.Emissive = XMFLOAT4( 100.0f, 100.0f, 100.0f, 1.0f );
+	materialData.Material.Ambient = XMFLOAT4( 0.1f, 0.1f, 0.1f, 1.0f );
+	materialData.Material.HeightScale = 0.1f;
+	materialData.Material.MaxLayers = 15.0f;
+	materialData.Material.MinLayers = 10.0f;
+	m_pLightObject->GetAppearance()->SetMaterialData( materialData );
 
 	m_pCamLight = new Camera( XMFLOAT3{ pos.x, pos.y, pos.z }, XMFLOAT3{ 0, 0, 0 }, XMFLOAT3{ 0,1,0 }, 1280, 720, 0.01f, 100.0f );
 	m_pShadow = new ShadowMap( pDevice, 1280, 720 );

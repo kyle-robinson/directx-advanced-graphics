@@ -1,5 +1,6 @@
 #include "Application.h"
 #include "M3dLoader.h"
+#include <dxtk/WICTextureLoader.h>
 
 Application::Application()
 {
@@ -37,7 +38,15 @@ bool Application::InitMesh()
         HRESULT hr = m_cube.GetAppearance()->InitMesh_Cube( m_gfx.GetDevice(), m_gfx.GetContext() );
         COM_ERROR_IF_FAILED( hr, "Failed to create CUBE mesh!" );
 
-        hr = m_ground.GetAppearance()->InitMesh_Quad( m_gfx.GetDevice() );
+        hr = m_sky.GetAppearance()->InitMesh_Cube( m_gfx.GetDevice(), m_gfx.GetContext() );
+        COM_ERROR_IF_FAILED( hr, "Failed to create SKY mesh!" );
+        m_sky.GetTransfrom()->SetScale( 100, 100, 100 );
+        ID3D11ShaderResourceView* pSkyTexture = nullptr;
+        hr = CreateWICTextureFromFile( m_gfx.GetDevice(), L"Resources/Textures/clouds.jpg", nullptr, &pSkyTexture );
+        COM_ERROR_IF_FAILED( hr, "Failed to create SKY texture!" );
+        m_sky.GetAppearance()->SetTextureRV( pSkyTexture );
+
+        hr = m_ground.GetAppearance()->InitMesh_Quad( m_gfx.GetDevice(), m_gfx.GetContext() );
         COM_ERROR_IF_FAILED( hr, "Failed to create GROUND mesh!" );
         m_ground.GetTransfrom()->SetPosition( -5, -2, 5 );
 
@@ -66,7 +75,7 @@ bool Application::InitMesh()
     texGround.push_back( "Resources/Textures/lightdirt.dds" );
     texGround.push_back( "Resources/Textures/stone.dds" );
     texGround.push_back( "Resources/Textures/snow.dds" );
-    m_pTerrain->SetTex( texGround, m_gfx.GetDevice() );
+    m_pTerrain->SetTexture( texGround, m_gfx.GetDevice() );
     m_pTerrain->SetBlendMap( "Resources/Textures/blend.dds", m_gfx.GetDevice() );
     m_pVoxelTerrain = new TerrainVoxel( m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController(), 3, 3 );
 
@@ -119,18 +128,13 @@ bool Application::InitWorld()
     m_pCamController = new CameraController();
 
     m_pCamera = new Camera( XMFLOAT3( 0.0f, 0, -5 ), XMFLOAT3( 0.0f, 0.0f, 0.0f ),
-        XMFLOAT3( 0.0f, 1.0f, 0.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 100.0f );
-    m_pCamera->SetCamName( "Light eye" );
+        XMFLOAT3( 0.0f, 1.0f, 0.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 175.0f );
+    m_pCamera->SetCamName( "Light Camera" );
     m_pCamController->AddCam( m_pCamera );
 
     m_pCamera = new Camera( XMFLOAT3( 0.0f, 0, -5 ), XMFLOAT3( 0.0f, 0.0f, 0.0f ),
-        XMFLOAT3( 0.0f, 1.0f, 0.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 100.0f );
-    m_pCamera->SetCamName( "Free Cam" );
-    m_pCamController->AddCam( m_pCamera );
-
-    m_pCamera = new Camera( XMFLOAT3( 0.0f, 0, -5 ), XMFLOAT3( 0.0f, 0.0f, 0.0f ),
-        XMFLOAT3( 0.0f, 1.0f, 0.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 50.0f );
-    m_pCamera->SetCamName( "Diss Cam" );
+        XMFLOAT3( 0.0f, 1.0f, 0.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 175.0f );
+    m_pCamera->SetCamName( "Free Camera" );
     m_pCamController->AddCam( m_pCamera );
 
     m_pInput->AddCamControl( m_pCamController );
@@ -231,6 +235,9 @@ void Application::Update()
     m_pTerrain->Update();
 
     // Update the cube transform, material etc.
+    m_sky.Update( dt, m_gfx.GetContext() );
+    m_sky.GetTransfrom()->SetPosition( m_pCamController->GetCurentCam()->GetPosition() );
+
     m_cube.Update( dt, m_gfx.GetContext() );
     m_ground.Update( dt, m_gfx.GetContext() );
     m_pLightController->Update( dt, m_gfx.GetContext() );
@@ -252,6 +259,7 @@ void Application::Draw()
 
     // Move objects that will be shadowed into list
     std::vector<DrawableGameObject*> gameObjects;
+    gameObjects.push_back( &m_sky );
     gameObjects.push_back( &m_cube );
     gameObjects.push_back( &m_ground );
 
@@ -316,20 +324,40 @@ void Application::Draw()
     m_cube.GetAppearance()->SetTextures( m_gfx.GetContext() );
     m_cube.Draw( m_gfx.GetContext() );
 
+    // Draw anim model
     m_gfx.GetRasterizerController()->SetState( "None", m_gfx.GetContext() );
     m_pAnimModel->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), m_matrixCB );
-    m_gfx.GetRasterizerController()->SetOverrideState( m_gfx.GetContext() );
 
+    // Set set for additional objects
     m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pVertexShader, nullptr, 0 );
     m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, m_matrixCB.GetAddressOf() );
     m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
     m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pPixelShader, nullptr, 0 );
     m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
 
+    // Draw skybox
+    WorldAsFloat = m_sky.GetTransfrom()->GetWorldMatrix();
+    mGO = XMLoadFloat4x4( &WorldAsFloat );
+    m_matrixCB.data.mWorld = XMMatrixTranspose( mGO );
+    if ( !m_matrixCB.ApplyChanges() )
+        return;
+    for ( unsigned int i = 0; i < MAX_LIGHTS; i++ )
+        m_lightCB.data.Lights[i].Enabled = 0;
+    if ( !m_lightCB.ApplyChanges() )
+        return;
+    m_sky.GetAppearance()->SetTextures( m_gfx.GetContext() );
+    m_sky.Draw( m_gfx.GetContext() );
+
+    // Draw ground
+    m_gfx.GetRasterizerController()->SetOverrideState( m_gfx.GetContext() );
     WorldAsFloat = m_ground.GetTransfrom()->GetWorldMatrix();
     mGO = XMLoadFloat4x4( &WorldAsFloat );
     m_matrixCB.data.mWorld = XMMatrixTranspose( mGO );
     if ( !m_matrixCB.ApplyChanges() )
+        return;
+    for ( unsigned int i = 0; i < MAX_LIGHTS; i++ )
+        m_lightCB.data.Lights[i].Enabled = 1;
+    if ( !m_lightCB.ApplyChanges() )
         return;
     m_ground.GetAppearance()->SetTextures( m_gfx.GetContext() );
     m_ground.Draw( m_gfx.GetContext() );
@@ -641,7 +669,9 @@ void Application::Draw()
 
     m_pImGuiManager->BeginRender();
     m_pImGuiManager->CameraMenu( m_pCamController );
-    m_pImGuiManager->ObjectMenu( &m_cube );
+    m_pImGuiManager->ObjectMenu( &m_ground, 0 );
+    m_pImGuiManager->ObjectMenu( &m_cube, 1 );
+    m_pImGuiManager->ObjectMenu( &m_sky, 2 );
     m_pImGuiManager->LightMenu( m_pLightController );
     m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_postProcessingCB.data, m_gfx.GetRasterizerController(), m_bIsRTT );
     m_pImGuiManager->BillboardMenu( m_pBillboard );
@@ -681,6 +711,7 @@ void Application::Cleanup()
 
     delete m_pBillboard;
     m_pBillboard = nullptr;
+
     delete m_pDepthLight;
     m_pDepthLight = nullptr;
 

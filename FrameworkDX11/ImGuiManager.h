@@ -33,7 +33,7 @@ public:
 
 	void CameraMenu( CameraController* cameraControl );
 	void ShaderMenu( ShaderController* shaderControl, PostProcessingCB* postSettings, RasterizerController* rasterControl, bool& rtt );
-	void ObjectMenu( DrawableGameObject* gameObject );
+	void ObjectMenu( DrawableGameObject* gameObject, int index );
 	void LightMenu( LightController* lightControl );
 	void BillboardMenu( BillboardObject* billboardObject );
 	void TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );

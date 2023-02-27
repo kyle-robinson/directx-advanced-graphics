@@ -186,28 +186,44 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
     ImGui::End();
 }
 
-void ImGuiManager::ObjectMenu( DrawableGameObject* gameObject )
+void ImGuiManager::ObjectMenu( DrawableGameObject* gameObject, int index )
 {
     static float rotationX, rotationY, rotationZ;
-    static float pos[] = { 0.0f,0.0f,0.0f };
+    static float pos[] = { 0.0f, 0.0f, 0.0f };
 
-    if ( ImGui::Begin( "Object Control", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    if ( ImGui::Begin( std::string( "Object Control##" ).append( std::to_string( index ) ).c_str(), FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
-        if ( ImGui::CollapsingHeader( "Controls" ) )
+        if ( ImGui::CollapsingHeader( std::string( "Controls##" ).append( std::to_string( index ) ).c_str() ) )
         {
             ImGui::Text( "Rotation" );
-            ImGui::SliderFloat( "X##Rotation", &rotationX, 0, 360 );
-            ImGui::SliderFloat( "Y##Rotation", &rotationY, 0, 360 );
-            ImGui::SliderFloat( "Z##Rotation", &rotationZ, 0, 360 );
-            gameObject->GetTransfrom()->SetRotation( rotationX, rotationY, rotationZ );
+            static bool modifiedRotation = false;
+            if ( ImGui::SliderFloat( std::string( "X##Rotation" ).append( std::to_string( index ) ).c_str(), &rotationX, 0, 360 ) )
+                modifiedRotation = true;
+            if ( ImGui::SliderFloat( std::string( "Y##Rotation" ).append( std::to_string( index ) ).c_str(), &rotationY, 0, 360 ) )
+                modifiedRotation = true;
+            if ( ImGui::SliderFloat( std::string( "Z##Rotation" ).append( std::to_string( index ) ).c_str(), &rotationZ, 0, 360 ) )
+                modifiedRotation = true;
+            if ( modifiedRotation )
+            {
+                gameObject->GetTransfrom()->SetRotation( rotationX, rotationY, rotationZ );
+                modifiedRotation = false;
+            }
 
             ImGui::Text( "Position" );
-            ImGui::InputFloat( "X##Position", &pos[0] );
-            ImGui::InputFloat( "Y##Position", &pos[1] );
-            ImGui::InputFloat( "Z##Position", &pos[2] );
-            gameObject->GetTransfrom()->SetPosition( pos[0], pos[1], pos[2] );
+            static bool modifiedPosition = false;
+            if ( ImGui::InputFloat( std::string( "X##Position" ).append( std::to_string( index ) ).c_str(), &pos[0] ) )
+                modifiedPosition = true;
+            if ( ImGui::InputFloat( std::string( "Y##Position" ).append( std::to_string( index ) ).c_str(), &pos[1] ) )
+                modifiedPosition = true;
+            if ( ImGui::InputFloat( std::string( "Z##Position" ).append( std::to_string( index ) ).c_str(), &pos[2] ) )
+                modifiedPosition = true;
+            if ( modifiedPosition )
+            {
+                gameObject->GetTransfrom()->SetPosition( pos[0], pos[1], pos[2] );
+                modifiedPosition = false;
+            }
 
-            if ( ImGui::Button( "Reset" ) )
+            if ( ImGui::Button( std::string( "Reset##" ).append( std::to_string( index ) ).c_str() ) )
             {
                 rotationX = 0.0f;
                 rotationY = 0.0f;
@@ -218,42 +234,42 @@ void ImGuiManager::ObjectMenu( DrawableGameObject* gameObject )
             }
         }
 
-        if ( ImGui::CollapsingHeader( "Texture Control" ) )
+        if ( ImGui::CollapsingHeader( std::string( "Texture Control##" ).append( std::to_string( index ) ).c_str() ) )
         {
-            MaterialPropertiesConstantBuffer data = gameObject->GetAppearance()->getMaterialPropertiesConstantBuffer();
+            MaterialPropertiesCB materialData = gameObject->GetAppearance()->GetMaterialData();
 
-            bool booldata = data.Material.UseTexture;
+            bool booldata = materialData.Material.UseTexture;
             ImGui::Text( "Texture" );
-            ImGui::Checkbox( "On", &booldata );
+            ImGui::Checkbox( std::string( "On##" ).append( std::to_string( index ) ).c_str(), &booldata );
 
             ImGui::Text( "Parallax Options" );
-            ImGui::InputFloat( "Height Scale", &data.Material.HeightScale, 0.00f, 0.0f, "%.2f" );
-            ImGui::InputFloat( "Max Layer", &data.Material.MaxLayers );
-            ImGui::InputFloat( "Min Layer", &data.Material.MinLayers );
-            data.Material.UseTexture = booldata;
+            ImGui::InputFloat( std::string( "Height Scale##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.HeightScale, 0.00f, 0.0f, "%.2f" );
+            ImGui::InputFloat( std::string( "Max Layer##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.MaxLayers );
+            ImGui::InputFloat( std::string( "Min Layer##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.MinLayers );
+            materialData.Material.UseTexture = booldata;
 
             ImGui::Text( "Diffuse" );
-            ImGui::InputFloat( "dR", &data.Material.Diffuse.x );
-            ImGui::InputFloat( "dG", &data.Material.Diffuse.y );
-            ImGui::InputFloat( "dB", &data.Material.Diffuse.z );
+            ImGui::InputFloat( std::string( "dR##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Diffuse.x );
+            ImGui::InputFloat( std::string( "dG##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Diffuse.y );
+            ImGui::InputFloat( std::string( "dB##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Diffuse.z );
 
             ImGui::Text( "Specular" );
-            ImGui::InputFloat( "sR", &data.Material.Specular.x );
-            ImGui::InputFloat( "sG", &data.Material.Specular.y );
-            ImGui::InputFloat( "sB", &data.Material.Specular.z );
-            ImGui::InputFloat( "power", &data.Material.SpecularPower );
+            ImGui::InputFloat( std::string( "sR##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Specular.x );
+            ImGui::InputFloat( std::string( "sG##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Specular.y );
+            ImGui::InputFloat( std::string( "sB##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Specular.z );
+            ImGui::InputFloat( std::string( "power##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.SpecularPower );
 
             ImGui::Text( "Emissive" );
-            ImGui::InputFloat( "eR", &data.Material.Emissive.x );
-            ImGui::InputFloat( "eG", &data.Material.Emissive.y );
-            ImGui::InputFloat( "eB", &data.Material.Emissive.z );
+            ImGui::InputFloat( std::string( "eR##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Emissive.x );
+            ImGui::InputFloat( std::string( "eG##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Emissive.y );
+            ImGui::InputFloat( std::string( "eB##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Emissive.z );
 
             ImGui::Text( "Ambient" );
-            ImGui::InputFloat( "aR", &data.Material.Ambient.x );
-            ImGui::InputFloat( "aG", &data.Material.Ambient.y );
-            ImGui::InputFloat( "aB", &data.Material.Ambient.z );
+            ImGui::InputFloat( std::string( "aR##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Ambient.x );
+            ImGui::InputFloat( std::string( "aG##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Ambient.y );
+            ImGui::InputFloat( std::string( "aB##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Ambient.z );
 
-            gameObject->GetAppearance()->SetMaterial( data );
+            gameObject->GetAppearance()->SetMaterialData( materialData );
         }
     }
     ImGui::End();
@@ -627,12 +643,13 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
                 terrain->GetTransfrom()->SetScale( scaleTerrain );
             }
 
-            static std::string fileName;
-            //ImGui::InputText( "File Name", &fileName );
+            static char buf[32] = "";
+            static bool modifiedName = false;
+            ImGui::InputText( "File Name", buf, IM_ARRAYSIZE( buf ) );
             if ( ImGui::Button( "Load" ) )
             {
                 TerrainData Data;
-                TerrainJsonLoad::LoadData( fileName, Data );
+                TerrainJsonLoad::LoadData( buf, Data );
                 TerrainGenType GenMode = (TerrainGenType)Data.Mode;
                 double HeightScale = 0;
 
@@ -661,6 +678,7 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
                 terrain->ReBuildTerrain( XMFLOAT2( Data.Width, Data.Depth ), HeightScale, Data.CellSpacing, GenMode, pDevice );
             }
 
+            ImGui::SameLine();
             if ( ImGui::Button( "Save" ) )
             {
                 TerrainData Data;
@@ -696,7 +714,7 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
                     break;
                 }
 
-                TerrainJsonLoad::StoreData( fileName, Data );
+                TerrainJsonLoad::StoreData( buf, Data );
             }
         }
 

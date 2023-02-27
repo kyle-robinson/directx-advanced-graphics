@@ -82,23 +82,27 @@ Terrain::Terrain( std::string heightMapName, XMFLOAT2 size, double scale, Terrai
     m_pApperance->CalcAllPatchBoundsY();
     m_pApperance->InitMesh_Terrain( pDevice );
 
-    // Create the light constant buffer
-    D3D11_BUFFER_DESC bd = {};
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof( TerrainCB );
-    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bd.CPUAccessFlags = 0;
-    HRESULT hr = pDevice->CreateBuffer( &bd, nullptr, &m_pTerrainCB );
+    try
+    {
+        // Create the terrain constant buffer
+        HRESULT hr = m_terrainCB.Initialize( pDevice, pContext );
+        COM_ERROR_IF_FAILED( hr, "Failed to create TERRAIN constant buffer!" );
 
-    m_terrainSettings.MaxDist = 500.0f;
-    m_terrainSettings.MinDist = 20.0f;
-    m_terrainSettings.MaxTess = 6.0f;
-    m_terrainSettings.MinTess = 0.0f;
-    m_terrainSettings.Layer1MaxHeight = 20.0f;
-    m_terrainSettings.Layer2MaxHeight = 30.0f;
-    m_terrainSettings.Layer3MaxHeight = 40.0f;
-    m_terrainSettings.Layer4MaxHeight = 50.0f;
-    m_terrainSettings.Layer5MaxHeight = 55.0f;
+        m_terrainCB.data.MaxDist = 500.0f;
+        m_terrainCB.data.MinDist = 20.0f;
+        m_terrainCB.data.MaxTess = 6.0f;
+        m_terrainCB.data.MinTess = 0.0f;
+        m_terrainCB.data.Layer1MaxHeight = 20.0f;
+        m_terrainCB.data.Layer2MaxHeight = 30.0f;
+        m_terrainCB.data.Layer3MaxHeight = 40.0f;
+        m_terrainCB.data.Layer4MaxHeight = 50.0f;
+        m_terrainCB.data.Layer5MaxHeight = 55.0f;
+    }
+    catch ( COMException& exception )
+    {
+        ErrorLogger::Log( exception );
+        return;
+    }
 }
 
 Terrain::~Terrain()
@@ -130,34 +134,35 @@ void Terrain::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderContr
         XMMATRIX viewProject = RTTview * RTTprojection;
         XMFLOAT4 worldPlanes[6];
         ExtractFrustumPlanes( worldPlanes, viewProject );
-        m_terrainSettings.WorldFrustumPlanes[0] = worldPlanes[0];
-        m_terrainSettings.WorldFrustumPlanes[1] = worldPlanes[1];
-        m_terrainSettings.WorldFrustumPlanes[2] = worldPlanes[2];
-        m_terrainSettings.WorldFrustumPlanes[3] = worldPlanes[3];
-        m_terrainSettings.WorldFrustumPlanes[4] = worldPlanes[4];
-        m_terrainSettings.WorldFrustumPlanes[5] = worldPlanes[5];
-        m_terrainSettings.gEyePosition = camControl->GetCam( 0 )->GetPositionFloat4();
-        pContext->UpdateSubresource( m_pTerrainCB, 0, nullptr, &m_terrainSettings, 0, 0 );
+        m_terrainCB.data.WorldFrustumPlanes[0] = worldPlanes[0];
+        m_terrainCB.data.WorldFrustumPlanes[1] = worldPlanes[1];
+        m_terrainCB.data.WorldFrustumPlanes[2] = worldPlanes[2];
+        m_terrainCB.data.WorldFrustumPlanes[3] = worldPlanes[3];
+        m_terrainCB.data.WorldFrustumPlanes[4] = worldPlanes[4];
+        m_terrainCB.data.WorldFrustumPlanes[5] = worldPlanes[5];
+        m_terrainCB.data.gEyePosition = camControl->GetCam( 0 )->GetPositionFloat4();
+        if ( !m_terrainCB.ApplyChanges() )
+            return;
 
         // Setup shaders
         pContext->VSSetShader( shaderControl->GetShaderByName( "Terrain" ).m_pVertexShader, nullptr, 0 );
         pContext->VSSetConstantBuffers( 0, 1, buffer.GetAddressOf() );
-        pContext->HSSetConstantBuffers( 4, 1, &m_pTerrainCB );
+        pContext->HSSetConstantBuffers( 4, 1, m_terrainCB.GetAddressOf() );
         pContext->VSSetShaderResources( 1, 1, &m_pHeightMapSRV );
 
         pContext->HSSetShader( shaderControl->GetShaderByName( "Terrain" ).m_pHullShader, nullptr, 0 );
         pContext->HSSetConstantBuffers( 0, 1, buffer.GetAddressOf() );
-        pContext->HSSetConstantBuffers( 4, 1, &m_pTerrainCB );
+        pContext->HSSetConstantBuffers( 4, 1, m_terrainCB.GetAddressOf() );
         pContext->HSSetShaderResources( 1, 1, &m_pHeightMapSRV );
 
         pContext->DSSetShader( shaderControl->GetShaderByName( "Terrain" ).m_pDomainShader, nullptr, 0 );
         pContext->DSSetConstantBuffers( 0, 1, buffer.GetAddressOf() );
-        pContext->DSSetConstantBuffers( 4, 1, &m_pTerrainCB );
+        pContext->DSSetConstantBuffers( 4, 1, m_terrainCB.GetAddressOf() );
         pContext->DSSetShaderResources( 1, 1, &m_pHeightMapSRV );
 
         pContext->PSSetShader( shaderControl->GetShaderByName( "Terrain" ).m_pPixelShader, nullptr, 0 );
         pContext->PSSetShaderResources( 0, 1, m_pApperance->GetTextureResourceView().data() );
-        pContext->PSSetConstantBuffers( 4, 1, &m_pTerrainCB );
+        pContext->PSSetConstantBuffers( 4, 1, m_terrainCB.GetAddressOf() );
         pContext->PSSetShaderResources( 0, 1, &m_pBlendMap );
         pContext->PSSetShaderResources( 1, 1, &m_pHeightMapSRV );
         pContext->PSSetShaderResources( 2, 5, m_pApperance->GetTextureResourceView().data() );
@@ -290,22 +295,22 @@ void Terrain::CreateHeightData()
 
 void Terrain::SetMaxTess( float maxTess )
 {
-    m_terrainSettings.MaxTess = maxTess;
+    m_terrainCB.data.MaxTess = maxTess;
 }
 
 void Terrain::SetMinTess( float minTess )
 {
-    m_terrainSettings.MinTess = minTess;
+    m_terrainCB.data.MinTess = minTess;
 }
 
 void Terrain::SetMaxTessDist( float maxTessDist )
 {
-    m_terrainSettings.MaxDist = maxTessDist;
+    m_terrainCB.data.MaxDist = maxTessDist;
 }
 
 void Terrain::SetMinTessDist( float minTessDist )
 {
-    m_terrainSettings.MinDist = minTessDist;
+    m_terrainCB.data.MinDist = minTessDist;
 }
 
 bool Terrain::InBounds( int i, int j )
@@ -389,14 +394,14 @@ void Terrain::ReBuildTerrain( XMFLOAT2 size, double scale, float cellSpacing, Te
 
 void Terrain::SetTexHeights( float height1, float height2, float height3, float height4, float height5 )
 {
-    m_terrainSettings.Layer1MaxHeight = height1;
-    m_terrainSettings.Layer2MaxHeight = height2;
-    m_terrainSettings.Layer3MaxHeight = height3;
-    m_terrainSettings.Layer4MaxHeight = height4;
-    m_terrainSettings.Layer5MaxHeight = height5;
+    m_terrainCB.data.Layer1MaxHeight = height1;
+    m_terrainCB.data.Layer2MaxHeight = height2;
+    m_terrainCB.data.Layer3MaxHeight = height3;
+    m_terrainCB.data.Layer4MaxHeight = height4;
+    m_terrainCB.data.Layer5MaxHeight = height5;
 }
 
-void Terrain::SetTex( std::vector<std::string> texGroundName, ID3D11Device* pDevice )
+void Terrain::SetTexture( std::vector<std::string> texGroundName, ID3D11Device* pDevice )
 {
     m_pApperance->SetTexture( texGroundName, pDevice );
     m_vTexGround = texGroundName;
@@ -564,10 +569,5 @@ void Terrain::CleanUp()
     {
         m_pBlendMap->Release();
         m_pBlendMap = nullptr;
-    }
-    if ( m_pTerrainCB )
-    {
-        m_pTerrainCB->Release();
-        m_pTerrainCB = nullptr;
     }
 }

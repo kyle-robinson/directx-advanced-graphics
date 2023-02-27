@@ -16,13 +16,13 @@ Appearance::~Appearance()
 
 void Appearance::Update( ID3D11DeviceContext* pContext )
 {
-	pContext->UpdateSubresource( m_pMaterialConstantBuffer, 0, nullptr, &m_material, 0, 0 );
+	if ( !m_materialCB.ApplyChanges() )
+		return;
 }
 
 void Appearance::Draw( ID3D11DeviceContext* pContext )
 {
-	ID3D11Buffer* materialCB = GetMaterialConstantBuffer();
-	pContext->PSSetConstantBuffers( 1, 1, &materialCB );
+	pContext->PSSetConstantBuffers( 1, 1, m_materialCB.GetAddressOf() );
 
 	// Set vertex buffer
 	UINT stride = sizeof( SimpleVertex );
@@ -191,30 +191,25 @@ HRESULT Appearance::InitMesh_Cube( ID3D11Device* pDevice, ID3D11DeviceContext* p
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	hr = pDevice->CreateSamplerState( &sampDesc, &m_pSamplerLinear );
 
-	// Setup material properties
-	m_material.Material.Diffuse = XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f );
-	m_material.Material.Specular = XMFLOAT4( 1.0f, 0.2f, 0.2f, 1.0f );
-	m_material.Material.SpecularPower = 32.0f;
-	m_material.Material.UseTexture = true;
-	m_material.Material.Emissive = XMFLOAT4( 0.0f, 0.0f, 0.0f, 1.0f );
-	m_material.Material.Ambient = XMFLOAT4( 0.1f, 0.1f, 0.1f, 1.0f );
-	m_material.Material.HeightScale = 0.1f;
-	m_material.Material.MaxLayers = 15.0f;
-	m_material.Material.MinLayers = 10.0f;
+	// Create material constant buffer
+	hr = m_materialCB.Initialize( pDevice, pContext );
+	COM_ERROR_IF_FAILED( hr, "Failed to create MATERIAL constant buffer!" );
 
-	// Create the material constant buffer
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof( MaterialPropertiesConstantBuffer );
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
-	hr = pDevice->CreateBuffer( &bd, nullptr, &m_pMaterialConstantBuffer );
-	if ( FAILED( hr ) )
-		return hr;
+	// Setup material properties
+	m_materialCB.data.Material.Diffuse = XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f );
+	m_materialCB.data.Material.Specular = XMFLOAT4( 1.0f, 0.2f, 0.2f, 1.0f );
+	m_materialCB.data.Material.SpecularPower = 32.0f;
+	m_materialCB.data.Material.UseTexture = true;
+	m_materialCB.data.Material.Emissive = XMFLOAT4( 0.0f, 0.0f, 0.0f, 1.0f );
+	m_materialCB.data.Material.Ambient = XMFLOAT4( 0.1f, 0.1f, 0.1f, 1.0f );
+	m_materialCB.data.Material.HeightScale = 0.1f;
+	m_materialCB.data.Material.MaxLayers = 15.0f;
+	m_materialCB.data.Material.MinLayers = 10.0f;
 
 	return hr;
 }
 
-HRESULT Appearance::InitMesh_Quad( ID3D11Device* pDevice )
+HRESULT Appearance::InitMesh_Quad( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
 	// Create quad with height data
 	int cols = 2;
@@ -314,24 +309,19 @@ HRESULT Appearance::InitMesh_Quad( ID3D11Device* pDevice )
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	hr = pDevice->CreateSamplerState( &sampDesc, &m_pSamplerLinear );
 
-	m_material.Material.Diffuse = XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f );
-	m_material.Material.Specular = XMFLOAT4( 1.0f, 0.2f, 0.2f, 1.0f );
-	m_material.Material.SpecularPower = 32.0f;
-	m_material.Material.UseTexture = true;
-	m_material.Material.Emissive = XMFLOAT4( 0.0f, 0.0f, 0.0f, 1.0f );
-	m_material.Material.Ambient = XMFLOAT4( 0.1f, 0.1f, 0.1f, 1.0f );
-	m_material.Material.HeightScale = 0.1f;
-	m_material.Material.MaxLayers = 15.0f;
-	m_material.Material.MinLayers = 10.0f;
+	// Create material constant buffer
+	hr = m_materialCB.Initialize( pDevice, pContext );
+	COM_ERROR_IF_FAILED( hr, "Failed to create MATERIAL constant buffer!" );
 
-	// Create the material constant buffer
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof( MaterialPropertiesConstantBuffer );
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
-	hr = pDevice->CreateBuffer( &bd, nullptr, &m_pMaterialConstantBuffer );
-	if ( FAILED( hr ) )
-		return hr;
+	m_materialCB.data.Material.Diffuse = XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f );
+	m_materialCB.data.Material.Specular = XMFLOAT4( 1.0f, 0.2f, 0.2f, 1.0f );
+	m_materialCB.data.Material.SpecularPower = 32.0f;
+	m_materialCB.data.Material.UseTexture = true;
+	m_materialCB.data.Material.Emissive = XMFLOAT4( 0.0f, 0.0f, 0.0f, 1.0f );
+	m_materialCB.data.Material.Ambient = XMFLOAT4( 0.1f, 0.1f, 0.1f, 1.0f );
+	m_materialCB.data.Material.HeightScale = 0.1f;
+	m_materialCB.data.Material.MaxLayers = 15.0f;
+	m_materialCB.data.Material.MinLayers = 10.0f;
 
 	return hr;
 }
@@ -571,8 +561,4 @@ void Appearance::CleanUp()
 	if ( m_pSamplerLinear )
 		m_pSamplerLinear->Release();
 	m_pSamplerLinear = nullptr;
-
-	if ( m_pMaterialConstantBuffer )
-		m_pMaterialConstantBuffer->Release();
-	m_pMaterialConstantBuffer = nullptr;
 }

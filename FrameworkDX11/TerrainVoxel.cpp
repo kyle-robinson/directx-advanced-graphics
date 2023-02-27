@@ -361,7 +361,7 @@ void Chunk::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl
 
 void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
-    int MaxHight = 100;
+    int maxHeight = 100;
     FastNoiseLite noise;
     noise.SetSeed( m_iSeed );
     noise.SetNoiseType( FastNoiseLite::NoiseType_Perlin );
@@ -373,21 +373,21 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
     {
         for ( float z = 0; z < m_iZSize; z++ )
         {
-            int  Active = ( ( noise.GetNoise( x + m_pChunkTransform->GetPosition().x, z + m_pChunkTransform->GetPosition().z ) + 1 ) / 2 ) * 20;
-            if ( Active > MaxHight )
+            int active = ( ( noise.GetNoise( x + m_pChunkTransform->GetPosition().x, z + m_pChunkTransform->GetPosition().z ) + 1 ) / 2 ) * 20;
+            if ( active > maxHeight )
             {
-                Active = MaxHight;
+                active = maxHeight;
             }
-            if ( m_iMaxHeight < Active )
+            if ( m_iMaxHeight < active )
             {
-                m_iMaxHeight = Active;
+                m_iMaxHeight = active;
             }
             m_vAllCubesInChunk[x].resize( m_iZSize );
-            for ( float y = 0; y < MaxHight; y++ )
+            for ( float y = 0; y < maxHeight; y++ )
             {
                 m_vAllCubesInChunk[x][z].push_back( new Block( pDevice, pContext ) );
             }
-            for ( float y = 0; y < Active; y++ )
+            for ( float y = 0; y < active; y++ )
             {
                 m_vAllCubesInChunk[x][z][y]->SetIsActive( true );
             }
@@ -403,10 +403,10 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
     {
         for ( float z = 0; z < m_iZSize; z++ )
         {
-            for ( float y = 0; y < MaxHight; y++ )
+            for ( float y = 0; y < maxHeight; y++ )
             {
-                float  Active = ( ( noise.GetNoise( x + m_pChunkTransform->GetPosition().x, y, z + m_pChunkTransform->GetPosition().z ) + 1 ) / 2 );
-                if ( Active < 0.5f )
+                float active = ( ( noise.GetNoise( x + m_pChunkTransform->GetPosition().x, y, z + m_pChunkTransform->GetPosition().z ) + 1 ) / 2 );
+                if ( active < 0.5f )
                 {
                     m_vAllCubesInChunk[x][z][y]->SetIsActive( false );
                 }

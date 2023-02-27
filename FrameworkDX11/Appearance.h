@@ -2,6 +2,7 @@
 #ifndef APPEARANCE_H
 #define APPEARANCE_H
 
+#include "ConstantBuffer.h"
 #include "Structures.h"
 #include "DataStucts.h"
 #include <vector>
@@ -24,7 +25,7 @@ public:
 	~Appearance();
 
 	HRESULT	InitMesh_Cube( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
-	HRESULT	InitMesh_Quad( ID3D11Device* pDevice );
+	HRESULT	InitMesh_Quad( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 
 	template <typename VertexType>
 	HRESULT SetVertexBuffer( ID3D11Device* pDevice, const VertexType* vertices, UINT count );
@@ -40,11 +41,10 @@ public:
 
 	inline ID3D11ShaderResourceView** GetTextureResourceView() noexcept { return &m_pTextureResourceView; }
 	inline ID3D11ShaderResourceView** GetNormalMapResourceView() noexcept { return &m_pNormalMapResourceView; }
-	inline ID3D11Buffer* GetMaterialConstantBuffer() const noexcept { return m_pMaterialConstantBuffer; }
 	inline ID3D11SamplerState** GetTextureSamplerState() noexcept { return &m_pSamplerLinear; }
 
-	inline MaterialPropertiesConstantBuffer getMaterialPropertiesConstantBuffer() const noexcept { return m_material; }
-	inline void SetMaterial( MaterialPropertiesConstantBuffer material ) noexcept { m_material = material; }
+	inline void SetMaterialData( MaterialPropertiesCB material ) noexcept { m_materialCB.data = material; }
+	inline MaterialPropertiesCB GetMaterialData() noexcept { return m_materialCB.data; }
 	inline bool HasTexture() const { return m_pTextureResourceView ? true : false; }
 
 	void Update( ID3D11DeviceContext* pContext );
@@ -61,8 +61,7 @@ protected:
 	ID3D11Buffer* m_pIndexBuffer;
 
 	ID3D11SamplerState* m_pSamplerLinear;
-	MaterialPropertiesConstantBuffer m_material;
-	ID3D11Buffer* m_pMaterialConstantBuffer = nullptr;
+	ConstantBuffer<MaterialPropertiesCB> m_materialCB;
 	int m_iNumberOfVert = 0;
 
 	ID3D11ShaderResourceView* m_pNormalMapResourceView;

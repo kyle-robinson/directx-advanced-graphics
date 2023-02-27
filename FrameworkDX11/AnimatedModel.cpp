@@ -65,17 +65,21 @@ AnimatedModel::AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D
         }
     }
 
-    // Setup bone movement cbuffer
-    D3D11_BUFFER_DESC bd = {};
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof( cbSkinned );
-    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bd.CPUAccessFlags = 0;
-    HRESULT hr = pDevice->CreateBuffer( &bd, nullptr, &m_pFinalTransformsCB );
-
     m_vFinalTransforms.resize( m_skeletonData.BoneCount() );
     m_vFinalTransforms = m_skeletonData.GetFinalTransforms( m_sClipName, 0 );
     m_skeletonData.InverseKin( 18, XMFLOAT3( 0, 0, 0 ) );
+
+    try
+    {
+        // Setup bone movement cbuffer
+        HRESULT hr = m_finalTransformsCB.Initialize( pDevice, pContext );
+        COM_ERROR_IF_FAILED( hr, "Failed to create ANIMATION constant buffer!" );
+    }
+    catch ( COMException& exception )
+    {
+        ErrorLogger::Log( exception );
+        return;
+    }
 }
 
 AnimatedModel::~AnimatedModel()
@@ -97,11 +101,13 @@ void AnimatedModel::Draw( ID3D11DeviceContext* pContext, ShaderController* shade
     for ( size_t i = 0; i < m_vFinalTransforms.size(); i++ )
     {
         XMMATRIX mbone = XMLoadFloat4x4( &m_vFinalTransforms[i] );
-        m_skinData.m_mBoneTransforms[i] = XMMatrixTranspose( mbone );
+        m_finalTransformsCB.data.m_mBoneTransforms[i] = XMMatrixTranspose( mbone );
     }
 
-    pContext->UpdateSubresource( m_pFinalTransformsCB, 0, nullptr, &m_skinData, 0, 0 );
-    pContext->VSSetConstantBuffers( 5, 1, &m_pFinalTransformsCB );
+    if ( !m_finalTransformsCB.ApplyChanges() )
+        return;
+    pContext->VSSetConstantBuffers( 5, 1, m_finalTransformsCB.GetAddressOf() );
+
     for ( auto& subset : m_vSubsets )
     {
         pContext->PSSetShaderResources( 0, 1, &m_pTextureResourceView[subset.m_uId] );
@@ -188,7 +194,6 @@ void AnimatedModel::CleanUp()
     }
 
     m_skeletonData.CleanUp();
-    m_pFinalTransformsCB->Release();
 }
 
 void AnimatedModel::ProcessMesh( aiMesh* mesh, const aiScene* scene, const XMMATRIX& transformMatrix, std::vector<SkinedVertex>& verts, std::vector<USHORT>& index )
