@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Graphics.h"
 
+#define NUM_VIEWPORTS 4
+
 Graphics::Graphics()
 {
     m_pShaderController = new ShaderController();
@@ -40,7 +42,17 @@ void Graphics::InitializeDirectX( HWND hWnd )
 	m_pSwapChain = std::make_shared<Bind::SwapChain>( m_pContext.GetAddressOf(), m_pDevice.GetAddressOf(), hWnd, m_viewWidth, m_viewHeight );
     m_pBackBuffer = std::make_shared<Bind::BackBuffer>( m_pDevice.Get(), m_pSwapChain->Get() );
     m_pDepthStencil = std::make_shared<Bind::DepthStencil>( m_pDevice.Get(), m_viewWidth, m_viewHeight );
-    m_pViewport = std::make_shared<Bind::Viewport>( m_pContext.Get(), m_viewWidth, m_viewHeight );
+    for ( unsigned int i = 0; i < NUM_VIEWPORTS; i++ )
+    {
+        if ( i == 2 )
+		{
+			m_pViewports.push_back( std::make_shared<Bind::Viewport>( m_pContext.Get(), m_viewWidth / 2, m_viewHeight / 2 ) );
+		}
+		else
+		{
+			m_pViewports.push_back( std::make_shared<Bind::Viewport>( m_pContext.Get(), m_viewWidth, m_viewHeight ) );
+		}
+    }
     m_pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 }
 

@@ -24,9 +24,9 @@ public:
 	inline UINT GetWidth() const noexcept { return m_viewWidth; }
 	inline UINT GetHeight() const noexcept { return m_viewHeight; }
 
-	inline std::shared_ptr<Bind::Viewport> GetViewport() const noexcept { return m_pViewport; }
 	inline std::shared_ptr<Bind::BackBuffer> GetBackBuffer() const noexcept { return m_pBackBuffer; }
 	inline std::shared_ptr<Bind::DepthStencil> GetDepthStencil() const noexcept { return m_pDepthStencil; }
+	inline std::vector<std::shared_ptr<Bind::Viewport>> GetViewports() const noexcept { return m_pViewports; }
 
 	inline ID3D11Device* GetDevice() const noexcept { return m_pDevice.Get(); }
 	inline ID3D11DeviceContext* GetContext() const noexcept { return m_pContext.Get(); }
@@ -54,9 +54,9 @@ private:
 	RasterizerController* m_pRasterizerController;
 	RenderTargetController* m_pRenderTargetController;
 
-	std::shared_ptr<Bind::Viewport> m_pViewport;
 	std::shared_ptr<Bind::BackBuffer> m_pBackBuffer;
 	std::shared_ptr<Bind::DepthStencil> m_pDepthStencil;
+	std::vector<std::shared_ptr<Bind::Viewport>> m_pViewports;
 
 	std::shared_ptr<Bind::SwapChain> m_pSwapChain;
 	Microsoft::WRL::ComPtr<ID3D11Device> m_pDevice;

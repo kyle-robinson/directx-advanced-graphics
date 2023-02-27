@@ -239,14 +239,7 @@ void Application::Update()
 void Application::Draw()
 {
     // Setup the viewport
-    D3D11_VIEWPORT vp;
-    vp.Width = (FLOAT)m_gfx.GetWidth();
-    vp.Height = (FLOAT)m_gfx.GetHeight();
-    vp.MinDepth = 0.0f;
-    vp.MaxDepth = 1.0f;
-    vp.TopLeftX = 0;
-    vp.TopLeftY = 0;
-    m_gfx.GetContext()->RSSetViewports( 1, &vp );
+    m_gfx.GetViewports()[0]->Bind( m_gfx.GetContext() );
 
     // Move objects that will be shadowed into list
     std::vector<DrawableGameObject*> gameObjects;
@@ -364,15 +357,8 @@ void Application::Draw()
     ID3D11ShaderResourceView* ResourceView1;
     if ( m_bIsRTT )
     {
-        // RTT to cube or screen like a tv
-        D3D11_VIEWPORT vp2;
-        vp2.Width = (FLOAT)m_gfx.GetWidth();
-        vp2.Height = (FLOAT)m_gfx.GetHeight();
-        vp2.MinDepth = 0.0f;
-        vp2.MaxDepth = 1.0f;
-        vp2.TopLeftX = 0;
-        vp2.TopLeftY = 0;
-        m_gfx.GetContext()->RSSetViewports( 1, &vp2 );
+        // RTT - render the scene view to a texture
+        m_gfx.GetViewports()[1]->Bind( m_gfx.GetContext() );
 
 		// Clear the back buffer and depth stencil view
         m_gfx.GetContext()->OMSetRenderTargets( 1, m_gfx.GetBackBuffer()->GetPtr(), m_gfx.GetDepthStencil()->GetDSV() );
@@ -463,15 +449,7 @@ void Application::Draw()
         m_pLightController->Draw( m_gfx.GetContext(), m_matrixCB );
 
         // Setup the viewport
-        D3D11_VIEWPORT vp2;
-        vp2.Width = (FLOAT)m_gfx.GetWidth();
-        vp2.Height = (FLOAT)m_gfx.GetHeight();
-        vp2.MinDepth = 0.0f;
-        vp2.MaxDepth = 1.0f;
-        vp2.TopLeftX = 0;
-        vp2.TopLeftY = 0;
-        m_gfx.GetContext()->RSSetViewports( 1, &vp2 );
-
+        m_gfx.GetViewports()[1]->Bind( m_gfx.GetContext() );
 
         // Bloom alpha
         UINT offset = 0;
@@ -496,14 +474,7 @@ void Application::Draw()
         if ( m_postProcessingCB.data.UseBlur || m_postProcessingCB.data.UseBloom || m_postProcessingCB.data.UseDepthOfF )
         {
             // Setup the viewport
-            D3D11_VIEWPORT vp2;
-            vp2.Width = (FLOAT)m_gfx.GetWidth() / 2;
-            vp2.Height = (FLOAT)m_gfx.GetHeight() / 2;
-            vp2.MinDepth = 0.0f;
-            vp2.MaxDepth = 1.0f;
-            vp2.TopLeftX = 0;
-            vp2.TopLeftY = 0;
-            m_gfx.GetContext()->RSSetViewports( 1, &vp2 );
+            m_gfx.GetViewports()[2]->Bind( m_gfx.GetContext() );
 
             // Down sample
             m_gfx.GetRenderTargetController()->GetRenderTarget( "DownSample" )->SetRenderTarget( m_gfx.GetContext() );
@@ -559,14 +530,7 @@ void Application::Draw()
             m_gfx.GetContext()->Draw( 4, 0 );
 
             // Setup the viewport
-            D3D11_VIEWPORT vp3;
-            vp3.Width = (FLOAT)m_gfx.GetWidth();
-            vp3.Height = (FLOAT)m_gfx.GetHeight();
-            vp3.MinDepth = 0.0f;
-            vp3.MaxDepth = 1.0f;
-            vp3.TopLeftX = 0;
-            vp3.TopLeftY = 0;
-            m_gfx.GetContext()->RSSetViewports( 1, &vp );
+            m_gfx.GetViewports()[3]->Bind( m_gfx.GetContext() );
 
             // Upsample
             m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->SetRenderTarget( m_gfx.GetContext() );
