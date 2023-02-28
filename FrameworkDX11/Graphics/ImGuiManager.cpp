@@ -13,8 +13,7 @@ ImGuiManager::ImGuiManager()
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    SetBlackGoldStyle();
+    SetUbuntuTheme();
 }
 
 ImGuiManager::~ImGuiManager()
@@ -26,6 +25,8 @@ bool ImGuiManager::Initialize( HWND hWnd, ID3D11Device* pDevice, ID3D11DeviceCon
 {
     if ( !ImGui_ImplWin32_Init( hWnd ) || !ImGui_ImplDX11_Init( pDevice, pContext ) )
         return false;
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     return true;
 }
 
@@ -34,6 +35,7 @@ void ImGuiManager::BeginRender()
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
+    ImGui::DockSpaceOverViewport( ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode );
 }
 
 void ImGuiManager::EndRender()
@@ -56,17 +58,48 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
         bLoad = true;
     }
 
-    if ( ImGui::Begin( "Camera Control", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    if ( ImGui::Begin( "Camera Controls", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
-        if ( ImGui::CollapsingHeader( "Camera Controls" ) )
+        if ( ImGui::TreeNode( "Instructions" ) )
         {
             ImGui::Text( "WASD      Move" );
-            ImGui::Text( "LMouse    Look" );
-            ImGui::Separator();
+            ImGui::Text( "R-Mouse   Look" );
+            ImGui::TreePop();
         }
+        ImGui::NewLine();
 
-        if ( ImGui::CollapsingHeader( "Camera Select" ) )
+        if ( ImGui::TreeNode( "Info" ) )
         {
+            for ( int n = 0; n < cameraControl->GetCamList().size(); n++ )
+            {
+                if ( ImGui::TreeNode( cameraControl->GetCamList()[n]->GetCamName().append( "##" ).append( std::to_string( n ) ).c_str() ) )
+                {
+                    ImGui::NewLine();
+					std::string sPos = "Position : " +
+                        std::to_string( cameraControl->GetCamList()[n]->GetPosition().x ) + ", " +
+                        std::to_string( cameraControl->GetCamList()[n]->GetPosition().y ) + ", " +
+                        std::to_string( cameraControl->GetCamList()[n]->GetPosition().z );
+					ImGui::Text( sPos.c_str() );
+
+                    std::string sRot = "Rotation : " +
+                        std::to_string( cameraControl->GetCamList()[n]->GetRot().x ) + ", " +
+                        std::to_string( cameraControl->GetCamList()[n]->GetRot().y ) + ", " +
+                        std::to_string( cameraControl->GetCamList()[n]->GetRot().z );
+                    ImGui::Text( sRot.c_str() );
+
+                    std::string sSpeed = "Speed: " + std::to_string( cameraControl->GetCurentCam()->GetCamSpeed() );
+                    ImGui::Text( sSpeed.c_str() );
+                    ImGui::TreePop();
+                    ImGui::NewLine();
+                }
+            }
+            ImGui::TreePop();
+        }
+        ImGui::NewLine();
+
+        if ( ImGui::TreeNode( "Controls" ) )
+        {
+            ImGui::Text( "Currrent Camera" );
             if ( ImGui::BeginCombo( "##Combo", cCurrentItem ) )
             {
                 for ( int n = 0; n < cameraControl->GetCamList().size(); n++ )
@@ -86,6 +119,14 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
                 }
                 ImGui::EndCombo();
             }
+            ImGui::NewLine();
+
+            ImGui::Text( "Movement Speed" );
+            static float movementSpeed = cameraControl->GetCurentCam()->GetCamSpeed();
+            if ( ImGui::SliderFloat( "##Movement Speed", &movementSpeed, 0.1f, 1.0f, "%.1f" ) )
+                cameraControl->GetCurentCam()->SetCamSpeed( movementSpeed );
+
+            ImGui::TreePop();
         }
     }
     ImGui::End();
@@ -107,80 +148,97 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
 
     if ( ImGui::Begin( "Shader Controls", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
-        if ( ImGui::CollapsingHeader( "Shader Select" ) )
+        ImGui::Text( "Current Shader" );
+        if ( ImGui::BeginCombo( "##ShaderCombo", cCurrentShader ) )
         {
-            if ( ImGui::BeginCombo( "##Combo", cCurrentShader ) )
+            for ( int n = 0; n < shaderControl->GetShaderList().size(); n++ )
             {
-                for ( int n = 0; n < shaderControl->GetShaderList().size(); n++ )
+                bool is_selected = ( cCurrentShader == shaderControl->GetShaderList()[n].m_sName.c_str() );
+                if ( ImGui::Selectable( shaderControl->GetShaderList()[n].m_sName.c_str(), is_selected ) )
                 {
-                    bool is_selected = ( cCurrentShader == shaderControl->GetShaderList()[n].m_sName.c_str() );
-                    if ( ImGui::Selectable( shaderControl->GetShaderList()[n].m_sName.c_str(), is_selected ) )
-                    {
-                        sShaderName = shaderControl->GetShaderList()[n].m_sName;
-                        shaderControl->SetShaderData( n );
-                        cCurrentShader = sShaderName.c_str();
-                    }
-
-                    if ( is_selected )
-                    {
-                        ImGui::SetItemDefaultFocus();
-                    }
+                    sShaderName = shaderControl->GetShaderList()[n].m_sName;
+                    shaderControl->SetShaderData( n );
+                    cCurrentShader = sShaderName.c_str();
                 }
-                ImGui::EndCombo();
+
+                if ( is_selected )
+                {
+                    ImGui::SetItemDefaultFocus();
+                }
             }
+            ImGui::EndCombo();
         }
+        ImGui::NewLine();
 
-        if ( ImGui::CollapsingHeader( "Post-Processing" ) )
+        ImGui::Text( "Current Rasterizer" );
+        if ( ImGui::BeginCombo( "##RasterizerCombo", sCurrentRasterState.c_str() ) )
         {
-            PostProcessingCB* currentPPCB = postSettings;
-
-            bool useColour = currentPPCB->UseColour;
-            ImGui::Checkbox( "Colour Change", &useColour );
-            currentPPCB->UseColour = useColour;
-
-            float Colour[] = { currentPPCB->Color.x , currentPPCB->Color.y, currentPPCB->Color.z, currentPPCB->Color.w };
-            ImGui::ColorPicker4( "Colour", Colour, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_InputRGB );
-            currentPPCB->Color = { Colour[0],Colour[1],Colour[2],Colour[3] };
-
-            bool useBloom = currentPPCB->UseBloom;
-            ImGui::Checkbox( "Bloom", &useBloom );
-            currentPPCB->UseBloom = useBloom;
-
-            bool useDOF = currentPPCB->UseDepthOfF;
-            ImGui::Checkbox( "Depth Of Field", &useDOF );
-            currentPPCB->UseDepthOfF = useDOF;
-
-            ImGui::InputFloat( "DOF Far", &currentPPCB->FarPlane );
-            if ( currentPPCB->FarPlane < 0 )
-                currentPPCB->FarPlane = 0;
-
-            ImGui::InputFloat( "DOF Foacl Width", &currentPPCB->FocalWidth );
-            ImGui::InputFloat( "DOF Focal Distance", &currentPPCB->FocalDistance );
-            ImGui::InputFloat( "DOF Attuenation", &currentPPCB->BlurAttenuation );
-
-            bool useblue = currentPPCB->UseBlur;
-            ImGui::Checkbox( "Blur", &useblue );
-            currentPPCB->UseBlur = useblue;
-
-            ImGui::Checkbox( "RTT", &rtt );
-            ImGui::SliderFloat( "FadeLevel", &currentPPCB->FadeAmount, 0.0f, 1.0f, "%.3f" );
-        }
-
-        if ( ImGui::CollapsingHeader( "Rasterizer Select" ) )
-        {
-            if ( ImGui::BeginCombo( "##RScombo", sCurrentRasterState.c_str() ) )
+            for ( int n = 0; n < rasterControl->GetStateNames().size(); n++ )
             {
-                for ( int n = 0; n < rasterControl->GetStateNames().size(); n++ )
+                bool is_selected = ( sCurrentRasterState == rasterControl->GetStateNames()[n].c_str() );
+                if ( ImGui::Selectable( rasterControl->GetStateNames()[n].c_str(), is_selected ) )
                 {
-                    bool is_selected = ( sCurrentRasterState == rasterControl->GetStateNames()[n].c_str() );
-                    if ( ImGui::Selectable( rasterControl->GetStateNames()[n].c_str(), is_selected ) )
-                    {
-                        rasterControl->SetState( rasterControl->GetStateNames()[n].c_str() );
-                        sCurrentRasterState = rasterControl->GetStateNames()[n].c_str();
-                    }
+                    rasterControl->SetState( rasterControl->GetStateNames()[n].c_str() );
+                    sCurrentRasterState = rasterControl->GetStateNames()[n].c_str();
                 }
-                ImGui::EndCombo();
             }
+            ImGui::EndCombo();
+        }
+        ImGui::NewLine();
+
+        if ( ImGui::TreeNode( "Post-Processing" ) )
+        {
+            ImGui::Text( "Fade Amount" );
+            ImGui::SliderFloat( "##Fade Amount", &postSettings->FadeAmount, 0.0f, 1.0f, "%.1f" );
+
+            bool useBloom = postSettings->UseBloom;
+            if ( ImGui::Checkbox( "Bloom", &useBloom ) )
+                postSettings->UseBloom = useBloom;
+
+            ImGui::SameLine();
+
+            bool useBlur = postSettings->UseBlur;
+            if ( ImGui::Checkbox( "Gaussian Blur", &useBlur ) )
+                postSettings->UseBlur = useBlur;
+
+            bool useColour = postSettings->UseColour;
+            if ( ImGui::Checkbox( "Colour Change", &useColour ) )
+                postSettings->UseColour = useColour;
+
+            ImGui::SameLine();
+
+            bool useDOF = postSettings->UseDepthOfField;
+            if( ImGui::Checkbox( "Depth Of Field", &useDOF ) )
+                postSettings->UseDepthOfField = useDOF;
+
+            if ( useColour )
+            {
+                ImGui::Separator();
+                if ( ImGui::TreeNode( "Colour Settings" ) )
+                {
+                    float colour[] = { postSettings->Color.x , postSettings->Color.y, postSettings->Color.z, postSettings->Color.w };
+                    if ( ImGui::ColorPicker4( "Colour", colour, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_InputRGB ) )
+                        postSettings->Color = { colour[0], colour[1], colour[2], colour[3] };
+                    ImGui::TreePop();
+                }
+            }
+
+            if ( useDOF )
+            {
+                ImGui::Separator();
+                if ( ImGui::TreeNode( "DOF Settings" ) )
+                {
+                    ImGui::InputFloat( "Far Plane", &postSettings->FarPlane );
+                    if ( postSettings->FarPlane < 0 )
+                        postSettings->FarPlane = 0;
+                    ImGui::InputFloat( "Focal Width", &postSettings->FocalWidth );
+                    ImGui::InputFloat( "Focal Distance", &postSettings->FocalDistance );
+                    ImGui::InputFloat( "Attuenation", &postSettings->BlurAttenuation );
+                    ImGui::TreePop();
+                }
+            }
+
+            ImGui::TreePop();
         }
     }
     ImGui::End();
@@ -950,7 +1008,7 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
     ImGui::End();
 }
 
-void ImGuiManager::SetBlackGoldStyle()
+void ImGuiManager::SetBlackGoldTheme()
 {
     ImGuiStyle* style = &ImGui::GetStyle();
     ImVec4* colors = style->Colors;
@@ -1017,4 +1075,149 @@ void ImGuiManager::SetBlackGoldStyle()
     style->WindowTitleAlign = ImVec2( 1.0f, 0.5f );
     style->WindowMenuButtonPosition = ImGuiDir_Right;
     style->DisplaySafeAreaPadding = ImVec2( 4, 4 );
+}
+
+void ImGuiManager::SetWhiteTheme()
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    io.Fonts->Clear();
+    io.Fonts->AddFontFromFileTTF( "Resources/Fonts/OpenSans-Light.ttf", 16 );
+    io.Fonts->AddFontFromFileTTF( "Resources/Fonts/OpenSans-Regular.ttf", 16 );
+    io.Fonts->AddFontFromFileTTF( "Resources/Fonts/OpenSans-Bold.ttf", 16 );
+    io.Fonts->AddFontFromFileTTF( "Resources/Fonts/OpenSans-Italic.ttf", 16 );
+    io.Fonts->AddFontFromFileTTF( "Resources/Fonts/OpenSans-BoldItalic.ttf", 16 );
+    io.Fonts->Build();
+
+    ImGuiStyle* style = &ImGui::GetStyle();
+
+    style->WindowPadding = ImVec2( 15, 15 );
+    style->WindowRounding = 5.0f;
+    style->FramePadding = ImVec2( 5, 5 );
+    style->FrameRounding = 4.0f;
+    style->ItemSpacing = ImVec2( 12, 8 );
+    style->ItemInnerSpacing = ImVec2( 8, 6 );
+    style->IndentSpacing = 25.0f;
+    style->ScrollbarSize = 15.0f;
+    style->ScrollbarRounding = 9.0f;
+    style->GrabMinSize = 5.0f;
+    style->GrabRounding = 3.0f;
+
+    style->Colors[ImGuiCol_Text] = ImVec4( 0.40f, 0.39f, 0.38f, 1.00f );
+    style->Colors[ImGuiCol_TextDisabled] = ImVec4( 0.40f, 0.39f, 0.38f, 0.77f );
+    style->Colors[ImGuiCol_WindowBg] = ImVec4( 0.92f, 0.91f, 0.88f, 0.70f );
+    style->Colors[ImGuiCol_PopupBg] = ImVec4( 0.92f, 0.91f, 0.88f, 0.92f );
+    style->Colors[ImGuiCol_Border] = ImVec4( 0.84f, 0.83f, 0.80f, 0.65f );
+    style->Colors[ImGuiCol_BorderShadow] = ImVec4( 0.92f, 0.91f, 0.88f, 0.00f );
+    style->Colors[ImGuiCol_FrameBg] = ImVec4( 1.00f, 0.98f, 0.95f, 1.00f );
+    style->Colors[ImGuiCol_FrameBgHovered] = ImVec4( 0.99f, 1.00f, 0.40f, 0.78f );
+    style->Colors[ImGuiCol_FrameBgActive] = ImVec4( 0.26f, 1.00f, 0.00f, 1.00f );
+    style->Colors[ImGuiCol_TitleBg] = ImVec4( 1.00f, 0.98f, 0.95f, 1.00f );
+    style->Colors[ImGuiCol_TitleBgCollapsed] = ImVec4( 1.00f, 0.98f, 0.95f, 0.75f );
+    style->Colors[ImGuiCol_TitleBgActive] = ImVec4( 0.25f, 1.00f, 0.00f, 1.00f );
+    style->Colors[ImGuiCol_MenuBarBg] = ImVec4( 1.00f, 0.98f, 0.95f, 0.47f );
+    style->Colors[ImGuiCol_ScrollbarBg] = ImVec4( 1.00f, 0.98f, 0.95f, 1.00f );
+    style->Colors[ImGuiCol_ScrollbarGrab] = ImVec4( 0.00f, 0.00f, 0.00f, 0.21f );
+    style->Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4( 0.90f, 0.91f, 0.00f, 0.78f );
+    style->Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4( 0.25f, 1.00f, 0.00f, 1.00f );
+    style->Colors[ImGuiCol_CheckMark] = ImVec4( 0.25f, 1.00f, 0.00f, 0.80f );
+    style->Colors[ImGuiCol_SliderGrab] = ImVec4( 0.00f, 0.00f, 0.00f, 0.14f );
+    style->Colors[ImGuiCol_SliderGrabActive] = ImVec4( 0.25f, 1.00f, 0.00f, 1.00f );
+    style->Colors[ImGuiCol_Button] = ImVec4( 0.00f, 0.00f, 0.00f, 0.14f );
+    style->Colors[ImGuiCol_ButtonHovered] = ImVec4( 0.99f, 1.00f, 0.22f, 0.86f );
+    style->Colors[ImGuiCol_ButtonActive] = ImVec4( 0.25f, 1.00f, 0.00f, 1.00f );
+    style->Colors[ImGuiCol_Header] = ImVec4( 0.25f, 1.00f, 0.00f, 0.76f );
+    style->Colors[ImGuiCol_HeaderHovered] = ImVec4( 0.25f, 1.00f, 0.00f, 0.86f );
+    style->Colors[ImGuiCol_HeaderActive] = ImVec4( 0.25f, 1.00f, 0.00f, 1.00f );
+    style->Colors[ImGuiCol_ResizeGrip] = ImVec4( 0.00f, 0.00f, 0.00f, 0.04f );
+    style->Colors[ImGuiCol_ResizeGripHovered] = ImVec4( 0.25f, 1.00f, 0.00f, 0.78f );
+    style->Colors[ImGuiCol_ResizeGripActive] = ImVec4( 0.25f, 1.00f, 0.00f, 1.00f );
+    style->Colors[ImGuiCol_PlotLines] = ImVec4( 0.40f, 0.39f, 0.38f, 0.63f );
+    style->Colors[ImGuiCol_PlotLinesHovered] = ImVec4( 0.25f, 1.00f, 0.00f, 1.00f );
+    style->Colors[ImGuiCol_PlotHistogram] = ImVec4( 0.40f, 0.39f, 0.38f, 0.63f );
+    style->Colors[ImGuiCol_PlotHistogramHovered] = ImVec4( 0.25f, 1.00f, 0.00f, 1.00f );
+    style->Colors[ImGuiCol_TextSelectedBg] = ImVec4( 0.25f, 1.00f, 0.00f, 0.43f );
+}
+
+void ImGuiManager::SetUbuntuTheme()
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    io.Fonts->Clear();
+    io.Fonts->AddFontFromFileTTF( "Resources/Fonts/OpenSans-Light.ttf", 16 );
+    io.Fonts->AddFontFromFileTTF( "Resources/Fonts/OpenSans-Regular.ttf", 16 );
+    io.Fonts->AddFontFromFileTTF( "Resources/Fonts/OpenSans-Bold.ttf", 16 );
+    io.Fonts->AddFontFromFileTTF( "Resources/Fonts/OpenSans-Italic.ttf", 16 );
+    io.Fonts->AddFontFromFileTTF( "Resources/Fonts/OpenSans-BoldItalic.ttf", 16 );
+    io.Fonts->Build();
+
+    // Borders
+    ImGui::GetStyle().WindowBorderSize = 0.0f;
+    ImGui::GetStyle().FrameBorderSize = 0.0f;
+    ImGui::GetStyle().PopupBorderSize = 0.0f;
+
+    // Rounding
+    ImGui::GetStyle().WindowRounding = 0.0f;
+    ImGui::GetStyle().ChildRounding = 0.0f;
+    ImGui::GetStyle().FrameRounding = 0.0f;
+    ImGui::GetStyle().PopupRounding = 0.0f;
+    ImGui::GetStyle().ScrollbarRounding = 0.0f;
+    ImGui::GetStyle().GrabRounding = 0.0f;
+    ImGui::GetStyle().LogSliderDeadzone = 0.0f;
+    ImGui::GetStyle().TabRounding = 0.0f;
+
+    ImVec4* colors = ImGui::GetStyle().Colors;
+    colors[ImGuiCol_Text] = ImVec4( 1.00f, 1.00f, 1.00f, 1.00f );
+    colors[ImGuiCol_TextDisabled] = ImVec4( 0.40f, 0.40f, 0.40f, 1.00f );
+    colors[ImGuiCol_WindowBg] = ImVec4( 0.07f, 0.07f, 0.07f, 1.00f );
+    colors[ImGuiCol_ChildBg] = ImVec4( 0.07f, 0.07f, 0.07f, 1.00f );
+    colors[ImGuiCol_PopupBg] = ImVec4( 0.07f, 0.07f, 0.07f, 1.00f );
+    colors[ImGuiCol_Border] = ImVec4( 1.00f, 1.00f, 1.00f, 1.00f );
+    colors[ImGuiCol_BorderShadow] = ImVec4( 0.00f, 0.00f, 0.00f, 0.00f );
+    colors[ImGuiCol_FrameBg] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_FrameBgHovered] = ImVec4( 0.05f, 0.52f, 0.13f, 1.00f );
+    colors[ImGuiCol_FrameBgActive] = ImVec4( 0.05f, 0.52f, 0.13f, 1.00f );
+    colors[ImGuiCol_TitleBg] = ImVec4( 0.91f, 0.33f, 0.13f, 1.00f );
+    colors[ImGuiCol_TitleBgActive] = ImVec4( 0.91f, 0.33f, 0.13f, 1.00f );
+    colors[ImGuiCol_TitleBgCollapsed] = ImVec4( 0.00f, 0.00f, 0.00f, 0.51f );
+    colors[ImGuiCol_MenuBarBg] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_ScrollbarBg] = ImVec4( 0.02f, 0.02f, 0.02f, 0.53f );
+    colors[ImGuiCol_ScrollbarGrab] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_ScrollbarGrabActive] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_CheckMark] = ImVec4( 0.91f, 0.33f, 0.13f, 1.00f );
+    colors[ImGuiCol_SliderGrab] = ImVec4( 0.91f, 0.33f, 0.13f, 1.00f );
+    colors[ImGuiCol_SliderGrabActive] = ImVec4( 0.91f, 0.33f, 0.13f, 1.00f );
+    colors[ImGuiCol_Button] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_ButtonHovered] = ImVec4( 0.05f, 0.52f, 0.13f, 1.00f );
+    colors[ImGuiCol_ButtonActive] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_Header] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_HeaderHovered] = ImVec4( 0.05f, 0.52f, 0.13f, 1.00f );
+    colors[ImGuiCol_HeaderActive] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_Separator] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_SeparatorHovered] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_SeparatorActive] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_ResizeGrip] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_ResizeGripHovered] = ImVec4( 0.05f, 0.52f, 0.13f, 1.00f );
+    colors[ImGuiCol_ResizeGripActive] = ImVec4( 0.91f, 0.33f, 0.13f, 1.00f );
+    colors[ImGuiCol_Tab] = ImVec4( 0.91f, 0.33f, 0.13f, 1.00f );
+    colors[ImGuiCol_TabHovered] = ImVec4( 0.05f, 0.52f, 0.13f, 1.00f );
+    colors[ImGuiCol_TabActive] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_TabUnfocused] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_TabUnfocusedActive] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_PlotLines] = ImVec4( 1.00f, 1.00f, 1.00f, 1.00f );
+    colors[ImGuiCol_PlotLinesHovered] = ImVec4( 0.05f, 0.52f, 0.13f, 1.00f );
+    colors[ImGuiCol_PlotHistogram] = ImVec4( 0.91f, 0.33f, 0.13f, 1.00f );
+    colors[ImGuiCol_PlotHistogramHovered] = ImVec4( 0.05f, 0.52f, 0.13f, 1.00f );
+    colors[ImGuiCol_TableHeaderBg] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_TableBorderStrong] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_TableBorderLight] = ImVec4( 0.20f, 0.20f, 0.20f, 1.00f );
+    colors[ImGuiCol_TableRowBg] = ImVec4( 0.07f, 0.07f, 0.07f, 1.00f );
+    colors[ImGuiCol_TableRowBgAlt] = ImVec4( 1.00f, 1.00f, 1.00f, 0.06f );
+    colors[ImGuiCol_TextSelectedBg] = ImVec4( 0.05f, 0.52f, 0.13f, 1.00f );
+    colors[ImGuiCol_DragDropTarget] = ImVec4( 0.91f, 0.33f, 0.13f, 1.00f );
+    colors[ImGuiCol_NavHighlight] = ImVec4( 0.05f, 0.52f, 0.13f, 1.00f );
+    colors[ImGuiCol_NavWindowingHighlight] = ImVec4( 0.05f, 0.52f, 0.13f, 1.00f );
+    colors[ImGuiCol_NavWindowingDimBg] = ImVec4( 0.05f, 0.52f, 0.13f, 1.00f );
+    colors[ImGuiCol_ModalWindowDimBg] = ImVec4( 0.05f, 0.52f, 0.13f, 1.00f );
 }

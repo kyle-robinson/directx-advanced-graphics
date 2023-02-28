@@ -3,25 +3,25 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="..\External\imgui\imgui.cpp">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_demo.cpp">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_draw.cpp">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_impl_dx11.cpp">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_impl_win32.cpp">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_tables.cpp">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_widgets.cpp">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Window\WindowContainer.cpp">
       <Filter>Window</Filter>
@@ -205,28 +205,28 @@
       <Filter>Resources\LibNoise</Filter>
     </ClInclude>
     <ClInclude Include="..\External\imgui\imconfig.h">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\External\imgui\imgui.h">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\External\imgui\imgui_impl_dx11.h">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\External\imgui\imgui_impl_win32.h">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\External\imgui\imgui_internal.h">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\External\imgui\imstb_rectpack.h">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\External\imgui\imstb_textedit.h">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\External\imgui\imstb_truetype.h">
-      <Filter>Resources\DImGUI</Filter>
+      <Filter>Resources\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="Window\WindowContainer.h">
       <Filter>Window</Filter>
@@ -431,9 +431,6 @@
     <Filter Include="Resources\Textures\Crate">
       <UniqueIdentifier>{3675f6b3-5816-43e6-a1c3-e00995886620}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resources\DImGUI">
-      <UniqueIdentifier>{35c5ace8-1db7-44b4-9237-ab9fbd7dc97b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resources\LibNoise">
       <UniqueIdentifier>{c317b88e-3eb3-49fa-bc02-63dc789b273e}</UniqueIdentifier>
     </Filter>
@@ -508,6 +505,12 @@
     </Filter>
     <Filter Include="Graphics\Buffers">
       <UniqueIdentifier>{41ac2fc9-d3d8-4506-a011-5b89b9f4ca14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\ImGui">
+      <UniqueIdentifier>{35c5ace8-1db7-44b4-9237-ab9fbd7dc97b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Fonts">
+      <UniqueIdentifier>{da8dc459-6de3-46d3-aa79-3132781684c0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -733,5 +736,22 @@
     <Library Include="..\External\lib\assimp-vc142-mtd.lib">
       <Filter>Resources</Filter>
     </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="Resources\Fonts\OpenSans-Bold.ttf">
+      <Filter>Resources\Fonts</Filter>
+    </Font>
+    <Font Include="Resources\Fonts\OpenSans-BoldItalic.ttf">
+      <Filter>Resources\Fonts</Filter>
+    </Font>
+    <Font Include="Resources\Fonts\OpenSans-Italic.ttf">
+      <Filter>Resources\Fonts</Filter>
+    </Font>
+    <Font Include="Resources\Fonts\OpenSans-Light.ttf">
+      <Filter>Resources\Fonts</Filter>
+    </Font>
+    <Font Include="Resources\Fonts\OpenSans-Regular.ttf">
+      <Filter>Resources\Fonts</Filter>
+    </Font>
   </ItemGroup>
 </Project>

@@ -106,6 +106,7 @@ void Graphics::InitializeRenderTargets()
     m_pRenderTargetController->CreateRenderTarget( "DownSample", m_viewWidth / 2, m_viewHeight / 2, m_pDevice.Get() );
     m_pRenderTargetController->CreateRenderTarget( "UpSample", m_viewWidth, m_viewHeight, m_pDevice.Get() );
     m_pRenderTargetController->CreateRenderTarget( "Alpha", m_viewWidth, m_viewHeight, m_pDevice.Get() );
+    m_pRenderTargetController->CreateRenderTarget( "Final", m_viewWidth, m_viewHeight, m_pDevice.Get() );
 }
 
 void Graphics::InitializeRasterizerStates()

@@ -336,8 +336,7 @@ bool ShaderController::NewVertexShader( std::wstring fileName, ID3D11Device* pDe
 
             // Create the input layout
             UINT numElements = ARRAYSIZE( layout );
-            hr = pDevice->CreateInputLayout( layout, numElements, pVSBlob->GetBufferPointer(),
-                pVSBlob->GetBufferSize(), &m_pVertexLayout );
+            hr = pDevice->CreateInputLayout( layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pVertexLayout );
             COM_ERROR_IF_FAILED( hr, "Failed to create the INPUT LAYOUT for an ANIMATION vertex shader!" );
         }
         break;

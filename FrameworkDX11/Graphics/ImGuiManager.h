@@ -44,7 +44,9 @@ public:
 	inline void SetPoints( std::vector<XMFLOAT3> points ) noexcept { m_vPoints = points; }
 
 private:
-	void SetBlackGoldStyle();
+	void SetWhiteTheme();
+	void SetUbuntuTheme();
+	void SetBlackGoldTheme();
 	std::vector<XMFLOAT3> m_vPoints;
 };
 

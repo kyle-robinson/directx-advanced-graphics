@@ -17,7 +17,8 @@ AnimatedModel::AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D
 
     // Transform data
     m_pTransformData = new Transform();
-    m_pTransformData->SetPosition( 3, -2, 0 );
+    m_pTransformData->SetPosition( 3.0f, -2.0f, 0.0f );
+    m_pTransformData->SetRotation( 0.0f, 180.0f, 0.0f );
     m_pTransformData->SetScale( 0.05f, 0.05f, 0.05f );
 
     // Textures
@@ -65,10 +66,6 @@ AnimatedModel::AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D
         }
     }
 
-    m_vFinalTransforms.resize( m_skeletonData.BoneCount() );
-    m_vFinalTransforms = m_skeletonData.GetFinalTransforms( m_sClipName, 0 );
-    m_skeletonData.InverseKin( 18, XMFLOAT3( 0, 0, 0 ) );
-
     try
     {
         // Setup bone movement cbuffer
@@ -80,6 +77,10 @@ AnimatedModel::AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D
         ErrorLogger::Log( exception );
         return;
     }
+
+    m_vFinalTransforms.resize( m_skeletonData.BoneCount() );
+    m_vFinalTransforms = m_skeletonData.GetFinalTransforms( m_sClipName, 0.0f );
+    m_skeletonData.InverseKin( 18, XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
 }
 
 AnimatedModel::~AnimatedModel()
@@ -114,10 +115,6 @@ void AnimatedModel::Draw( ID3D11DeviceContext* pContext, ShaderController* shade
         pContext->PSSetShaderResources( 1, 1, &m_pNormalMapResourceView[subset.m_uId] );
         m_pAppearance->Draw( pContext, subset.m_uFaceCount * 3, subset.m_uFaceStart * 3 );
     }
-
-    pContext->IASetInputLayout( shaderControl->GetShaderByName( "Basic" ).m_pVertexLayout );
-    pContext->VSSetShader( shaderControl->GetShaderData().m_pVertexShader, nullptr, 0 );
-    pContext->PSSetShader( shaderControl->GetShaderData().m_pPixelShader, nullptr, 0 );
 }
 
 void AnimatedModel::Update( float dt )

@@ -26,9 +26,7 @@ WindowContainer::WindowContainer()
 extern LRESULT ImGui_ImplWin32_WndProcHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
-    //windowResized = false;
-    if ( ImGui_ImplWin32_WndProcHandler( hWnd, uMsg, wParam, lParam ) )
-        return true;
+    ImGui_ImplWin32_WndProcHandler( hWnd, uMsg, wParam, lParam );
     const auto& imio = ImGui::GetIO();
 
     switch ( uMsg )
@@ -118,8 +116,8 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
             return 0;
         }
 
-        if ( imio.WantCaptureMouse )
-            return 0;
+        //if ( imio.WantCaptureMouse )
+        //    return 0;
 
         if ( pt.x >= 0 && pt.x < windowSize.x && pt.y >= 0 && pt.y < windowSize.y )
         {
@@ -180,8 +178,8 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     }
     case WM_RBUTTONDOWN:
     {
-        if ( imio.WantCaptureMouse )
-            return 0;
+        //if ( imio.WantCaptureMouse )
+        //    return 0;
 
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );
@@ -190,8 +188,8 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     }
     case WM_RBUTTONUP:
     {
-        if ( imio.WantCaptureMouse )
-            return 0;
+        //if ( imio.WantCaptureMouse )
+        //    return 0;
 
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );

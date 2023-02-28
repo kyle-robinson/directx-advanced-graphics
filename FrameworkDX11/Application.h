@@ -10,7 +10,6 @@
 #include "Terrain.h"
 #include "TerrainVoxel.h"
 #include "AnimatedModel.h"
-#include "BillboradObject.h"
 #include "LightController.h"
 #include "DrawableGameObject.h"
 
@@ -51,7 +50,6 @@ private:
 	DrawableGameObject m_sky;
 	DrawableGameObject m_cube;
 	DrawableGameObject m_ground;
-	BillboardObject* m_pBillboard;
 	AnimatedModel* m_pAnimModel;
 
 	// Lights

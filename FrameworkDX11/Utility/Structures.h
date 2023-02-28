@@ -103,7 +103,7 @@ struct PostProcessingCB
 
 	int UseHDR;
 	int UseBloom;
-	int UseDepthOfF;
+	int UseDepthOfField;
 	int UseColour;
 
 	int UseBlur;

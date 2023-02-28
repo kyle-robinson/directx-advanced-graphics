@@ -23,7 +23,6 @@ void Appearance::Draw( ID3D11DeviceContext* pContext )
 	pContext->PSSetConstantBuffers( 1, 1, m_materialCB.GetAddressOf() );
 
 	// Set vertex buffer
-	UINT stride = sizeof( SimpleVertex );
 	UINT offset = 0;
 	pContext->IASetVertexBuffers( 0, 1, m_simpleVB.GetAddressOf(), m_simpleVB.StridePtr(), &offset );
 	pContext->IASetIndexBuffer( m_simpleIB.Get(), DXGI_FORMAT_R16_UINT, 0 );
@@ -33,6 +32,7 @@ void Appearance::Draw( ID3D11DeviceContext* pContext )
 
 void Appearance::Draw( ID3D11DeviceContext* pContext, int vertToDraw, int start )
 {
+	// Set vertex buffer
 	UINT offset = 0;
 	pContext->IASetVertexBuffers( 0, 1, m_skinnedVB.GetAddressOf(), m_skinnedVB.StridePtr(), &offset );
 	pContext->IASetIndexBuffer( m_skinnedIB.Get(), DXGI_FORMAT_R16_UINT, 0 );

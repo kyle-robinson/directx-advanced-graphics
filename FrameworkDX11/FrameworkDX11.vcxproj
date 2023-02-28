@@ -960,6 +960,13 @@
   <ItemGroup>
     <Library Include="..\External\lib\assimp-vc142-mtd.lib" />
   </ItemGroup>
+  <ItemGroup>
+    <Font Include="Resources\Fonts\OpenSans-Bold.ttf" />
+    <Font Include="Resources\Fonts\OpenSans-BoldItalic.ttf" />
+    <Font Include="Resources\Fonts\OpenSans-Italic.ttf" />
+    <Font Include="Resources\Fonts\OpenSans-Light.ttf" />
+    <Font Include="Resources\Fonts\OpenSans-Regular.ttf" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>
