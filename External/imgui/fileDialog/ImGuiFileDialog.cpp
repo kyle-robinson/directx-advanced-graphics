@@ -227,10 +227,10 @@ namespace IGFD
 #define fileSizeGigaBytes "Go"
 #endif // fileSizeGigaBytes
 #ifndef OverWriteDialogTitleString
-#define OverWriteDialogTitleString "The file Already Exist !"
+#define OverWriteDialogTitleString "The file already exists!"
 #endif // OverWriteDialogTitleString
 #ifndef OverWriteDialogMessageString
-#define OverWriteDialogMessageString "Would you like to OverWrite it ?"
+#define OverWriteDialogMessageString "Would you like to overwrite it?"
 #endif // OverWriteDialogMessageString
 #ifndef OverWriteDialogConfirmButtonString
 #define OverWriteDialogConfirmButtonString "Confirm"

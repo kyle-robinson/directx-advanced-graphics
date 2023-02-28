@@ -319,6 +319,8 @@ void Application::Draw()
     m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
     m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pPixelShader, nullptr, 0 );
     m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
+	for ( unsigned int i = 0; i < MAX_LIGHTS; i++ )
+        m_pLightController->GetLight( i )->GetLightObject()->GetAppearance()->SetTextures( m_gfx.GetContext() );
     m_pLightController->Draw( m_gfx.GetContext(), m_matrixCB );
     m_gfx.GetRasterizerController()->SetState( "Back", m_gfx.GetContext() );
 

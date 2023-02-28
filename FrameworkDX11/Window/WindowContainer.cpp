@@ -140,6 +140,7 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
                 m_mouse.OnMouseLeave( x, y );
             }
         }
+
         return 0;
     }
     case WM_LBUTTONDOWN:
@@ -184,6 +185,7 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );
         m_mouse.OnRightPressed( x, y );
+
         return 0;
     }
     case WM_RBUTTONUP:
@@ -201,6 +203,7 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
             ReleaseCapture();
             m_mouse.OnMouseLeave( x, y );
         }
+
         return 0;
     }
     case WM_MBUTTONDOWN:
