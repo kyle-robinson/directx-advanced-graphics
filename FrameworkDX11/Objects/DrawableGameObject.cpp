@@ -3,8 +3,9 @@
 #include "Structures.h"
 #include "resource.h"
 
-DrawableGameObject::DrawableGameObject()
+DrawableGameObject::DrawableGameObject( std::string name )
 {
+	m_sName = name;
 	m_pTransform = new Transform();
 	m_pApperance = new Appearance();
 }

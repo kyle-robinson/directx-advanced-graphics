@@ -41,15 +41,14 @@ private:
 		XMFLOAT3 pos;
 		XMFLOAT2 tex;
 	};
-	bool m_bIsRTT = false;
 	VertexBuffer<ScreenVertex> m_screenVB;
 	XMMATRIX m_mProjection;
 	XMMATRIX m_mView;
 
 	// Objects
-	DrawableGameObject m_sky;
-	DrawableGameObject m_cube;
-	DrawableGameObject m_ground;
+	DrawableGameObject* m_pSky;
+	DrawableGameObject* m_pCube;
+	DrawableGameObject* m_pGround;
 	AnimatedModel* m_pAnimModel;
 
 	// Lights

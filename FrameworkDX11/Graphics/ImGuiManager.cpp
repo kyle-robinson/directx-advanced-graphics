@@ -60,21 +60,22 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
 
     if ( ImGui::Begin( "Camera Controls", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
+        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Instructions" ) )
         {
             ImGui::Text( "WASD      Move" );
             ImGui::Text( "R-Mouse   Look" );
             ImGui::TreePop();
         }
-        ImGui::NewLine();
+        ImGui::Separator();
 
+        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Info" ) )
         {
             for ( int n = 0; n < cameraControl->GetCamList().size(); n++ )
             {
                 if ( ImGui::TreeNode( cameraControl->GetCamList()[n]->GetCamName().append( "##" ).append( std::to_string( n ) ).c_str() ) )
                 {
-                    ImGui::NewLine();
 					std::string sPos = "Position : " +
                         std::to_string( cameraControl->GetCamList()[n]->GetPosition().x ) + ", " +
                         std::to_string( cameraControl->GetCamList()[n]->GetPosition().y ) + ", " +
@@ -90,16 +91,17 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
                     std::string sSpeed = "Speed: " + std::to_string( cameraControl->GetCurentCam()->GetCamSpeed() );
                     ImGui::Text( sSpeed.c_str() );
                     ImGui::TreePop();
-                    ImGui::NewLine();
                 }
             }
             ImGui::TreePop();
         }
-        ImGui::NewLine();
+        ImGui::Separator();
 
+        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Controls" ) )
         {
             ImGui::Text( "Currrent Camera" );
+            static float movementSpeed = cameraControl->GetCurentCam()->GetCamSpeed();
             if ( ImGui::BeginCombo( "##Combo", cCurrentItem ) )
             {
                 for ( int n = 0; n < cameraControl->GetCamList().size(); n++ )
@@ -110,6 +112,7 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
                         sName = cameraControl->GetCamList()[n]->GetCamName();
                         cameraControl->SetCam( n );
                         cCurrentItem = sName.c_str();
+                        movementSpeed = cameraControl->GetCurentCam()->GetCamSpeed();
                     }
 
                     if ( is_selected )
@@ -119,10 +122,8 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
                 }
                 ImGui::EndCombo();
             }
-            ImGui::NewLine();
 
             ImGui::Text( "Movement Speed" );
-            static float movementSpeed = cameraControl->GetCurentCam()->GetCamSpeed();
             if ( ImGui::SliderFloat( "##Movement Speed", &movementSpeed, 0.1f, 1.0f, "%.1f" ) )
                 cameraControl->GetCurentCam()->SetCamSpeed( movementSpeed );
 
@@ -132,7 +133,7 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
     ImGui::End();
 }
 
-void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB* postSettings, RasterizerController* rasterControl, bool& rtt )
+void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB* postSettings, RasterizerController* rasterControl )
 {
     static std::string sCurrentRasterState = "";
     static const char* cCurrentShader = NULL;
@@ -168,7 +169,6 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
             }
             ImGui::EndCombo();
         }
-        ImGui::NewLine();
 
         ImGui::Text( "Current Rasterizer" );
         if ( ImGui::BeginCombo( "##RasterizerCombo", sCurrentRasterState.c_str() ) )
@@ -184,43 +184,48 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
             }
             ImGui::EndCombo();
         }
-        ImGui::NewLine();
 
+        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Post-Processing" ) )
         {
             ImGui::Text( "Fade Amount" );
             ImGui::SliderFloat( "##Fade Amount", &postSettings->FadeAmount, 0.0f, 1.0f, "%.1f" );
 
             bool useBloom = postSettings->UseBloom;
-            if ( ImGui::Checkbox( "Bloom", &useBloom ) )
-                postSettings->UseBloom = useBloom;
-
-            ImGui::SameLine();
-
             bool useBlur = postSettings->UseBlur;
-            if ( ImGui::Checkbox( "Gaussian Blur", &useBlur ) )
-                postSettings->UseBlur = useBlur;
-
             bool useColour = postSettings->UseColour;
-            if ( ImGui::Checkbox( "Colour Change", &useColour ) )
-                postSettings->UseColour = useColour;
-
-            ImGui::SameLine();
-
             bool useDOF = postSettings->UseDepthOfField;
-            if( ImGui::Checkbox( "Depth Of Field", &useDOF ) )
-                postSettings->UseDepthOfField = useDOF;
+
+            if ( ImGui::BeginTable( "##Post-Processing Options", 2, ImGuiTableFlags_NoBordersInBody ) )
+            {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                if ( ImGui::Checkbox( "Bloom", &useBloom ) )
+                    postSettings->UseBloom = useBloom;
+
+                ImGui::TableNextColumn();
+                if ( ImGui::Checkbox( "Gaussian Blur", &useBlur ) )
+                    postSettings->UseBlur = useBlur;
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                if ( ImGui::Checkbox( "Colour Change", &useColour ) )
+                    postSettings->UseColour = useColour;
+
+                ImGui::TableNextColumn();
+                if( ImGui::Checkbox( "Depth Of Field", &useDOF ) )
+                    postSettings->UseDepthOfField = useDOF;
+
+                ImGui::EndTable();
+            }
 
             if ( useColour )
             {
                 ImGui::Separator();
-                if ( ImGui::TreeNode( "Colour Settings" ) )
-                {
-                    float colour[] = { postSettings->Color.x , postSettings->Color.y, postSettings->Color.z, postSettings->Color.w };
-                    if ( ImGui::ColorPicker4( "Colour", colour, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_InputRGB ) )
-                        postSettings->Color = { colour[0], colour[1], colour[2], colour[3] };
-                    ImGui::TreePop();
-                }
+                ImGui::Text( "Colour Overlay" );
+                float colour[] = { postSettings->Color.x , postSettings->Color.y, postSettings->Color.z, postSettings->Color.w };
+                if ( ImGui::ColorEdit4( "##Colour", colour, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_InputRGB ) )
+                    postSettings->Color = { colour[0], colour[1], colour[2], colour[3] };
             }
 
             if ( useDOF )
@@ -228,12 +233,19 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
                 ImGui::Separator();
                 if ( ImGui::TreeNode( "DOF Settings" ) )
                 {
-                    ImGui::InputFloat( "Far Plane", &postSettings->FarPlane );
+                    ImGui::Text( "Far Plane" );
+                    ImGui::InputFloat( "##Far Plane", &postSettings->FarPlane );
                     if ( postSettings->FarPlane < 0 )
                         postSettings->FarPlane = 0;
-                    ImGui::InputFloat( "Focal Width", &postSettings->FocalWidth );
-                    ImGui::InputFloat( "Focal Distance", &postSettings->FocalDistance );
-                    ImGui::InputFloat( "Attuenation", &postSettings->BlurAttenuation );
+
+                    ImGui::Text( "Focal Width" );
+                    ImGui::InputFloat( "##Focal Width", &postSettings->FocalWidth );
+
+                    ImGui::Text( "Focal Distance" );
+                    ImGui::InputFloat( "##Focal Distance", &postSettings->FocalDistance );
+
+                    ImGui::Text( "Attenuation" );
+                    ImGui::InputFloat( "##Attuenation", &postSettings->BlurAttenuation );
                     ImGui::TreePop();
                 }
             }
@@ -244,90 +256,112 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
     ImGui::End();
 }
 
-void ImGuiManager::ObjectMenu( DrawableGameObject* gameObject, int index )
+void ImGuiManager::ObjectMenu( std::vector<DrawableGameObject*>& gameObjects )
 {
-    static float rotationX, rotationY, rotationZ;
-    static float pos[] = { 0.0f, 0.0f, 0.0f };
+	static XMFLOAT3 rotation = { 0.0f, 0.0f, 0.0f };
+    static XMFLOAT3 position = { 0.0f, 0.0f, 0.0f };
 
-    if ( ImGui::Begin( std::string( "Object Control##" ).append( std::to_string( index ) ).c_str(), FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    static const char* cCurrentItemO = NULL;
+    static DrawableGameObject* currObject;
+    static bool bLoadO = false;
+    static std::string sNameO;
+
+    if ( !bLoadO )
     {
-        if ( ImGui::CollapsingHeader( std::string( "Controls##" ).append( std::to_string( index ) ).c_str() ) )
+        sNameO = gameObjects[0]->GetName();
+        cCurrentItemO = sNameO.c_str();
+        currObject = gameObjects[0];
+        bLoadO = true;
+    }
+
+    if ( ImGui::Begin( "Object Controls", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    {
+        ImGui::Text( "Current Object" );
+        if ( ImGui::BeginCombo( "##Combo", cCurrentItemO ) )
         {
-            ImGui::Text( "Rotation" );
-            static bool modifiedRotation = false;
-            if ( ImGui::SliderFloat( std::string( "X##Rotation" ).append( std::to_string( index ) ).c_str(), &rotationX, 0, 360 ) )
-                modifiedRotation = true;
-            if ( ImGui::SliderFloat( std::string( "Y##Rotation" ).append( std::to_string( index ) ).c_str(), &rotationY, 0, 360 ) )
-                modifiedRotation = true;
-            if ( ImGui::SliderFloat( std::string( "Z##Rotation" ).append( std::to_string( index ) ).c_str(), &rotationZ, 0, 360 ) )
-                modifiedRotation = true;
-            if ( modifiedRotation )
+            for ( int i = 0; i < gameObjects.size(); i++ )
             {
-                gameObject->GetTransfrom()->SetRotation( rotationX, rotationY, rotationZ );
-                modifiedRotation = false;
-            }
+                bool is_selected = ( cCurrentItemO == gameObjects[i]->GetName().c_str() );
+                if ( ImGui::Selectable( gameObjects[i]->GetName().c_str(), is_selected ) )
+                {
+                    sNameO = gameObjects[i]->GetName();
+                    cCurrentItemO = sNameO.c_str();
+                    currObject = gameObjects[i];
+                }
 
-            ImGui::Text( "Position" );
-            static bool modifiedPosition = false;
-            if ( ImGui::InputFloat( std::string( "X##Position" ).append( std::to_string( index ) ).c_str(), &pos[0] ) )
-                modifiedPosition = true;
-            if ( ImGui::InputFloat( std::string( "Y##Position" ).append( std::to_string( index ) ).c_str(), &pos[1] ) )
-                modifiedPosition = true;
-            if ( ImGui::InputFloat( std::string( "Z##Position" ).append( std::to_string( index ) ).c_str(), &pos[2] ) )
-                modifiedPosition = true;
-            if ( modifiedPosition )
-            {
-                gameObject->GetTransfrom()->SetPosition( pos[0], pos[1], pos[2] );
-                modifiedPosition = false;
+                if ( is_selected )
+                {
+                    ImGui::SetItemDefaultFocus();
+                }
             }
-
-            if ( ImGui::Button( std::string( "Reset##" ).append( std::to_string( index ) ).c_str() ) )
-            {
-                rotationX = 0.0f;
-                rotationY = 0.0f;
-                rotationZ = 0.0f;
-                pos[0] = 0.0f;
-                pos[1] = 0.0f;
-                pos[2] = 0.0f;
-            }
+            ImGui::EndCombo();
         }
 
-        if ( ImGui::CollapsingHeader( std::string( "Texture Control##" ).append( std::to_string( index ) ).c_str() ) )
+        if ( ImGui::TreeNode( "Transform Controls" ) )
         {
-            MaterialPropertiesCB materialData = gameObject->GetAppearance()->GetMaterialData();
+            ImGui::Text( "Position" );
+            if ( ImGui::DragFloat3( "##Position", &position.x, 1.0f, -10.0f, 10.0f ) )
+                currObject->GetTransfrom()->SetPosition( position );
 
-            bool booldata = materialData.Material.UseTexture;
-            ImGui::Text( "Texture" );
-            ImGui::Checkbox( std::string( "On##" ).append( std::to_string( index ) ).c_str(), &booldata );
+            ImGui::Text( "Rotation" );
+            if ( ImGui::DragFloat3( "##Rotation", &rotation.x, 1.0f, 0.0f, 360.0f ) )
+                currObject->GetTransfrom()->SetRotation( rotation );
 
-            ImGui::Text( "Parallax Options" );
-            ImGui::InputFloat( std::string( "Height Scale##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.HeightScale, 0.00f, 0.0f, "%.2f" );
-            ImGui::InputFloat( std::string( "Max Layer##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.MaxLayers );
-            ImGui::InputFloat( std::string( "Min Layer##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.MinLayers );
-            materialData.Material.UseTexture = booldata;
+            if ( ImGui::Button( "Reset" ) )
+            {
+                rotation = { 0.0f, 0.0f, 0.0f };
+                position = { 0.0f, 0.0f, 0.0f };
+            }
 
-            ImGui::Text( "Diffuse" );
-            ImGui::InputFloat( std::string( "dR##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Diffuse.x );
-            ImGui::InputFloat( std::string( "dG##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Diffuse.y );
-            ImGui::InputFloat( std::string( "dB##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Diffuse.z );
+            ImGui::TreePop();
+        }
 
-            ImGui::Text( "Specular" );
-            ImGui::InputFloat( std::string( "sR##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Specular.x );
-            ImGui::InputFloat( std::string( "sG##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Specular.y );
-            ImGui::InputFloat( std::string( "sB##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Specular.z );
-            ImGui::InputFloat( std::string( "power##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.SpecularPower );
+        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
+        if ( ImGui::TreeNode( "Texture Controls" ) )
+        {
+            MaterialPropertiesCB materialData = currObject->GetAppearance()->GetMaterialData();
 
-            ImGui::Text( "Emissive" );
-            ImGui::InputFloat( std::string( "eR##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Emissive.x );
-            ImGui::InputFloat( std::string( "eG##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Emissive.y );
-            ImGui::InputFloat( std::string( "eB##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Emissive.z );
+            bool useTexture = materialData.Material.UseTexture;
+            if ( ImGui::Checkbox( "Use Texture?", &useTexture ) )
+                materialData.Material.UseTexture = useTexture;
 
-            ImGui::Text( "Ambient" );
-            ImGui::InputFloat( std::string( "aR##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Ambient.x );
-            ImGui::InputFloat( std::string( "aG##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Ambient.y );
-            ImGui::InputFloat( std::string( "aB##" ).append( std::to_string( index ) ).c_str(), &materialData.Material.Ambient.z );
+            if ( useTexture )
+            {
+                if ( ImGui::TreeNode( "Colour Controls" ) )
+                {
+                    ImGui::Text( "Ambient" );
+                    ImGui::ColorEdit3( "##Ambient", &materialData.Material.Ambient.x );
 
-            gameObject->GetAppearance()->SetMaterialData( materialData );
+                    ImGui::Text( "Diffuse" );
+                    ImGui::ColorEdit3( "##Diffuse", &materialData.Material.Diffuse.x );
+
+                    ImGui::Text( "Emissive" );
+                    ImGui::ColorEdit3( "##Emissive", &materialData.Material.Emissive.x );
+
+                    ImGui::Text( "Specular" );
+                    ImGui::ColorEdit3( "##Specular", &materialData.Material.Specular.x );
+
+                    ImGui::Text( "Power" );
+                    ImGui::DragFloat( "##Power", &materialData.Material.SpecularPower, 1.0f, 1.0f, 32.0f );
+                    ImGui::TreePop();
+                }
+
+                if ( ImGui::TreeNode( "Parallax Controls" ) )
+                {
+                    ImGui::Text( "Height Scale" );
+                    ImGui::DragFloat( "##Height Scale", &materialData.Material.HeightScale, 1.0f, 0.0f, 100.0f, "%1.f" );
+
+                    ImGui::Text( "Min Layers" );
+                    ImGui::DragFloat( "##Min Layers", &materialData.Material.MinLayers, 1.0f, 1.0f, 30.0f );
+
+                    ImGui::Text( "Max Layers" );
+                    ImGui::DragFloat( "##Max Layers", &materialData.Material.MaxLayers, 1.0f, 1.0f, 30.0f );
+                    ImGui::TreePop();
+                }
+            }
+
+            currObject->GetAppearance()->SetMaterialData( materialData );
+            ImGui::TreePop();
         }
     }
     ImGui::End();
@@ -348,84 +382,99 @@ void ImGuiManager::LightMenu( LightController* lightControl )
         bLoadL = true;
     }
 
-    if ( ImGui::Begin( "Light Control", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    if ( ImGui::Begin( "Light Controls", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
-        if ( ImGui::CollapsingHeader( "Controls" ) )
+        ImGui::Text( "Current Light" );
+        if ( ImGui::BeginCombo( "##Combo", cCurrentItemL ) )
         {
-            if ( ImGui::BeginCombo( "##Combo", cCurrentItemL ) )
+            for ( int n = 0; n < lightControl->GetLightList().size(); n++ )
             {
-                for ( int n = 0; n < lightControl->GetLightList().size(); n++ )
+                bool is_selected = ( cCurrentItemL == lightControl->GetLightList()[n]->GetName().c_str() );
+                if ( ImGui::Selectable( lightControl->GetLightList()[n]->GetName().c_str(), is_selected ) )
                 {
-                    bool is_selected = ( cCurrentItemL == lightControl->GetLightList()[n]->GetName().c_str() );
-                    if ( ImGui::Selectable( lightControl->GetLightList()[n]->GetName().c_str(), is_selected ) )
-                    {
-                        nameL = lightControl->GetLightList()[n]->GetName().c_str();
-                        currLightData = lightControl->GetLightList()[n]->GetLightData();
-                        cCurrentItemL = nameL.c_str();
-                    }
-
-                    if ( is_selected )
-                    {
-                        ImGui::SetItemDefaultFocus();
-                    }
+                    nameL = lightControl->GetLightList()[n]->GetName().c_str();
+                    currLightData = lightControl->GetLightList()[n]->GetLightData();
+                    cCurrentItemL = nameL.c_str();
+                    currLightData = lightControl->GetLight( nameL )->GetLightData();
                 }
-                ImGui::EndCombo();
+
+                if ( is_selected )
+                {
+                    ImGui::SetItemDefaultFocus();
+                }
             }
+            ImGui::EndCombo();
+        }
 
-            currLightData = lightControl->GetLight( nameL )->GetLightData();
+        ImGui::Text( "Position" );
+        ImGui::DragFloat3( "##Position", &currLightData.Position.x, 1.0f, -10.0f, 10.0f );
 
-            ImGui::Text( "Position" );
-            ImGui::InputFloat( "X", &currLightData.Position.x );
-            ImGui::InputFloat( "Y", &currLightData.Position.y );
-            ImGui::InputFloat( "Z", &currLightData.Position.z );
+        ImGui::Text( "Colour" );
+        float colour[] = { currLightData.Color.x, currLightData.Color.y, currLightData.Color.z, currLightData.Color.w };
+        if ( ImGui::ColorEdit4( "##Colour", colour, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_DisplayRGB ) )
+            currLightData.Color = { colour[0], colour[1], colour[2], colour[3] };
 
-            bool enable = currLightData.Enabled;
-            ImGui::Checkbox( "Enabled", &enable );
+        bool enable = currLightData.Enabled;
+        if ( ImGui::Checkbox( "Enabled?", &enable ) )
             currLightData.Enabled = enable;
 
-            float Colour[] = { currLightData.Color.x, currLightData.Color.y, currLightData.Color.z, currLightData.Color.w };
-            ImGui::ColorPicker4( "Colour", Colour, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_DisplayRGB );
-            currLightData.Color = { Colour[0],Colour[1],Colour[2],Colour[3] };
+        if ( ImGui::TreeNode( "Shadow Direction" ) )
+        {
+            XMFLOAT3 lightDirection = lightControl->GetLight( nameL )->GetCamera()->GetRot();
 
-            ImGui::Text( "Shadows Direction" );
-            XMFLOAT3 lightDirection = lightControl->GetLight( cCurrentItemL )->GetCamera()->GetRot();
+            ImGui::Text( "Pitch" );
+            ImGui::SliderAngle( "##Pitch", &lightDirection.x, 0.995f * -90.0f, 0.995f * 90.0f );
 
-            ImGui::SliderAngle( "Pitch", &lightDirection.x, 0.995f * -90.0f, 0.995f * 90.0f );
-            ImGui::SliderAngle( "Yaw", &lightDirection.y, -180.0f, 180.0f );
+            ImGui::Text( "Yaw" );
+            ImGui::SliderAngle( "##Yaw", &lightDirection.y, -180.0f, 180.0f );
 
-            lightControl->GetLight( cCurrentItemL )->GetCamera()->SetRot( lightDirection );
-            switch ( lightControl->GetLight( nameL )->GetLightData().LightType )
+            lightControl->GetLight( nameL )->GetCamera()->SetRot( lightDirection );
+            ImGui::TreePop();
+        }
+
+        if ( ImGui::TreeNode( ( currLightData.LightType == LightType::DirectionalLight ) ? "Direction" : "Attenuation" ) )
+        {
+            switch ( currLightData.LightType )
             {
             case LightType::PointLight:
-                ImGui::Text( "Attenuation" );
-                ImGui::SliderFloat( "Constant", &currLightData.ConstantAttenuation, 1.0f, 10.0f, "%.2f" );
-                ImGui::SliderFloat( "Linear", &currLightData.LinearAttenuation, 0.0f, 5.0f, "%.4f" );
-                ImGui::SliderFloat( "Quadratic", &currLightData.QuadraticAttenuation, 0.0f, 2.0f, "%.7f" );
+                ImGui::Text( "Constant" );
+                ImGui::DragFloat( "##Constant", &currLightData.ConstantAttenuation, 0.1f, 1.0f, 10.0f, "%.2f" );
+
+                ImGui::Text( "Linear" );
+                ImGui::DragFloat( "##Linear", &currLightData.LinearAttenuation, 0.1f, 0.0f, 5.0f, "%.4f" );
+
+                ImGui::Text( "Quadratic" );
+                ImGui::DragFloat( "##Quadratic", &currLightData.QuadraticAttenuation, 0.1f, 0.0f, 2.0f, "%.7f" );
                 break;
 
             case LightType::SpotLight:
             {
-                ImGui::Text( "Attenuation" );
-                ImGui::SliderFloat( "Constant", &currLightData.ConstantAttenuation, 1.0f, 10.0f, "%.2f" );
-                ImGui::SliderFloat( "Linear", &currLightData.LinearAttenuation, 0.0f, 5.0f, "%.4f" );
-                ImGui::SliderFloat( "Quadratic", &currLightData.QuadraticAttenuation, 0.0f, 2.0f, "%.7f" );
+                ImGui::Text( "Constant" );
+                ImGui::DragFloat( "##Constant", &currLightData.ConstantAttenuation, 0.1f, 1.0f, 10.0f, "%.2f" );
 
+                ImGui::Text( "Linear" );
+                ImGui::DragFloat( "##Linear", &currLightData.LinearAttenuation, 0.01f, 0.0f, 5.0f, "%.4f" );
+
+                ImGui::Text( "Quadratic" );
+                ImGui::DragFloat( "##Quadratic", &currLightData.QuadraticAttenuation, 0.001f, 0.0f, 2.0f, "%.7f" );
+
+                ImGui::Text( "Spot Angle" );
                 float SpotAngle = XMConvertToDegrees( currLightData.SpotAngle );
-                ImGui::InputFloat( "Spot Angle", &SpotAngle );
+                ImGui::InputFloat( "##Spot Angle", &SpotAngle );
                 currLightData.SpotAngle = XMConvertToRadians( SpotAngle );
             }
             break;
 
             case LightType::DirectionalLight:
-                ImGui::Text( "Direction" );
-                ImGui::InputFloat( "A", &currLightData.Direction.x );
-                ImGui::InputFloat( "B", &currLightData.Direction.y );
-                ImGui::InputFloat( "C", &currLightData.Direction.z );
-                break;
+            {
+                ImGui::DragFloat3( "##Direction", &currLightData.Direction.x );
             }
-
-            lightControl->GetLight( nameL )->SetLightData( currLightData );
+            break;
+            }
+            ImGui::TreePop();
         }
+
+        lightControl->GetLight( nameL )->SetLightData( currLightData );
     }
     ImGui::End();
 }

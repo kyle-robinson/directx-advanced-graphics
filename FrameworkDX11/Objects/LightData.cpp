@@ -34,7 +34,7 @@ LightData::LightData( std::string name, bool enabled, LightType lightType, XMFLO
 	lightDirection = XMVector3Normalize( lightDirection );
 	XMStoreFloat4( &m_lightData.Direction, lightDirection );
 
-	m_pLightObject = new DrawableGameObject();
+	m_pLightObject = new DrawableGameObject( name );
 	m_pLightObject->GetAppearance()->InitMesh_Cube( pDevice, pContext );
 	m_pLightObject->GetTransfrom()->SetScale( 0.2f, 0.2f, 0.2f );
 
