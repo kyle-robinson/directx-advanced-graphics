@@ -167,11 +167,11 @@ bool Application::InitDevice()
     }
 
     // Create lights
-    m_pLightController->AddLight( "MainPoint", true, LightType::PointLight,
+    m_pLightController->AddLight( "Point", true, LightType::PointLight,
         XMFLOAT4( 0.0f, 0.0f, -4.0f, 0.0f ), XMFLOAT4( Colors::White ),
         XMConvertToRadians( 45.0f ), 1.0f, 0.0f, 0.0f, m_gfx.GetDevice(), m_gfx.GetContext() );
 
-    m_pLightController->AddLight( "Point", true, LightType::SpotLight,
+    m_pLightController->AddLight( "Spot", true, LightType::SpotLight,
         XMFLOAT4( 0.0f, 5.0f, 0.0f, 0.0f ), XMFLOAT4( Colors::White ),
         XMConvertToRadians( 10.0f ), 1.0f, 0.0f, 0.0f, m_gfx.GetDevice(), m_gfx.GetContext() );
 

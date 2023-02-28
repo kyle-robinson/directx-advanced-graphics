@@ -472,14 +472,15 @@
     <ClInclude Include="Terrain\TerrainAppearence.h" />
     <ClInclude Include="Terrain\TerrainJsonLoad.h" />
     <ClInclude Include="Terrain\TerrainVoxel.h" />
-    <ClInclude Include="Utility\C++HelperFunctions.h" />
     <ClInclude Include="Utility\COMException.h" />
     <ClInclude Include="Utility\DataStucts.h" />
     <ClInclude Include="Utility\DDSTextureLoader.h" />
     <ClInclude Include="Utility\ErrorLogger.h" />
+    <ClInclude Include="Utility\ListHelper.h" />
     <ClInclude Include="Utility\M3dLoader.h" />
     <ClInclude Include="Utility\PerlinNoise.h" />
     <ClInclude Include="Utility\Quaternion.h" />
+    <ClInclude Include="Utility\RandomHelper.h" />
     <ClInclude Include="Utility\stdafx.h" />
     <ClInclude Include="Utility\StringHelper.h" />
     <ClInclude Include="Utility\Structures.h" />
@@ -544,9 +545,6 @@
     <ClCompile Include="Utility\PerlinNoise.cpp" />
     <ClCompile Include="Utility\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Utility\StringHelper.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Utility\Timer.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>

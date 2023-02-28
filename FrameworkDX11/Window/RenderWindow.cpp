@@ -9,9 +9,9 @@ bool RenderWindow::Initialize( WindowContainer* pWindowContainer, HINSTANCE hIns
 	this->width = width;
 	this->height = height;
 	windowTitle = windowName;
-	windowTitle_Wide = StringHelper::StringToWide( windowName );
+	windowTitle_Wide = StringHelper::ToWide( windowName );
 	this->windowClass = windowClass;
-	windowClass_Wide = StringHelper::StringToWide( windowClass );
+	windowClass_Wide = StringHelper::ToWide( windowClass );
 
 	RegisterWindowClass();
 

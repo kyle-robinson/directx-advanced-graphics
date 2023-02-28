@@ -183,11 +183,11 @@ void Terrain::FaultHeightFormation()
     for ( size_t i = 0; i < m_iNumOfIterations; i++ )
     {
         // Line formula : ax + bz = c
-        float v = RandomGen::randomFloat<float>( 0, RAND_MAX, m_iSeed );
+        float v = RandomHelper::RandomFloat<float>( 0, RAND_MAX, m_iSeed );
         float a = sin( v );
         float b = cos( v );
         float d = std::sqrt( m_iHeightMapHeight * m_iHeightMapHeight + m_iHeightMapWidth * m_iHeightMapWidth );
-        float c = RandomGen::randomFloat<float>( -d / 2, d / 2, m_iSeed );
+        float c = RandomHelper::RandomFloat<float>( -d / 2, d / 2, m_iSeed );
 
         for ( UINT z = 0; z < m_iHeightMapHeight; ++z )
         {
@@ -241,10 +241,10 @@ void Terrain::DiamondSquareHeightMap()
     }
 
     // Generate a seed for the map
-    m_v2DHeightMap[0][0] = RandomGen::random<int>( 0, 255, m_iSeed );
-    m_v2DHeightMap[0][m_iHeightMapWidth - 1] = RandomGen::random<int>( 0, 255, m_iSeed );
-    m_v2DHeightMap[m_iHeightMapWidth - 1][0] = RandomGen::random<int>( 0, 255, m_iSeed );
-    m_v2DHeightMap[m_iHeightMapWidth - 1][m_iHeightMapWidth - 1] = RandomGen::random<int>( 0, 255, m_iSeed );
+    m_v2DHeightMap[0][0] = RandomHelper::Random<int>( 0, 255, m_iSeed );
+    m_v2DHeightMap[0][m_iHeightMapWidth - 1] = RandomHelper::Random<int>( 0, 255, m_iSeed );
+    m_v2DHeightMap[m_iHeightMapWidth - 1][0] = RandomHelper::Random<int>( 0, 255, m_iSeed );
+    m_v2DHeightMap[m_iHeightMapWidth - 1][m_iHeightMapWidth - 1] = RandomHelper::Random<int>( 0, 255, m_iSeed );
 
     int sideLength = m_iHeightMapWidth / 2;
     Diamond( m_iHeightMapWidth );
@@ -488,7 +488,7 @@ void Terrain::Diamond( int sideLength )
                 m_v2DHeightMap[( x + 1 ) * ( sideLength - 1 )][( y + 1 ) * ( sideLength - 1 )] ) / 4.0f;
 
             // Add a random number
-            m_v2DHeightMap[center_x][center_y] = avg + RandomGen::random<int>( -m_iRange, m_iRange, m_iSeed );
+            m_v2DHeightMap[center_x][center_y] = avg + RandomHelper::Random<int>( -m_iRange, m_iRange, m_iSeed );
         }
     }
 }
@@ -522,7 +522,7 @@ void Terrain::Average( int x, int y, int sideLength )
     }
 
     // Get the average, then add a random value to it
-    m_v2DHeightMap[y][x] = ( accumulator / counter ) + RandomGen::random<int>( -m_iRange, m_iRange, m_iSeed );
+    m_v2DHeightMap[y][x] = ( accumulator / counter ) + RandomHelper::Random<int>( -m_iRange, m_iRange, m_iSeed );
 }
 
 void Terrain::Square( int sideLength )

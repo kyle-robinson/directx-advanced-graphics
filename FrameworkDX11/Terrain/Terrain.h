@@ -7,8 +7,8 @@
 #include "CameraController.h"
 #include "ShaderController.h"
 #include "TerrainAppearence.h"
-#include "C++HelperFunctions.h"
 #include "ConstantBuffer.h"
+#include "RandomHelper.h"
 
 enum class TerrainGenType
 {
@@ -69,9 +69,9 @@ public:
 	inline void SetDiamondSquareData( int seed, int range )
 	{
 		m_iSeed = seed;
-		RandomGen::random<int>( 0, 255, 0 );
 		m_iRange = range;
 		m_iRangeStore = range;
+		RandomHelper::Random<int>( 0, 255, 0 );
 	}
 
 	inline void SetNoiseData( int seed, float frequency, int numOfOctaves )
@@ -84,9 +84,9 @@ public:
 	inline void SetFaultLineData( int seed, int numOfIteration, float displacement )
 	{
 		m_iSeed = seed;
-		RandomGen::random<int>( 0, 255, 0 );
-		m_iNumOfIterations = numOfIteration;
 		m_fDisplacement = displacement;
+		m_iNumOfIterations = numOfIteration;
+		RandomHelper::Random<int>( 0, 255, 0 );
 	}
 
 	inline int GetSeed() const noexcept { return m_iSeed; }

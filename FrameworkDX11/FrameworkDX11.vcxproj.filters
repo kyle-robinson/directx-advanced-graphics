@@ -38,9 +38,6 @@
     <ClCompile Include="Input\Mouse.cpp">
       <Filter>Utility\Input</Filter>
     </ClCompile>
-    <ClCompile Include="Utility\StringHelper.cpp">
-      <Filter>Utility\Helper</Filter>
-    </ClCompile>
     <ClCompile Include="Utility\ErrorLogger.cpp">
       <Filter>Utility\Errors</Filter>
     </ClCompile>
@@ -375,9 +372,6 @@
     <ClInclude Include="Utility\Structures.h">
       <Filter>Utility\Data</Filter>
     </ClInclude>
-    <ClInclude Include="Utility\C++HelperFunctions.h">
-      <Filter>Utility\Helper</Filter>
-    </ClInclude>
     <ClInclude Include="Utility\DDSTextureLoader.h">
       <Filter>Utility\Texture</Filter>
     </ClInclude>
@@ -413,6 +407,12 @@
     </ClInclude>
     <ClInclude Include="..\External\imgui\fileDialog\dirent\dirent.h">
       <Filter>Resources\ImGui\FileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\ListHelper.h">
+      <Filter>Utility\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\RandomHelper.h">
+      <Filter>Utility\Helper</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

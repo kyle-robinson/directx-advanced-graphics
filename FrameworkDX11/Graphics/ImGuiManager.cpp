@@ -1117,7 +1117,7 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
             std::string modelName = "Model Name: ";
             modelName += animModel->GetModelName().c_str();
             ImGui::Text( modelName.c_str() );
-            if ( ImGui::BeginTable( "SubSetData", 5 ) )
+            if ( ImGui::BeginTable( "SubSetData", 4 ) )
             {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -1128,8 +1128,6 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
                 ImGui::Text( "Vertex Count" );
                 ImGui::TableNextColumn();
                 ImGui::Text( "Diffuse Tex" );
-                ImGui::TableNextColumn();
-                ImGui::Text( "Normal Map" );
                 for ( size_t i = 0; i < animModel->GetSubsets().size(); i++ )
                 {
                     Subset data = animModel->GetSubsets()[i];
@@ -1142,10 +1140,7 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
                     ImGui::Text( "%i", data.m_uVertexCount );
                     ImGui::TableNextColumn();
                     std::wstring diffuseMap = animModel->GetMaterialData()[i].DiffuseMapName.c_str();
-                    ImGui::Text( StringHelpers::ws2s( diffuseMap ).c_str() );
-                    ImGui::TableNextColumn();
-                    std::wstring normalMap = animModel->GetMaterialData()[i].NormalMapName.c_str();
-                    ImGui::Text( StringHelpers::ws2s( normalMap ).c_str() );
+                    ImGui::Text( StringHelper::ToNarrow( diffuseMap ).c_str() );
                 }
                 ImGui::EndTable();
             }

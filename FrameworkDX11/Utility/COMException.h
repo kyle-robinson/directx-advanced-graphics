@@ -23,11 +23,11 @@ public:
 		int line )
 	{
 		_com_error error( hr );
-		whatMsg = L"Message: " + StringHelper::StringToWide( msg ) + L"\n";
+		whatMsg = L"Message: " + StringHelper::ToWide( msg ) + L"\n";
 		whatMsg += error.ErrorMessage();
-		whatMsg += L"\nFile: " + StringHelper::StringToWide( file );
-		whatMsg += L"\nFunction: " + StringHelper::StringToWide( function );
-		whatMsg += L"\nLine: " + StringHelper::StringToWide( std::to_string( line ) );
+		whatMsg += L"\nFile: " + StringHelper::ToWide( file );
+		whatMsg += L"\nFunction: " + StringHelper::ToWide( function );
+		whatMsg += L"\nLine: " + StringHelper::ToWide( std::to_string( line ) );
 	}
 	inline const wchar_t* what() const
 	{
