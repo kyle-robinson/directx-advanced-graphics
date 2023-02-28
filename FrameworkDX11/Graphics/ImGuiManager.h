@@ -4,6 +4,8 @@
 
 #include <Windows.h>
 #include "imgui.h"
+#include "implot.h"
+#include "fileDialog/ImGuiFileDialog.h"
 #include "backends/imgui_impl_dx11.h"
 #include "backends/imgui_impl_win32.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -40,14 +42,14 @@ public:
 	void AnimationMenu( AnimatedModel* animModel );
 	void BezierSplineMenu();
 
-	inline std::vector<XMFLOAT3> GetPoints() const noexcept { return m_vPoints; }
-	inline void SetPoints( std::vector<XMFLOAT3> points ) noexcept { m_vPoints = points; }
+	inline std::vector<XMFLOAT2> GetPoints() const noexcept { return m_vPoints; }
+	inline void SetPoints( std::vector<XMFLOAT2> points ) noexcept { m_vPoints = points; }
 
 private:
 	void SetWhiteTheme();
 	void SetUbuntuTheme();
 	void SetBlackGoldTheme();
-	std::vector<XMFLOAT3> m_vPoints;
+	std::vector<XMFLOAT2> m_vPoints;
 };
 
 #endif

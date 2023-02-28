@@ -135,6 +135,18 @@
     <ClCompile Include="Utility\PerlinNoise.cpp">
       <Filter>Utility\Math</Filter>
     </ClCompile>
+    <ClCompile Include="..\External\imgui\implot_items.cpp">
+      <Filter>Resources\ImGui\ImPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\implot.cpp">
+      <Filter>Resources\ImGui\ImPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\implot_demo.cpp">
+      <Filter>Resources\ImGui\ImPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\fileDialog\ImGuiFileDialog.cpp">
+      <Filter>Resources\ImGui\FileDialog</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
@@ -381,6 +393,27 @@
     <ClInclude Include="Utility\PerlinNoise.h">
       <Filter>Utility\Math</Filter>
     </ClInclude>
+    <ClInclude Include="..\External\imgui\implot.h">
+      <Filter>Resources\ImGui\ImPlot</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\implot_internal.h">
+      <Filter>Resources\ImGui\ImPlot</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\fileDialog\ImGuiFileDialog.h">
+      <Filter>Resources\ImGui\FileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\fileDialog\ImGuiFileDialogConfig.h">
+      <Filter>Resources\ImGui\FileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\fileDialog\stb\stb_image.h">
+      <Filter>Resources\ImGui\FileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\fileDialog\stb\stb_image_resize.h">
+      <Filter>Resources\ImGui\FileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\fileDialog\dirent\dirent.h">
+      <Filter>Resources\ImGui\FileDialog</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Window">
@@ -511,6 +544,12 @@
     </Filter>
     <Filter Include="Resources\Fonts">
       <UniqueIdentifier>{da8dc459-6de3-46d3-aa79-3132781684c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\ImGui\FileDialog">
+      <UniqueIdentifier>{c87d17ce-77c6-4fb4-848e-0adf2ec8f4b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\ImGui\ImPlot">
+      <UniqueIdentifier>{5a6f9938-f61c-40b5-9c2a-d7e664e4f97a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

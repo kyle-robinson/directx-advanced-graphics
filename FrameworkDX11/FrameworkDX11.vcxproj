@@ -395,11 +395,18 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\External\imgui\fileDialog\dirent\dirent.h" />
+    <ClInclude Include="..\External\imgui\fileDialog\ImGuiFileDialog.h" />
+    <ClInclude Include="..\External\imgui\fileDialog\ImGuiFileDialogConfig.h" />
+    <ClInclude Include="..\External\imgui\fileDialog\stb\stb_image.h" />
+    <ClInclude Include="..\External\imgui\fileDialog\stb\stb_image_resize.h" />
     <ClInclude Include="..\External\imgui\imconfig.h" />
     <ClInclude Include="..\External\imgui\imgui.h" />
     <ClInclude Include="..\External\imgui\imgui_impl_dx11.h" />
     <ClInclude Include="..\External\imgui\imgui_impl_win32.h" />
     <ClInclude Include="..\External\imgui\imgui_internal.h" />
+    <ClInclude Include="..\External\imgui\implot.h" />
+    <ClInclude Include="..\External\imgui\implot_internal.h" />
     <ClInclude Include="..\External\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\External\imgui\imstb_textedit.h" />
     <ClInclude Include="..\External\imgui\imstb_truetype.h" />
@@ -482,6 +489,7 @@
     <ClInclude Include="Window\WindowContainer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\External\imgui\fileDialog\ImGuiFileDialog.cpp" />
     <ClCompile Include="..\External\imgui\imgui.cpp" />
     <ClCompile Include="..\External\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\External\imgui\imgui_draw.cpp" />
@@ -489,6 +497,9 @@
     <ClCompile Include="..\External\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="..\External\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\External\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\External\imgui\implot.cpp" />
+    <ClCompile Include="..\External\imgui\implot_demo.cpp" />
+    <ClCompile Include="..\External\imgui\implot_items.cpp" />
     <ClCompile Include="Animation\AnimatedModel.cpp" />
     <ClCompile Include="Animation\Bone.cpp" />
     <ClCompile Include="Animation\Skeleton.cpp" />

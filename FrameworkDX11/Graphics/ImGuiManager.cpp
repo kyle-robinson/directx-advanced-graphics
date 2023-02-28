@@ -13,11 +13,13 @@ ImGuiManager::ImGuiManager()
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImPlot::CreateContext();
     SetUbuntuTheme();
 }
 
 ImGuiManager::~ImGuiManager()
 {
+    ImPlot::DestroyContext();
     ImGui::DestroyContext();
 }
 
@@ -349,7 +351,7 @@ void ImGuiManager::ObjectMenu( std::vector<DrawableGameObject*>& gameObjects )
                 if ( ImGui::TreeNode( "Parallax Controls" ) )
                 {
                     ImGui::Text( "Height Scale" );
-                    ImGui::DragFloat( "##Height Scale", &materialData.Material.HeightScale, 1.0f, 0.0f, 100.0f, "%1.f" );
+                    ImGui::DragFloat( "##Height Scale", &materialData.Material.HeightScale, 0.1f, 0.0f, 100.0f );
 
                     ImGui::Text( "Min Layers" );
                     ImGui::DragFloat( "##Min Layers", &materialData.Material.MinLayers, 1.0f, 1.0f, 30.0f );
@@ -522,62 +524,169 @@ void ImGuiManager::BillboardMenu( BillboardObject* billboardObject )
     ImGui::End();
 }
 
+std::vector<float> CubicBezierBasis( float u )
+{
+    float compla = 1.0f - u; // complement of u
+    // compute value of basis functions for given value of u
+    float BF0 = compla * compla * compla;
+    float BF1 = 3.0f * u * compla * compla;
+    float BF2 = 3.0f * u * u * compla;
+    float BF3 = u * u * u;
+
+    std::vector<float> bfArray = { BF0, BF1, BF2, BF3 };
+    return bfArray;
+}
+
+std::vector<XMFLOAT2> CubicBezierCurve( std::vector<XMFLOAT2> controlPoints )
+{
+    std::vector<XMFLOAT2> points;
+    for ( float i = 0.0f; i < 1.0f; i += 0.1f )
+    {
+        // Calculate value of each basis function for current u
+        std::vector<float> basisFnValues = CubicBezierBasis( i );
+
+        XMFLOAT2 sum = { 0.0f, 0.0f };
+        for ( int cPointIndex = 0; cPointIndex <= 3; cPointIndex++ )
+        {
+            // Calculate weighted sum (weightx * CPx)
+            sum.x += controlPoints[cPointIndex].x * basisFnValues[cPointIndex];
+            sum.y += controlPoints[cPointIndex].y * basisFnValues[cPointIndex];
+        }
+
+        XMFLOAT2 point = sum; // point for current u on cubic Bezier curve
+        points.push_back( point );
+    }
+    return points;
+}
+
 void ImGuiManager::BezierSplineMenu()
 {
-    if ( ImGui::Begin( "Bezier Curve Spline", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    static std::vector<XMFLOAT2> points;
+    static bool bLoadSpline = false;
+
+    if ( !bLoadSpline )
     {
-        float lines[120];
+        // Setup bezier spline
+        points = {
+            XMFLOAT2{ 0.0f, 0.0f },
+            XMFLOAT2{ 2.0f, 1.0f },
+            XMFLOAT2{ 5.0f, 0.6f },
+            XMFLOAT2{ 6.0f, 0.0f } };
+        m_vPoints = CubicBezierCurve( points );
+        bLoadSpline = true;
+    }
+
+    if ( ImGui::Begin( "Bezier Curve", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    {
+        ImGui::Text( "Spline Points" );
+        for ( unsigned int i = 0; i < points.size(); i++ )
+        {
+            if ( ImGui::DragFloat2( std::string( "##" ).append( std::to_string( i ) ).c_str(), &points[i].x, 0.1f ) )
+            {
+                m_vPoints = CubicBezierCurve( points );
+            }
+        }
+
+        float linesX[120];
+        float linesY[120];
         for ( int n = 0; n < m_vPoints.size(); n++ )
-            lines[n] = m_vPoints[n].y;
-        ImGui::PlotLines( "G", lines, m_vPoints.size() );
+        {
+            linesX[n] = m_vPoints[n].x;
+            linesY[n] = m_vPoints[n].y;
+        }
+
+        ImGui::NewLine();
+        if ( ImPlot::BeginPlot( "Spline Plot" ) )
+        {
+            static bool showBar = true;
+            static ImVec4 barColor = ImVec4( 1.0f, 0.4f, 0.6f, 1.0f );
+
+            static bool showLine = true;
+            static float thickness = 1.0f;
+            static bool drawShaded = false;
+            static bool showMarkers = false;
+            static ImVec4 lineColor = ImVec4( 1.0f, 0.7f, 0.3f, 1.0f );
+
+            ImPlot::SetNextFillStyle( barColor );
+            ImPlot::PlotBars( "##Bar Plot", linesX, linesY, m_vPoints.size(), 0.5f );
+
+            if ( showMarkers ) ImPlot::SetNextMarkerStyle( ImPlotMarker_Square );
+            ImPlot::SetNextLineStyle( lineColor, thickness );
+            ImPlot::PlotLine( "##Line Plot", linesX, linesY, m_vPoints.size(), ( drawShaded ? ImPlotLineFlags_Shaded : 0 ) );
+
+            if ( ImPlot::BeginLegendPopup( "Spline Legend" ) )
+            {
+                ImGui::Checkbox( "Line Plot", &showLine );
+                if ( showLine )
+                {
+                    ImGui::ColorEdit3( "Line Colour", &lineColor.x );
+                    ImGui::SliderFloat( "Thickness", &thickness, 0.0f, 5.0f );
+                    ImGui::Checkbox( "Markers", &showMarkers );
+                    ImGui::Checkbox( "Shaded", &drawShaded );
+                }
+                ImGui::Separator();
+
+                if ( ImGui::Checkbox( "Bar Plot", &showBar ) )
+                {
+                    ImGui::ColorEdit3( "Bar Colour", &barColor.x );
+                }
+
+                ImPlot::EndLegendPopup();
+            }
+            ImPlot::EndPlot();
+        }
     }
     ImGui::End();
 }
 
 void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
-    if ( ImGui::Begin( "Terrain Control", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    if ( ImGui::Begin( "Terrain Controls", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
-        if ( ImGui::CollapsingHeader( "Terrain" ) )
+        if ( ImGui::TreeNode( "Terrain" ) )
         {
-            ImGui::Checkbox( "Draw Terrain", terrain->GetIsDraw() );
-            ImGui::Text( "Terrain Data" );
-            ImGui::Text( "Width = %i", terrain->GetHeightMapWidth() );
-            ImGui::Text( "Height = %i", terrain->GetHeightMapHeight() );
-            ImGui::Text( "Cell Spacing = %f", terrain->GetCellSpacing() );
+            ImGui::Checkbox( "Draw Terrain?", terrain->GetIsDraw() );
 
-            switch ( terrain->GetGenType() )
+            if ( ImGui::TreeNode( "Terrain Info" ) )
             {
-            case TerrainGenType::HeightMapLoad:
-                ImGui::Text( "GenType: HeightMap" );
-                ImGui::Text( terrain->GetHeightMapName().c_str() );
-                ImGui::Text( "Height Scale = %i", terrain->GetHeightScale() );
-                break;
+                ImGui::Text( "Width: %i", terrain->GetHeightMapWidth() );
+                ImGui::Text( "Height: %i", terrain->GetHeightMapHeight() );
+                ImGui::Text( "Cell Spacing: %f", terrain->GetCellSpacing() );
 
-            case TerrainGenType::FaultLine:
-                ImGui::Text( "GenType: FaultLine" );
-                ImGui::Text( "Seed:  %i", terrain->GetSeed() );
-                ImGui::Text( "Displacment:  %f", terrain->GetDisplacement() );
-                ImGui::Text( "Number Of iterations:  %i", terrain->GetNumOfIterations() );
-                break;
+                switch ( terrain->GetGenType() )
+                {
+                case TerrainGenType::HeightMapLoad:
+                    ImGui::Text( "GenType: HeightMap" );
+                    ImGui::Text( terrain->GetHeightMapName().c_str() );
+                    ImGui::Text( "Height Scale: %i", terrain->GetHeightScale() );
+                    break;
 
-            case TerrainGenType::Noise:
-                ImGui::Text( "GenType: Noise" );
-                ImGui::Text( "Height Scale = %i", terrain->GetHeightScale() );
-                ImGui::Text( "Seed:  %i", terrain->GetSeed() );
-                ImGui::Text( "Frequency:  %f", terrain->GetFrequency() );
-                ImGui::Text( "Number of Octaves:  %i", terrain->GetNumOfOctaves() );
-                break;
+                case TerrainGenType::FaultLine:
+                    ImGui::Text( "GenType: FaultLine" );
+                    ImGui::Text( "Seed: %i", terrain->GetSeed() );
+                    ImGui::Text( "Displacment: %f", terrain->GetDisplacement() );
+                    ImGui::Text( "Iteration Count: %i", terrain->GetNumOfIterations() );
+                    break;
 
-            case TerrainGenType::DiamondSquare:
-                ImGui::Text( "GenType: Diamond Square" );
-                ImGui::Text( "Height Scale = %i", terrain->GetHeightScale() );
-                ImGui::Text( "Seed:  %i", terrain->GetSeed() );
-                ImGui::Text( "Range:  %i", terrain->GetRange() );
-                break;
+                case TerrainGenType::Noise:
+                    ImGui::Text( "GenType: Noise" );
+                    ImGui::Text( "Seed: %i", terrain->GetSeed() );
+                    ImGui::Text( "Frequency: %f", terrain->GetFrequency() );
+                    ImGui::Text( "Octave Count: %i", terrain->GetNumOfOctaves() );
+                    ImGui::Text( "Height Scale: %i", terrain->GetHeightScale() );
+                    break;
+
+                case TerrainGenType::DiamondSquare:
+                    ImGui::Text( "GenType: Diamond Square" );
+                    ImGui::Text( "Seed: %i", terrain->GetSeed() );
+                    ImGui::Text( "Range: %i", terrain->GetRange() );
+                    ImGui::Text( "Height Scale: %i", terrain->GetHeightScale() );
+                    break;
+                }
+                ImGui::TreePop();
             }
 
-            if ( ImGui::CollapsingHeader( "Build Data" ) )
+            if ( ImGui::CollapsingHeader( "Re-Build Options##Terrain" ) )
             {
                 static TerrainGenType mode = (TerrainGenType)0;
                 const char* items[] = { "HeightMapLoad", "FaultLine", "Noise", "DiamondSquare" };
@@ -592,20 +701,27 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
                         {
                             current_item = items[n];
                             mode = (TerrainGenType)n;
+
                             if ( is_selected )
+                            {
                                 ImGui::SetItemDefaultFocus();
+                            }
                         }
                     }
                     ImGui::EndCombo();
                 }
 
                 static int width = 514;
-                ImGui::InputInt( "Width", &width );
-                static int Length = 514;
-                ImGui::InputInt( "Length", &Length );
+                ImGui::Text( "Width" );
+                ImGui::InputInt( "##Width", &width );
+
+                static int length = 514;
+                ImGui::Text( "Length" );
+                ImGui::InputInt( "##Length", &length );
 
                 static float cellSpacing = 1.0f;
-                ImGui::InputFloat( "CellSpacing", &cellSpacing );
+                ImGui::Text( "Cell Spacing" );
+                ImGui::InputFloat( "##Cell Spacing", &cellSpacing );
 
                 static float heightScale = 50.0f;
                 static float frequency = 0.01f;
@@ -617,30 +733,41 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
                 switch ( mode )
                 {
                 case TerrainGenType::HeightMapLoad:
-                    ImGui::InputFloat( "HeightScale", &heightScale );
+                    ImGui::Text( "Height Scale" );
+                    ImGui::InputFloat( "##HeightScale", &heightScale );
                     break;
 
                 case TerrainGenType::FaultLine:
-                    ImGui::InputInt( "Seed", &seed );
-                    ImGui::InputInt( "NumberOfIteration", &range );
-                    ImGui::InputFloat( "Displacement", &displacement );
+                    ImGui::Text( "Seed" );
+                    ImGui::InputInt( "##Seed", &seed );
+                    ImGui::Text( "Interaction Count" );
+                    ImGui::InputInt( "##NumberOfIteration", &range );
+                    ImGui::Text( "Displacement" );
+                    ImGui::InputFloat( "##Displacement", &displacement );
                     break;
 
                 case TerrainGenType::Noise:
-                    ImGui::InputInt( "Seed", &seed );
-                    ImGui::InputFloat( "Frequency", &frequency );
-                    ImGui::InputInt( "NumberOfOctaves", &numberOfOctaves );
-                    ImGui::InputFloat( "HeightScale", &heightScale );
+                    ImGui::Text( "Seed" );
+                    ImGui::InputInt( "##Seed", &seed );
+                    ImGui::Text( "Frequency" );
+                    ImGui::InputFloat( "##Frequency", &frequency );
+                    ImGui::Text( "Octave Count" );
+                    ImGui::InputInt( "##NumberOfOctaves", &numberOfOctaves );
+                    ImGui::Text( "Height Scale" );
+                    ImGui::InputFloat( "##HeightScale", &heightScale );
                     break;
 
                 case TerrainGenType::DiamondSquare:
-                    ImGui::InputInt( "Seed", &seed );
-                    ImGui::InputInt( "Range", &range );
-                    ImGui::InputFloat( "HeightScale", &heightScale );
+                    ImGui::Text( "Seed" );
+                    ImGui::InputInt( "##Seed", &seed );
+                    ImGui::Text( "Range" );
+                    ImGui::InputInt( "##Range", &range );
+                    ImGui::Text( "Height Scale" );
+                    ImGui::InputFloat( "##HeightScale", &heightScale );
                     break;
                 }
 
-                if ( ImGui::Button( "Build Terrain" ) )
+                if ( ImGui::Button( "Re-Build Terrain##Normal" ) )
                 {
                     switch ( mode )
                     {
@@ -660,11 +787,116 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
                         break;
                     }
 
-                    terrain->ReBuildTerrain( XMFLOAT2( width, Length ), heightScale, cellSpacing, mode, pDevice );
+                    terrain->ReBuildTerrain( XMFLOAT2( width, length ), heightScale, cellSpacing, mode, pDevice );
                 }
+                ImGui::NewLine();
+                ImGui::Separator();
+                ImGui::NewLine();
+
+                ImGui::Text( "Height Map Override" );
+
+                // Open file dialog to load height map
+                if ( ImGui::Button( "Load Height Map##Button" ) )
+                    ImGuiFileDialog::Instance()->OpenDialog( "Load Height Map##Dialog", "Choose File", nullptr, "." );
+
+                // Display file dialog window
+                if ( ImGuiFileDialog::Instance()->Display( "Load Height Map##Dialog" ) )
+                {
+                    if ( ImGuiFileDialog::Instance()->IsOk() )
+                    {
+                        std::string filePath = ImGuiFileDialog::Instance()->GetCurrentFileName();
+                        int position = filePath.find( ".json" );
+                        std::string fileName = filePath.erase( position );
+
+                        TerrainData terrainData;
+                        TerrainJsonLoad::LoadData( fileName, terrainData );
+                        TerrainGenType genType = (TerrainGenType)terrainData.Mode;
+                        double HeightScale = 0;
+
+                        switch ( genType )
+                        {
+                        case TerrainGenType::HeightMapLoad:
+                            HeightScale = terrainData.HeightMapSettings.HeightScale;
+                            break;
+
+                        case TerrainGenType::FaultLine:
+                            terrain->SetFaultLineData( terrainData.FaultLineSettings.Seed, terrainData.FaultLineSettings.IterationCount, terrainData.FaultLineSettings.Displacement );
+                            HeightScale = terrain->GetHeightScale();
+                            break;
+
+                        case TerrainGenType::Noise:
+                            terrain->SetNoiseData( terrainData.NoiseSettings.Seed, terrainData.NoiseSettings.Frequency, terrainData.NoiseSettings.NumOfOctaves );
+                            HeightScale = terrainData.NoiseSettings.HeightScale;
+                            break;
+
+                        case TerrainGenType::DiamondSquare:
+                            terrain->SetDiamondSquareData( terrainData.DiamondSquareSettings.Seed, terrainData.DiamondSquareSettings.Range );
+                            HeightScale = terrainData.DiamondSquareSettings.HeightScale;
+                            break;
+                        }
+
+                        terrain->ReBuildTerrain( XMFLOAT2( terrainData.Width, terrainData.Depth ), HeightScale, terrainData.CellSpacing, genType, pDevice );
+                    }
+
+                    ImGuiFileDialog::Instance()->Close();
+                }
+
+                ImGui::SameLine();
+                // Open file dialog to save height map
+                if ( ImGui::Button( "Save Height Map##Button" ) )
+                    ImGuiFileDialog::Instance()->OpenDialog( "Save Height Map##Dialog", "Choose File", nullptr, "." );
+
+                 // Display file dialog window
+                if ( ImGuiFileDialog::Instance()->Display( "Save Height Map##Dialog" ) )
+                {
+                    if ( ImGuiFileDialog::Instance()->IsOk() )
+                    {
+                        TerrainData terrainData;
+                        terrainData.Width = terrain->GetHeightMapWidth();
+                        terrainData.Depth = terrain->GetHeightMapHeight();
+                        terrainData.CellSpacing = terrain->GetCellSpacing();
+                        terrainData.Mode = (int)terrain->GetGenType();
+
+                        switch ( terrain->GetGenType() )
+                        {
+                        case TerrainGenType::HeightMapLoad:
+                            terrainData.HeightMapSettings.HeightMapFile = terrain->GetHeightMapName();
+                            terrainData.HeightMapSettings.HeightScale = terrain->GetHeightScale();
+                            break;
+
+                        case TerrainGenType::FaultLine:
+                            terrainData.FaultLineSettings.Seed = terrain->GetSeed();
+                            terrainData.FaultLineSettings.IterationCount = terrain->GetNumOfIterations();
+                            terrainData.FaultLineSettings.Displacement = terrain->GetDisplacement();
+                            break;
+
+                        case TerrainGenType::Noise:
+                            terrainData.NoiseSettings.Seed = terrain->GetSeed();
+                            terrainData.NoiseSettings.HeightScale = terrain->GetHeightScale();
+                            terrainData.NoiseSettings.Frequency = terrain->GetFrequency();
+                            terrainData.NoiseSettings.NumOfOctaves = terrain->GetNumOfOctaves();
+                            break;
+
+                        case TerrainGenType::DiamondSquare:
+                            terrainData.DiamondSquareSettings.Seed = terrain->GetSeed();
+                            terrainData.DiamondSquareSettings.HeightScale = terrain->GetHeightScale();
+                            terrainData.DiamondSquareSettings.Range = terrain->GetRange();
+                            break;
+                        }
+
+                        std::string filePath = ImGuiFileDialog::Instance()->GetCurrentFileName();
+                        int position = filePath.find( ".json" );
+                        std::string fileName = filePath.erase( position );
+                        TerrainJsonLoad::StoreData( fileName, terrainData );
+                    }
+
+                    ImGuiFileDialog::Instance()->Close();
+                }
+
+                ImGui::TreePop();
             }
 
-            if ( ImGui::CollapsingHeader( "Texture Data" ) )
+            if ( ImGui::TreeNode( "Texture Controls" ) )
             {
                 if ( ImGui::BeginTable( "Texture Name", 3 ) )
                 {
@@ -686,27 +918,37 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
                     ImGui::EndTable();
                 }
 
-                ImGui::Text( "Texture Height Level" );
                 float Layer1MaxHeight = terrain->GetTerrainData().Layer1MaxHeight;
                 float Layer2MaxHeight = terrain->GetTerrainData().Layer2MaxHeight;
                 float Layer3MaxHeight = terrain->GetTerrainData().Layer3MaxHeight;
                 float Layer4MaxHeight = terrain->GetTerrainData().Layer4MaxHeight;
                 float Layer5MaxHeight = terrain->GetTerrainData().Layer5MaxHeight;
 
-                ImGui::SliderFloat( "Layer1MaxHeight", &Layer1MaxHeight, 0.0f, Layer2MaxHeight );
-                ImGui::SliderFloat( "Layer2MaxHeight", &Layer2MaxHeight, Layer1MaxHeight, Layer3MaxHeight );
-                ImGui::SliderFloat( "Layer3MaxHeight", &Layer3MaxHeight, Layer2MaxHeight, Layer4MaxHeight );
-                ImGui::SliderFloat( "Layer4MaxHeight", &Layer4MaxHeight, Layer3MaxHeight, Layer5MaxHeight );
-                ImGui::SliderFloat( "Layer5MaxHeight", &Layer5MaxHeight, Layer4MaxHeight, 100000.0f );
+                ImGui::Text( "Layer 1 Max Height" );
+                ImGui::SliderFloat( "##Layer1MaxHeight", &Layer1MaxHeight, 0.0f, Layer2MaxHeight );
+                ImGui::Text( "Layer 2 Max Height" );
+                ImGui::SliderFloat( "##Layer2MaxHeight", &Layer2MaxHeight, Layer1MaxHeight, Layer3MaxHeight );
+                ImGui::Text( "Layer 3 Max Height" );
+                ImGui::SliderFloat( "##Layer3MaxHeight", &Layer3MaxHeight, Layer2MaxHeight, Layer4MaxHeight );
+                ImGui::Text( "Layer 4 Max Height" );
+                ImGui::SliderFloat( "##Layer4MaxHeight", &Layer4MaxHeight, Layer3MaxHeight, Layer5MaxHeight );
+                ImGui::Text( "Layer 5 Max Height" );
+                ImGui::SliderFloat( "##Layer5MaxHeight", &Layer5MaxHeight, Layer4MaxHeight, 100000.0f );
                 terrain->SetTexHeights( Layer1MaxHeight, Layer2MaxHeight, Layer3MaxHeight, Layer4MaxHeight, Layer5MaxHeight );
+
+                ImGui::TreePop();
             }
 
-            if ( ImGui::CollapsingHeader( "LOD Data" ) )
+            if ( ImGui::TreeNode( "LOD Controls" ) )
             {
                 float floatMinTess = terrain->GetTerrainData().MinTess;
+                ImGui::Text( "Min Tess" );
+                ImGui::SliderFloat( "##Min Tess", &floatMinTess, 0.0f, 6.0f );
+                
                 float floatMaxTess = terrain->GetTerrainData().MaxTess;
-                ImGui::SliderFloat( "Min Tess", &floatMinTess, 0.0f, 6.0f );
-                ImGui::SliderFloat( "Max Tess", &floatMaxTess, 0.0f, 6.0f );
+                ImGui::Text( "Max Tess" );
+                ImGui::SliderFloat( "##Max Tess", &floatMaxTess, 0.0f, 6.0f );
+                
                 if ( floatMaxTess < floatMaxTess )
                 {
                     floatMaxTess = floatMinTess;
@@ -714,139 +956,88 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
                 terrain->SetMaxTess( floatMaxTess );
                 terrain->SetMinTess( floatMinTess );
 
-                float maxTessDist = terrain->GetTerrainData().MaxDist;
                 float minTessDist = terrain->GetTerrainData().MinDist;
-                ImGui::SliderFloat( "Min Tess Dist", &minTessDist, 1.0f, 1000.0f );
-                ImGui::SliderFloat( "Max Tess Dist", &maxTessDist, 1.0f, 1000.0f );
+                ImGui::Text( "Min Tess Distance" );
+                ImGui::SliderFloat( "##Min Tess Distance", &minTessDist, 1.0f, 1000.0f );
+
+                float maxTessDist = terrain->GetTerrainData().MaxDist;
+                ImGui::Text( "Max Tess Distance" );
+                ImGui::SliderFloat( "##Max Tess Distance", &maxTessDist, 1.0f, 1000.0f );
+
                 if ( maxTessDist < minTessDist )
                 {
                     maxTessDist = minTessDist;
                 }
                 terrain->SetMaxTessDist( maxTessDist );
                 terrain->SetMinTessDist( minTessDist );
+
+                ImGui::TreePop();
             }
 
-            if ( ImGui::CollapsingHeader( "Transfrom Data" ) )
+            if ( ImGui::TreeNode( "Transfrom Controls" ) )
             {
-                ImGui::Text( "Rotation" );
-                XMFLOAT3 RotationTerrain = terrain->GetTransfrom()->GetRotation();
-                ImGui::SliderFloat( "X##Rotation", &RotationTerrain.x, 0, 360 );
-                ImGui::SliderFloat( "Y##Rotation", &RotationTerrain.y, 0, 360 );
-                ImGui::SliderFloat( "Z##Rotation", &RotationTerrain.z, 0, 360 );
-                terrain->GetTransfrom()->SetRotation( RotationTerrain );
-
                 ImGui::Text( "Position" );
                 XMFLOAT3 posTerrain = terrain->GetTransfrom()->GetPosition();
-                ImGui::InputFloat( "X##Position", &posTerrain.x );
-                ImGui::InputFloat( "Y##Position", &posTerrain.y );
-                ImGui::InputFloat( "Z##Position", &posTerrain.z );
+                ImGui::DragFloat3( "##Position", &posTerrain.x );
                 terrain->GetTransfrom()->SetPosition( posTerrain );
+
+                ImGui::Text( "Rotation" );
+                XMFLOAT3 rotationTerrain = terrain->GetTransfrom()->GetRotation();
+                ImGui::DragFloat3( "##Rotation", &rotationTerrain.x, 1.0f, 0.0f, 360.0f );
+                terrain->GetTransfrom()->SetRotation( rotationTerrain );
 
                 ImGui::Text( "Scale" );
                 XMFLOAT3 scaleTerrain = terrain->GetTransfrom()->GetScale();
-                ImGui::InputFloat( "X##Scale", &scaleTerrain.x );
-                ImGui::InputFloat( "Y##Scale", &scaleTerrain.y );
-                ImGui::InputFloat( "Z##Scale", &scaleTerrain.z );
+                ImGui::DragFloat3( "##Scale", &scaleTerrain.x );
                 terrain->GetTransfrom()->SetScale( scaleTerrain );
-            }
 
-            static char buf[32] = "";
-            static bool modifiedName = false;
-            ImGui::InputText( "File Name", buf, IM_ARRAYSIZE( buf ) );
-            if ( ImGui::Button( "Load" ) )
-            {
-                TerrainData Data;
-                TerrainJsonLoad::LoadData( buf, Data );
-                TerrainGenType GenMode = (TerrainGenType)Data.Mode;
-                double HeightScale = 0;
-
-                switch ( GenMode )
-                {
-                case TerrainGenType::HeightMapLoad:
-                    HeightScale = Data.HeightMapSettings.HeightScale;
-                    break;
-
-                case TerrainGenType::FaultLine:
-                    terrain->SetFaultLineData( Data.FaultLineSettings.Seed, Data.FaultLineSettings.IterationCount, Data.FaultLineSettings.Displacement );
-                    HeightScale = terrain->GetHeightScale();
-                    break;
-
-                case TerrainGenType::Noise:
-                    terrain->SetNoiseData( Data.NoiseSettings.Seed, Data.NoiseSettings.Frequency, Data.NoiseSettings.NumOfOctaves );
-                    HeightScale = Data.NoiseSettings.HeightScale;
-                    break;
-
-                case TerrainGenType::DiamondSquare:
-                    terrain->SetDiamondSquareData( Data.DiamondSquareSettings.Seed, Data.DiamondSquareSettings.Range );
-                    HeightScale = Data.DiamondSquareSettings.HeightScale;
-                    break;
-                }
-
-                terrain->ReBuildTerrain( XMFLOAT2( Data.Width, Data.Depth ), HeightScale, Data.CellSpacing, GenMode, pDevice );
-            }
-
-            ImGui::SameLine();
-            if ( ImGui::Button( "Save" ) )
-            {
-                TerrainData Data;
-                Data.Width = terrain->GetHeightMapWidth();
-                Data.Depth = terrain->GetHeightMapHeight();
-                Data.CellSpacing = terrain->GetCellSpacing();
-                Data.Mode = (int)terrain->GetGenType();
-
-                switch ( terrain->GetGenType() )
-                {
-                case TerrainGenType::HeightMapLoad:
-                    Data.HeightMapSettings.HeightMapFile = terrain->GetHeightMapName();
-                    Data.HeightMapSettings.HeightScale = terrain->GetHeightScale();
-                    break;
-
-                case TerrainGenType::FaultLine:
-                    Data.FaultLineSettings.Seed = terrain->GetSeed();
-                    Data.FaultLineSettings.IterationCount = terrain->GetNumOfIterations();
-                    Data.FaultLineSettings.Displacement = terrain->GetDisplacement();
-                    break;
-
-                case TerrainGenType::Noise:
-                    Data.NoiseSettings.Seed = terrain->GetSeed();
-                    Data.NoiseSettings.HeightScale = terrain->GetHeightScale();
-                    Data.NoiseSettings.Frequency = terrain->GetFrequency();
-                    Data.NoiseSettings.NumOfOctaves = terrain->GetNumOfOctaves();
-                    break;
-
-                case TerrainGenType::DiamondSquare:
-                    Data.DiamondSquareSettings.Seed = terrain->GetSeed();
-                    Data.DiamondSquareSettings.HeightScale = terrain->GetHeightScale();
-                    Data.DiamondSquareSettings.Range = terrain->GetRange();
-                    break;
-                }
-
-                TerrainJsonLoad::StoreData( buf, Data );
+                ImGui::TreePop();
             }
         }
 
-        if ( ImGui::CollapsingHeader( "Voxel Terrain" ) )
+        if ( ImGui::TreeNode( "Voxel Terrain" ) )
         {
-            ImGui::Checkbox( "Draw Voxel", voxelTerrain->GetIsDraw() );
-            ImGui::Text( "Number Of Chunks: %i", voxelTerrain->GetNumberOfChunks() );
+            ImGui::Checkbox( "Draw Voxels?", voxelTerrain->GetIsDraw() );
 
-            if ( ImGui::CollapsingHeader( "Rebuild World" ) )
+            if ( ImGui::TreeNode( "Voxel Info" ) )
+            {
+                ImGui::Text( "Chunk Count: %i", voxelTerrain->GetNumberOfChunks() );
+                ImGui::Text( "Octave Count: %i", voxelTerrain->GetOctaves() );
+                ImGui::Text( "Frequency: %f", voxelTerrain->GetFrequency() );
+                ImGui::Text( "Seed: %i", voxelTerrain->GetSeed() );
+                ImGui::TreePop();
+            }
+
+            if ( ImGui::TreeNode( "Rebuild Options##Voxel" ) )
             {
                 static int seed;
-                ImGui::InputInt( "Seed Vox", &seed );
-                static float Frequancy;
-                ImGui::InputFloat( "Frequency Vox", &Frequancy );
-                static int Octave;
-                ImGui::InputInt( "Octave Vox", &Octave );
-                static int NumberOfChuncksX = 0;
-                ImGui::InputInt( "Number of Chunk X", &NumberOfChuncksX );
-                static int NumberOfChuncksZ = 0;
-                ImGui::InputInt( "Number of Chunk Z", &NumberOfChuncksZ );
-                if ( ImGui::Button( "Build" ) )
+                ImGui::Text( "Seed##Voxel" );
+                ImGui::InputInt( "#Seed Voxel", &seed );
+                
+                static float frequency;
+                ImGui::Text( "Frequency##Voxel" );
+                ImGui::InputFloat( "##Frequency Voxel", &frequency );
+                
+                static int octave;
+                ImGui::Text( "Octaves##Voxel" );
+                ImGui::InputInt( "##Octaves Voxel", &octave );
+                
+                static int numberOfChunksX = 0;
+                ImGui::Text( "Chunk Count X" );
+                ImGui::InputInt( "##Number of Chunk X", &numberOfChunksX );
+
+                static int numberOfChunksZ = 0;
+                ImGui::Text( "Chunk Count Z" );
+                ImGui::InputInt( "##Number of Chunk Z", &numberOfChunksZ );
+
+                if ( ImGui::Button( "Re-Build Terrain##Voxel" ) )
                 {
-                    voxelTerrain->RebuildMap( pDevice, pContext, seed, NumberOfChuncksX, NumberOfChuncksZ, Frequancy, Octave );
+                    voxelTerrain->RebuildMap( pDevice, pContext, seed, numberOfChunksX, numberOfChunksZ, frequency, octave );
                 }
+                ImGui::TreePop();
             }
+
+            ImGui::TreePop();
         }
     }
     ImGui::End();

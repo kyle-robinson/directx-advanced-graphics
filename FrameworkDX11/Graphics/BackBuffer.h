@@ -4,8 +4,10 @@
 #include <d3d11.h>
 #include <Windows.h>
 #include <wrl/client.h>
+#include <DirectXMath.h>
 #include "ErrorLogger.h"
 #include "DepthStencil.h"
+using namespace DirectX;
 
 extern UINT MAX_QUALITY;
 extern UINT SAMPLE_COUNT;
@@ -34,7 +36,7 @@ namespace Bind
 				return;
 			}
 		}
-		inline void Bind( ID3D11DeviceContext* context, DepthStencil* depthStencil, const float* clearColor ) noexcept
+		inline void Bind( ID3D11DeviceContext* context, DepthStencil* depthStencil, XMVECTORF32 clearColor ) noexcept
 		{
 			context->OMSetRenderTargets( 1u, backBufferView.GetAddressOf(), depthStencil->GetDSV() );
 			context->ClearRenderTargetView( backBufferView.Get(), clearColor );

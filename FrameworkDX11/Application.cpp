@@ -88,42 +88,6 @@ bool Application::InitMesh()
     return true;
 }
 
-std::vector<float> CubicBezierBasis( float u )
-{
-    float compla = 1 - u; // complement of u
-    // compute value of basis functions for given value of u
-    float BF0 = compla * compla * compla;
-    float BF1 = 3.0 * u * compla * compla;
-    float BF2 = 3.0 * u * u * compla;
-    float BF3 = u * u * u;
-
-    std::vector<float> bfArray = { BF0, BF1, BF2, BF3 };
-    return bfArray;
-}
-
-std::vector<XMFLOAT3> CubicBezierCurve( std::vector<XMFLOAT3> controlPoints )
-{
-    std::vector<XMFLOAT3> points;
-    for ( float i = 0.0f; i < 1.0f; i += 0.1f )
-    {
-        // Calculate value of each basis function for current u
-        std::vector<float> basisFnValues = CubicBezierBasis( i );
-
-        XMFLOAT3 sum = XMFLOAT3{ 0.0f,0.0f,0.0f };
-        for ( int cPointIndex = 0; cPointIndex <= 3; cPointIndex++ )
-        {
-            // Calculate weighted sum (weightx * CPx)
-            sum.x += controlPoints[cPointIndex].x * basisFnValues[cPointIndex];
-            sum.y += controlPoints[cPointIndex].y * basisFnValues[cPointIndex];
-            sum.z += controlPoints[cPointIndex].z * basisFnValues[cPointIndex];
-        }
-
-        XMFLOAT3 point = sum; // point for current u on cubic Bezier curve
-        points.push_back( point );
-    }
-    return points;
-}
-
 bool Application::InitWorld()
 {
     // Initialize the camrea
@@ -145,14 +109,6 @@ bool Application::InitWorld()
     m_pCamController->AddCam( m_pCamera );
 
     m_pInput->AddCamControl( m_pCamController );
-
-    // Setup bezier spline
-    std::vector<XMFLOAT3> a = {
-        XMFLOAT3{ 0.0f,0.0f,0.0f },
-        XMFLOAT3{ 2.0f,1.0f,0.0f },
-        XMFLOAT3{ 5.0f,0.6f,0.0f },
-        XMFLOAT3{ 6.0f,0.0f,0.0f } };
-    m_pImGuiManager->SetPoints( CubicBezierCurve( a ) );
 
     // Post settings
     m_postProcessingCB.data.UseColour = false;

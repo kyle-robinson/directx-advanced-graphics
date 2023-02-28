@@ -98,7 +98,10 @@ public:
     void Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer<MatrixBuffer>& buffer, CameraController* camControl );
     void RebuildMap( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, int seed, int numOfChunks_X, int numOfChunks_Z, float frequency, int octave );
 
+    inline int GetSeed() const noexcept { return m_iSeed; }
     inline bool* GetIsDraw() noexcept { return &m_bToDraw; }
+    inline int GetOctaves() const noexcept { return m_iOctaves; }
+    inline float GetFrequency() const noexcept { return m_fFrequency; }
     inline int GetNumberOfChunks() const noexcept { return m_iNumOfChunks; }
 
 private:
