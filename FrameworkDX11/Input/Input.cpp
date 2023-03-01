@@ -37,6 +37,13 @@ void Input::UpdateMouse( float dt )
                     0.0f
                 ) );
             }
+            HideCursor();
+            DisableImGuiMouse();
+        }
+        else
+        {
+            ShowCursor();
+            EnableCursor();
         }
     }
 }

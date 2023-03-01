@@ -41,11 +41,11 @@ public:
     inline std::vector<Subset> GetSubsets() const noexcept { return m_vSubsets; }
     inline std::vector<M3dMaterial> GetMaterialData() const noexcept { return m_vMat; }
     inline std::string GetClipName() const noexcept { return m_sClipName; }
-    inline float GetTimePos() const noexcept { return m_fTimePos; }
 
     inline bool GetIsLoop() const noexcept { return m_bLoopAnimation; }
     inline void SetIsLoop( bool loop ) noexcept { m_bLoopAnimation = loop; }
 
+    inline float GetTimePos() const noexcept { return m_fTimePos; }
     inline void SetTimePos( float time )
     {
         m_fTimePos = time;
@@ -56,14 +56,27 @@ public:
         if ( m_skeletonData.GetClipStartTime( m_sClipName ) > m_fTimePos )
         {
             m_fTimePos = 0;
+            m_fTimePos = 0;
         }
     }
+
+	inline void Show() noexcept { m_bDraw = true; }
+	inline void Hide() noexcept { m_bDraw = false; }
+	inline bool IsVisible() const noexcept { return m_bDraw; }
 
 private:
     void ProcessMesh( aiMesh* mesh, const aiScene* scene, const XMMATRIX& transformMatrix, std::vector<SkinnedVertex>& verts, std::vector<WORD>& index );
     void ProcessNode( aiNode* node, const aiScene* scene, const XMMATRIX& parentTransformMatrix, std::vector<SkinnedVertex>& verts, std::vector<WORD>& index );
     void CleanUp();
 
+    float m_fTimePos = 0.0f;
+    bool m_bLoopAnimation = false;
+    std::string m_sClipName = "BindPose";
+
+    float m_fPrevTime;
+    std::string m_sPrevClipName = "BindPose";
+
+    bool m_bDraw = true;
     Appearance* m_pAppearance;
     std::string m_sModelName;
 
@@ -80,13 +93,6 @@ private:
 
     std::vector<ID3D11ShaderResourceView*> m_pTextureResourceView;
     std::vector<ID3D11ShaderResourceView*> m_pNormalMapResourceView;
-
-    float m_fTimePos = 0.0f;
-    bool m_bLoopAnimation = false;
-    std::string m_sClipName = "BindPose";
-
-    float m_fPrevTime;
-    std::string m_sPrevClipName = "BindPose";
 };
 
 #endif

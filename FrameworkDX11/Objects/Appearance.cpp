@@ -20,14 +20,17 @@ void Appearance::Update( ID3D11DeviceContext* pContext )
 
 void Appearance::Draw( ID3D11DeviceContext* pContext )
 {
-	pContext->PSSetConstantBuffers( 1, 1, m_materialCB.GetAddressOf() );
+	if ( m_bDraw )
+	{
+		pContext->PSSetConstantBuffers( 1, 1, m_materialCB.GetAddressOf() );
 
-	// Set vertex buffer
-	UINT offset = 0;
-	pContext->IASetVertexBuffers( 0, 1, m_simpleVB.GetAddressOf(), m_simpleVB.StridePtr(), &offset );
-	pContext->IASetIndexBuffer( m_simpleIB.Get(), DXGI_FORMAT_R16_UINT, 0 );
-	pContext->PSSetSamplers( 0, 1, &m_pSamplerLinear );
-	pContext->DrawIndexed( m_simpleIB.IndexCount(), 0, 0 );
+		// Set vertex buffer
+		UINT offset = 0;
+		pContext->IASetVertexBuffers( 0, 1, m_simpleVB.GetAddressOf(), m_simpleVB.StridePtr(), &offset );
+		pContext->IASetIndexBuffer( m_simpleIB.Get(), DXGI_FORMAT_R16_UINT, 0 );
+		pContext->PSSetSamplers( 0, 1, &m_pSamplerLinear );
+		pContext->DrawIndexed( m_simpleIB.IndexCount(), 0, 0 );
+	}
 }
 
 void Appearance::Draw( ID3D11DeviceContext* pContext, int vertToDraw, int start )

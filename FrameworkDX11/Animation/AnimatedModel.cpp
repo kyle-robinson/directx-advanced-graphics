@@ -90,30 +90,33 @@ AnimatedModel::~AnimatedModel()
 
 void AnimatedModel::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer<MatrixBuffer>& buffer )
 {
-    pContext->IASetInputLayout( shaderControl->GetShaderByName( "Animation" ).m_pVertexLayout );
-    pContext->VSSetShader( shaderControl->GetShaderByName( "Animation" ).m_pVertexShader, nullptr, 0 );
-    pContext->PSSetShader( shaderControl->GetShaderByName( "Animation" ).m_pPixelShader, nullptr, 0 );
-
-    XMFLOAT4X4 WorldAsFloat = m_pTransformData->GetWorldMatrix();
-    XMMATRIX mGO = XMLoadFloat4x4( &WorldAsFloat );
-    buffer.data.mWorld = XMMatrixTranspose( mGO );
-    if ( !buffer.ApplyChanges() )
-        return;
-    for ( size_t i = 0; i < m_vFinalTransforms.size(); i++ )
+    if ( m_bDraw )
     {
-        XMMATRIX mbone = XMLoadFloat4x4( &m_vFinalTransforms[i] );
-        m_finalTransformsCB.data.m_mBoneTransforms[i] = XMMatrixTranspose( mbone );
-    }
+        pContext->IASetInputLayout( shaderControl->GetShaderByName( "Animation" ).m_pVertexLayout );
+        pContext->VSSetShader( shaderControl->GetShaderByName( "Animation" ).m_pVertexShader, nullptr, 0 );
+        pContext->PSSetShader( shaderControl->GetShaderByName( "Animation" ).m_pPixelShader, nullptr, 0 );
 
-    if ( !m_finalTransformsCB.ApplyChanges() )
-        return;
-    pContext->VSSetConstantBuffers( 5, 1, m_finalTransformsCB.GetAddressOf() );
+        XMFLOAT4X4 WorldAsFloat = m_pTransformData->GetWorldMatrix();
+        XMMATRIX mGO = XMLoadFloat4x4( &WorldAsFloat );
+        buffer.data.mWorld = XMMatrixTranspose( mGO );
+        if ( !buffer.ApplyChanges() )
+            return;
+        for ( size_t i = 0; i < m_vFinalTransforms.size(); i++ )
+        {
+            XMMATRIX mbone = XMLoadFloat4x4( &m_vFinalTransforms[i] );
+            m_finalTransformsCB.data.m_mBoneTransforms[i] = XMMatrixTranspose( mbone );
+        }
 
-    for ( auto& subset : m_vSubsets )
-    {
-        pContext->PSSetShaderResources( 0, 1, &m_pTextureResourceView[subset.m_uId] );
-        pContext->PSSetShaderResources( 1, 1, &m_pNormalMapResourceView[subset.m_uId] );
-        m_pAppearance->Draw( pContext, subset.m_uFaceCount * 3, subset.m_uFaceStart * 3 );
+        if ( !m_finalTransformsCB.ApplyChanges() )
+            return;
+        pContext->VSSetConstantBuffers( 5, 1, m_finalTransformsCB.GetAddressOf() );
+
+        for ( auto& subset : m_vSubsets )
+        {
+            pContext->PSSetShaderResources( 0, 1, &m_pTextureResourceView[subset.m_uId] );
+            pContext->PSSetShaderResources( 1, 1, &m_pNormalMapResourceView[subset.m_uId] );
+            m_pAppearance->Draw( pContext, subset.m_uFaceCount * 3, subset.m_uFaceStart * 3 );
+        }
     }
 }
 

@@ -48,6 +48,10 @@ public:
 	void Draw( ID3D11DeviceContext* pContext );
 	void Draw( ID3D11DeviceContext* pContext, int vertToDraw, int start );
 
+	inline void Show() noexcept { m_bDraw = true; }
+	inline void Hide() noexcept { m_bDraw = false; }
+	inline bool IsVisible() const noexcept { return m_bDraw; }
+
 protected:
 	void CalculateTangentBinormalLH( SimpleVertex v0, SimpleVertex v1, SimpleVertex v2, XMFLOAT3& normal, XMFLOAT3& Tangent, XMFLOAT3& binormal );
 	void CalculateTangentBinormalRH( SimpleVertex v0, SimpleVertex v1, SimpleVertex v2, XMFLOAT3& normal, XMFLOAT3& Tangent, XMFLOAT3& binormal );
@@ -60,6 +64,7 @@ protected:
 	VertexBuffer<SimpleVertex> m_simpleVB;
 	IndexBuffer m_simpleIB;
 
+	bool m_bDraw = true;
 	ID3D11SamplerState* m_pSamplerLinear;
 	ConstantBuffer<MaterialPropertiesCB> m_materialCB;
 	ID3D11ShaderResourceView* m_pNormalMapResourceView;

@@ -8,6 +8,7 @@
 #include "AnimatedModel.h"
 #include "TerrainVoxel.h"
 #include "Terrain.h"
+#include <format>
 
 ImGuiManager::ImGuiManager()
 {
@@ -60,13 +61,71 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
         bLoad = true;
     }
 
-    if ( ImGui::Begin( "Camera Controls", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    if ( ImGui::Begin( "Cameras", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
         ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Instructions" ) )
         {
-            ImGui::Text( "WASD      Move" );
-            ImGui::Text( "R-Mouse   Look" );
+            if ( ImGui::BeginTable( "Controls", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame ) )
+            {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text( "W" );
+
+                ImGui::TableNextColumn();
+                ImGui::Text( "Move Forward" );
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text( "A" );
+
+                ImGui::TableNextColumn();
+                ImGui::Text( "Move Left" );
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text( "S" );
+
+                ImGui::TableNextColumn();
+                ImGui::Text( "Move Back" );
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text( "D" );
+
+                ImGui::TableNextColumn();
+                ImGui::Text( "Move Right" );
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text( "CTRL" );
+
+                ImGui::TableNextColumn();
+                ImGui::Text( "Move Down" );
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text( "SPACE" );
+
+                ImGui::TableNextColumn();
+                ImGui::Text( "Move Up" );
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text( "Right Mouse" );
+
+                ImGui::TableNextColumn();
+                ImGui::Text( "Look Around" );
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text( "ESC" );
+
+                ImGui::TableNextColumn();
+                ImGui::Text( "Close Applicaiton" );
+
+                ImGui::EndTable();
+            }
             ImGui::TreePop();
         }
         ImGui::Separator();
@@ -78,20 +137,40 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
             {
                 if ( ImGui::TreeNode( cameraControl->GetCamList()[n]->GetCamName().append( "##" ).append( std::to_string( n ) ).c_str() ) )
                 {
-					std::string sPos = "Position : " +
-                        std::to_string( cameraControl->GetCamList()[n]->GetPosition().x ) + ", " +
-                        std::to_string( cameraControl->GetCamList()[n]->GetPosition().y ) + ", " +
-                        std::to_string( cameraControl->GetCamList()[n]->GetPosition().z );
-					ImGui::Text( sPos.c_str() );
+                    if ( ImGui::BeginTable( "Camera Data", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame ) )
+                    {
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+					    ImGui::Text( "Position" );
 
-                    std::string sRot = "Rotation : " +
-                        std::to_string( cameraControl->GetCamList()[n]->GetRot().x ) + ", " +
-                        std::to_string( cameraControl->GetCamList()[n]->GetRot().y ) + ", " +
-                        std::to_string( cameraControl->GetCamList()[n]->GetRot().z );
-                    ImGui::Text( sRot.c_str() );
+                        ImGui::TableNextColumn();
+                        std::string xPos = std::format( "{:.2f}", cameraControl->GetCamList()[n]->GetPosition().x );
+                        std::string yPos = std::format( "{:.2f}", cameraControl->GetCamList()[n]->GetPosition().y );
+                        std::string zPos = std::format( "{:.2f}", cameraControl->GetCamList()[n]->GetPosition().z );
+                        std::string sPos = xPos + ", " + yPos + ", " + zPos;
+					    ImGui::Text( sPos.c_str() );
 
-                    std::string sSpeed = "Speed: " + std::to_string( cameraControl->GetCurentCam()->GetCamSpeed() );
-                    ImGui::Text( sSpeed.c_str() );
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::Text( "Rotation" );
+
+                        ImGui::TableNextColumn();
+                        std::string xRot = std::format( "{:.2f}", cameraControl->GetCamList()[n]->GetRot().x );
+                        std::string yRot = std::format( "{:.2f}", cameraControl->GetCamList()[n]->GetRot().y );
+                        std::string zRot = std::format( "{:.2f}", cameraControl->GetCamList()[n]->GetRot().z );
+                        std::string sRot = xRot + ", " + yRot + ", " + zRot;
+                        ImGui::Text( sRot.c_str() );
+
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::Text( "Speed" );
+
+                        ImGui::TableNextColumn();
+                        std::string sSpeed = std::format( "{:.2f}", cameraControl->GetCurentCam()->GetCamSpeed() );
+                        ImGui::Text( sSpeed.c_str() );
+
+                        ImGui::EndTable();
+                    }
                     ImGui::TreePop();
                 }
             }
@@ -149,7 +228,7 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
         bLoadShader = true;
     }
 
-    if ( ImGui::Begin( "Shader Controls", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    if ( ImGui::Begin( "Shaders", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
         ImGui::Text( "Current Shader" );
         if ( ImGui::BeginCombo( "##ShaderCombo", cCurrentShader ) )
@@ -198,7 +277,7 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
             bool useColour = postSettings->UseColour;
             bool useDOF = postSettings->UseDepthOfField;
 
-            if ( ImGui::BeginTable( "##Post-Processing Options", 2, ImGuiTableFlags_NoBordersInBody ) )
+            if ( ImGui::BeginTable( "##Post-Processing Options", 2, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchSame ) )
             {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -276,7 +355,7 @@ void ImGuiManager::ObjectMenu( std::vector<DrawableGameObject*>& gameObjects )
         bLoadO = true;
     }
 
-    if ( ImGui::Begin( "Object Controls", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    if ( ImGui::Begin( "Objects", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
         ImGui::Text( "Current Object" );
         if ( ImGui::BeginCombo( "##Combo", cCurrentItemO ) )
@@ -299,6 +378,19 @@ void ImGuiManager::ObjectMenu( std::vector<DrawableGameObject*>& gameObjects )
             ImGui::EndCombo();
         }
 
+        static bool bDrawObject = currObject->GetAppearance()->IsVisible();
+        if ( ImGui::Checkbox( "Draw Object?", &bDrawObject ) )
+        {
+            if ( bDrawObject )
+            {
+			    currObject->GetAppearance()->Show();
+            }
+            else
+            {
+			    currObject->GetAppearance()->Hide();
+            }
+        }
+
         if ( ImGui::TreeNode( "Transform Controls" ) )
         {
             ImGui::Text( "Position" );
@@ -317,6 +409,7 @@ void ImGuiManager::ObjectMenu( std::vector<DrawableGameObject*>& gameObjects )
 
             ImGui::TreePop();
         }
+        ImGui::Separator();
 
         ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Texture Controls" ) )
@@ -384,7 +477,7 @@ void ImGuiManager::LightMenu( LightController* lightControl )
         bLoadL = true;
     }
 
-    if ( ImGui::Begin( "Light Controls", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    if ( ImGui::Begin( "Lights", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
         ImGui::Text( "Current Light" );
         if ( ImGui::BeginCombo( "##Combo", cCurrentItemL ) )
@@ -433,6 +526,7 @@ void ImGuiManager::LightMenu( LightController* lightControl )
             lightControl->GetLight( nameL )->GetCamera()->SetRot( lightDirection );
             ImGui::TreePop();
         }
+        ImGui::Separator();
 
         if ( ImGui::TreeNode( ( currLightData.LightType == LightType::DirectionalLight ) ? "Direction" : "Attenuation" ) )
         {
@@ -516,9 +610,7 @@ void ImGuiManager::BillboardMenu( BillboardObject* billboardObject )
         }
 
         ImGui::Text( "Position" );
-        ImGui::InputFloat( "X", &vBbVerts[iPicked].Pos.x );
-        ImGui::InputFloat( "Y", &vBbVerts[iPicked].Pos.y );
-        ImGui::InputFloat( "Z", &vBbVerts[iPicked].Pos.z );
+        ImGui::DragFloat3( "##Position", &vBbVerts[iPicked].Pos.x );
         billboardObject->SetPositions( vBbVerts );
     }
     ImGui::End();
@@ -590,6 +682,7 @@ void ImGuiManager::BezierSplineMenu()
             }
             ImGui::TreePop();
         }
+        ImGui::Separator();
 
         static float thickness = 1.0f;
         static bool drawShaded = false;
@@ -655,6 +748,7 @@ void ImGuiManager::BezierSplineMenu()
 
             ImGui::TreePop();
         }
+        ImGui::Separator();
 
         if ( ImGui::TreeNode( "Bar Options" ) )
         {
@@ -689,10 +783,10 @@ void ImGuiManager::BezierSplineMenu()
 
 void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
-    if ( ImGui::Begin( "Terrain Controls", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    if ( ImGui::Begin( "Terrain", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
         ImGui::SetNextItemOpen( true, ImGuiCond_Once );
-        if ( ImGui::TreeNode( "Terrain" ) )
+        if ( ImGui::TreeNode( "Terrain##Normal" ) )
         {
             ImGui::Checkbox( "Draw Terrain?", terrain->GetIsDraw() );
 
@@ -969,14 +1063,11 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
 
             if ( ImGui::TreeNode( "Texture Controls" ) )
             {
-                if ( ImGui::BeginTable( "Texture Name", 2, ImGuiTableFlags_Borders ) )
+                if ( ImGui::BeginTable( "Texture Name", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp ) )
                 {
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text( "Name" );
-
-                    ImGui::TableNextColumn();
-                    ImGui::Text( "Texture" );
+                    ImGui::TableSetupColumn( "Name" );
+                    ImGui::TableSetupColumn( "Texture" );
+                    ImGui::TableHeadersRow();
 
                     for ( size_t i = 0; i < terrain->GetTexNames().size(); i++ )
                     {
@@ -1058,6 +1149,7 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
 
             ImGui::TreePop();
         }
+        ImGui::Separator();
 
         ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Voxel Terrain" ) )
@@ -1112,32 +1204,46 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
 {
     if ( ImGui::Begin( "Animation", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
-        if ( ImGui::CollapsingHeader( "Model Data" ) )
+        static bool bDraw = animModel->IsVisible();
+        if ( ImGui::Checkbox( "Draw Animated Model?", &bDraw ) )
+        {
+			if ( bDraw )
+			{
+				animModel->Show();
+			}
+			else
+			{
+				animModel->Hide();
+			}
+        }
+
+        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
+        if ( ImGui::TreeNode( "Model Data" ) )
         {
             std::string modelName = "Model Name: ";
             modelName += animModel->GetModelName().c_str();
             ImGui::Text( modelName.c_str() );
-            if ( ImGui::BeginTable( "SubSetData", 4 ) )
+            if ( ImGui::BeginTable( "Mesh Data", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp ) )
             {
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text( "ID" );
-                ImGui::TableNextColumn();
-                ImGui::Text( "Face Count" );
-                ImGui::TableNextColumn();
-                ImGui::Text( "Vertex Count" );
-                ImGui::TableNextColumn();
-                ImGui::Text( "Diffuse Tex" );
+                ImGui::TableSetupColumn( "ID" );
+                ImGui::TableSetupColumn( "Face Count" );
+                ImGui::TableSetupColumn( "Vertex Count" );
+                ImGui::TableSetupColumn( "Diffuse Tex" );
+                ImGui::TableHeadersRow();
+
                 for ( size_t i = 0; i < animModel->GetSubsets().size(); i++ )
                 {
                     Subset data = animModel->GetSubsets()[i];
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::Text( "%i", data.m_uId );
+
                     ImGui::TableNextColumn();
                     ImGui::Text( "%i", data.m_uFaceCount );
+
                     ImGui::TableNextColumn();
                     ImGui::Text( "%i", data.m_uVertexCount );
+
                     ImGui::TableNextColumn();
                     std::wstring diffuseMap = animModel->GetMaterialData()[i].DiffuseMapName.c_str();
                     ImGui::Text( StringHelper::ToNarrow( diffuseMap ).c_str() );
@@ -1145,84 +1251,89 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
                 ImGui::EndTable();
             }
 
-            ImGui::Text( "Model Place" );
+            ImGui::Text( "Position" );
             static float modelPos[3] = {
                 animModel->GetTransformData()->GetPosition().x,
                 animModel->GetTransformData()->GetPosition().y,
                 animModel->GetTransformData()->GetPosition().z
             };
-            ImGui::InputFloat3( "Model Position", modelPos );
+            ImGui::DragFloat3( "##Position", modelPos, 0.01f );
             animModel->GetTransformData()->SetPosition( XMFLOAT3( modelPos ) );
 
-            static float modelScale[3] = {
-                animModel->GetTransformData()->GetScale().x,
-                animModel->GetTransformData()->GetScale().y,
-                animModel->GetTransformData()->GetScale().z
-            };
-            ImGui::InputFloat3( "Model Scale", modelScale );
-            animModel->GetTransformData()->SetScale( XMFLOAT3( modelScale ) );
-
+            ImGui::Text( "Rotation" );
             static float modelRotation[3] = {
                 animModel->GetTransformData()->GetRotation().x,
                 animModel->GetTransformData()->GetRotation().y,
                 animModel->GetTransformData()->GetRotation().z
             };
-            ImGui::InputFloat3( "Model Rotation", modelRotation );
+            ImGui::DragFloat3( "##Rotation", modelRotation );
             animModel->GetTransformData()->SetRotation( XMFLOAT3( modelRotation ) );
+
+            ImGui::Text( "Scale" );
+            static float modelScale[3] = {
+                animModel->GetTransformData()->GetScale().x,
+                animModel->GetTransformData()->GetScale().y,
+                animModel->GetTransformData()->GetScale().z
+            };
+            ImGui::DragFloat3( "##Scale", modelScale, 0.01f );
+            animModel->GetTransformData()->SetScale( XMFLOAT3( modelScale ) );
+
+            ImGui::TreePop();
         }
+        ImGui::Separator();
 
-        if ( ImGui::CollapsingHeader( "Bone Data" ) )
+        if ( ImGui::TreeNode( "Bone Data##Node" ) )
         {
-            if ( ImGui::BeginChild( "Bone List", ImVec2( 500, 100 ), true, ImGuiWindowFlags_HorizontalScrollbar ) )
+            if ( ImGui::BeginChild( "Bone List", ImVec2( 0, 250 ), true ) )
             {
-                ImGui::BeginTable( "Bone Info", 3 );
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text( "ID" );
-                ImGui::TableNextColumn();
-                ImGui::Text( "Parent" );
-                ImGui::TableNextColumn();
-                ImGui::Text( "Child" );
-
-                for ( size_t i = 0; i < animModel->GetSkeleton()->GetBoneData().size(); i++ )
+                if ( ImGui::BeginTable( "Bone Data##Table", 3, ImGuiTableFlags_BordersInner | ImGuiTableFlags_SizingStretchSame ) )
                 {
-                    Bone* data = animModel->GetSkeleton()->GetBoneData()[i];
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text( "%i", i );
-                    ImGui::TableNextColumn();
-                    ImGui::Text( "%i", data->Getparent() );
-                    ImGui::TableNextColumn();
-                    std::string childData = "";
-                    for ( size_t i = 0; i < data->GetChild().size(); i++ )
-                    {
-                        if ( data->GetChild()[i] == -1 )
-                        {
-                            childData = "No Child";
-                        }
-                        else if ( i == data->GetChild().size() - 1 )
-                        {
-                            childData += std::to_string( data->GetChild()[i] );
-                        }
-                        else
-                        {
-                            childData += std::to_string( data->GetChild()[i] ) + ", ";
-                        }
-                    }
-                    ImGui::Text( childData.c_str() );
+                    ImGui::TableSetupColumn( "ID" );
+                    ImGui::TableSetupColumn( "Parent" );
+                    ImGui::TableSetupColumn( "Child" );
+					ImGui::TableHeadersRow();
 
+                    for ( size_t i = 0; i < animModel->GetSkeleton()->GetBoneData().size(); i++ )
+                    {
+                        Bone* data = animModel->GetSkeleton()->GetBoneData()[i];
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::Text( "%i", i );
+
+                        ImGui::TableNextColumn();
+                        ImGui::Text( "%i", data->Getparent() );
+
+                        ImGui::TableNextColumn();
+                        std::string childData = "";
+                        for ( size_t i = 0; i < data->GetChild().size(); i++ )
+                        {
+                            if ( data->GetChild()[i] == -1 )
+                            {
+                                childData = "No Child";
+                            }
+                            else if ( i == data->GetChild().size() - 1 )
+                            {
+                                childData += std::to_string( data->GetChild()[i] );
+                            }
+                            else
+                            {
+                                childData += std::to_string( data->GetChild()[i] ) + ", ";
+                            }
+                        }
+                        ImGui::Text( childData.c_str() );
+
+                    }
+                    ImGui::EndTable();
                 }
-                ImGui::EndTable();
             }
             ImGui::EndChild();
 
-            ImGui::Text( "Edit Bone" );
             static int boneNum = 0;
             static int boneNumPrev = -1;
             static float bonePos[3];
             static float boneScale[3];
-            ImGui::InputInt( "Bone No:", &boneNum );
+            ImGui::Text( "Bone Number" );
+            ImGui::InputInt( "##Bone Num", &boneNum );
             if ( boneNum > animModel->GetSkeleton()->BoneCount() )
             {
                 boneNum = animModel->GetSkeleton()->BoneCount() - 1;
@@ -1243,12 +1354,17 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
                 boneNumPrev = boneNum;
             }
 
-            ImGui::InputFloat3( "Bone Position", bonePos );
-            ImGui::InputFloat3( "Bone Scale", boneScale );
-            static float boneRotation[3];
-            ImGui::InputFloat3( "Bone Rotation", boneRotation );
+            ImGui::Text( "Position" );
+            ImGui::DragFloat3( "##Bone Position", bonePos, 0.01f );
 
-            if ( ImGui::Button( "SetBone" ) )
+            ImGui::Text( "Rotation" );
+            static float boneRotation[3];
+            ImGui::DragFloat3( "##Bone Rotation", boneRotation );
+
+            ImGui::Text( "Scale" );
+            ImGui::DragFloat3( "##Bone Scale", boneScale, 0.01f );
+
+            if ( ImGui::Button( "Apply Changes" ) )
             {
                 animModel->GetSkeleton()->SetBonePosition( boneNum, XMFLOAT3( bonePos ) );
                 XMMATRIX rotation = XMMatrixRotationX(
@@ -1260,14 +1376,18 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
                 animModel->GetSkeleton()->SetBoneRotQuat( boneNum, XMFLOAT4( orientation ) );
                 animModel->GetSkeleton()->SetBoneScale( boneNum, XMFLOAT3( boneScale ) );
             }
-        }
 
-        if ( ImGui::CollapsingHeader( "Animation Data" ) )
+            ImGui::TreePop();
+        }
+        ImGui::Separator();
+
+        if ( ImGui::TreeNode( "Animation Data" ) )
         {
             // Set animation
             static std::vector<std::string> animationName = animModel->GetSkeleton()->AnimationClips();
             static const char* cCurrentItem = animationName[0].c_str();
 
+            ImGui::Text( "Animation Clip" );
             if ( ImGui::BeginCombo( "##Combo", cCurrentItem ) )
             {
                 for ( int n = 0; n < animationName.size(); n++ )
@@ -1288,21 +1408,53 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
 
             animModel->SetAnimation( cCurrentItem );
             static bool isLoop = animModel->GetIsLoop();
-            ImGui::Checkbox( "Loop Animation", &isLoop );
+            ImGui::Checkbox( "Loop Animation?", &isLoop );
             animModel->SetIsLoop( isLoop );
             float TimePos = animModel->GetTimePos();
 
             if ( !isLoop )
             {
-                ImGui::InputFloat( "Animation Time Position", &TimePos );
+                ImGui::Text( "Animation Time Position" );
+                ImGui::DragFloat( "##Animation Time Position", &TimePos, 0.001f );
                 animModel->SetTimePos( TimePos );
             }
 
             // Current animation data
-            ImGui::Text( "Current Animation: %s", animModel->GetClipName().c_str() );
-            ImGui::Text( "Current Animation Start: %f", animModel->GetSkeleton()->GetClipStartTime( animModel->GetClipName() ) );
-            ImGui::Text( "Current Animation End: %f", animModel->GetSkeleton()->GetClipEndTime( animModel->GetClipName() ) );
-            ImGui::Text( "Current Time: %f", animModel->GetTimePos() );
+            if ( ImGui::TreeNode( "Animation Info" ) )
+            {
+                if ( ImGui::BeginTable( "##Animation Info", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame ) )
+                {
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "Animation Start" );
+
+                    ImGui::TableNextColumn();
+                    std::string sStart = std::format( "{:.3f}", animModel->GetSkeleton()->GetClipStartTime( animModel->GetClipName() ) );
+                    ImGui::Text( sStart.c_str() );
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "Animation End" );
+
+                    ImGui::TableNextColumn();
+                    std::string sEnd = std::format( "{:.3f}", animModel->GetSkeleton()->GetClipEndTime( animModel->GetClipName() ) );
+                    ImGui::Text( sEnd.c_str() );
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "Animation Time" );
+
+                    ImGui::TableNextColumn();
+                    std::string sTime = std::format( "{:.3f}", animModel->GetTimePos() );
+                    ImGui::Text( sTime.c_str() );
+
+                    ImGui::EndTable();
+                }
+                ImGui::TreePop();
+            }
+
+            ImGui::TreePop();
         }
     }
     ImGui::End();
