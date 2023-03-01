@@ -32,14 +32,15 @@ public:
 	bool SetVertexBuffer( ID3D11Device* pDevice, std::vector<SkinnedVertex>& vertices );
 	bool SetIndices( ID3D11Device* pDevice, std::vector<WORD>& indices );
 
+	inline ID3D11ShaderResourceView** GetTextureResourceView() noexcept { return &m_pTextureResourceView; }
 	inline void SetTextureRV( ID3D11ShaderResourceView* textureRV ) noexcept { m_pTextureResourceView = textureRV; }
+	inline ID3D11ShaderResourceView** GetNormalMapResourceView() noexcept { return &m_pNormalMapResourceView; }
 	inline void SetNormalRV( ID3D11ShaderResourceView* textureRV ) noexcept { m_pNormalMapResourceView = textureRV; }
+	inline ID3D11ShaderResourceView** GetParallaxMapResourceView() noexcept { return &m_pParallaxMapResourceView; }
+	inline void SetParallaxRV( ID3D11ShaderResourceView* textureRV ) noexcept { m_pParallaxMapResourceView = textureRV; }
 	void SetTextures( ID3D11DeviceContext* pContext );
 
-	inline ID3D11ShaderResourceView** GetTextureResourceView() noexcept { return &m_pTextureResourceView; }
-	inline ID3D11ShaderResourceView** GetNormalMapResourceView() noexcept { return &m_pNormalMapResourceView; }
 	inline ID3D11SamplerState** GetTextureSamplerState() noexcept { return &m_pSamplerLinear; }
-
 	inline void SetMaterialData( MaterialPropertiesCB material ) noexcept { m_materialCB.data = material; }
 	inline MaterialPropertiesCB GetMaterialData() noexcept { return m_materialCB.data; }
 	inline bool HasTexture() const { return m_pTextureResourceView ? true : false; }

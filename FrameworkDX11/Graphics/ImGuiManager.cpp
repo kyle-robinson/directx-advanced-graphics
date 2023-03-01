@@ -8,7 +8,9 @@
 #include "AnimatedModel.h"
 #include "TerrainVoxel.h"
 #include "Terrain.h"
+
 #include <format>
+#include <dxtk/WICTextureLoader.h>
 
 ImGuiManager::ImGuiManager()
 {
@@ -39,6 +41,11 @@ void ImGuiManager::BeginRender()
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
     ImGui::DockSpaceOverViewport( ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode );
+
+    // Show demo windows
+    ImGui::ShowDemoWindow();
+    ImPlot::ShowDemoWindow();
+    ImGui::ShowMetricsWindow();
 }
 
 void ImGuiManager::EndRender()
@@ -53,7 +60,6 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
     static bool bLoad = false;
     static std::string sName;
 
-    ImGui::ShowMetricsWindow();
     if ( !bLoad )
     {
         sName = cameraControl->GetCurentCam()->GetCamName();
@@ -337,7 +343,7 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
     ImGui::End();
 }
 
-void ImGuiManager::ObjectMenu( std::vector<DrawableGameObject*>& gameObjects )
+void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, std::vector<DrawableGameObject*>& gameObjects )
 {
 	static XMFLOAT3 rotation = { 0.0f, 0.0f, 0.0f };
     static XMFLOAT3 position = { 0.0f, 0.0f, 0.0f };
@@ -394,11 +400,11 @@ void ImGuiManager::ObjectMenu( std::vector<DrawableGameObject*>& gameObjects )
         if ( ImGui::TreeNode( "Transform Controls" ) )
         {
             ImGui::Text( "Position" );
-            if ( ImGui::DragFloat3( "##Position", &position.x, 1.0f, -10.0f, 10.0f ) )
+            if ( ImGui::DragFloat3( "##Position", &position.x, 0.01f ) )
                 currObject->GetTransfrom()->SetPosition( position );
 
             ImGui::Text( "Rotation" );
-            if ( ImGui::DragFloat3( "##Rotation", &rotation.x, 1.0f, 0.0f, 360.0f ) )
+            if ( ImGui::DragFloat3( "##Rotation", &rotation.x, 1.0f ) )
                 currObject->GetTransfrom()->SetRotation( rotation );
 
             if ( ImGui::Button( "Reset" ) )
@@ -422,6 +428,169 @@ void ImGuiManager::ObjectMenu( std::vector<DrawableGameObject*>& gameObjects )
 
             if ( useTexture )
             {
+                if ( ImGui::BeginTable( "Texture Table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp ) )
+                {
+                    ImGui::TableSetupColumn( "Type" );
+                    ImGui::TableSetupColumn( "File" );
+                    ImGui::TableSetupColumn( "Change" );
+                    ImGui::TableHeadersRow();
+
+                    // Change diffuse texture
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "Diffuse" );
+
+                    ImGui::TableNextColumn();
+                    static std::string sDiffuseTex = "";
+                    ImGui::Text( sDiffuseTex.c_str() );
+
+                    ImGui::TableNextColumn();
+                    if ( ImGui::Button( "Load##DiffuseButton" ) )
+                    {
+                        ImGuiFileDialog::Instance()->OpenDialog( "Load Diffuse##Dialog", "Load Diffuse Map", ".dds,.jpg,.png", "." );
+                        ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
+                        ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
+                    }
+
+                    if ( ImGuiFileDialog::Instance()->Display( "Load Diffuse##Dialog" ) )
+                    {
+                        if ( ImGuiFileDialog::Instance()->IsOk() )
+                        {
+                            try
+                            {
+                                std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+                                sDiffuseTex = ImGuiFileDialog::Instance()->GetCurrentFileName();
+                                ID3D11ShaderResourceView* pTexture = nullptr;
+                                HRESULT hr = S_OK;
+                                if ( filePath.find( ".dds" ) != std::string::npos )
+                                {
+                                    hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                }
+                                else if ( filePath.find( ".jpg" ) != std::string::npos )
+                                {
+                                    hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                }
+                                else if ( filePath.find( ".png" ) != std::string::npos )
+                                {
+                                    hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                }
+                                COM_ERROR_IF_FAILED( hr, "Failed to load DIFFUSE texture!" );
+                                currObject->GetAppearance()->SetTextureRV( pTexture );
+                            }
+                            catch ( COMException& exception )
+                            {
+                                ErrorLogger::Log( exception );
+                                return;
+                            }
+                        }
+                        ImGuiFileDialog::Instance()->Close();
+                    }
+
+                    // Change normal texture
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "Normal" );
+
+                    ImGui::TableNextColumn();
+                    static std::string sNormalTex = "";
+                    ImGui::Text( sNormalTex.c_str() );
+
+                    ImGui::TableNextColumn();
+                    if ( ImGui::Button( "Load##NormalButton" ) )
+                    {
+                        ImGuiFileDialog::Instance()->OpenDialog( "Load Normal##Dialog", "Load Normal Map", ".dds,.jpg,.png", "." );
+                        ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
+                        ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
+                    }
+
+                    if ( ImGuiFileDialog::Instance()->Display( "Load Normal##Dialog" ) )
+                    {
+                        if ( ImGuiFileDialog::Instance()->IsOk() )
+                        {
+                            try
+                            {
+                                std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+                                sNormalTex = ImGuiFileDialog::Instance()->GetCurrentFileName();
+                                ID3D11ShaderResourceView* pTexture = nullptr;
+                                HRESULT hr = S_OK;
+                                if ( filePath.find( ".dds" ) != std::string::npos )
+                                {
+                                    hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                }
+                                else if ( filePath.find( ".jpg" ) != std::string::npos )
+                                {
+                                    hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                }
+                                else if ( filePath.find( ".png" ) != std::string::npos )
+                                {
+                                    hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                }
+                                COM_ERROR_IF_FAILED( hr, "Failed to load NORMAL texture!" );
+                                currObject->GetAppearance()->SetNormalRV( pTexture );
+                            }
+                            catch ( COMException& exception )
+                            {
+                                ErrorLogger::Log( exception );
+                                return;
+                            }
+                        }
+                        ImGuiFileDialog::Instance()->Close();
+                    }
+
+                    // Change parallax texture
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "Parallax" );
+
+                    ImGui::TableNextColumn();
+                    static std::string sParallaxTex = "";
+                    ImGui::Text( sParallaxTex.c_str() );
+
+                    ImGui::TableNextColumn();
+                    if ( ImGui::Button( "Load##ParallaxButton" ) )
+                    {
+                        ImGuiFileDialog::Instance()->OpenDialog( "Load Parallax##Dialog", "Load Parallax Map", ".dds,.jpg,.png", "." );
+                        ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
+                        ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
+                    }
+
+                    if ( ImGuiFileDialog::Instance()->Display( "Load Parallax##Dialog" ) )
+                    {
+                        if ( ImGuiFileDialog::Instance()->IsOk() )
+                        {
+                            try
+                            {
+                                std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+                                sParallaxTex = ImGuiFileDialog::Instance()->GetCurrentFileName();
+                                ID3D11ShaderResourceView* pTexture = nullptr;
+                                HRESULT hr = S_OK;
+                                if ( filePath.find( ".dds" ) != std::string::npos )
+                                {
+                                    hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                }
+                                else if ( filePath.find( ".jpg" ) != std::string::npos )
+                                {
+                                    hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                }
+                                else if ( filePath.find( ".png" ) != std::string::npos )
+                                {
+                                    hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                }
+                                COM_ERROR_IF_FAILED( hr, "Failed to load PARALLAX texture!" );
+                                currObject->GetAppearance()->SetParallaxRV( pTexture );
+                            }
+                            catch ( COMException& exception )
+                            {
+                                ErrorLogger::Log( exception );
+                                return;
+                            }
+                        }
+                        ImGuiFileDialog::Instance()->Close();
+                    }
+
+                    ImGui::EndTable();
+                }
+
                 if ( ImGui::TreeNode( "Colour Controls" ) )
                 {
                     ImGui::Text( "Ambient" );
@@ -556,7 +725,7 @@ void ImGuiManager::LightMenu( LightController* lightControl )
 
                 ImGui::Text( "Spot Angle" );
                 float SpotAngle = XMConvertToDegrees( currLightData.SpotAngle );
-                ImGui::InputFloat( "##Spot Angle", &SpotAngle );
+                ImGui::DragFloat( "##Spot Angle", &SpotAngle, 0.1f );
                 currLightData.SpotAngle = XMConvertToRadians( SpotAngle );
             }
             break;
@@ -667,7 +836,6 @@ void ImGuiManager::BezierSplineMenu()
         m_vPoints = CubicBezierCurve( points );
         bLoadSpline = true;
     }
-    ImPlot::ShowDemoWindow();
 
     if ( ImGui::Begin( "Bezier Curve", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
@@ -941,19 +1109,23 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
 
                 // Open file dialog to load height map
                 if ( ImGui::Button( "Load Height Map##Button" ) )
-                    ImGuiFileDialog::Instance()->OpenDialog( "Load Height Map##Dialog", "Choose File", ".json", "." );
+                {
+                    ImGuiFileDialog::Instance()->OpenDialog( "Load Height Map##Dialog", "Load Height Map", ".json", "." );
+                    ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
+                    ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
+                }
 
                 // Display file dialog window
                 if ( ImGuiFileDialog::Instance()->Display( "Load Height Map##Dialog" ) )
                 {
                     if ( ImGuiFileDialog::Instance()->IsOk() )
                     {
-                        std::string filePath = ImGuiFileDialog::Instance()->GetCurrentFileName();
-                        int position = filePath.find( ".json" );
-                        std::string fileName = filePath.erase( position );
+                        std::string fileName = ImGuiFileDialog::Instance()->GetCurrentFileName();
+                        int position = fileName.find( ".json" );
+                        std::string fileNameNoExt = fileName.erase( position );
 
                         TerrainData terrainData;
-                        TerrainJsonLoad::LoadData( fileName, terrainData );
+                        TerrainJsonLoad::LoadData( fileNameNoExt, terrainData );
                         TerrainGenType genType = (TerrainGenType)terrainData.Mode;
                         double heightScale = 0;
 
@@ -981,14 +1153,17 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
 
                         terrain->ReBuildTerrain( XMFLOAT2( terrainData.Width, terrainData.Depth ), heightScale, terrainData.CellSpacing, genType, pDevice );
                     }
-
                     ImGuiFileDialog::Instance()->Close();
                 }
 
                 ImGui::SameLine();
                 // Open file dialog to save height map
                 if ( ImGui::Button( "Save Height Map##Button" ) )
-                    ImGuiFileDialog::Instance()->OpenDialog( "Save Height Map##Dialog", "Choose File", ".json", ".", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite );
+                {
+                    ImGuiFileDialog::Instance()->OpenDialog( "Save Height Map##Dialog", "Save Height Map", ".json", ".", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite );
+                    ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
+                    ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
+                }
 
                  // Display file dialog window
                 if ( ImGuiFileDialog::Instance()->Display( "Save Height Map##Dialog" ) )

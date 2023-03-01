@@ -35,7 +35,7 @@ public:
 
 	void CameraMenu( CameraController* cameraControl );
 	void ShaderMenu( ShaderController* shaderControl, PostProcessingCB* postSettings, RasterizerController* rasterControl );
-	void ObjectMenu( std::vector<DrawableGameObject*>& gameObjects );
+	void ObjectMenu( ID3D11Device* pDevice, std::vector<DrawableGameObject*>& gameObjects );
 	void LightMenu( LightController* lightControl );
 	void BillboardMenu( BillboardObject* billboardObject );
 	void TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );

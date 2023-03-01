@@ -578,7 +578,7 @@ void Application::Draw()
     ImGui::PopStyleVar();
 
     m_pImGuiManager->CameraMenu( m_pCamController );
-    m_pImGuiManager->ObjectMenu( gameObjects );
+    m_pImGuiManager->ObjectMenu( m_gfx.GetDevice(), gameObjects );
     m_pImGuiManager->LightMenu( m_pLightController );
     m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_postProcessingCB.data, m_gfx.GetRasterizerController() );
     m_pImGuiManager->BezierSplineMenu();
