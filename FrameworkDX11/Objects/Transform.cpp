@@ -32,7 +32,7 @@ void Transform::SetPosition( float x, float y, float z ) noexcept
 void Transform::SetRotation( XMFLOAT3 rotation ) noexcept
 {
 	m_fRotation = rotation;
-	ConvertToQuatunion();
+	ConvertToQuaternion();
 }
 
 void Transform::SetRotation( float x, float y, float z ) noexcept
@@ -40,16 +40,16 @@ void Transform::SetRotation( float x, float y, float z ) noexcept
 	m_fRotation.x = x;
 	m_fRotation.y = y;
 	m_fRotation.z = z;
-	ConvertToQuatunion();
+	ConvertToQuaternion();
 }
 
 XMFLOAT4X4 Transform::GetWorldMatrix()
 {
 	// Calculate world matrix
 	XMMATRIX scale = XMMatrixScaling( m_fScale.x, m_fScale.y, m_fScale.z );
-	XMMATRIX TranslationRotationMatrix;
-	CalculateTransformMatrixRowMajor( TranslationRotationMatrix, m_vPosition, m_qOrientation );
-	XMStoreFloat4x4( &m_mWorld, scale * TranslationRotationMatrix );
+	XMMATRIX translationRotationMatrix;
+	CalculateTransformMatrixRowMajor( translationRotationMatrix, m_vPosition, m_qOrientation );
+	XMStoreFloat4x4( &m_mWorld, scale * translationRotationMatrix );
 
 	// Apply parent world matrix
 	if ( !XMMatrixIsIdentity( XMLoadFloat4x4( &m_mParent ) ) )
@@ -59,7 +59,7 @@ XMFLOAT4X4 Transform::GetWorldMatrix()
 	return m_mWorld;
 }
 
-void Transform::ConvertToQuatunion()
+void Transform::ConvertToQuaternion()
 {
 	XMMATRIX rotation =
 		XMMatrixRotationX( XMConvertToRadians( m_fRotation.x ) ) *

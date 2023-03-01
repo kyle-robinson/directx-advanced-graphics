@@ -9,8 +9,16 @@
 #include "TerrainVoxel.h"
 #include "Terrain.h"
 
-#include <format>
+#include "imgui.h"
+#include "implot.h"
+#include "gizmo/ImGuizmo.h"
+#include "fileDialog/ImGuiFileDialog.h"
+#include "backends/imgui_impl_dx11.h"
+#include "backends/imgui_impl_win32.h"
+#include "misc/cpp/imgui_stdlib.h"
+
 #include <dxtk/WICTextureLoader.h>
+#include <format>
 
 ImGuiManager::ImGuiManager()
 {
@@ -40,6 +48,7 @@ void ImGuiManager::BeginRender()
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
+    ImGuizmo::BeginFrame();
     ImGui::DockSpaceOverViewport( ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode );
 
     // Show demo windows
@@ -52,6 +61,48 @@ void ImGuiManager::EndRender()
 {
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData( ImGui::GetDrawData() );
+}
+
+void ImGuiManager::SceneWindow( UINT width, UINT height, ID3D11ShaderResourceView* pTexture )
+{
+    ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0.0f, 0.0f ) );
+    if ( ImGui::Begin( "Scene Window", FALSE ) )
+    {
+        ImVec2 vRegionMax = ImGui::GetWindowContentRegionMax();
+        ImVec2 vImageMax = ImVec2(
+            vRegionMax.x + ImGui::GetWindowPos().x,
+            vRegionMax.y + ImGui::GetWindowPos().y );
+
+        ImVec2 vRatio =
+        {
+            width / ImGui::GetWindowSize().x,
+            height / ImGui::GetWindowSize().y
+        };
+
+        bool bIsFitToWidth = vRatio.x < vRatio.y ? true : false;
+        ImVec2 ivMax =
+        {
+            bIsFitToWidth ? width / vRatio.y : vRegionMax.x,
+            bIsFitToWidth ? vRegionMax.y : height / vRatio.x
+        };
+
+        ImVec2 pos = ImGui::GetCursorScreenPos();
+        XMFLOAT2 half = { ( ivMax.x - vRegionMax.x ) / 2, ( ivMax.y - vRegionMax.y ) / 2 };
+        ImVec2 vHalfPos = { pos.x - half.x, pos.y - half.y };
+
+        ImVec2 ivMaxPos =
+        {
+            ivMax.x + ImGui::GetWindowPos().x - half.x,
+            ivMax.y + ImGui::GetWindowPos().y - half.y
+        };
+
+        m_vMinPos = XMFLOAT2( vHalfPos.x, vHalfPos.y );
+        m_vMaxPos = XMFLOAT2( ivMaxPos.x, ivMaxPos.y );
+
+        ImGui::GetWindowDrawList()->AddImage( (void*)pTexture, vHalfPos, ivMaxPos );
+    }
+    ImGui::End();
+    ImGui::PopStyleVar();
 }
 
 void ImGuiManager::CameraMenu( CameraController* cameraControl )
@@ -343,7 +394,7 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
     ImGui::End();
 }
 
-void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, std::vector<DrawableGameObject*>& gameObjects )
+void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vector<DrawableGameObject*>& gameObjects )
 {
 	static XMFLOAT3 rotation = { 0.0f, 0.0f, 0.0f };
     static XMFLOAT3 position = { 0.0f, 0.0f, 0.0f };
@@ -627,8 +678,45 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, std::vector<DrawableGameOb
             currObject->GetAppearance()->SetMaterialData( materialData );
             ImGui::TreePop();
         }
+        ImGui::Separator();
+
+        // Setup the ImGuizmo
+        static ImGuizmo::OPERATION mCurrentGizmoOperation( ImGuizmo::TRANSLATE );
+        static ImGuizmo::MODE mCurrentGizmoMode( ImGuizmo::WORLD );
+        ImGuizmo::SetRect( m_vMinPos.x, m_vMinPos.y, m_vMaxPos.x, m_vMaxPos.y );
+
+        // Decompose/recompose matrix
+        static XMFLOAT4X4 world = currObject->GetTransfrom()->GetWorldMatrix();
+        float* worldPtr = (float*)&world;
+        float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+        ImGuizmo::DecomposeMatrixToComponents( worldPtr, matrixTranslation, matrixRotation, matrixScale );
+        ImGuizmo::RecomposeMatrixFromComponents( matrixTranslation, matrixRotation, matrixScale, worldPtr );
+
+        // Handle manipulation of the gizmo
+        XMFLOAT4X4 view = pCamera->GetView();
+        float* viewPtr = (float*)&view;
+        XMFLOAT4X4 projection = pCamera->GetProjection();
+        float* projectionPtr = (float*)&projection;
+        ImGuizmo::Manipulate( viewPtr, projectionPtr, mCurrentGizmoOperation, mCurrentGizmoMode, worldPtr );
+
+        // Update object parameters
+        XMFLOAT3 pos = XMFLOAT3( matrixTranslation[0], matrixTranslation[1], matrixTranslation[2] );
+        currObject->GetTransfrom()->SetPosition( pos );
+
+        XMFLOAT3 rot = XMFLOAT3( matrixRotation[0], matrixRotation[1], matrixRotation[2] );
+        currObject->GetTransfrom()->SetRotation( rot );
+
+        XMFLOAT3 scale = XMFLOAT3( matrixScale[0], matrixScale[1], matrixScale[2] );
+        currObject->GetTransfrom()->SetScale( scale );
+
+        if ( ImGui::TreeNode( "Gizmo Controls" ) )
+        {
+
+            ImGui::TreePop();
+        }
     }
     ImGui::End();
+
 }
 
 void ImGuiManager::LightMenu( LightController* lightControl )

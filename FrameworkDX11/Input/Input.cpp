@@ -43,7 +43,7 @@ void Input::UpdateMouse( float dt )
         else
         {
             ShowCursor();
-            EnableCursor();
+            EnableImGuiMouse();
         }
     }
 }

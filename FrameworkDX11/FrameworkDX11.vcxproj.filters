@@ -144,6 +144,21 @@
     <ClCompile Include="..\External\imgui\fileDialog\ImGuiFileDialog.cpp">
       <Filter>Resources\ImGui\FileDialog</Filter>
     </ClCompile>
+    <ClCompile Include="..\External\imgui\gizmo\GraphEditor.cpp">
+      <Filter>Resources\ImGui\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\gizmo\ImCurveEdit.cpp">
+      <Filter>Resources\ImGui\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\gizmo\ImGradient.cpp">
+      <Filter>Resources\ImGui\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\gizmo\ImGuizmo.cpp">
+      <Filter>Resources\ImGui\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\gizmo\ImSequencer.cpp">
+      <Filter>Resources\ImGui\ImGuizmo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
@@ -414,6 +429,24 @@
     <ClInclude Include="Utility\RandomHelper.h">
       <Filter>Utility\Helper</Filter>
     </ClInclude>
+    <ClInclude Include="..\External\imgui\gizmo\GraphEditor.h">
+      <Filter>Resources\ImGui\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\gizmo\ImCurveEdit.h">
+      <Filter>Resources\ImGui\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\gizmo\ImGradient.h">
+      <Filter>Resources\ImGui\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\gizmo\ImGuizmo.h">
+      <Filter>Resources\ImGui\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\gizmo\ImSequencer.h">
+      <Filter>Resources\ImGui\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\gizmo\ImZoomSlider.h">
+      <Filter>Resources\ImGui\ImGuizmo</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Window">
@@ -550,6 +583,9 @@
     </Filter>
     <Filter Include="Resources\ImGui\ImPlot">
       <UniqueIdentifier>{5a6f9938-f61c-40b5-9c2a-d7e664e4f97a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\ImGui\ImGuizmo">
+      <UniqueIdentifier>{8fa2585b-177e-4067-a5ea-56ef0c13247d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

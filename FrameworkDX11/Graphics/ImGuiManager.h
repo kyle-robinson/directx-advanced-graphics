@@ -2,13 +2,7 @@
 #ifndef IMGUIMANAGER_H
 #define IMGUIMANAGER_H
 
-#include <Windows.h>
-#include "imgui.h"
-#include "implot.h"
-#include "fileDialog/ImGuiFileDialog.h"
-#include "backends/imgui_impl_dx11.h"
-#include "backends/imgui_impl_win32.h"
-#include "misc/cpp/imgui_stdlib.h"
+//#include <Windows.h>
 
 #include "CameraController.h";
 #include "TerrainJsonLoad.h"
@@ -33,9 +27,10 @@ public:
 	void EndRender();
 	bool Initialize( HWND hWnd, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 
+	void SceneWindow( UINT width, UINT height, ID3D11ShaderResourceView* pTexture );
 	void CameraMenu( CameraController* cameraControl );
 	void ShaderMenu( ShaderController* shaderControl, PostProcessingCB* postSettings, RasterizerController* rasterControl );
-	void ObjectMenu( ID3D11Device* pDevice, std::vector<DrawableGameObject*>& gameObjects );
+	void ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vector<DrawableGameObject*>& gameObjects );
 	void LightMenu( LightController* lightControl );
 	void BillboardMenu( BillboardObject* billboardObject );
 	void TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
@@ -49,7 +44,10 @@ private:
 	void SetWhiteTheme();
 	void SetUbuntuTheme();
 	void SetBlackGoldTheme();
+
 	std::vector<XMFLOAT2> m_vPoints;
+	XMFLOAT2 m_vMinPos = { 0.0f, 0.0f };
+	XMFLOAT2 m_vMaxPos = { 0.0f, 0.0f };
 };
 
 #endif

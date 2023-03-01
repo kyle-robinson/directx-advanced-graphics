@@ -400,6 +400,12 @@
     <ClInclude Include="..\External\imgui\fileDialog\ImGuiFileDialogConfig.h" />
     <ClInclude Include="..\External\imgui\fileDialog\stb\stb_image.h" />
     <ClInclude Include="..\External\imgui\fileDialog\stb\stb_image_resize.h" />
+    <ClInclude Include="..\External\imgui\gizmo\GraphEditor.h" />
+    <ClInclude Include="..\External\imgui\gizmo\ImCurveEdit.h" />
+    <ClInclude Include="..\External\imgui\gizmo\ImGradient.h" />
+    <ClInclude Include="..\External\imgui\gizmo\ImGuizmo.h" />
+    <ClInclude Include="..\External\imgui\gizmo\ImSequencer.h" />
+    <ClInclude Include="..\External\imgui\gizmo\ImZoomSlider.h" />
     <ClInclude Include="..\External\imgui\imconfig.h" />
     <ClInclude Include="..\External\imgui\imgui.h" />
     <ClInclude Include="..\External\imgui\imgui_impl_dx11.h" />
@@ -491,6 +497,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\External\imgui\fileDialog\ImGuiFileDialog.cpp" />
+    <ClCompile Include="..\External\imgui\gizmo\GraphEditor.cpp" />
+    <ClCompile Include="..\External\imgui\gizmo\ImCurveEdit.cpp" />
+    <ClCompile Include="..\External\imgui\gizmo\ImGradient.cpp" />
+    <ClCompile Include="..\External\imgui\gizmo\ImGuizmo.cpp" />
+    <ClCompile Include="..\External\imgui\gizmo\ImSequencer.cpp" />
     <ClCompile Include="..\External\imgui\imgui.cpp" />
     <ClCompile Include="..\External\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\External\imgui\imgui_draw.cpp" />

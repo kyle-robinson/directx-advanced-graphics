@@ -538,52 +538,18 @@ void Application::Draw()
 
     // Render ImGui windows
     m_pImGuiManager->BeginRender();
-
-    ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0.0f, 0.0f ) );
-    if ( ImGui::Begin( "Scene Window", FALSE ) )
-    {
-        ImVec2 vRegionMax = ImGui::GetWindowContentRegionMax();
-        ImVec2 vImageMax = ImVec2(
-            vRegionMax.x + ImGui::GetWindowPos().x,
-            vRegionMax.y + ImGui::GetWindowPos().y );
-
-        ImVec2 vRatio =
-        {
-            m_gfx.GetWidth() / ImGui::GetWindowSize().x,
-            m_gfx.GetHeight() / ImGui::GetWindowSize().y
-        };
-
-        bool bIsFitToWidth = vRatio.x < vRatio.y ? true : false;
-        ImVec2 ivMax =
-        {
-            bIsFitToWidth ? m_gfx.GetWidth() / vRatio.y : vRegionMax.x,
-            bIsFitToWidth ? vRegionMax.y : m_gfx.GetHeight() / vRatio.x
-        };
-
-        ImVec2 pos = ImGui::GetCursorScreenPos();
-        XMFLOAT2 half = { ( ivMax.x - vRegionMax.x ) / 2, ( ivMax.y - vRegionMax.y ) / 2 };
-        ImVec2 vHalfPos = { pos.x - half.x, pos.y - half.y };
-
-        ImVec2 ivMaxPos =
-        {
-            ivMax.x + ImGui::GetWindowPos().x - half.x,
-            ivMax.y + ImGui::GetWindowPos().y - half.y
-        };
-
-        ImGui::GetWindowDrawList()->AddImage(
-            (void*)m_gfx.GetRenderTargetController()->GetRenderTarget( "Final" )->GetTexture(),
-            vHalfPos, ivMaxPos );
-    }
-    ImGui::End();
-    ImGui::PopStyleVar();
-
+    //m_pInput->DisableCursor();
+    //m_pInput->EnableImGuiMouse();
+    m_pImGuiManager->SceneWindow( m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetRenderTargetController()->GetRenderTarget( "Final" )->GetTexture() );
     m_pImGuiManager->CameraMenu( m_pCamController );
-    m_pImGuiManager->ObjectMenu( m_gfx.GetDevice(), gameObjects );
+    m_pImGuiManager->ObjectMenu( m_gfx.GetDevice(), m_pCamController->GetCurentCam(), gameObjects );
     m_pImGuiManager->LightMenu( m_pLightController );
     m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_postProcessingCB.data, m_gfx.GetRasterizerController() );
     m_pImGuiManager->BezierSplineMenu();
     m_pImGuiManager->TerrainMenu( m_pTerrain, m_pVoxelTerrain, m_gfx.GetDevice(), m_gfx.GetContext() );
     m_pImGuiManager->AnimationMenu( m_pAnimModel );
+    //m_pInput->DisableImGuiMouse();
+    //m_pInput->EnableCursor();
     m_pImGuiManager->EndRender();
 
     m_gfx.GetSwapChain()->Present( 1, 0 );

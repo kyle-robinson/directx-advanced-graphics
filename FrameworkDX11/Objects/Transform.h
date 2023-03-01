@@ -26,11 +26,12 @@ public:
 	inline XMFLOAT3 GetRotation() const noexcept { return m_fRotation; }
 
 	XMFLOAT4X4 GetWorldMatrix();
-	inline Quaternion GetOrination() const noexcept { return m_qOrientation; }
-	inline void Setorination( Quaternion orientation ) noexcept { m_qOrientation = orientation; }
+	inline void SetWorldMatrix( XMFLOAT4X4 mat ) noexcept { m_mWorld = mat; }
+	inline Quaternion GetOrienation() const noexcept { return m_qOrientation; }
+	inline void SetOrienation( Quaternion orientation ) noexcept { m_qOrientation = orientation; }
 
 private:
-	void ConvertToQuatunion();
+	void ConvertToQuaternion();
 
 	// Object data
 	Vector3 m_vPosition;

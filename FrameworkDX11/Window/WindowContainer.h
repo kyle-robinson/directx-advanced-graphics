@@ -23,7 +23,6 @@ public:
 	void DisableCursor() noexcept;
 	inline bool IsCursorEnabled() const noexcept { return m_bCursorEnabled; }
 
-protected:
 	void ConfineCursor() noexcept;
 	void FreeCursor() noexcept;
 	void ShowCursor() noexcept;
@@ -31,6 +30,7 @@ protected:
 	void EnableImGuiMouse() noexcept;
 	void DisableImGuiMouse() noexcept;
 
+protected:
 	DirectX::XMFLOAT2 windowSize;
 	bool m_bCursorEnabled = true;
 
