@@ -96,8 +96,8 @@ void ImGuiManager::SceneWindow( UINT width, UINT height, ID3D11ShaderResourceVie
             ivMax.y + ImGui::GetWindowPos().y - half.y
         };
 
-        m_vMinPos = XMFLOAT2( vHalfPos.x, vHalfPos.y );
-        m_vMaxPos = XMFLOAT2( ivMaxPos.x, ivMaxPos.y );
+        m_vSceneWindowPos = XMFLOAT2( (float)ImGui::GetWindowPos().x, (float)ImGui::GetWindowPos().y );
+        m_vSceneWindowSize = XMFLOAT2( (float)ImGui::GetWindowWidth(), (float)ImGui::GetWindowHeight() );
 
         ImGui::GetWindowDrawList()->AddImage( (void*)pTexture, vHalfPos, ivMaxPos );
     }
@@ -398,6 +398,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
 {
 	static XMFLOAT3 rotation = { 0.0f, 0.0f, 0.0f };
     static XMFLOAT3 position = { 0.0f, 0.0f, 0.0f };
+    static XMFLOAT4X4 world = XMFLOAT4X4();
 
     static const char* cCurrentItemO = NULL;
     static DrawableGameObject* currObject;
@@ -410,6 +411,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
         cCurrentItemO = sNameO.c_str();
         currObject = gameObjects[0];
         bLoadO = true;
+        world = currObject->GetTransfrom()->GetWorldMatrix();
     }
 
     if ( ImGui::Begin( "Objects", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
@@ -425,6 +427,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
                     sNameO = gameObjects[i]->GetName();
                     cCurrentItemO = sNameO.c_str();
                     currObject = gameObjects[i];
+                    world = currObject->GetTransfrom()->GetWorldMatrix();
                 }
 
                 if ( is_selected )
@@ -683,10 +686,9 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
         // Setup the ImGuizmo
         static ImGuizmo::OPERATION mCurrentGizmoOperation( ImGuizmo::TRANSLATE );
         static ImGuizmo::MODE mCurrentGizmoMode( ImGuizmo::WORLD );
-        ImGuizmo::SetRect( m_vMinPos.x, m_vMinPos.y, m_vMaxPos.x, m_vMaxPos.y );
+        ImGuizmo::SetRect( m_vSceneWindowPos.x, m_vSceneWindowPos.y, m_vSceneWindowSize.x, m_vSceneWindowSize.y );
 
         // Decompose/recompose matrix
-        static XMFLOAT4X4 world = currObject->GetTransfrom()->GetWorldMatrix();
         float* worldPtr = (float*)&world;
         float matrixTranslation[3], matrixRotation[3], matrixScale[3];
         ImGuizmo::DecomposeMatrixToComponents( worldPtr, matrixTranslation, matrixRotation, matrixScale );
