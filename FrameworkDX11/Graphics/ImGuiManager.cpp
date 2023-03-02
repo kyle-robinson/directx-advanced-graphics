@@ -21,8 +21,9 @@
 #include <dxtk/WICTextureLoader.h>
 #include <format>
 
-#define CTRL_CLICK_TEXT "CTRL + click the slider to input a value directly."
-#define DOUBLE_CLICK_TEXT "Double click the drag slider to input a value directly."
+#define SLIDER_HINT_TEXT "CTRL + click the slider to input a value directly."
+#define DRAG_HINT_TEXT "Double click the drag slider to input a value directly."
+#define COLOR_PICKER_HINT_TEXT "Click the color image to open a colour picker."
 
 extern void HelpMarker( const char* desc )
 {
@@ -335,7 +336,7 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
 
             ImGui::Text( "Movement Speed" );
             ImGui::SameLine();
-            HelpMarker( "CTRL + click the slider to input a value directly." );
+            HelpMarker( SLIDER_HINT_TEXT );
             if ( ImGui::SliderFloat( "##Movement Speed", &movementSpeed, 0.1f, 1.0f, "%.1f" ) )
                 cameraControl->GetCurentCam()->SetCamSpeed( movementSpeed );
 
@@ -401,6 +402,8 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
         if ( ImGui::TreeNode( "Post-Processing" ) )
         {
             ImGui::Text( "Fade Amount" );
+            ImGui::SameLine();
+            HelpMarker( SLIDER_HINT_TEXT );
             ImGui::SliderFloat( "##Fade Amount", &postSettings->FadeAmount, 0.0f, 1.0f, "%.1f" );
 
             bool useBloom = postSettings->UseBloom;
@@ -435,6 +438,8 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
             {
                 ImGui::Separator();
                 ImGui::Text( "Colour Overlay" );
+                ImGui::SameLine();
+                HelpMarker( COLOR_PICKER_HINT_TEXT );
                 float colour[] = { postSettings->Color.x , postSettings->Color.y, postSettings->Color.z, postSettings->Color.w };
                 if ( ImGui::ColorEdit4( "##Colour", colour, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_InputRGB ) )
                     postSettings->Color = { colour[0], colour[1], colour[2], colour[3] };
@@ -528,10 +533,14 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
         if ( ImGui::TreeNode( "Transform Controls" ) )
         {
             ImGui::Text( "Position" );
+            ImGui::SameLine();
+            HelpMarker( DRAG_HINT_TEXT );
             if ( ImGui::DragFloat3( "##Position", &position.x, 0.01f ) )
                 currObject->GetTransfrom()->SetPosition( position );
 
             ImGui::Text( "Rotation" );
+            ImGui::SameLine();
+            HelpMarker( DRAG_HINT_TEXT );
             if ( ImGui::DragFloat3( "##Rotation", &rotation.x, 1.0f ) )
                 currObject->GetTransfrom()->SetRotation( rotation );
 
@@ -721,18 +730,28 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
                 if ( ImGui::TreeNode( "Colour Controls" ) )
                 {
                     ImGui::Text( "Ambient" );
+                    ImGui::SameLine();
+                    HelpMarker( COLOR_PICKER_HINT_TEXT );
                     ImGui::ColorEdit3( "##Ambient", &materialData.Material.Ambient.x );
 
                     ImGui::Text( "Diffuse" );
+                    ImGui::SameLine();
+                    HelpMarker( COLOR_PICKER_HINT_TEXT );
                     ImGui::ColorEdit3( "##Diffuse", &materialData.Material.Diffuse.x );
 
                     ImGui::Text( "Emissive" );
+                    ImGui::SameLine();
+                    HelpMarker( COLOR_PICKER_HINT_TEXT );
                     ImGui::ColorEdit3( "##Emissive", &materialData.Material.Emissive.x );
 
                     ImGui::Text( "Specular" );
+                    ImGui::SameLine();
+                    HelpMarker( COLOR_PICKER_HINT_TEXT );
                     ImGui::ColorEdit3( "##Specular", &materialData.Material.Specular.x );
 
                     ImGui::Text( "Power" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
                     ImGui::DragFloat( "##Power", &materialData.Material.SpecularPower, 1.0f, 1.0f, 32.0f );
                     ImGui::TreePop();
                 }
@@ -740,12 +759,18 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
                 if ( ImGui::TreeNode( "Parallax Controls" ) )
                 {
                     ImGui::Text( "Height Scale" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
                     ImGui::DragFloat( "##Height Scale", &materialData.Material.HeightScale, 0.1f, 0.0f, 100.0f );
 
                     ImGui::Text( "Min Layers" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
                     ImGui::DragFloat( "##Min Layers", &materialData.Material.MinLayers, 1.0f, 1.0f, 30.0f );
 
                     ImGui::Text( "Max Layers" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
                     ImGui::DragFloat( "##Max Layers", &materialData.Material.MaxLayers, 1.0f, 1.0f, 30.0f );
                     ImGui::TreePop();
                 }
@@ -834,6 +859,8 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
             if ( useSnap )
             {
                 ImGui::Text( "Snap Amount" );
+                ImGui::SameLine();
+                HelpMarker( SLIDER_HINT_TEXT );
                 static float snapAmountCopy = 1.0f;
                 if ( ImGui::SliderFloat( "##Snap", &snapAmountCopy, 0.0f, 2.5f ) )
                     snapAmount = XMFLOAT3( snapAmountCopy, snapAmountCopy, snapAmountCopy );
@@ -920,9 +947,13 @@ void ImGuiManager::LightMenu( LightController* lightControl )
         if ( ImGui::TreeNode( "Light Data" ) )
         {
             ImGui::Text( "Position" );
+            ImGui::SameLine();
+            HelpMarker( DRAG_HINT_TEXT );
             ImGui::DragFloat3( "##Position", &currLightData.Position.x, 1.0f, -10.0f, 10.0f );
 
             ImGui::Text( "Colour" );
+            ImGui::SameLine();
+            HelpMarker( COLOR_PICKER_HINT_TEXT );
             float colour[] = { currLightData.Color.x, currLightData.Color.y, currLightData.Color.z, currLightData.Color.w };
             if ( ImGui::ColorEdit4( "##Colour", colour, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_DisplayRGB ) )
                 currLightData.Color = { colour[0], colour[1], colour[2], colour[3] };
@@ -952,27 +983,41 @@ void ImGuiManager::LightMenu( LightController* lightControl )
             {
             case LightType::PointLight:
                 ImGui::Text( "Constant" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
                 ImGui::DragFloat( "##Constant", &currLightData.ConstantAttenuation, 0.1f, 1.0f, 10.0f, "%.2f" );
 
                 ImGui::Text( "Linear" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
                 ImGui::DragFloat( "##Linear", &currLightData.LinearAttenuation, 0.1f, 0.0f, 5.0f, "%.4f" );
 
                 ImGui::Text( "Quadratic" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
                 ImGui::DragFloat( "##Quadratic", &currLightData.QuadraticAttenuation, 0.1f, 0.0f, 2.0f, "%.7f" );
                 break;
 
             case LightType::SpotLight:
             {
                 ImGui::Text( "Constant" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
                 ImGui::DragFloat( "##Constant", &currLightData.ConstantAttenuation, 0.1f, 1.0f, 10.0f, "%.2f" );
 
                 ImGui::Text( "Linear" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
                 ImGui::DragFloat( "##Linear", &currLightData.LinearAttenuation, 0.01f, 0.0f, 5.0f, "%.4f" );
 
                 ImGui::Text( "Quadratic" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
                 ImGui::DragFloat( "##Quadratic", &currLightData.QuadraticAttenuation, 0.001f, 0.0f, 2.0f, "%.7f" );
 
                 ImGui::Text( "Spot Angle" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
                 float SpotAngle = XMConvertToDegrees( currLightData.SpotAngle );
                 ImGui::DragFloat( "##Spot Angle", &SpotAngle, 0.1f );
                 currLightData.SpotAngle = XMConvertToRadians( SpotAngle );
@@ -981,6 +1026,9 @@ void ImGuiManager::LightMenu( LightController* lightControl )
 
             case LightType::DirectionalLight:
             {
+                ImGui::Text( "Direction" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
                 ImGui::DragFloat3( "##Direction", &currLightData.Direction.x );
             }
             break;
@@ -1028,6 +1076,8 @@ void ImGuiManager::BillboardMenu( BillboardObject* billboardObject )
         }
 
         ImGui::Text( "Position" );
+        ImGui::SameLine();
+        HelpMarker( DRAG_HINT_TEXT );
         ImGui::DragFloat3( "##Position", &vBbVerts[iPicked].Pos.x );
         billboardObject->SetPositions( vBbVerts );
     }
@@ -1096,6 +1146,8 @@ void ImGuiManager::BezierSplineMenu()
                 {
                     m_vPoints = CubicBezierCurve( points );
                 }
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
             }
             ImGui::TreePop();
         }
@@ -1111,9 +1163,13 @@ void ImGuiManager::BezierSplineMenu()
         if ( ImGui::TreeNode( "Line Options" ) )
         {
             ImGui::Text( "Line Colour" );
+            ImGui::SameLine();
+            HelpMarker( COLOR_PICKER_HINT_TEXT );
             ImGui::ColorEdit3( "##Line Colour", &lineColor.x );
 
             ImGui::Text( "Thickness" );
+            ImGui::SameLine();
+            HelpMarker( SLIDER_HINT_TEXT );
             ImGui::SliderFloat( "##Thickness", &thickness, 0.0f, 5.0f );
 
             ImGui::Checkbox( "Markers", &showMarkers );
@@ -1170,6 +1226,8 @@ void ImGuiManager::BezierSplineMenu()
         if ( ImGui::TreeNode( "Bar Options" ) )
         {
             ImGui::Text( "Bar Colour" );
+            ImGui::SameLine();
+            HelpMarker( COLOR_PICKER_HINT_TEXT );
             ImGui::ColorEdit3( "##Bar Colour", &barColor.x );
             ImGui::TreePop();
         }
@@ -1468,16 +1526,22 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
             if ( ImGui::TreeNode( "Transfrom Controls" ) )
             {
                 ImGui::Text( "Position" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
                 XMFLOAT3 posTerrain = terrain->GetTransfrom()->GetPosition();
                 ImGui::DragFloat3( "##Position", &posTerrain.x );
                 terrain->GetTransfrom()->SetPosition( posTerrain );
 
                 ImGui::Text( "Rotation" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
                 XMFLOAT3 rotationTerrain = terrain->GetTransfrom()->GetRotation();
                 ImGui::DragFloat3( "##Rotation", &rotationTerrain.x, 1.0f, 0.0f, 360.0f );
                 terrain->GetTransfrom()->SetRotation( rotationTerrain );
 
                 ImGui::Text( "Scale" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
                 XMFLOAT3 scaleTerrain = terrain->GetTransfrom()->GetScale();
                 ImGui::DragFloat3( "##Scale", &scaleTerrain.x );
                 terrain->GetTransfrom()->SetScale( scaleTerrain );
@@ -1564,17 +1628,31 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
                 float layer5MaxHeight = terrain->GetTerrainData().Layer5MaxHeight;
 
                 ImGui::Text( "Layer 1 Max Height" );
+                ImGui::SameLine();
+                HelpMarker( SLIDER_HINT_TEXT );
                 ImGui::SliderFloat( "##Layer1MaxHeight", &layer1MaxHeight, 0.0f, layer2MaxHeight );
-                ImGui::Text( "Layer 2 Max Height" );
-                ImGui::SliderFloat( "##Layer2MaxHeight", &layer2MaxHeight, layer1MaxHeight, layer3MaxHeight );
-                ImGui::Text( "Layer 3 Max Height" );
-                ImGui::SliderFloat( "##Layer3MaxHeight", &layer3MaxHeight, layer2MaxHeight, layer4MaxHeight );
-                ImGui::Text( "Layer 4 Max Height" );
-                ImGui::SliderFloat( "##Layer4MaxHeight", &layer4MaxHeight, layer3MaxHeight, layer5MaxHeight );
-                ImGui::Text( "Layer 5 Max Height" );
-                ImGui::SliderFloat( "##Layer5MaxHeight", &layer5MaxHeight, layer4MaxHeight, 100000.0f );
-                terrain->SetTexHeights( layer1MaxHeight, layer2MaxHeight, layer3MaxHeight, layer4MaxHeight, layer5MaxHeight );
 
+                ImGui::Text( "Layer 2 Max Height" );
+                ImGui::SameLine();
+                HelpMarker( SLIDER_HINT_TEXT );
+                ImGui::SliderFloat( "##Layer2MaxHeight", &layer2MaxHeight, layer1MaxHeight, layer3MaxHeight );
+
+                ImGui::Text( "Layer 3 Max Height" );
+                ImGui::SameLine();
+                HelpMarker( SLIDER_HINT_TEXT );
+                ImGui::SliderFloat( "##Layer3MaxHeight", &layer3MaxHeight, layer2MaxHeight, layer4MaxHeight );
+
+                ImGui::Text( "Layer 4 Max Height" );
+                ImGui::SameLine();
+                HelpMarker( SLIDER_HINT_TEXT );
+                ImGui::SliderFloat( "##Layer4MaxHeight", &layer4MaxHeight, layer3MaxHeight, layer5MaxHeight );
+
+                ImGui::Text( "Layer 5 Max Height" );
+                ImGui::SameLine();
+                HelpMarker( SLIDER_HINT_TEXT );
+                ImGui::SliderFloat( "##Layer5MaxHeight", &layer5MaxHeight, layer4MaxHeight, 100000.0f );
+
+                terrain->SetTexHeights( layer1MaxHeight, layer2MaxHeight, layer3MaxHeight, layer4MaxHeight, layer5MaxHeight );
                 ImGui::TreePop();
             }
 
@@ -1582,10 +1660,14 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
             {
                 float floatMinTess = terrain->GetTerrainData().MinTess;
                 ImGui::Text( "Min Tess" );
+                ImGui::SameLine();
+                HelpMarker( SLIDER_HINT_TEXT );
                 ImGui::SliderFloat( "##Min Tess", &floatMinTess, 0.0f, 6.0f );
 
                 float floatMaxTess = terrain->GetTerrainData().MaxTess;
                 ImGui::Text( "Max Tess" );
+                ImGui::SameLine();
+                HelpMarker( SLIDER_HINT_TEXT );
                 ImGui::SliderFloat( "##Max Tess", &floatMaxTess, 0.0f, 6.0f );
 
                 if ( floatMaxTess < floatMaxTess )
@@ -1597,10 +1679,14 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
 
                 float minTessDist = terrain->GetTerrainData().MinDist;
                 ImGui::Text( "Min Tess Distance" );
+                ImGui::SameLine();
+                HelpMarker( SLIDER_HINT_TEXT );
                 ImGui::SliderFloat( "##Min Tess Distance", &minTessDist, 1.0f, 1000.0f );
 
                 float maxTessDist = terrain->GetTerrainData().MaxDist;
                 ImGui::Text( "Max Tess Distance" );
+                ImGui::SameLine();
+                HelpMarker( SLIDER_HINT_TEXT );
                 ImGui::SliderFloat( "##Max Tess Distance", &maxTessDist, 1.0f, 1000.0f );
 
                 if ( maxTessDist < minTessDist )
@@ -1718,6 +1804,8 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
             }
 
             ImGui::Text( "Position" );
+            ImGui::SameLine();
+            HelpMarker( DRAG_HINT_TEXT );
             static float modelPos[3] = {
                 animModel->GetTransformData()->GetPosition().x,
                 animModel->GetTransformData()->GetPosition().y,
@@ -1727,6 +1815,8 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
             animModel->GetTransformData()->SetPosition( XMFLOAT3( modelPos ) );
 
             ImGui::Text( "Rotation" );
+            ImGui::SameLine();
+            HelpMarker( DRAG_HINT_TEXT );
             static float modelRotation[3] = {
                 animModel->GetTransformData()->GetRotation().x,
                 animModel->GetTransformData()->GetRotation().y,
@@ -1736,6 +1826,8 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
             animModel->GetTransformData()->SetRotation( XMFLOAT3( modelRotation ) );
 
             ImGui::Text( "Scale" );
+            ImGui::SameLine();
+            HelpMarker( DRAG_HINT_TEXT );
             static float modelScale[3] = {
                 animModel->GetTransformData()->GetScale().x,
                 animModel->GetTransformData()->GetScale().y,
@@ -1821,13 +1913,19 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
             }
 
             ImGui::Text( "Position" );
+            ImGui::SameLine();
+            HelpMarker( DRAG_HINT_TEXT );
             ImGui::DragFloat3( "##Bone Position", bonePos, 0.01f );
 
             ImGui::Text( "Rotation" );
+            ImGui::SameLine();
+            HelpMarker( DRAG_HINT_TEXT );
             static float boneRotation[3];
             ImGui::DragFloat3( "##Bone Rotation", boneRotation );
 
             ImGui::Text( "Scale" );
+            ImGui::SameLine();
+            HelpMarker( DRAG_HINT_TEXT );
             ImGui::DragFloat3( "##Bone Scale", boneScale, 0.01f );
 
             if ( ImGui::Button( "Apply Changes" ) )
@@ -1881,6 +1979,8 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
             if ( !isLoop )
             {
                 ImGui::Text( "Animation Time Position" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
                 ImGui::DragFloat( "##Animation Time Position", &TimePos, 0.001f );
                 animModel->SetTimePos( TimePos );
             }
