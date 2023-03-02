@@ -547,7 +547,7 @@ void Application::Draw()
     m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_postProcessingCB.data, m_gfx.GetRasterizerController() );
     m_pImGuiManager->BezierSplineMenu();
     m_pImGuiManager->TerrainMenu( m_pTerrain, m_pVoxelTerrain, m_gfx.GetDevice(), m_gfx.GetContext() );
-    m_pImGuiManager->AnimationMenu( m_pAnimModel );
+    m_pImGuiManager->AnimationMenu( m_pAnimModel, m_pCamController->GetCurentCam() );
     m_pImGuiManager->EndRender();
 
     m_gfx.GetSwapChain()->Present( 1, 0 );

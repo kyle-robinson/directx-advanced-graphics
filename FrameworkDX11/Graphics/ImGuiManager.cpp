@@ -10,9 +10,7 @@
 #include "Terrain.h"
 #include "Input.h"
 
-#include "imgui.h"
 #include "implot.h"
-#include "gizmo/ImGuizmo.h"
 #include "fileDialog/ImGuiFileDialog.h"
 #include "backends/imgui_impl_dx11.h"
 #include "backends/imgui_impl_win32.h"
@@ -117,14 +115,7 @@ void ImGuiManager::SceneWindow( UINT width, UINT height, ID3D11ShaderResourceVie
             }
             else
             {
-                if ( ImGuizmo::IsOver() || ImGuizmo::IsUsing() )
-                {
-                    pInput->DisableImGuiMouse();
-			    }
-                else
-                {
-                    pInput->EnableImGuiMouse();
-                }
+                pInput->DisableImGuiMouse();
             }
         }
 
@@ -475,10 +466,9 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
 
 void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vector<DrawableGameObject*>& gameObjects )
 {
-	static XMFLOAT3 rotation = { 0.0f, 0.0f, 0.0f };
-    static XMFLOAT3 position = { 0.0f, 0.0f, 0.0f };
+    static int iSelectedIdx = 0;
+    static std::vector<ImGuizmoData> guizmoData;
     static XMFLOAT4X4 world = XMFLOAT4X4();
-
     static const char* cCurrentItemO = NULL;
     static DrawableGameObject* currObject;
     static bool bLoadO = false;
@@ -486,6 +476,12 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
 
     if ( !bLoadO )
     {
+        for ( unsigned int i = 0; i < gameObjects.size(); i++ )
+        {
+            guizmoData.push_back( ImGuizmoData() );
+            guizmoData[i].ID = i;
+            m_iGizmoID++;
+        }
         sNameO = gameObjects[0]->GetName();
         cCurrentItemO = sNameO.c_str();
         currObject = gameObjects[0];
@@ -503,6 +499,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
                 bool is_selected = ( cCurrentItemO == gameObjects[i]->GetName().c_str() );
                 if ( ImGui::Selectable( gameObjects[i]->GetName().c_str(), is_selected ) )
                 {
+                    iSelectedIdx = i;
                     sNameO = gameObjects[i]->GetName();
                     cCurrentItemO = sNameO.c_str();
                     currObject = gameObjects[i];
@@ -532,16 +529,24 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
 
         if ( ImGui::TreeNode( "Transform Controls" ) )
         {
+            static XMFLOAT3 position = { 0.0f, 0.0f, 0.0f };
+            static XMFLOAT3 rotation = { 0.0f, 0.0f, 0.0f };
+            if ( ImGuizmo::IsUsing() )
+            {
+                position = currObject->GetTransfrom()->GetPosition();
+                rotation = currObject->GetTransfrom()->GetRotation();
+            }
+
             ImGui::Text( "Position" );
             ImGui::SameLine();
             HelpMarker( DRAG_HINT_TEXT );
-            if ( ImGui::DragFloat3( "##Position", &position.x, 0.01f ) )
+            if ( ImGui::DragFloat3( std::string( "##Position" ).append( std::to_string( iSelectedIdx ) ).c_str(), &position.x, 0.01f ) )
                 currObject->GetTransfrom()->SetPosition( position );
 
             ImGui::Text( "Rotation" );
             ImGui::SameLine();
             HelpMarker( DRAG_HINT_TEXT );
-            if ( ImGui::DragFloat3( "##Rotation", &rotation.x, 1.0f ) )
+            if ( ImGui::DragFloat3( std::string( "##Rotation" ).append( std::to_string( iSelectedIdx ) ).c_str(), &rotation.x, 1.0f ) )
                 currObject->GetTransfrom()->SetRotation( rotation );
 
             if ( ImGui::Button( "Reset" ) )
@@ -781,121 +786,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
         }
         ImGui::Separator();
 
-        // Setup the ImGuizmo
-        static bool useSnap = false;
-        static bool isVisible = false;
-        static XMFLOAT3 snapAmount = { 1.0f, 1.0f, 1.0f };
-        static ImGuizmo::MODE mCurrentGizmoMode( ImGuizmo::WORLD );
-        static ImGuizmo::OPERATION mCurrentGizmoOperation( ImGuizmo::TRANSLATE );
-        ImGuizmo::SetRect( m_vSceneWindowPos.x, m_vSceneWindowPos.y, m_vSceneWindowSize.x, m_vSceneWindowSize.y );
-
-        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
-        if ( ImGui::TreeNode( "Gizmo Controls" ) )
-        {
-            ImGui::Text( "Gizmo Operation" );
-            if ( ImGui::BeginTable( "Gizmo Operation##Table", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchSame ) )
-            {
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                if ( ImGui::RadioButton( "Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE ) )
-                    mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-
-                ImGui::TableNextColumn();
-                if ( ImGui::RadioButton( "Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE ) )
-                    mCurrentGizmoOperation = ImGuizmo::ROTATE;
-
-                ImGui::TableNextColumn();
-                if ( ImGui::RadioButton( "Scale", mCurrentGizmoOperation == ImGuizmo::SCALE ) )
-                    mCurrentGizmoOperation = ImGuizmo::SCALE;
-
-                switch ( mCurrentGizmoOperation )
-                {
-                case ImGuizmo::TRANSLATE: m_bUsingTranslation = true; break;
-                case ImGuizmo::ROTATE: m_bUsingTranslation = false; break;
-                case ImGuizmo::SCALE: m_bUsingTranslation = false; break;
-                }
-
-                ImGui::EndTable();
-            }
-
-            if ( mCurrentGizmoOperation != ImGuizmo::SCALE )
-            {
-                ImGui::Text( "Gizmo Mode" );
-                if ( ImGui::BeginTable( "Gizmo Mode##Table", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchSame ) )
-                {
-                        ImGui::TableNextRow();
-                        ImGui::TableNextColumn();
-                        if ( ImGui::RadioButton( "World", mCurrentGizmoMode == ImGuizmo::WORLD ) )
-                            mCurrentGizmoMode = ImGuizmo::WORLD;
-
-                        ImGui::TableNextColumn();
-                        if ( ImGui::RadioButton( "Local", mCurrentGizmoMode == ImGuizmo::LOCAL ) )
-                            mCurrentGizmoMode = ImGuizmo::LOCAL;
-
-                        ImGui::NextColumn();
-                        // Extra column to better fit radio buttons
-
-                    ImGui::EndTable();
-                }
-            }
-
-            if ( ImGui::BeginTable( "Gizmo Options", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchProp ) )
-            {
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Checkbox( "Visible?", &isVisible );
-
-                ImGui::TableNextColumn();
-                static bool enable = true;
-                if ( ImGui::Checkbox( "Enable?", &enable ) )
-                    ImGuizmo::Enable( enable );
-
-                ImGui::TableNextColumn();
-                ImGui::Checkbox( "Use Snapping?", &useSnap );
-
-                ImGui::EndTable();
-            }
-
-            if ( useSnap )
-            {
-                ImGui::Text( "Snap Amount" );
-                ImGui::SameLine();
-                HelpMarker( SLIDER_HINT_TEXT );
-                static float snapAmountCopy = 1.0f;
-                if ( ImGui::SliderFloat( "##Snap", &snapAmountCopy, 0.0f, 2.5f ) )
-                    snapAmount = XMFLOAT3( snapAmountCopy, snapAmountCopy, snapAmountCopy );
-            }
-
-            ImGui::TreePop();
-        }
-
-        if ( isVisible )
-        {
-            // Decompose/recompose matrix
-            float* worldPtr = (float*)&world;
-            float matrixTranslation[3], matrixRotation[3], matrixScale[3];
-            ImGuizmo::DecomposeMatrixToComponents( worldPtr, matrixTranslation, matrixRotation, matrixScale );
-            ImGuizmo::RecomposeMatrixFromComponents( matrixTranslation, matrixRotation, matrixScale, worldPtr );
-
-            // Handle manipulation of the gizmo
-            XMFLOAT4X4 view = pCamera->GetView();
-            float* viewPtr = (float*)&view;
-            XMFLOAT4X4 projection = pCamera->GetProjection();
-            float* projectionPtr = (float*)&projection;
-
-            if ( ImGuizmo::Manipulate( viewPtr, projectionPtr, mCurrentGizmoOperation, mCurrentGizmoMode, worldPtr, NULL, useSnap ? &snapAmount.x : NULL ) )
-            {
-                // Update object parameters
-                XMFLOAT3 pos = XMFLOAT3( matrixTranslation[0], matrixTranslation[1], matrixTranslation[2] );
-                currObject->GetTransfrom()->SetPosition( pos );
-
-                XMFLOAT3 rot = XMFLOAT3( matrixRotation[0], matrixRotation[1], matrixRotation[2] );
-                currObject->GetTransfrom()->SetRotation( rot );
-
-                XMFLOAT3 scale = XMFLOAT3( matrixScale[0], matrixScale[1], matrixScale[2] );
-                currObject->GetTransfrom()->SetScale( scale );
-            }
-        }
+        SpawnImGuizmo( currObject->GetTransfrom(), pCamera, world, guizmoData[iSelectedIdx] );
     }
     ImGui::End();
 }
@@ -1752,7 +1643,7 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
     ImGui::End();
 }
 
-void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
+void ImGuiManager::AnimationMenu( AnimatedModel* animModel, Camera* pCamera )
 {
     if ( ImGui::Begin( "Animation", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
@@ -1803,39 +1694,50 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
                 ImGui::EndTable();
             }
 
+            static bool bRequiresUpdate = true;
+            if ( ImGuizmo::IsUsing() )
+                bRequiresUpdate = true;
+
             ImGui::Text( "Position" );
             ImGui::SameLine();
             HelpMarker( DRAG_HINT_TEXT );
-            static float modelPos[3] = {
-                animModel->GetTransformData()->GetPosition().x,
-                animModel->GetTransformData()->GetPosition().y,
-                animModel->GetTransformData()->GetPosition().z
-            };
-            ImGui::DragFloat3( "##Position", modelPos, 0.01f );
-            animModel->GetTransformData()->SetPosition( XMFLOAT3( modelPos ) );
+            static float modelPos[3];
+            if ( bRequiresUpdate )
+            {
+                modelPos[0] = animModel->GetTransformData()->GetPosition().x;
+                modelPos[1] = animModel->GetTransformData()->GetPosition().y;
+                modelPos[2] = animModel->GetTransformData()->GetPosition().z;
+            }
+            if ( ImGui::DragFloat3( "##PositionModel", modelPos, 0.01f ) )
+                animModel->GetTransformData()->SetPosition( XMFLOAT3( modelPos ) );
 
             ImGui::Text( "Rotation" );
             ImGui::SameLine();
             HelpMarker( DRAG_HINT_TEXT );
-            static float modelRotation[3] = {
-                animModel->GetTransformData()->GetRotation().x,
-                animModel->GetTransformData()->GetRotation().y,
-                animModel->GetTransformData()->GetRotation().z
-            };
-            ImGui::DragFloat3( "##Rotation", modelRotation );
-            animModel->GetTransformData()->SetRotation( XMFLOAT3( modelRotation ) );
+            static float modelRotation[3];
+            if ( bRequiresUpdate )
+            {
+                modelRotation[0] = animModel->GetTransformData()->GetRotation().x;
+                modelRotation[1] = animModel->GetTransformData()->GetRotation().y;
+                modelRotation[2] = animModel->GetTransformData()->GetRotation().z;
+            }
+            if ( ImGui::DragFloat3( "##RotationModel", modelRotation ) )
+                animModel->GetTransformData()->SetRotation( XMFLOAT3( modelRotation ) );
 
             ImGui::Text( "Scale" );
             ImGui::SameLine();
             HelpMarker( DRAG_HINT_TEXT );
-            static float modelScale[3] = {
-                animModel->GetTransformData()->GetScale().x,
-                animModel->GetTransformData()->GetScale().y,
-                animModel->GetTransformData()->GetScale().z
-            };
-            ImGui::DragFloat3( "##Scale", modelScale, 0.01f );
-            animModel->GetTransformData()->SetScale( XMFLOAT3( modelScale ) );
+            static float modelScale[3];
+            if ( bRequiresUpdate )
+            {
+                modelScale[0] = animModel->GetTransformData()->GetScale().x;
+                modelScale[1] = animModel->GetTransformData()->GetScale().y;
+                modelScale[2] = animModel->GetTransformData()->GetScale().z;
+            }
+            if ( ImGui::DragFloat3( "##ScaleModel", modelScale, 0.01f ) )
+                animModel->GetTransformData()->SetScale( XMFLOAT3( modelScale ) );
 
+            bRequiresUpdate = false;
             ImGui::TreePop();
         }
         ImGui::Separator();
@@ -1990,7 +1892,6 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
             {
                 if ( ImGui::BeginTable( "##Animation Info", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame ) )
                 {
-
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::Text( "Animation Start" );
@@ -2022,8 +1923,157 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel )
 
             ImGui::TreePop();
         }
+        ImGui::Separator();
+
+        static bool bLoad = false;
+        static ImGuizmoData imguizmoData = ImGuizmoData();
+        if ( !bLoad )
+        {
+            imguizmoData.ID = m_iGizmoID;
+            m_iGizmoID++;
+            bLoad = true;
+        }
+        static XMFLOAT4X4 world = animModel->GetTransformData()->GetWorldMatrix();
+        SpawnImGuizmo( animModel->GetTransformData(), pCamera, world, imguizmoData );
     }
     ImGui::End();
+}
+
+void ImGuiManager::SpawnImGuizmo( Transform* pTransform, Camera* pCamera, XMFLOAT4X4& worldMat, ImGuizmoData& imguizmoData )
+{
+    // Setup the ImGuizmo
+    static int idOffset = 100;
+    ImGuizmo::SetID( imguizmoData.ID );
+    ImGuizmo::SetRect( m_vSceneWindowPos.x, m_vSceneWindowPos.y, m_vSceneWindowSize.x, m_vSceneWindowSize.y );
+
+    ImGui::SetNextItemOpen( true, ImGuiCond_Once );
+    if ( ImGui::TreeNode( std::string( "Gizmo Controls###" ).append( std::to_string( imguizmoData.ID ) ).c_str() ) )
+    {
+        ImGui::Text( "Gizmo Operation" );
+        if ( ImGui::BeginTable( "Gizmo Operation###Table", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchSame ) )
+        {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::PushID( imguizmoData.ID + idOffset );
+            if ( ImGui::RadioButton( std::string( "Translate###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoOperation == ImGuizmo::TRANSLATE ) )
+                imguizmoData.CurrentGizmoOperation = ImGuizmo::TRANSLATE;
+            ImGui::PopID();
+
+            ImGui::TableNextColumn();
+            ImGui::PushID( imguizmoData.ID + idOffset * 2 );
+            if ( ImGui::RadioButton( std::string( "Rotate###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoOperation == ImGuizmo::ROTATE ) )
+				imguizmoData.CurrentGizmoOperation = ImGuizmo::ROTATE;
+            ImGui::PopID();
+
+            ImGui::TableNextColumn();
+            ImGui::PushID( imguizmoData.ID + idOffset * 3 );
+            if ( ImGui::RadioButton( std::string( "Scale###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoOperation == ImGuizmo::SCALE ) )
+                imguizmoData.CurrentGizmoOperation = ImGuizmo::SCALE;
+            ImGui::PopID();
+
+            // Handle ImGuizmo operation for when using multiple manipulators
+            if ( imguizmoData.CurrentGizmoOperation == ImGuizmo::TRANSLATE && m_iActiveGizmoID == imguizmoData.ID )
+                m_bUsingTranslation = true;
+
+            if ( ImGuizmo::IsUsing() )
+            {
+                m_iActiveGizmoID = imguizmoData.ID;
+                if ( imguizmoData.CurrentGizmoOperation != ImGuizmo::TRANSLATE )
+                    m_bUsingTranslation = false;
+                else
+                    m_bUsingTranslation = true;
+            }
+
+            ImGui::EndTable();
+        }
+
+        if ( imguizmoData.CurrentGizmoOperation != ImGuizmo::SCALE )
+        {
+            ImGui::Text( "Gizmo Mode" );
+            if ( ImGui::BeginTable( "Gizmo Mode###Table", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchSame ) )
+            {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::PushID( imguizmoData.ID + idOffset * 4 );
+                if ( ImGui::RadioButton( std::string( "World###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoMode == ImGuizmo::WORLD ) )
+                    imguizmoData.CurrentGizmoMode = ImGuizmo::WORLD;
+                ImGui::PopID();
+
+                ImGui::TableNextColumn();
+                ImGui::PushID( imguizmoData.ID + idOffset * 5 );
+                if ( ImGui::RadioButton( std::string( "Local###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoMode == ImGuizmo::LOCAL ) )
+                    imguizmoData.CurrentGizmoMode = ImGuizmo::LOCAL;
+                ImGui::PopID();
+
+                ImGui::NextColumn();
+                // Extra column to better fit radio buttons
+
+                ImGui::EndTable();
+            }
+        }
+
+        if ( ImGui::BeginTable( "Gizmo Options###", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchProp ) )
+        {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::PushID( imguizmoData.ID + idOffset * 6 );
+            ImGui::Checkbox( std::string( "Visible?###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.IsVisible );
+            ImGui::PopID();
+
+            ImGui::TableNextColumn();
+            ImGui::PushID( imguizmoData.ID + idOffset * 7 );
+            if ( ImGui::Checkbox( std::string( "Enable?###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.Enable ) )
+                ImGuizmo::Enable( imguizmoData.Enable );
+            ImGui::PopID();
+
+            ImGui::TableNextColumn();
+            ImGui::PushID( imguizmoData.ID + idOffset * 8 );
+            ImGui::Checkbox( std::string( "Use Snapping?###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.UseSnap );
+            ImGui::PopID();
+
+            ImGui::EndTable();
+        }
+
+        if ( imguizmoData.UseSnap )
+        {
+            ImGui::Text( "Snap Amount" );
+            ImGui::SameLine();
+            HelpMarker( SLIDER_HINT_TEXT );
+            ImGui::PushID( imguizmoData.ID + idOffset * 9 );
+            ImGui::SliderFloat( std::string( "###Snap" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.SnapAmount.x, 0.0f, 2.5f );
+            ImGui::PopID();
+        }
+
+        ImGui::TreePop();
+    }
+
+    if ( imguizmoData.IsVisible )
+    {
+        // Decompose/recompose matrix
+        float* worldPtr = (float*)&worldMat;
+        float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+        ImGuizmo::DecomposeMatrixToComponents( worldPtr, matrixTranslation, matrixRotation, matrixScale );
+        ImGuizmo::RecomposeMatrixFromComponents( matrixTranslation, matrixRotation, matrixScale, worldPtr );
+
+        // Handle manipulation of the gizmo
+        XMFLOAT4X4 view = pCamera->GetView();
+        float* viewPtr = (float*)&view;
+        XMFLOAT4X4 projection = pCamera->GetProjection();
+        float* projectionPtr = (float*)&projection;
+
+        if ( ImGuizmo::Manipulate( viewPtr, projectionPtr, imguizmoData.CurrentGizmoOperation, imguizmoData.CurrentGizmoMode, worldPtr, NULL, imguizmoData.UseSnap ? &imguizmoData.SnapAmount.x : NULL ) )
+        {
+            // Update object parameters
+            XMFLOAT3 pos = XMFLOAT3( matrixTranslation[0], matrixTranslation[1], matrixTranslation[2] );
+            pTransform->SetPosition( pos );
+
+            XMFLOAT3 rot = XMFLOAT3( matrixRotation[0], matrixRotation[1], matrixRotation[2] );
+            pTransform->SetRotation( rot );
+
+            XMFLOAT3 scale = XMFLOAT3( matrixScale[0], matrixScale[1], matrixScale[2] );
+            pTransform->SetScale( scale );
+        }
+    }
 }
 
 void ImGuiManager::SetBlackGoldTheme()

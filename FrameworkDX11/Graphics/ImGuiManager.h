@@ -2,10 +2,14 @@
 #ifndef IMGUIMANAGER_H
 #define IMGUIMANAGER_H
 
+#include "imgui.h"
+#include "gizmo/ImGuizmo.h"
+
 #include "CameraController.h";
 #include "TerrainJsonLoad.h"
 #include "Structures.h"
 
+class Transform;
 class AnimatedModel;
 class LightController;
 class DrawableGameObject;
@@ -18,6 +22,28 @@ class Input;
 
 class ImGuiManager
 {
+private:
+	struct ImGuizmoData
+	{
+		ImGuizmoData()
+			: ID( 0 )
+			, Enable( true )
+			, UseSnap( false )
+			, IsVisible( false )
+			, SnapAmount( { 1.0f, 1.0f, 1.0f } )
+			, CurrentGizmoMode( ImGuizmo::WORLD )
+			, CurrentGizmoOperation( ImGuizmo::TRANSLATE )
+		{}
+
+		int ID;
+		bool Enable;
+		bool UseSnap;
+		bool IsVisible;
+		XMFLOAT3 SnapAmount;
+		ImGuizmo::MODE CurrentGizmoMode;
+		ImGuizmo::OPERATION CurrentGizmoOperation;
+	};
+
 public:
 	ImGuiManager();
 	~ImGuiManager();
@@ -33,14 +59,17 @@ public:
 	void LightMenu( LightController* lightControl );
 	void BillboardMenu( BillboardObject* billboardObject );
 	void TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
-	void AnimationMenu( AnimatedModel* animModel );
+	void AnimationMenu( AnimatedModel* animModel, Camera* pCamera );
 	void BezierSplineMenu();
 
 private:
+	void SpawnImGuizmo( Transform* pTransform, Camera* pCamera, XMFLOAT4X4& worldMat, ImGuizmoData& imguizmoData );
 	void SetWhiteTheme();
 	void SetUbuntuTheme();
 	void SetBlackGoldTheme();
 
+	int m_iGizmoID = 0;
+	int m_iActiveGizmoID = 0;
 	bool m_bUsingTranslation = true;
 	std::vector<XMFLOAT2> m_vPoints;
 	XMFLOAT2 m_vSceneWindowPos = { 0.0f, 0.0f };
