@@ -157,3 +157,12 @@ Mouse::MouseEvent Mouse::ReadEvent() noexcept
 		return e;
 	}
 }
+
+void Mouse::Clear() noexcept
+{
+	while ( !eventBuffer.empty() )
+		eventBuffer.pop();
+	isLeftDown = false;
+	isRightDown = false;
+	isMiddleDown = false;
+}

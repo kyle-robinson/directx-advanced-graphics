@@ -21,6 +21,22 @@
 #include <dxtk/WICTextureLoader.h>
 #include <format>
 
+#define CTRL_CLICK_TEXT "CTRL + click the slider to input a value directly."
+#define DOUBLE_CLICK_TEXT "Double click the drag slider to input a value directly."
+
+extern void HelpMarker( const char* desc )
+{
+    ImGui::TextDisabled( "(?)" );
+    if ( ImGui::IsItemHovered( ImGuiHoveredFlags_DelayShort ) )
+    {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos( ImGui::GetFontSize() * 35.0f );
+        ImGui::TextUnformatted( desc );
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+}
+
 ImGuiManager::ImGuiManager()
 {
     IMGUI_CHECKVERSION();
@@ -69,6 +85,22 @@ void ImGuiManager::SceneWindow( UINT width, UINT height, ID3D11ShaderResourceVie
     ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0.0f, 0.0f ) );
     if ( ImGui::Begin( "Scene Window", FALSE ) )
     {
+        // Prevent key/mouse inputs sticking when the window is not focused
+        static bool updateInputState = false;
+        if ( ImGui::IsWindowFocused() && !updateInputState )
+        {
+            updateInputState = true;
+            pInput->UnblockKeyInputs();
+            pInput->UnblockMouseInputs();
+        }
+        else if ( !ImGui::IsWindowFocused() && updateInputState )
+        {
+            updateInputState = false;
+            pInput->BlockKeyInputs();
+            pInput->BlockMouseInputs();
+        }
+
+        // Handle the activation of the ImGuizmo manipulator
         if ( !pInput->GetIsMovingCursor() )
         {
             if ( m_bUsingTranslation )
@@ -95,6 +127,7 @@ void ImGuiManager::SceneWindow( UINT width, UINT height, ID3D11ShaderResourceVie
             }
         }
 
+        // Add the scene texture to an imgui window and render
         ImVec2 vRegionMax = ImGui::GetWindowContentRegionMax();
         ImVec2 vImageMax = ImVec2(
             vRegionMax.x + ImGui::GetWindowPos().x,
@@ -203,6 +236,20 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
+                ImGui::Text( "HOME" );
+
+                ImGui::TableNextColumn();
+                ImGui::Text( "Enable Cursor" );
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text( "END" );
+
+                ImGui::TableNextColumn();
+                ImGui::Text( "Disable Cursor" );
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
                 ImGui::Text( "ESC" );
 
                 ImGui::TableNextColumn();
@@ -287,6 +334,8 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
             }
 
             ImGui::Text( "Movement Speed" );
+            ImGui::SameLine();
+            HelpMarker( "CTRL + click the slider to input a value directly." );
             if ( ImGui::SliderFloat( "##Movement Speed", &movementSpeed, 0.1f, 1.0f, "%.1f" ) )
                 cameraControl->GetCurentCam()->SetCamSpeed( movementSpeed );
 

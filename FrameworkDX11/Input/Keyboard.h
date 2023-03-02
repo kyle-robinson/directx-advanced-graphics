@@ -42,6 +42,9 @@ public:
 	void DisableAutoRepeatChars() noexcept;
 	bool IsKeysAutoRepeat() const noexcept;
 	bool IsCharsAutoRepeat() const noexcept;
+	void ClearKey() noexcept;
+	void ClearChar() noexcept;
+	void Clear() noexcept;
 private:
 	bool autoRepeatKeys = false;
 	bool autoRepeatChars = false;

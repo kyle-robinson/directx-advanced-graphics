@@ -31,7 +31,6 @@ public:
 			Leave,
 			Invalid
 		};
-	public:
 		MouseEvent();
 		MouseEvent( const EventType type, const int x, const int y );
 		bool IsValid() const noexcept;
@@ -43,7 +42,6 @@ public:
 		EventType type;
 		int x, y;
 	};
-public:
 	void OnLeftPressed( int x, int y ) noexcept;
 	void OnLeftReleased( int x, int y ) noexcept;
 	void OnRightPressed( int x, int y ) noexcept;
@@ -56,7 +54,6 @@ public:
 	void OnMouseMoveRaw( int x, int y ) noexcept;
 	void OnMouseEnter( int x, int y ) noexcept;
 	void OnMouseLeave( int x, int y ) noexcept;
-public:
 	bool IsLeftDown() const noexcept;
 	bool IsRightDown() const noexcept;
 	bool IsMiddleDown() const noexcept;
@@ -66,6 +63,7 @@ public:
 	MousePoint GetPos() const noexcept;
 	bool EventBufferIsEmpty() const noexcept;
 	MouseEvent ReadEvent() noexcept;
+	void Clear() noexcept;
 private:
 	std::queue<MouseEvent> eventBuffer;
 	bool isLeftDown = false;

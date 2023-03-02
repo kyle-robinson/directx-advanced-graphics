@@ -124,3 +124,23 @@ bool Keyboard::IsCharsAutoRepeat() const noexcept
 {
 	return autoRepeatChars;
 }
+
+void Keyboard::ClearKey() noexcept
+{
+	while ( !keyBuffer.empty() )
+		keyBuffer.pop();
+	for ( int i = 0; i < 256; i++ )
+		keyStates[i] = false;
+}
+
+void Keyboard::ClearChar() noexcept
+{
+	while ( !charBuffer.empty() )
+		charBuffer.pop();
+}
+
+void Keyboard::Clear() noexcept
+{
+	ClearKey();
+	ClearChar();
+}
