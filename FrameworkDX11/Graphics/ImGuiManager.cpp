@@ -115,7 +115,14 @@ void ImGuiManager::SceneWindow( UINT width, UINT height, ID3D11ShaderResourceVie
             }
             else
             {
-                pInput->DisableImGuiMouse();
+                if ( m_bUsingManipulator )
+                {
+                    pInput->DisableImGuiMouse();
+                }
+                else
+                {
+                    pInput->EnableImGuiMouse();
+                }
             }
         }
 
@@ -1971,19 +1978,6 @@ void ImGuiManager::SpawnImGuizmo( Transform* pTransform, Camera* pCamera, XMFLOA
                 imguizmoData.CurrentGizmoOperation = ImGuizmo::SCALE;
             ImGui::PopID();
 
-            // Handle ImGuizmo operation for when using multiple manipulators
-            if ( imguizmoData.CurrentGizmoOperation == ImGuizmo::TRANSLATE && m_iActiveGizmoID == imguizmoData.ID )
-                m_bUsingTranslation = true;
-
-            if ( ImGuizmo::IsUsing() )
-            {
-                m_iActiveGizmoID = imguizmoData.ID;
-                if ( imguizmoData.CurrentGizmoOperation != ImGuizmo::TRANSLATE )
-                    m_bUsingTranslation = false;
-                else
-                    m_bUsingTranslation = true;
-            }
-
             ImGui::EndTable();
         }
 
@@ -2072,6 +2066,39 @@ void ImGuiManager::SpawnImGuizmo( Transform* pTransform, Camera* pCamera, XMFLOA
 
             XMFLOAT3 scale = XMFLOAT3( matrixScale[0], matrixScale[1], matrixScale[2] );
             pTransform->SetScale( scale );
+        }
+    }
+
+    // Handle ImGuizmo operation for when using multiple manipulators
+    if ( ImGuizmo::IsUsing() )
+        m_iActiveGizmoID = imguizmoData.ID;
+
+    if ( m_iActiveGizmoID == imguizmoData.ID )
+    {
+        if ( imguizmoData.CurrentGizmoOperation == ImGuizmo::TRANSLATE )
+        {
+            m_bUsingTranslation = true;
+            m_bUsingManipulator = false;
+        }
+        else if ( imguizmoData.CurrentGizmoOperation == ImGuizmo::ROTATE )
+        {
+            m_bUsingTranslation = false;
+            m_bUsingManipulator = true;
+            if ( !ImGuizmo::IsUsing() )
+            {
+                m_bUsingTranslation = true;
+                m_bUsingManipulator = false;
+            }
+        }
+        else if ( imguizmoData.CurrentGizmoOperation == ImGuizmo::SCALE )
+        {
+            m_bUsingTranslation = false;
+            m_bUsingManipulator = true;
+            if ( !ImGuizmo::IsUsing() )
+            {
+                m_bUsingTranslation = true;
+                m_bUsingManipulator = false;
+            }
         }
     }
 }
