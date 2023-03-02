@@ -42,11 +42,13 @@ bool Application::InitMesh()
         m_pSky = new DrawableGameObject( "Sky" );
         hr = m_pSky->GetAppearance()->InitMesh_Cube( m_gfx.GetDevice(), m_gfx.GetContext() );
         COM_ERROR_IF_FAILED( hr, "Failed to create SKY mesh!" );
+
         m_pSky->GetTransfrom()->SetScale( 100, 100, 100 );
         ID3D11ShaderResourceView* pSkyTexture = nullptr;
-        hr = CreateWICTextureFromFile( m_gfx.GetDevice(), L"Resources/Textures/clouds.jpg", nullptr, &pSkyTexture );
+        std::string skyTexName = "Resources/Textures/clouds.jpg";
+        hr = CreateWICTextureFromFile( m_gfx.GetDevice(), StringHelper::ToWide( skyTexName ).c_str(), nullptr, &pSkyTexture );
         COM_ERROR_IF_FAILED( hr, "Failed to create SKY texture!" );
-        m_pSky->GetAppearance()->SetTextureRV( pSkyTexture );
+        m_pSky->GetAppearance()->SetTextureRV( skyTexName, pSkyTexture );
 
         m_pGround = new DrawableGameObject( "Ground" );
         hr = m_pGround->GetAppearance()->InitMesh_Quad( m_gfx.GetDevice(), m_gfx.GetContext() );

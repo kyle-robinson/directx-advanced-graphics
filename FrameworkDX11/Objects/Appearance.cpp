@@ -147,9 +147,12 @@ bool Appearance::InitMesh_Cube( ID3D11Device* pDevice, ID3D11DeviceContext* pCon
 		pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
 		// Create textures
-		hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_TEX.dds", nullptr, &m_pTextureResourceView );
-		hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_NORM.dds", nullptr, &m_pNormalMapResourceView );
-		hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_DISP.dds", nullptr, &m_pParallaxMapResourceView );
+		m_sDiffuseName = "Resources/Textures/bricks_TEX.dds";
+		hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( m_sDiffuseName ).c_str(), nullptr, &m_pTextureResourceView );
+		m_sNormalName = "Resources/Textures/bricks_NORM.dds";
+		hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( m_sNormalName ).c_str(), nullptr, &m_pNormalMapResourceView );
+		m_sParallaxName = "Resources/Textures/bricks_DISP.dds";
+		hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( m_sParallaxName ).c_str(), nullptr, &m_pParallaxMapResourceView );
 		COM_ERROR_IF_FAILED( hr, "Failed to create a CUBE TEXTURE!" );
 
 		// Create sampler
@@ -253,9 +256,12 @@ bool Appearance::InitMesh_Quad( ID3D11Device* pDevice, ID3D11DeviceContext* pCon
 		COM_ERROR_IF_FAILED( hr, "Failed to create QUAD INDEX BUFFER!" );
 
 		// Create textures
-		hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_TEX.dds", nullptr, &m_pTextureResourceView );
-		hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_NORM.dds", nullptr, &m_pNormalMapResourceView );
-		hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/bricks_DISP.dds", nullptr, &m_pParallaxMapResourceView );
+		m_sDiffuseName = "Resources/Textures/bricks_TEX.dds";
+		hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( m_sDiffuseName ).c_str(), nullptr, &m_pTextureResourceView );
+		m_sNormalName = "Resources/Textures/bricks_NORM.dds";
+		hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( m_sNormalName ).c_str(), nullptr, &m_pNormalMapResourceView );
+		m_sParallaxName = "Resources/Textures/bricks_DISP.dds";
+		hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( m_sParallaxName ).c_str(), nullptr, &m_pParallaxMapResourceView );
 		COM_ERROR_IF_FAILED( hr, "Failed to create a QUAD TEXTURE!" );
 
 		// Create sampler

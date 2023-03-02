@@ -32,12 +32,17 @@ public:
 	bool SetVertexBuffer( ID3D11Device* pDevice, std::vector<SkinnedVertex>& vertices );
 	bool SetIndices( ID3D11Device* pDevice, std::vector<WORD>& indices );
 
+	inline std::string GetDiffuseName() const noexcept { return m_sDiffuseName; }
 	inline ID3D11ShaderResourceView** GetTextureResourceView() noexcept { return &m_pTextureResourceView; }
-	inline void SetTextureRV( ID3D11ShaderResourceView* textureRV ) noexcept { m_pTextureResourceView = textureRV; }
+	inline void SetTextureRV( std::string name, ID3D11ShaderResourceView* textureRV ) noexcept { m_sDiffuseName = name; m_pTextureResourceView = textureRV; }
+
+	inline std::string GetNormalName() const noexcept { return m_sNormalName; }
 	inline ID3D11ShaderResourceView** GetNormalMapResourceView() noexcept { return &m_pNormalMapResourceView; }
-	inline void SetNormalRV( ID3D11ShaderResourceView* textureRV ) noexcept { m_pNormalMapResourceView = textureRV; }
+	inline void SetNormalRV( std::string name, ID3D11ShaderResourceView* textureRV ) noexcept { m_sNormalName = name; m_pNormalMapResourceView = textureRV; }
+
+	inline std::string GetParallaxName() const noexcept { return m_sParallaxName; }
 	inline ID3D11ShaderResourceView** GetParallaxMapResourceView() noexcept { return &m_pParallaxMapResourceView; }
-	inline void SetParallaxRV( ID3D11ShaderResourceView* textureRV ) noexcept { m_pParallaxMapResourceView = textureRV; }
+	inline void SetParallaxRV( std::string name, ID3D11ShaderResourceView* textureRV ) noexcept { m_sParallaxName = name; m_pParallaxMapResourceView = textureRV; }
 	void SetTextures( ID3D11DeviceContext* pContext );
 
 	inline ID3D11SamplerState** GetTextureSamplerState() noexcept { return &m_pSamplerLinear; }
@@ -64,6 +69,10 @@ protected:
 
 	VertexBuffer<SimpleVertex> m_simpleVB;
 	IndexBuffer m_simpleIB;
+
+	std::string m_sDiffuseName = "";
+	std::string m_sNormalName = "";
+	std::string m_sParallaxName = "";
 
 	bool m_bDraw = true;
 	ID3D11SamplerState* m_pSamplerLinear;

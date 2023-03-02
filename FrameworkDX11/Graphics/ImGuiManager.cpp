@@ -519,7 +519,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
                     ImGui::Text( "Diffuse" );
 
                     ImGui::TableNextColumn();
-                    static std::string sDiffuseTex = "";
+                    static std::string sDiffuseTex = currObject->GetAppearance()->GetDiffuseName();
                     ImGui::Text( sDiffuseTex.c_str() );
 
                     ImGui::TableNextColumn();
@@ -553,7 +553,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
                                     hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
                                 }
                                 COM_ERROR_IF_FAILED( hr, "Failed to load DIFFUSE texture!" );
-                                currObject->GetAppearance()->SetTextureRV( pTexture );
+                                currObject->GetAppearance()->SetTextureRV( "Resources/Textures" + sDiffuseTex, pTexture );
                             }
                             catch ( COMException& exception )
                             {
@@ -570,7 +570,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
                     ImGui::Text( "Normal" );
 
                     ImGui::TableNextColumn();
-                    static std::string sNormalTex = "";
+                    static std::string sNormalTex = currObject->GetAppearance()->GetNormalName();
                     ImGui::Text( sNormalTex.c_str() );
 
                     ImGui::TableNextColumn();
@@ -604,7 +604,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
                                     hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
                                 }
                                 COM_ERROR_IF_FAILED( hr, "Failed to load NORMAL texture!" );
-                                currObject->GetAppearance()->SetNormalRV( pTexture );
+                                currObject->GetAppearance()->SetNormalRV( "Resources/Textures" + sNormalTex, pTexture );
                             }
                             catch ( COMException& exception )
                             {
@@ -621,7 +621,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
                     ImGui::Text( "Parallax" );
 
                     ImGui::TableNextColumn();
-                    static std::string sParallaxTex = "";
+                    static std::string sParallaxTex = currObject->GetAppearance()->GetParallaxName();
                     ImGui::Text( sParallaxTex.c_str() );
 
                     ImGui::TableNextColumn();
@@ -655,7 +655,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
                                     hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
                                 }
                                 COM_ERROR_IF_FAILED( hr, "Failed to load PARALLAX texture!" );
-                                currObject->GetAppearance()->SetParallaxRV( pTexture );
+                                currObject->GetAppearance()->SetParallaxRV( "Resources/Textures" + sParallaxTex, pTexture );
                             }
                             catch ( COMException& exception )
                             {
