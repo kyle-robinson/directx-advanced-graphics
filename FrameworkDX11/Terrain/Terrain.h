@@ -6,7 +6,7 @@
 #include "Structures.h"
 #include "CameraController.h"
 #include "ShaderController.h"
-#include "TerrainAppearence.h"
+#include "TerrainAppearance.h"
 #include "ConstantBuffer.h"
 #include "RandomHelper.h"
 
@@ -42,7 +42,7 @@ public:
 	float Average( int i, int j );
 	void Smooth();
 
-	inline TerrainAppearence* GetApperance() const noexcept { return m_pApperance; }
+	inline TerrainAppearance* GetApperance() const noexcept { return m_pApperance; }
 	inline Transform* GetTransfrom() const noexcept { return m_pTransform; }
 	void SetBlendMap( std::string name, ID3D11Device* pDevice );
 
@@ -64,7 +64,8 @@ public:
 
 	void SetTexHeights( float height1, float height2, float height3, float height4, float height5 );
 	inline std::vector<std::string> GetTexNames() const noexcept { return m_vTexGround; }
-	void SetTexture( std::vector<std::string> texGroundName, ID3D11Device* pDevice );
+	void SetTextures( std::vector<std::string> texGroundName, ID3D11Device* pDevice );
+	void SetTexture( int index, std::string texName, ID3D11ShaderResourceView* texture );
 
 	inline void SetDiamondSquareData( int seed, int range )
 	{
@@ -137,7 +138,7 @@ private:
 	// Grid data
 	XMFLOAT2 m_fGridSize;
 	Transform* m_pTransform;
-	TerrainAppearence* m_pApperance;
+	TerrainAppearance* m_pApperance;
 
 	// Texture data
 	float m_fCellSpacing = 1.0f;

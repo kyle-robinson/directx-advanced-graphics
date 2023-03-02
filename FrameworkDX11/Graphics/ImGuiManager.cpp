@@ -709,7 +709,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
 
         // Setup the ImGuizmo
         static bool useSnap = false;
-        static bool isVisible = true;
+        static bool isVisible = false;
         static XMFLOAT3 snapAmount = { 1.0f, 1.0f, 1.0f };
         static ImGuizmo::MODE mCurrentGizmoMode( ImGuizmo::WORLD );
         static ImGuizmo::OPERATION mCurrentGizmoOperation( ImGuizmo::TRANSLATE );
@@ -867,6 +867,7 @@ void ImGuiManager::LightMenu( LightController* lightControl )
         if ( ImGui::Checkbox( "Enabled?", &enable ) )
             currLightData.Enabled = enable;
 
+        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Light Data" ) )
         {
             ImGui::Text( "Position" );
@@ -879,6 +880,7 @@ void ImGuiManager::LightMenu( LightController* lightControl )
 
             ImGui::TreePop();
         }
+        ImGui::Separator();
 
         if ( ImGui::TreeNode( "Shadow Direction" ) )
         {
@@ -1436,7 +1438,7 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
 
             if ( ImGui::TreeNode( "Texture Controls" ) )
             {
-                if ( ImGui::BeginTable( "Texture Name", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp ) )
+                if ( ImGui::BeginTable( "Texture Name", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp ) )
                 {
                     ImGui::TableSetupColumn( "Name" );
                     ImGui::TableSetupColumn( "Texture" );
@@ -1459,6 +1461,48 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID
 
                         ImGui::TableNextColumn();
                         ImGui::Text( terrain->GetTexNames()[i].c_str() );
+
+                        ImGui::TableNextColumn();
+                        if ( ImGui::Button( "Load##Button" ) )
+                        {
+                            ImGuiFileDialog::Instance()->OpenDialog( std::string( "Load##" ).append( texType ).c_str(), "Load Terrain Texture", ".dds,.jpg,.png", "." );
+                            ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
+                            ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
+                        }
+
+                        if ( ImGuiFileDialog::Instance()->Display( std::string( "Load##" ).append( texType ).c_str() ) )
+                        {
+                            if ( ImGuiFileDialog::Instance()->IsOk() )
+                            {
+                                try
+                                {
+                                    std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+                                    std::string fileName = ImGuiFileDialog::Instance()->GetCurrentFileName();
+                                    ID3D11ShaderResourceView* pTexture = nullptr;
+                                    HRESULT hr = S_OK;
+                                    if ( filePath.find( ".dds" ) != std::string::npos )
+                                    {
+                                        hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                    }
+                                    else if ( filePath.find( ".jpg" ) != std::string::npos )
+                                    {
+                                        hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                    }
+                                    else if ( filePath.find( ".png" ) != std::string::npos )
+                                    {
+                                        hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                    }
+                                    COM_ERROR_IF_FAILED( hr, "Failed to load TERRAIN texture!" );
+                                    terrain->SetTexture( i, "Resources/Textures/" + fileName, pTexture );
+                                }
+                                catch ( COMException& exception )
+                                {
+                                    ErrorLogger::Log( exception );
+                                    return;
+                                }
+                            }
+                            ImGuiFileDialog::Instance()->Close();
+                        }
                     }
 
                     ImGui::EndTable();

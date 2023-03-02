@@ -11,12 +11,12 @@ struct TerrainVertex
     XMFLOAT2 BoundsY;
 };
 
-class TerrainAppearence : public Appearance
+class TerrainAppearance : public Appearance
 {
 public:
-    TerrainAppearence();
-    TerrainAppearence( UINT width, UINT length, float cellSpacing, std::vector<float> heightMap );
-    ~TerrainAppearence();
+    TerrainAppearance();
+    TerrainAppearance( UINT width, UINT length, float cellSpacing, std::vector<float> heightMap );
+    ~TerrainAppearance();
 
     void InitMesh_Terrain( ID3D11Device* pDevice );
     void InitMesh_Cube(
@@ -26,7 +26,8 @@ public:
         ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 
     inline std::vector<ID3D11ShaderResourceView*> GetTextureResourceView() const noexcept { return m_vGroundTextureRV; }
-    void SetTexture( std::vector<std::string> texName, ID3D11Device* pDevice );
+    void SetTextures( std::vector<std::string> texName, ID3D11Device* pDevice );
+    void SetTexture( int index, ID3D11ShaderResourceView* texture );
 
     inline void SetHeightData( std::vector<float> heightMap ) noexcept { m_vHeightMapData = heightMap; }
 

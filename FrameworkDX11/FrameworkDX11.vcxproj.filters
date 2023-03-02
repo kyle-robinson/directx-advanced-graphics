@@ -56,7 +56,7 @@
     <ClCompile Include="Terrain\Terrain.cpp">
       <Filter>Objects\Terrain</Filter>
     </ClCompile>
-    <ClCompile Include="Terrain\TerrainAppearence.cpp">
+    <ClCompile Include="Terrain\TerrainAppearance.cpp">
       <Filter>Objects\Terrain</Filter>
     </ClCompile>
     <ClCompile Include="Terrain\TerrainJsonLoad.cpp">
@@ -321,7 +321,7 @@
     <ClInclude Include="Terrain\Terrain.h">
       <Filter>Objects\Terrain</Filter>
     </ClInclude>
-    <ClInclude Include="Terrain\TerrainAppearence.h">
+    <ClInclude Include="Terrain\TerrainAppearance.h">
       <Filter>Objects\Terrain</Filter>
     </ClInclude>
     <ClInclude Include="Terrain\TerrainJsonLoad.h">

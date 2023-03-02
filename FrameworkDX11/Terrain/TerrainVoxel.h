@@ -5,7 +5,7 @@
 #include "Transform.h"
 #include "ShaderController.h"
 #include "CameraController.h"
-#include "TerrainAppearence.h"
+#include "TerrainAppearance.h"
 #include "ConstantBuffer.h"
 
 // Noise generator : https://github.com/Auburn/FastNoiseLite
@@ -42,7 +42,7 @@ public:
     inline void SetIsActive( bool isActive ) noexcept { m_bIsActive = isActive; }
 
     inline Transform* GetTransForm() const noexcept { return m_pCubeTransform; }
-    inline TerrainAppearence* GetAppearance() noexcept { return m_pCubeAppearance; }
+    inline TerrainAppearance* GetAppearance() noexcept { return m_pCubeAppearance; }
 
     void SetBlockType( BlockType block );
     inline VoxelCube GetCubeData() const noexcept { return m_cubeData; }
@@ -51,7 +51,7 @@ public:
 private:
     void CleanUp();
     Transform* m_pCubeTransform = nullptr;
-    TerrainAppearence* m_pCubeAppearance = nullptr;
+    TerrainAppearance* m_pCubeAppearance = nullptr;
 
     VoxelCube m_cubeData;
     bool m_bIsActive = false;

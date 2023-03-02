@@ -475,7 +475,7 @@
     <ClInclude Include="Objects\Transform.h" />
     <ClInclude Include="Resources\Resource.h" />
     <ClInclude Include="Terrain\Terrain.h" />
-    <ClInclude Include="Terrain\TerrainAppearence.h" />
+    <ClInclude Include="Terrain\TerrainAppearance.h" />
     <ClInclude Include="Terrain\TerrainJsonLoad.h" />
     <ClInclude Include="Terrain\TerrainVoxel.h" />
     <ClInclude Include="Utility\COMException.h" />
@@ -544,7 +544,7 @@
     <ClCompile Include="Objects\LightData.cpp" />
     <ClCompile Include="Objects\Transform.cpp" />
     <ClCompile Include="Terrain\Terrain.cpp" />
-    <ClCompile Include="Terrain\TerrainAppearence.cpp" />
+    <ClCompile Include="Terrain\TerrainAppearance.cpp" />
     <ClCompile Include="Terrain\TerrainJsonLoad.cpp" />
     <ClCompile Include="Terrain\TerrainVoxel.cpp" />
     <ClCompile Include="Utility\DataStucts.cpp" />

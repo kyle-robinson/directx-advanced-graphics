@@ -577,7 +577,7 @@ void Block::InitMesh_Cube(
     ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
     m_pCubeTransform = new Transform();
-    m_pCubeAppearance = new TerrainAppearence();
+    m_pCubeAppearance = new TerrainAppearance();
     m_pCubeAppearance->InitMesh_Cube( lXNegative, lXPositive, lYNegative, lYPositive, lZNegative, lZPositive, pDevice, pContext );
 }
 

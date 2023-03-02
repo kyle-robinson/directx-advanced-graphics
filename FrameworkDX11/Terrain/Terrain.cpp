@@ -72,7 +72,7 @@ Terrain::Terrain( std::string heightMapName, XMFLOAT2 size, double scale, Terrai
     m_eTerrainCreationType( genType )
 {
     m_pTransform = new Transform();
-    m_pApperance = new TerrainAppearence( m_iHeightMapHeight, m_iHeightMapWidth, 1.0f, m_vHeightMapData );
+    m_pApperance = new TerrainAppearance( m_iHeightMapHeight, m_iHeightMapWidth, 1.0f, m_vHeightMapData );
     shaderControl->NewTessellationShader( "Terrain", L"Terrain.hlsl", pDevice, pContext );
 
     CreateHeightData();
@@ -401,10 +401,16 @@ void Terrain::SetTexHeights( float height1, float height2, float height3, float 
     m_terrainCB.data.Layer5MaxHeight = height5;
 }
 
-void Terrain::SetTexture( std::vector<std::string> texGroundName, ID3D11Device* pDevice )
+void Terrain::SetTextures( std::vector<std::string> texGroundName, ID3D11Device* pDevice )
 {
-    m_pApperance->SetTexture( texGroundName, pDevice );
+    m_pApperance->SetTextures( texGroundName, pDevice );
     m_vTexGround = texGroundName;
+}
+
+void Terrain::SetTexture( int index, std::string texName, ID3D11ShaderResourceView* texture )
+{
+    m_pApperance->SetTexture( index, texture );
+    m_vTexGround[index] = texName;
 }
 
 void Terrain::BuildHeightMap( ID3D11Device* pDevice )

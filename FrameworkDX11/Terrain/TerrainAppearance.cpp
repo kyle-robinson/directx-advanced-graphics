@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "TerrainAppearence.h"
+#include "TerrainAppearance.h"
 
 static const float Infinity = FLT_MAX;
 
@@ -15,9 +15,9 @@ static T Max( const T& a, const T& b )
 	return a > b ? a : b;
 }
 
-TerrainAppearence::TerrainAppearence() {}
+TerrainAppearance::TerrainAppearance() {}
 
-TerrainAppearence::TerrainAppearence( UINT width, UINT length, float cellSpacing, std::vector<float> heightMap ) :
+TerrainAppearance::TerrainAppearance( UINT width, UINT length, float cellSpacing, std::vector<float> heightMap ) :
 	m_fHeightMapWidth( width ),
 	m_fHeightMapHeight( length ),
 	m_fCellSpacing( cellSpacing ),
@@ -31,9 +31,9 @@ TerrainAppearence::TerrainAppearence( UINT width, UINT length, float cellSpacing
 	m_iNumPatchQuadFaces = ( m_iNumPatchVertRows - 1 ) * ( m_iNumPatchVertCols - 1 );
 }
 
-TerrainAppearence::~TerrainAppearence() {}
+TerrainAppearance::~TerrainAppearance() {}
 
-void TerrainAppearence::InitMesh_Terrain( ID3D11Device* pDevice )
+void TerrainAppearance::InitMesh_Terrain( ID3D11Device* pDevice )
 {
 	BuildPatchVertex( pDevice );
 	BuildPatchIndex( pDevice );
@@ -49,7 +49,7 @@ void TerrainAppearence::InitMesh_Terrain( ID3D11Device* pDevice )
 	m_materialCB.data.Material.MinLayers = 10.0f;
 }
 
-void TerrainAppearence::InitMesh_Cube(
+void TerrainAppearance::InitMesh_Cube(
 	bool lXNegative, bool lXPositive,
 	bool lYNegative, bool lYPositive,
 	bool lZNegative, bool lZPositive,
@@ -210,25 +210,29 @@ void TerrainAppearence::InitMesh_Cube(
 	}
 }
 
-void TerrainAppearence::SetTexture( std::vector<std::string> texName, ID3D11Device* pDevice )
+void TerrainAppearance::SetTextures( std::vector<std::string> texNames, ID3D11Device* pDevice )
 {
-	ID3D11ShaderResourceView* res;
-	for ( auto texName : texName )
+	ID3D11ShaderResourceView* res = nullptr;
+	for ( auto name : texNames )
 	{
-		std::wstring wide_string = std::wstring( texName.begin(), texName.end() );
-		const wchar_t* result = wide_string.c_str();
-		CreateDDSTextureFromFile( pDevice, result, nullptr, &res );
+		std::wstring wide_string = std::wstring( name.begin(), name.end() );
+		CreateDDSTextureFromFile( pDevice, wide_string.c_str(), nullptr, &res );
 		m_vGroundTextureRV.push_back( res );
 	}
 }
 
-float TerrainAppearence::GetWidth()
+void TerrainAppearance::SetTexture( int index, ID3D11ShaderResourceView* texture )
+{
+	m_vGroundTextureRV[index] = texture;
+}
+
+float TerrainAppearance::GetWidth()
 {
 	// Total terrain width.
 	return ( m_fHeightMapWidth - 1 ) * m_fCellSpacing;
 }
 
-void TerrainAppearence::SetWidth( float width )
+void TerrainAppearance::SetWidth( float width )
 {
 	m_fHeightMapWidth = width;
 	// Divide heightmap into patches such that each patch has CellsPerPatch.
@@ -237,13 +241,13 @@ void TerrainAppearence::SetWidth( float width )
 	m_iNumPatchQuadFaces = ( m_iNumPatchVertRows - 1 ) * ( m_iNumPatchVertCols - 1 );
 }
 
-float TerrainAppearence::GetDepth()
+float TerrainAppearance::GetDepth()
 {
 	// Total terrain depth.
 	return ( m_fHeightMapHeight - 1 ) * m_fCellSpacing;
 }
 
-void TerrainAppearence::SetDepth( float depth )
+void TerrainAppearance::SetDepth( float depth )
 {
 	m_fHeightMapHeight = depth;
 	// Divide heightmap into patches such that each patch has CellsPerPatch.
@@ -252,7 +256,7 @@ void TerrainAppearence::SetDepth( float depth )
 	m_iNumPatchQuadFaces = ( m_iNumPatchVertRows - 1 ) * ( m_iNumPatchVertCols - 1 );
 }
 
-void TerrainAppearence::BuildPatchVertex( ID3D11Device* pDevice )
+void TerrainAppearance::BuildPatchVertex( ID3D11Device* pDevice )
 {
 	// Build the terrain grid
 	std::vector<TerrainVertex> patchVertices( m_iNumPatchVertRows * m_iNumPatchVertCols );
@@ -299,7 +303,7 @@ void TerrainAppearence::BuildPatchVertex( ID3D11Device* pDevice )
 	}
 }
 
-void TerrainAppearence::BuildPatchIndex( ID3D11Device* pDevice )
+void TerrainAppearance::BuildPatchIndex( ID3D11Device* pDevice )
 {
 	std::vector<WORD> indices( m_iNumPatchQuadFaces * 4 );
 
@@ -333,7 +337,7 @@ void TerrainAppearence::BuildPatchIndex( ID3D11Device* pDevice )
 	}
 }
 
-void TerrainAppearence::CalcAllPatchBoundsY()
+void TerrainAppearance::CalcAllPatchBoundsY()
 {
 	m_vPatchBoundsY.resize( m_iNumPatchQuadFaces );
 
@@ -347,7 +351,7 @@ void TerrainAppearence::CalcAllPatchBoundsY()
 	}
 }
 
-void TerrainAppearence::DrawTerrain( ID3D11DeviceContext* pContext )
+void TerrainAppearance::DrawTerrain( ID3D11DeviceContext* pContext )
 {
 	if ( m_bToDraw )
 	{
@@ -359,7 +363,7 @@ void TerrainAppearence::DrawTerrain( ID3D11DeviceContext* pContext )
 	}
 }
 
-void TerrainAppearence::CalcPatchBoundsY( UINT i, UINT j )
+void TerrainAppearance::CalcPatchBoundsY( UINT i, UINT j )
 {
 	// Scan the heightmap values this patch covers and compute the min/max height.
 	UINT x0 = j * m_iCellsPerPatch;

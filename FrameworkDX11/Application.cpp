@@ -78,7 +78,7 @@ bool Application::InitMesh()
     texGround.push_back( "Resources/Textures/lightdirt.dds" );
     texGround.push_back( "Resources/Textures/stone.dds" );
     texGround.push_back( "Resources/Textures/snow.dds" );
-    m_pTerrain->SetTexture( texGround, m_gfx.GetDevice() );
+    m_pTerrain->SetTextures( texGround, m_gfx.GetDevice() );
     m_pTerrain->SetBlendMap( "Resources/Textures/blend.dds", m_gfx.GetDevice() );
     m_pVoxelTerrain = new TerrainVoxel( m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController(), 3, 3 );
 
