@@ -49,8 +49,8 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
     {
-        //if ( imio.WantCaptureKeyboard )
-        //    return 0;
+        if ( imio.WantCaptureKeyboard )
+            return 0;
 
         unsigned char keycode = static_cast<unsigned char>( wParam );
         if ( m_keyboard.IsKeysAutoRepeat() )
@@ -74,8 +74,8 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     case WM_KEYUP:
     case WM_SYSKEYUP:
     {
-        //if ( imio.WantCaptureKeyboard )
-        //    return 0;
+        if ( imio.WantCaptureKeyboard )
+            return 0;
 
         unsigned char keycode = static_cast<unsigned char>( wParam );
         m_keyboard.OnKeyReleased( keycode );
@@ -83,8 +83,8 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     }
     case WM_CHAR:
     {
-        //if ( imio.WantCaptureKeyboard )
-        //    return 0;
+        if ( imio.WantCaptureKeyboard )
+            return 0;
 
         unsigned char ch = static_cast<unsigned char>( wParam );
         if ( m_keyboard.IsCharsAutoRepeat() )
@@ -101,6 +101,9 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     // Mouse Events
     case WM_MOUSEMOVE:
     {
+        if ( imio.WantCaptureMouse )
+            return 0;
+
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );
         const POINTS pt = MAKEPOINTS( lParam );
@@ -115,9 +118,6 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
             }
             return 0;
         }
-
-        //if ( imio.WantCaptureMouse )
-        //    return 0;
 
         if ( pt.x >= 0 && pt.x < windowSize.x && pt.y >= 0 && pt.y < windowSize.y )
         {
@@ -146,8 +146,9 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     case WM_LBUTTONDOWN:
     {
         SetForegroundWindow( m_window.GetHWND() );
-        //if ( imio.WantCaptureMouse )
-        //    return 0;
+
+        if ( imio.WantCaptureMouse )
+            return 0;
 
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );
@@ -162,8 +163,8 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     }
     case WM_LBUTTONUP:
     {
-        //if ( imio.WantCaptureMouse )
-        //    return 0;
+        if ( imio.WantCaptureMouse )
+            return 0;
 
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );
@@ -179,9 +180,6 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     }
     case WM_RBUTTONDOWN:
     {
-        //if ( imio.WantCaptureMouse )
-        //    return 0;
-
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );
         m_mouse.OnRightPressed( x, y );
@@ -190,9 +188,6 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     }
     case WM_RBUTTONUP:
     {
-        //if ( imio.WantCaptureMouse )
-        //    return 0;
-
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );
         m_mouse.OnRightReleased( x, y );
@@ -208,8 +203,8 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     }
     case WM_MBUTTONDOWN:
     {
-        //if ( imio.WantCaptureMouse )
-        //    return 0;
+        if ( imio.WantCaptureMouse )
+            return 0;
 
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );
@@ -218,8 +213,8 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     }
     case WM_MBUTTONUP:
     {
-        //if ( imio.WantCaptureMouse )
-        //    return 0;
+        if ( imio.WantCaptureMouse )
+            return 0;
 
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );
@@ -228,8 +223,8 @@ LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wPara
     }
     case WM_MOUSEWHEEL:
     {
-        //if ( imio.WantCaptureMouse )
-        //    return 0;
+        if ( imio.WantCaptureMouse )
+            return 0;
 
         int x = LOWORD( lParam );
         int y = HIWORD( lParam );

@@ -23,7 +23,7 @@ void Input::Update( float dt )
 
 void Input::UpdateMouse( float dt )
 {
-    // update camera orientation
+    // Update camera orientation
     while ( !m_mouse.EventBufferIsEmpty() )
     {
         Mouse::MouseEvent me = m_mouse.ReadEvent();
@@ -39,11 +39,13 @@ void Input::UpdateMouse( float dt )
             }
             HideCursor();
             DisableImGuiMouse();
+            m_bMovingCursor = true;
         }
-        else
+        else if ( m_bMovingCursor )
         {
             ShowCursor();
             EnableImGuiMouse();
+            m_bMovingCursor = false;
         }
     }
 }

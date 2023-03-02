@@ -538,9 +538,7 @@ void Application::Draw()
 
     // Render ImGui windows
     m_pImGuiManager->BeginRender();
-    //m_pInput->DisableCursor();
-    //m_pInput->EnableImGuiMouse();
-    m_pImGuiManager->SceneWindow( m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetRenderTargetController()->GetRenderTarget( "Final" )->GetTexture() );
+    m_pImGuiManager->SceneWindow( m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetRenderTargetController()->GetRenderTarget( "Final" )->GetTexture(), m_pInput );
     m_pImGuiManager->CameraMenu( m_pCamController );
     m_pImGuiManager->ObjectMenu( m_gfx.GetDevice(), m_pCamController->GetCurentCam(), gameObjects );
     m_pImGuiManager->LightMenu( m_pLightController );
@@ -548,8 +546,6 @@ void Application::Draw()
     m_pImGuiManager->BezierSplineMenu();
     m_pImGuiManager->TerrainMenu( m_pTerrain, m_pVoxelTerrain, m_gfx.GetDevice(), m_gfx.GetContext() );
     m_pImGuiManager->AnimationMenu( m_pAnimModel );
-    //m_pInput->DisableImGuiMouse();
-    //m_pInput->EnableCursor();
     m_pImGuiManager->EndRender();
 
     m_gfx.GetSwapChain()->Present( 1, 0 );

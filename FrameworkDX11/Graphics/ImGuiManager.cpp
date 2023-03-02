@@ -8,6 +8,7 @@
 #include "AnimatedModel.h"
 #include "TerrainVoxel.h"
 #include "Terrain.h"
+#include "Input.h"
 
 #include "imgui.h"
 #include "implot.h"
@@ -63,11 +64,23 @@ void ImGuiManager::EndRender()
     ImGui_ImplDX11_RenderDrawData( ImGui::GetDrawData() );
 }
 
-void ImGuiManager::SceneWindow( UINT width, UINT height, ID3D11ShaderResourceView* pTexture )
+void ImGuiManager::SceneWindow( UINT width, UINT height, ID3D11ShaderResourceView* pTexture, Input* pInput )
 {
     ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0.0f, 0.0f ) );
     if ( ImGui::Begin( "Scene Window", FALSE ) )
     {
+        if ( !pInput->GetIsMovingCursor() )
+        {
+            if ( ImGui::IsWindowFocused() )
+            {
+                pInput->DisableImGuiMouse();
+            }
+            else
+            {
+                pInput->EnableImGuiMouse();
+            }
+        }
+
         ImVec2 vRegionMax = ImGui::GetWindowContentRegionMax();
         ImVec2 vImageMax = ImVec2(
             vRegionMax.x + ImGui::GetWindowPos().x,
@@ -699,17 +712,18 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
         float* viewPtr = (float*)&view;
         XMFLOAT4X4 projection = pCamera->GetProjection();
         float* projectionPtr = (float*)&projection;
-        ImGuizmo::Manipulate( viewPtr, projectionPtr, mCurrentGizmoOperation, mCurrentGizmoMode, worldPtr );
+        if ( ImGuizmo::Manipulate( viewPtr, projectionPtr, mCurrentGizmoOperation, mCurrentGizmoMode, worldPtr ) )
+        {
+            // Update object parameters
+            XMFLOAT3 pos = XMFLOAT3( matrixTranslation[0], matrixTranslation[1], matrixTranslation[2] );
+            currObject->GetTransfrom()->SetPosition( pos );
 
-        // Update object parameters
-        XMFLOAT3 pos = XMFLOAT3( matrixTranslation[0], matrixTranslation[1], matrixTranslation[2] );
-        currObject->GetTransfrom()->SetPosition( pos );
+            XMFLOAT3 rot = XMFLOAT3( matrixRotation[0], matrixRotation[1], matrixRotation[2] );
+            currObject->GetTransfrom()->SetRotation( rot );
 
-        XMFLOAT3 rot = XMFLOAT3( matrixRotation[0], matrixRotation[1], matrixRotation[2] );
-        currObject->GetTransfrom()->SetRotation( rot );
-
-        XMFLOAT3 scale = XMFLOAT3( matrixScale[0], matrixScale[1], matrixScale[2] );
-        currObject->GetTransfrom()->SetScale( scale );
+            XMFLOAT3 scale = XMFLOAT3( matrixScale[0], matrixScale[1], matrixScale[2] );
+            currObject->GetTransfrom()->SetScale( scale );
+        }
 
         if ( ImGui::TreeNode( "Gizmo Controls" ) )
         {
