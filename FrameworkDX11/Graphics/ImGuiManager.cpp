@@ -71,13 +71,27 @@ void ImGuiManager::SceneWindow( UINT width, UINT height, ID3D11ShaderResourceVie
     {
         if ( !pInput->GetIsMovingCursor() )
         {
-            if ( ImGui::IsWindowFocused() )
+            if ( m_bUsingTranslation )
             {
-                pInput->DisableImGuiMouse();
+                if ( ImGui::IsWindowFocused() )
+                {
+                    pInput->DisableImGuiMouse();
+                }
+                else
+                {
+                    pInput->EnableImGuiMouse();
+                }
             }
             else
             {
-                pInput->EnableImGuiMouse();
+                if ( ImGuizmo::IsOver() || ImGuizmo::IsUsing() )
+                {
+                    pInput->DisableImGuiMouse();
+			    }
+                else
+                {
+                    pInput->EnableImGuiMouse();
+                }
             }
         }
 
@@ -200,7 +214,6 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
         }
         ImGui::Separator();
 
-        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Info" ) )
         {
             for ( int n = 0; n < cameraControl->GetCamList().size(); n++ )
@@ -248,7 +261,6 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
         }
         ImGui::Separator();
 
-        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Controls" ) )
         {
             ImGui::Text( "Currrent Camera" );
@@ -484,7 +496,6 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
         }
         ImGui::Separator();
 
-        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Texture Controls" ) )
         {
             MaterialPropertiesCB materialData = currObject->GetAppearance()->GetMaterialData();
@@ -697,42 +708,120 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
         ImGui::Separator();
 
         // Setup the ImGuizmo
-        static ImGuizmo::OPERATION mCurrentGizmoOperation( ImGuizmo::TRANSLATE );
+        static bool useSnap = false;
+        static bool isVisible = true;
+        static XMFLOAT3 snapAmount = { 1.0f, 1.0f, 1.0f };
         static ImGuizmo::MODE mCurrentGizmoMode( ImGuizmo::WORLD );
+        static ImGuizmo::OPERATION mCurrentGizmoOperation( ImGuizmo::TRANSLATE );
         ImGuizmo::SetRect( m_vSceneWindowPos.x, m_vSceneWindowPos.y, m_vSceneWindowSize.x, m_vSceneWindowSize.y );
 
-        // Decompose/recompose matrix
-        float* worldPtr = (float*)&world;
-        float matrixTranslation[3], matrixRotation[3], matrixScale[3];
-        ImGuizmo::DecomposeMatrixToComponents( worldPtr, matrixTranslation, matrixRotation, matrixScale );
-        ImGuizmo::RecomposeMatrixFromComponents( matrixTranslation, matrixRotation, matrixScale, worldPtr );
-
-        // Handle manipulation of the gizmo
-        XMFLOAT4X4 view = pCamera->GetView();
-        float* viewPtr = (float*)&view;
-        XMFLOAT4X4 projection = pCamera->GetProjection();
-        float* projectionPtr = (float*)&projection;
-        if ( ImGuizmo::Manipulate( viewPtr, projectionPtr, mCurrentGizmoOperation, mCurrentGizmoMode, worldPtr ) )
-        {
-            // Update object parameters
-            XMFLOAT3 pos = XMFLOAT3( matrixTranslation[0], matrixTranslation[1], matrixTranslation[2] );
-            currObject->GetTransfrom()->SetPosition( pos );
-
-            XMFLOAT3 rot = XMFLOAT3( matrixRotation[0], matrixRotation[1], matrixRotation[2] );
-            currObject->GetTransfrom()->SetRotation( rot );
-
-            XMFLOAT3 scale = XMFLOAT3( matrixScale[0], matrixScale[1], matrixScale[2] );
-            currObject->GetTransfrom()->SetScale( scale );
-        }
-
+        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Gizmo Controls" ) )
         {
+            ImGui::Text( "Gizmo Operation" );
+            if ( ImGui::BeginTable( "Gizmo Operation##Table", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchSame ) )
+            {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                if ( ImGui::RadioButton( "Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE ) )
+                    mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+
+                ImGui::TableNextColumn();
+                if ( ImGui::RadioButton( "Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE ) )
+                    mCurrentGizmoOperation = ImGuizmo::ROTATE;
+
+                ImGui::TableNextColumn();
+                if ( ImGui::RadioButton( "Scale", mCurrentGizmoOperation == ImGuizmo::SCALE ) )
+                    mCurrentGizmoOperation = ImGuizmo::SCALE;
+
+                switch ( mCurrentGizmoOperation )
+                {
+                case ImGuizmo::TRANSLATE: m_bUsingTranslation = true; break;
+                case ImGuizmo::ROTATE: m_bUsingTranslation = false; break;
+                case ImGuizmo::SCALE: m_bUsingTranslation = false; break;
+                }
+
+                ImGui::EndTable();
+            }
+
+            if ( mCurrentGizmoOperation != ImGuizmo::SCALE )
+            {
+                ImGui::Text( "Gizmo Mode" );
+                if ( ImGui::BeginTable( "Gizmo Mode##Table", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchSame ) )
+                {
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        if ( ImGui::RadioButton( "World", mCurrentGizmoMode == ImGuizmo::WORLD ) )
+                            mCurrentGizmoMode = ImGuizmo::WORLD;
+
+                        ImGui::TableNextColumn();
+                        if ( ImGui::RadioButton( "Local", mCurrentGizmoMode == ImGuizmo::LOCAL ) )
+                            mCurrentGizmoMode = ImGuizmo::LOCAL;
+
+                        ImGui::NextColumn();
+                        // Extra column to better fit radio buttons
+
+                    ImGui::EndTable();
+                }
+            }
+
+            if ( ImGui::BeginTable( "Gizmo Options", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchProp ) )
+            {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Checkbox( "Visible?", &isVisible );
+
+                ImGui::TableNextColumn();
+                static bool enable = true;
+                if ( ImGui::Checkbox( "Enable?", &enable ) )
+                    ImGuizmo::Enable( enable );
+
+                ImGui::TableNextColumn();
+                ImGui::Checkbox( "Use Snapping?", &useSnap );
+
+                ImGui::EndTable();
+            }
+
+            if ( useSnap )
+            {
+                ImGui::Text( "Snap Amount" );
+                static float snapAmountCopy = 1.0f;
+                if ( ImGui::SliderFloat( "##Snap", &snapAmountCopy, 0.0f, 2.5f ) )
+                    snapAmount = XMFLOAT3( snapAmountCopy, snapAmountCopy, snapAmountCopy );
+            }
 
             ImGui::TreePop();
         }
+
+        if ( isVisible )
+        {
+            // Decompose/recompose matrix
+            float* worldPtr = (float*)&world;
+            float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+            ImGuizmo::DecomposeMatrixToComponents( worldPtr, matrixTranslation, matrixRotation, matrixScale );
+            ImGuizmo::RecomposeMatrixFromComponents( matrixTranslation, matrixRotation, matrixScale, worldPtr );
+
+            // Handle manipulation of the gizmo
+            XMFLOAT4X4 view = pCamera->GetView();
+            float* viewPtr = (float*)&view;
+            XMFLOAT4X4 projection = pCamera->GetProjection();
+            float* projectionPtr = (float*)&projection;
+
+            if ( ImGuizmo::Manipulate( viewPtr, projectionPtr, mCurrentGizmoOperation, mCurrentGizmoMode, worldPtr, NULL, useSnap ? &snapAmount.x : NULL ) )
+            {
+                // Update object parameters
+                XMFLOAT3 pos = XMFLOAT3( matrixTranslation[0], matrixTranslation[1], matrixTranslation[2] );
+                currObject->GetTransfrom()->SetPosition( pos );
+
+                XMFLOAT3 rot = XMFLOAT3( matrixRotation[0], matrixRotation[1], matrixRotation[2] );
+                currObject->GetTransfrom()->SetRotation( rot );
+
+                XMFLOAT3 scale = XMFLOAT3( matrixScale[0], matrixScale[1], matrixScale[2] );
+                currObject->GetTransfrom()->SetScale( scale );
+            }
+        }
     }
     ImGui::End();
-
 }
 
 void ImGuiManager::LightMenu( LightController* lightControl )
@@ -774,17 +863,22 @@ void ImGuiManager::LightMenu( LightController* lightControl )
             ImGui::EndCombo();
         }
 
-        ImGui::Text( "Position" );
-        ImGui::DragFloat3( "##Position", &currLightData.Position.x, 1.0f, -10.0f, 10.0f );
-
-        ImGui::Text( "Colour" );
-        float colour[] = { currLightData.Color.x, currLightData.Color.y, currLightData.Color.z, currLightData.Color.w };
-        if ( ImGui::ColorEdit4( "##Colour", colour, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_DisplayRGB ) )
-            currLightData.Color = { colour[0], colour[1], colour[2], colour[3] };
-
         bool enable = currLightData.Enabled;
         if ( ImGui::Checkbox( "Enabled?", &enable ) )
             currLightData.Enabled = enable;
+
+        if ( ImGui::TreeNode( "Light Data" ) )
+        {
+            ImGui::Text( "Position" );
+            ImGui::DragFloat3( "##Position", &currLightData.Position.x, 1.0f, -10.0f, 10.0f );
+
+            ImGui::Text( "Colour" );
+            float colour[] = { currLightData.Color.x, currLightData.Color.y, currLightData.Color.z, currLightData.Color.w };
+            if ( ImGui::ColorEdit4( "##Colour", colour, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_DisplayRGB ) )
+                currLightData.Color = { colour[0], colour[1], colour[2], colour[3] };
+
+            ImGui::TreePop();
+        }
 
         if ( ImGui::TreeNode( "Shadow Direction" ) )
         {

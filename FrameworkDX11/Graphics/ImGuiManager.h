@@ -41,6 +41,7 @@ private:
 	void SetUbuntuTheme();
 	void SetBlackGoldTheme();
 
+	bool m_bUsingTranslation = true;
 	std::vector<XMFLOAT2> m_vPoints;
 	XMFLOAT2 m_vSceneWindowPos = { 0.0f, 0.0f };
 	XMFLOAT2 m_vSceneWindowSize = { 0.0f, 0.0f };
