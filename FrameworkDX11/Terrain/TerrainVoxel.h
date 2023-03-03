@@ -119,7 +119,6 @@ private:
     XMFLOAT3 m_fDefaultChunkSize;
     ConstantBuffer<VoxelCube> m_cubeInfoCB;
     std::vector<std::vector<Chunk*>> m_vChunkData;
-    std::vector<ID3D11ShaderResourceView*> m_pGroundTextureRV;
 };
 
 #endif

@@ -119,7 +119,7 @@ bool AabbOutsideFrustumTest( XMFLOAT3 center, XMFLOAT3 min, XMFLOAT3 max, std::v
 
 #pragma region TERRAIN-VOXEL
 TerrainVoxel::TerrainVoxel( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ShaderController* shaderControl, int numOfChunks_X, int numOfChunks_Z ) :
-    m_fDefaultChunkSize( XMFLOAT3( 8.0f, 0.0f, 8.0f ) ),
+    m_fDefaultChunkSize( XMFLOAT3( 16.0f, 0.0f, 16.0f ) ),
     m_iNumOfChunksX( numOfChunks_X ),
     m_iNumOfChunksZ( numOfChunks_Z ),
     m_iNumOfChunks( numOfChunks_X * numOfChunks_Z )
@@ -127,28 +127,12 @@ TerrainVoxel::TerrainVoxel( ID3D11Device* pDevice, ID3D11DeviceContext* pContext
     shaderControl->NewShader( "Voxel", L"Voxel.hlsl", pDevice, pContext );
     m_vChunkData.resize( m_iNumOfChunksX );
 
-    std::vector<std::string> texGround;
-    texGround.push_back( "Resources/Textures/grass.dds" );
-    texGround.push_back( "Resources/Textures/darkdirt.dds" );
-    texGround.push_back( "Resources/Textures/lightdirt.dds" );
-    texGround.push_back( "Resources/Textures/stone.dds" );
-    texGround.push_back( "Resources/Textures/snow.dds" );
-    ID3D11ShaderResourceView* res;
-
-    for ( auto texName : texGround )
-    {
-        std::wstring wide_string = std::wstring( texName.begin(), texName.end() );
-        const wchar_t* result = wide_string.c_str();
-        CreateDDSTextureFromFile( pDevice, result, nullptr, &res );
-        m_pGroundTextureRV.push_back( res );
-    }
-
     int xIdx = 0;
     // Center the terrain and move it in front of the spawn location
     for ( float x = -( m_iNumOfChunksX / 2 ); x < m_iNumOfChunksX / 2; x++ )
     {
         m_vChunkData.push_back( std::vector<Chunk*>() );
-        for ( float z = 1; z < m_iNumOfChunksZ + 1; z++ )
+        for ( float z = 0.5f; z < m_iNumOfChunksZ + 0.5f; z++ )
         {
             m_vChunkData[xIdx].push_back( new Chunk( pDevice, pContext,
                 XMFLOAT3( ( m_fDefaultChunkSize.x * 2 ) * x, 0,
@@ -181,12 +165,11 @@ void TerrainVoxel::Draw( ID3D11DeviceContext* pContext, ShaderController* shader
         pContext->VSSetShader( shaderControl->GetShaderByName( "Voxel" ).m_pVertexShader, nullptr, 0 );
         pContext->VSSetConstantBuffers( 0, 1, buffer.GetAddressOf() );
         pContext->PSSetShader( shaderControl->GetShaderByName( "Voxel" ).m_pPixelShader, nullptr, 0 );
-        pContext->PSSetShaderResources( 0, 5, m_pGroundTextureRV.data() );
         pContext->PSSetConstantBuffers( 3, 1, m_cubeInfoCB.GetAddressOf() );
 
         // Setup frustrum planes for culling terrain when not in view
-        XMFLOAT4X4 viewAsFloats = camControl->GetCam( 1 )->GetView();
-        XMFLOAT4X4 projectionAsFloats = camControl->GetCam( 1 )->GetProjection();
+        XMFLOAT4X4 viewAsFloats = camControl->GetCam( 0 )->GetView();
+        XMFLOAT4X4 projectionAsFloats = camControl->GetCam( 0 )->GetProjection();
 
         XMMATRIX RTTview = XMLoadFloat4x4( &viewAsFloats );
         XMMATRIX RTTprojection = XMLoadFloat4x4( &projectionAsFloats );
@@ -272,13 +255,6 @@ void TerrainVoxel::CleanUp()
         chunk.clear();
     }
     m_vChunkData.clear();
-
-    for ( auto texRes : m_pGroundTextureRV )
-    {
-        if ( texRes ) texRes->Release();
-        texRes = nullptr;
-    }
-    m_pGroundTextureRV.clear();
 }
 #pragma endregion
 
@@ -314,8 +290,8 @@ void Chunk::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl
     ConstantBuffer<MatrixBuffer>& buffer, ConstantBuffer<VoxelCube>& voxelBuffer, CameraController* camControl )
 {
     // Setup frustrum planes for culling terrain when not in view
-    XMFLOAT4X4 viewAsFloats = camControl->GetCam( 1 )->GetView();
-    XMFLOAT4X4 projectionAsFloats = camControl->GetCam( 1 )->GetProjection();
+    XMFLOAT4X4 viewAsFloats = camControl->GetCam( 0 )->GetView();
+    XMFLOAT4X4 projectionAsFloats = camControl->GetCam( 0 )->GetProjection();
 
     XMMATRIX RTTview = XMLoadFloat4x4( &viewAsFloats );
     XMMATRIX RTTprojection = XMLoadFloat4x4( &projectionAsFloats );

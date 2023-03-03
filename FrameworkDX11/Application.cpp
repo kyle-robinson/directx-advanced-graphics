@@ -44,7 +44,6 @@ bool Application::InitMesh()
         m_pSky = new DrawableGameObject( "Sky" );
         hr = m_pSky->GetAppearance()->InitMesh_Cube( m_gfx.GetDevice(), m_gfx.GetContext() );
         COM_ERROR_IF_FAILED( hr, "Failed to create SKY mesh!" );
-        m_pSky->GetTransfrom()->SetScale( 100.0f, 100.0f, 100.0f );
         ID3D11ShaderResourceView* pSkyTexture = nullptr;
         std::string skyTexName = "clouds.jpg";
         hr = CreateWICTextureFromFile( m_gfx.GetDevice(), StringHelper::ToWide( FOLDER_PATH + skyTexName ).c_str(), nullptr, &pSkyTexture );
@@ -99,17 +98,10 @@ bool Application::InitWorld()
 {
     // Initialize the camera
     m_pCamController = new CameraController();
-
     m_pCamera = new Camera( XMFLOAT3( 0.0f, 0.0f, -5.0f ), XMFLOAT3( 0.0f, 0.0f, 0.0f ),
         XMFLOAT3( 0.0f, 1.0f, 0.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 175.0f );
     m_pCamera->SetCamName( "Free Camera" );
     m_pCamController->AddCam( m_pCamera );
-
-    m_pCamera = new Camera( XMFLOAT3( 0.0f, 0.0f, -5 ), XMFLOAT3( 0.0f, 0.0f, 0.0f ),
-        XMFLOAT3( 0.0f, 1.0f, 0.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 50.0f );
-    m_pCamera->SetCamName( "Voxel Camera" );
-    m_pCamController->AddCam( m_pCamera );
-
     m_pInput->AddCamControl( m_pCamController );
 
     // Post settings
@@ -192,10 +184,19 @@ void Application::Update()
     m_pCamController->Update();
     m_pTerrain->Update();
 
-    // Update the cube transform, material etc.
+    // Can't adjust far plane when drawing voxels
+    if ( *m_pVoxelTerrain->GetIsDraw() )
+        m_pCamController->GetCurentCam()->SetFar( 100.0f );
+
+    // Update the skybox based on the camera
     m_pSky->Update( dt, m_gfx.GetContext() );
     m_pSky->GetTransfrom()->SetPosition( m_pCamController->GetCurentCam()->GetPosition() );
+    float farPlane = m_pCamController->GetCurentCam()->GetFar();
+    static float farPlaneOffset = 0.5f;
+    m_pSky->GetTransfrom()->SetScale( farPlane * farPlaneOffset,
+        farPlane * farPlaneOffset, farPlane * farPlaneOffset );
 
+    // Update the cube transform, material etc.
     m_pCube->Update( dt, m_gfx.GetContext() );
     for ( unsigned int i = 0; i < m_pWalls.size(); i++ )
         m_pWalls[i]->Update( dt, m_gfx.GetContext() );
@@ -558,12 +559,12 @@ void Application::Draw()
     // Render ImGui windows
     m_pImGuiManager->BeginRender();
     m_pImGuiManager->SceneWindow( m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetRenderTargetController()->GetRenderTarget( "Final" )->GetTexture(), m_pInput );
-    m_pImGuiManager->CameraMenu( m_pCamController );
+    m_pImGuiManager->CameraMenu( m_pCamController, *m_pVoxelTerrain->GetIsDraw() );
     m_pImGuiManager->ObjectMenu( m_gfx.GetDevice(), m_pCamController->GetCurentCam(), gameObjects );
     m_pImGuiManager->LightMenu( m_pLightController );
     m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_postProcessingCB.data, m_gfx.GetRasterizerController() );
     m_pImGuiManager->BezierSplineMenu();
-    m_pImGuiManager->TerrainMenu( m_pTerrain, m_pVoxelTerrain, m_pCamController, m_gfx.GetDevice(), m_gfx.GetContext() );
+    m_pImGuiManager->TerrainMenu( m_gfx.GetDevice(), m_gfx.GetContext(), m_pTerrain, m_pVoxelTerrain );
     m_pImGuiManager->AnimationMenu( m_pAnimModel, m_pCamController->GetCurentCam() );
     m_pImGuiManager->EndRender();
 

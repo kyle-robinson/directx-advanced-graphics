@@ -11,6 +11,7 @@
 #include "Input.h"
 
 #include "implot.h"
+#include "imgui_internal.h"
 #include "fileDialog/ImGuiFileDialog.h"
 #include "backends/imgui_impl_dx11.h"
 #include "backends/imgui_impl_win32.h"
@@ -164,47 +165,29 @@ void ImGuiManager::SceneWindow( UINT width, UINT height, ID3D11ShaderResourceVie
     ImGui::PopStyleVar();
 }
 
-void ImGuiManager::CameraMenu( CameraController* cameraControl )
+void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels )
 {
     static std::string sName = cameraControl->GetCurentCam()->GetCamName();
     static const char* cCurrentItem = sName.c_str();
 
     if ( ImGui::Begin( "Cameras", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
+        float movementSpeed = cameraControl->GetCurentCam()->GetCamSpeed();
+        float nearPlane = cameraControl->GetCurentCam()->GetNear();
+        float farPlane = cameraControl->GetCurentCam()->GetFar();
+
         ImGui::Text( "Current Camera" );
-        static float movementSpeed = cameraControl->GetCurentCam()->GetCamSpeed();
-        static float nearPlane = cameraControl->GetCurentCam()->GetNear();
-        static float farPlane = cameraControl->GetCurentCam()->GetFar();
-
-        std::function<void(int index)> UpdateCamera = [&](int index) -> void
-        {
-            sName = cameraControl->GetCamList()[index]->GetCamName();
-            cameraControl->SetCam( index );
-            cCurrentItem = sName.c_str();
-            movementSpeed = cameraControl->GetCurentCam()->GetCamSpeed();
-            nearPlane = cameraControl->GetCurentCam()->GetNear();
-            farPlane = cameraControl->GetCurentCam()->GetFar();
-        };
-
-        // Update camera when drawing voxel terrain
-        for ( int n = 0; n < cameraControl->GetCamList().size(); n++ )
-        {
-            if ( m_bUpdateCamera && cameraControl->GetCamList()[n]->GetCamName() == "Voxel Camera" )
-            {
-                m_bUpdateCamera = false;
-                UpdateCamera( n );
-            }
-        }
-
         if ( ImGui::BeginCombo( "##Combo", cCurrentItem ) )
         {
-            for ( int n = 0; n < cameraControl->GetCamList().size(); n++ )
+            for ( int i = 0; i < cameraControl->GetCamList().size(); i++ )
             {
-                bool is_selected = ( cCurrentItem == cameraControl->GetCamList()[n]->GetCamName().c_str() );
+                bool is_selected = ( cCurrentItem == cameraControl->GetCamList()[i]->GetCamName().c_str() );
 
-                if ( ImGui::Selectable( cameraControl->GetCamList()[n]->GetCamName().c_str(), is_selected ) )
+                if ( ImGui::Selectable( cameraControl->GetCamList()[i]->GetCamName().c_str(), is_selected ) )
                 {
-                    UpdateCamera( n );
+                    sName = cameraControl->GetCamList()[i]->GetCamName();
+                    cCurrentItem = sName.c_str();
+                    cameraControl->SetCam( i );
                 }
 
                 if ( is_selected )
@@ -334,14 +317,17 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
             ImGui::Text( "Near Plane" );
             ImGui::SameLine();
             HelpMarker( DRAG_HINT_TEXT );
-            if ( ImGui::DragFloat( "##Near Plane", &nearPlane, 0.1f, 0.0f, 10.0f ) )
+            if ( ImGui::DragFloat( "##Near Plane", &nearPlane, 0.01f, 0.01f, 10.0f ) )
                 cameraControl->GetCurentCam()->SetNear( nearPlane );
 
             ImGui::Text( "Far Plane" );
             ImGui::SameLine();
             HelpMarker( DRAG_HINT_TEXT );
-            if ( ImGui::DragFloat( "##Far Plane", &farPlane, 0.1f, 50.0f, 200.0f ) )
+            if ( usingVoxels ) ImGui::TextColored( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ), "Can't adjust far plane while drawing voxel terrain!" );
+            ImGui::PushItemFlag( ImGuiItemFlags_Disabled, usingVoxels );
+            if ( ImGui::DragFloat( "##Far Plane", &farPlane, 0.1f, 100.0f, 200.0f ) )
                 cameraControl->GetCurentCam()->SetFar( farPlane );
+            ImGui::PopItemFlag();
 
             ImGui::Text( "Movement Speed" );
             ImGui::SameLine();
@@ -1139,7 +1125,7 @@ void ImGuiManager::BezierSplineMenu()
     ImGui::End();
 }
 
-void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, CameraController* camControl, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
+void ImGuiManager::TerrainMenu( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, Terrain* terrain, TerrainVoxel* voxelTerrain )
 {
     if ( ImGui::Begin( "Terrain", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
@@ -1587,15 +1573,7 @@ void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, Ca
 
         if ( ImGui::TreeNode( "Voxel Terrain" ) )
         {
-            if ( ImGui::Checkbox( "Draw Voxels?", voxelTerrain->GetIsDraw() ) )
-            {
-                // Only switch camera when drawing voxels
-                if ( *voxelTerrain->GetIsDraw() )
-                {
-                    m_bUpdateCamera = true;
-                    camControl->SetCam( "Voxel Camera" );
-                }
-            }
+            ImGui::Checkbox( "Draw Voxels?", voxelTerrain->GetIsDraw() );
 
             if ( *voxelTerrain->GetIsDraw() )
             {

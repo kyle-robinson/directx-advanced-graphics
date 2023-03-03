@@ -1,7 +1,3 @@
-// Resources
-Texture2D texLayerMapArray[5] : register( t0 );
-SamplerState smpLinear : register( s0 );
-
 // Constant Buffers
 cbuffer VoxelCube : register( b3 )
 {
@@ -20,27 +16,24 @@ struct PS_INPUT
 
 float4 PS( PS_INPUT input ) : SV_TARGET
 {
-    float4 texColor = { 0.0f, 1.0f, 0.0f, 1.0f };
-    float4 water = { 0.0f, 0.0f, 1.0f, 1.0f };
-    float4 stone = { 0.69f, 0.70f, 0.70f, 1.0f };
-    float4 snow = { 0.0f, 0.0f, 0.0f, 1.0f };
-	float4 c0 = texLayerMapArray[0].Sample( smpLinear, input.Tex );
-	float4 c1 = texLayerMapArray[1].Sample( smpLinear, input.Tex );
-	float4 c2 = texLayerMapArray[2].Sample( smpLinear, input.Tex );
-	float4 c3 = texLayerMapArray[3].Sample( smpLinear, input.Tex );
-	float4 c4 = texLayerMapArray[4].Sample( smpLinear, input.Tex );
+    float4 texColor = { 1.0f, 0.0f, 0.0f, 1.0f };
+    float4 water = { 0.1f, 0.1f, 0.5f, 1.0f };
+    float4 grass = { 0.1f, 0.5f, 0.1f, 1.0f };
+    float4 lightDirt = { 0.8f, 0.6f, 0.5f, 1.0f };
+    float4 darkDirt = { 0.5f, 0.3f, 0.1f, 1.0f };
+    float4 stone = { 0.6f, 0.6f, 0.6f, 1.0f };
+    float4 snow = { 0.9f, 0.9f, 0.9f, 1.0f };
 
-	float blendFactor = 0.0f;
 	if ( CubeType == 1 )
 		texColor = water;
 	else if ( CubeType == 2 )
-		texColor = c0;
+		texColor = lightDirt;
 	else if ( CubeType == 3 )
 		texColor = snow;
 	else if ( CubeType == 4 )
         texColor = stone;
 	else if ( CubeType == 5 )
-		texColor = c3;
+		texColor = grass;
 
 	return texColor;
 }
