@@ -1834,7 +1834,7 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel, Camera* pCamera )
                 // Set animation
                 static std::vector<std::string> animationName = animModel->GetSkeleton()->AnimationClips();
                 static const char* cCurrentItem = animationName[0].c_str();
-                static int selectedIdx = 0;
+                static std::string currAnimName = animationName[0];
 
                 ImGui::Text( "Animation Clip" );
                 if ( ImGui::BeginCombo( "##Combo", cCurrentItem ) )
@@ -1844,19 +1844,31 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel, Camera* pCamera )
                         bool is_selected = ( cCurrentItem == animationName[n].c_str() );
                         if ( ImGui::Selectable( animationName[n].c_str(), is_selected ) )
                         {
+                            currAnimName = animationName[n];
                             cCurrentItem = animationName[n].c_str();
-                            if ( is_selected )
-                            {
-                                animModel->SetAnimation( cCurrentItem );
-                                ImGui::SetItemDefaultFocus();
-                                selectedIdx = n;
-                            }
+                            animModel->SetAnimation( cCurrentItem );
+
+                            // Update rotation since some animations are not facing the right direction
+                            float rotOffset = 180.0f;
+                            if ( currAnimName == "T-Pose" )
+                                rotOffset = 180.0f;
+                            else if ( currAnimName == "Walk" )
+                                rotOffset = -180.0f;
+                            animModel->GetTransform()->SetRotation(
+                                animModel->GetTransform()->GetRotation().x,
+                                animModel->GetTransform()->GetRotation().y + rotOffset,
+                                animModel->GetTransform()->GetRotation().z );
+                        }
+
+                        if ( is_selected )
+                        {
+                            ImGui::SetItemDefaultFocus();
                         }
                     }
                     ImGui::EndCombo();
                 }
 
-                if ( animationName[selectedIdx] == "Walk" )
+                if ( currAnimName == "Walk" )
                 {
                     static bool isLoop = animModel->GetIsLoop();
                     if ( ImGui::Checkbox( "Loop Animation?", &isLoop ) )

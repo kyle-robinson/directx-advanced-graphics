@@ -101,19 +101,6 @@ bool Application::InitWorld()
     m_pCamController->AddCam( pCamera );
     m_pInput->AddCamControl( m_pCamController );
 
-    // Post settings
-    m_postProcessingCB.data.UseColour = false;
-    m_postProcessingCB.data.Color = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-    m_postProcessingCB.data.UseBloom = false;
-    m_postProcessingCB.data.UseDepthOfField = false;
-    m_postProcessingCB.data.UseHDR = false;
-    m_postProcessingCB.data.UseBlur = false;
-    m_postProcessingCB.data.FadeAmount = 1.0f;
-    m_postProcessingCB.data.FarPlane = 100.0f;
-    m_postProcessingCB.data.FocalDistance = 100.0f;
-    m_postProcessingCB.data.FocalWidth = 100.0f;
-    m_postProcessingCB.data.BlurAttenuation = 0.5f;
-
     try
     {
         ScreenVertex svQuad[4] =
@@ -139,25 +126,16 @@ bool Application::InitWorld()
 
 bool Application::InitDevice()
 {
-    // Create shadow map light
-    m_pDepthLight = new ShadowMap( m_gfx.GetDevice(), m_gfx.GetWidth(), m_gfx.GetHeight() );
-
-    try
-    {
-	    // Initialize scene objects and data
-        HRESULT hr = InitMesh();
-        COM_ERROR_IF_FAILED( hr, "Failed to initialize OBJECT DATA!" );
-
-        hr = InitWorld();
-        COM_ERROR_IF_FAILED( hr, "Failed to initialize WORLD DATA!" );
-    }
-    catch ( COMException& exception )
-    {
-        ErrorLogger::Log( exception );
+	// Initialize scene objects and data
+    if ( !InitMesh() )
         return false;
-    }
+
+    if ( !InitWorld() )
+        return false;
 
     // Create lights
+    m_pDepthLight = new ShadowMap( m_gfx.GetDevice(), m_gfx.GetWidth(), m_gfx.GetHeight() );
+
     m_pLightController->AddLight( "Point", true, LightType::PointLight,
         XMFLOAT4( -3.5f, 0.0f, -4.0f, 0.0f ), XMFLOAT4( Colors::White ),
         XMConvertToRadians( 45.0f ), 1.0f, 0.0f, 0.0f, m_gfx.GetDevice(), m_gfx.GetContext() );

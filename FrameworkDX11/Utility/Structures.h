@@ -99,6 +99,20 @@ struct LightPropertiesCB
 
 struct PostProcessingCB
 {
+	PostProcessingCB()
+		: UseColour( false )
+		, Color( 1.0f, 1.0f, 1.0f, 1.0f )
+		, UseBloom( false )
+		, UseDepthOfField( false )
+		, UseHDR( false )
+		, UseBlur( false )
+		, FadeAmount( 1.0f )
+		, FarPlane( 100.0f )
+		, FocalDistance( 100.0f )
+		, FocalWidth( 100.0f )
+		, BlurAttenuation( 0.5f )
+	{}
+
 	XMFLOAT4 Color;
 
 	int UseHDR;
@@ -120,6 +134,18 @@ struct PostProcessingCB
 
 struct TerrainCB
 {
+	TerrainCB()
+		: MaxDist( 500.0f )
+		, MinDist( 20.0f )
+		, MaxTess( 6.0f )
+		, MinTess( 0.0f )
+		, Layer1MaxHeight( 20.0f )
+		, Layer2MaxHeight( 30.0f )
+		, Layer3MaxHeight( 40.0f )
+		, Layer4MaxHeight( 50.0f )
+		, Layer5MaxHeight( 55.0f )
+	{}
+
 	XMFLOAT4 gEyePosition;
 
 	float MinDist;

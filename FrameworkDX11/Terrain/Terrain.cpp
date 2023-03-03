@@ -88,16 +88,6 @@ Terrain::Terrain( std::string heightMapName, XMFLOAT2 size, double scale, Terrai
         // Create the terrain constant buffer
         HRESULT hr = m_terrainCB.Initialize( pDevice, pContext );
         COM_ERROR_IF_FAILED( hr, "Failed to create TERRAIN constant buffer!" );
-
-        m_terrainCB.data.MaxDist = 500.0f;
-        m_terrainCB.data.MinDist = 20.0f;
-        m_terrainCB.data.MaxTess = 6.0f;
-        m_terrainCB.data.MinTess = 0.0f;
-        m_terrainCB.data.Layer1MaxHeight = 20.0f;
-        m_terrainCB.data.Layer2MaxHeight = 30.0f;
-        m_terrainCB.data.Layer3MaxHeight = 40.0f;
-        m_terrainCB.data.Layer4MaxHeight = 50.0f;
-        m_terrainCB.data.Layer5MaxHeight = 55.0f;
     }
     catch ( COMException& exception )
     {
