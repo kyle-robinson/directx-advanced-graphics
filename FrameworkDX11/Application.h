@@ -25,7 +25,6 @@ public:
 	void Draw();
 
 private:
-	void SetupLightForRender();
 	bool InitDevice();
 	bool InitMesh();
 	bool InitWorld();

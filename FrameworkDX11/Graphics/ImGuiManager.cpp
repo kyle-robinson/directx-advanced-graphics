@@ -167,14 +167,15 @@ void ImGuiManager::SceneWindow( UINT width, UINT height, ID3D11ShaderResourceVie
 
 void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels )
 {
-    static std::string sName = cameraControl->GetCurentCam()->GetCamName();
+    static std::string sName = cameraControl->GetCurrentCam()->GetCamName();
     static const char* cCurrentItem = sName.c_str();
 
     if ( ImGui::Begin( "Cameras", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
-        float movementSpeed = cameraControl->GetCurentCam()->GetCamSpeed();
-        float nearPlane = cameraControl->GetCurentCam()->GetNear();
-        float farPlane = cameraControl->GetCurentCam()->GetFar();
+        float movementSpeed = cameraControl->GetCurrentCam()->GetCamSpeed();
+        float nearPlane = cameraControl->GetCurrentCam()->GetNear();
+        float farPlane = cameraControl->GetCurrentCam()->GetFar();
+        float fov = cameraControl->GetCurrentCam()->GetFov();
 
         ImGui::Text( "Current Camera" );
         if ( ImGui::BeginCombo( "##Combo", cCurrentItem ) )
@@ -206,56 +207,60 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text( "W" );
-
                 ImGui::TableNextColumn();
                 ImGui::Text( "Move Forward" );
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text( "A" );
-
                 ImGui::TableNextColumn();
                 ImGui::Text( "Move Left" );
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text( "S" );
-
                 ImGui::TableNextColumn();
                 ImGui::Text( "Move Back" );
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text( "D" );
-
                 ImGui::TableNextColumn();
                 ImGui::Text( "Move Right" );
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text( "CTRL" );
-
                 ImGui::TableNextColumn();
                 ImGui::Text( "Move Down" );
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text( "SPACE" );
-
                 ImGui::TableNextColumn();
                 ImGui::Text( "Move Up" );
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text( "Right Mouse" );
-
                 ImGui::TableNextColumn();
                 ImGui::Text( "Look Around" );
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::Text( "ESC" );
+                ImGui::Text( "Wheel Up" );
+                ImGui::TableNextColumn();
+                ImGui::Text( "Zoom In" );
 
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text( "Wheel Down" );
+                ImGui::TableNextColumn();
+                ImGui::Text( "Zoom Out" );
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text( "ESC" );
                 ImGui::TableNextColumn();
                 ImGui::Text( "Close Application" );
 
@@ -300,7 +305,7 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels
                         ImGui::Text( "Speed" );
 
                         ImGui::TableNextColumn();
-                        std::string sSpeed = std::format( "{:.2f}", cameraControl->GetCurentCam()->GetCamSpeed() );
+                        std::string sSpeed = std::format( "{:.2f}", cameraControl->GetCurrentCam()->GetCamSpeed() );
                         ImGui::Text( sSpeed.c_str() );
 
                         ImGui::EndTable();
@@ -318,7 +323,7 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels
             ImGui::SameLine();
             HelpMarker( DRAG_HINT_TEXT );
             if ( ImGui::DragFloat( "##Near Plane", &nearPlane, 0.01f, 0.01f, 10.0f ) )
-                cameraControl->GetCurentCam()->SetNear( nearPlane );
+                cameraControl->GetCurrentCam()->SetNear( nearPlane );
 
             ImGui::Text( "Far Plane" );
             ImGui::SameLine();
@@ -326,14 +331,20 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels
             if ( usingVoxels ) ImGui::TextColored( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ), "Can't adjust far plane while drawing voxel terrain!" );
             ImGui::PushItemFlag( ImGuiItemFlags_Disabled, usingVoxels );
             if ( ImGui::DragFloat( "##Far Plane", &farPlane, 0.1f, 100.0f, 200.0f ) )
-                cameraControl->GetCurentCam()->SetFar( farPlane );
+                cameraControl->GetCurrentCam()->SetFar( farPlane );
             ImGui::PopItemFlag();
+
+            ImGui::Text( "Field of View" );
+            ImGui::SameLine();
+            HelpMarker( SLIDER_HINT_TEXT );
+            if ( ImGui::SliderFloat( "##Field of View", &fov, 50.0f, 110.0f, "%1.f" ) )
+                cameraControl->GetCurrentCam()->SetFov( fov );
 
             ImGui::Text( "Movement Speed" );
             ImGui::SameLine();
             HelpMarker( SLIDER_HINT_TEXT );
             if ( ImGui::SliderFloat( "##Movement Speed", &movementSpeed, 0.1f, 1.0f, "%.1f" ) )
-                cameraControl->GetCurentCam()->SetCamSpeed( movementSpeed );
+                cameraControl->GetCurrentCam()->SetCamSpeed( movementSpeed );
 
             ImGui::TreePop();
         }

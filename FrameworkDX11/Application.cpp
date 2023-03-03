@@ -183,12 +183,12 @@ void Application::Update()
 
     // Can't adjust far plane when drawing voxels
     if ( *m_pVoxelTerrain->GetIsDraw() )
-        m_pCamController->GetCurentCam()->SetFar( 100.0f );
+        m_pCamController->GetCurrentCam()->SetFar( 100.0f );
 
 #if defined ( _x64 )
     // Update the skybox based on the camera
-    m_pSky.SetPosition( m_pCamController->GetCurentCam()->GetPosition() );
-    float farPlane = m_pCamController->GetCurentCam()->GetFar();
+    m_pSky.SetPosition( m_pCamController->GetCurrentCam()->GetPosition() );
+    float farPlane = m_pCamController->GetCurrentCam()->GetFar();
     static float farPlaneOffset = 0.5f;
     m_pSky.SetScale( farPlane * farPlaneOffset,
         farPlane * farPlaneOffset, farPlane * farPlaneOffset );
@@ -237,8 +237,8 @@ void Application::Draw()
     XMFLOAT4X4 WorldAsFloat = m_pCube->GetTransform()->GetWorldMatrix();
     XMMATRIX mGO = XMLoadFloat4x4( &WorldAsFloat );
 
-    XMFLOAT4X4 viewAsFloats = m_pCamController->GetCurentCam()->GetView();
-    XMFLOAT4X4 projectionAsFloats = m_pCamController->GetCurentCam()->GetProjection();
+    XMFLOAT4X4 viewAsFloats = m_pCamController->GetCurrentCam()->GetView();
+    XMFLOAT4X4 projectionAsFloats = m_pCamController->GetCurrentCam()->GetProjection();
 
     XMMATRIX RTTview = XMLoadFloat4x4( &viewAsFloats );
     XMMATRIX RTTprojection = XMLoadFloat4x4( &projectionAsFloats );
@@ -250,12 +250,16 @@ void Application::Draw()
     m_matrixCB.data.mProjection = XMMatrixTranspose( RTTprojection );
     m_matrixCB.data.vOutputColor = XMFLOAT4( 0, 0, 0, 0 );
     m_matrixCB.data.camPos = XMFLOAT4(
-        m_pCamController->GetCurentCam()->GetPosition().x,
-        m_pCamController->GetCurentCam()->GetPosition().y,
-        m_pCamController->GetCurentCam()->GetPosition().z, 0.0f );
+        m_pCamController->GetCurrentCam()->GetPosition().x,
+        m_pCamController->GetCurrentCam()->GetPosition().y,
+        m_pCamController->GetCurrentCam()->GetPosition().z, 0.0f );
     if ( !m_matrixCB.ApplyChanges() )
         return;
-    SetupLightForRender();
+    m_lightCB.data.EyePosition = m_pCamController->GetCam( 0 )->GetPositionFloat4();
+    for ( unsigned int i = 0; i < m_pLightController->GetLightList().size(); ++i )
+        m_lightCB.data.Lights[i] = m_pLightController->GetLight( i )->GetLightData();
+    if ( !m_lightCB.ApplyChanges() )
+        return;
 
     // Render the cube
     m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
@@ -318,8 +322,8 @@ void Application::Draw()
     m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
     m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Sky" ).m_pPixelShader, nullptr, 0 );
 
-    XMFLOAT4X4 view = m_pCamController->GetCurentCam()->GetView();
-    XMFLOAT4X4 proj = m_pCamController->GetCurentCam()->GetProjection();
+    XMFLOAT4X4 view = m_pCamController->GetCurrentCam()->GetView();
+    XMFLOAT4X4 proj = m_pCamController->GetCurrentCam()->GetProjection();
     XMMATRIX viewMat = XMLoadFloat4x4( &view );
     XMMATRIX projMat = XMLoadFloat4x4( &proj );
     m_pSky.Draw( viewMat, projMat );
@@ -344,8 +348,8 @@ void Application::Draw()
     WorldAsFloat = m_pCube->GetTransform()->GetWorldMatrix();
     mGO = XMLoadFloat4x4( &WorldAsFloat );
 
-    viewAsFloats = m_pCamController->GetCurentCam()->GetView();
-    projectionAsFloats = m_pCamController->GetCurentCam()->GetProjection();
+    viewAsFloats = m_pCamController->GetCurrentCam()->GetView();
+    projectionAsFloats = m_pCamController->GetCurrentCam()->GetProjection();
 
     RTTview = XMLoadFloat4x4( &viewAsFloats );
     RTTprojection = XMLoadFloat4x4( &projectionAsFloats );
@@ -558,24 +562,15 @@ void Application::Draw()
     m_pImGuiManager->BeginRender();
     m_pImGuiManager->SceneWindow( m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetRenderTargetController()->GetRenderTarget( "Final" )->GetTexture(), m_pInput );
     m_pImGuiManager->CameraMenu( m_pCamController, *m_pVoxelTerrain->GetIsDraw() );
-    m_pImGuiManager->ObjectMenu( m_gfx.GetDevice(), m_pCamController->GetCurentCam(), gameObjects );
+    m_pImGuiManager->ObjectMenu( m_gfx.GetDevice(), m_pCamController->GetCurrentCam(), gameObjects );
     m_pImGuiManager->LightMenu( m_pLightController );
     m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_postProcessingCB.data, m_gfx.GetRasterizerController() );
     m_pImGuiManager->BezierSplineMenu();
     m_pImGuiManager->TerrainMenu( m_gfx.GetDevice(), m_gfx.GetContext(), m_pTerrain, m_pVoxelTerrain );
-    m_pImGuiManager->AnimationMenu( m_pSoldier, m_pCamController->GetCurentCam() );
+    m_pImGuiManager->AnimationMenu( m_pSoldier, m_pCamController->GetCurrentCam() );
     m_pImGuiManager->EndRender();
 
     m_gfx.GetSwapChain()->Present( 1, 0 );
-}
-
-void Application::SetupLightForRender()
-{
-    m_lightCB.data.EyePosition = m_pCamController->GetCam( 0 )->GetPositionFloat4();
-	for ( unsigned int i = 0; i < m_pLightController->GetLightList().size(); ++i )
-        m_lightCB.data.Lights[i] = m_pLightController->GetLight( i )->GetLightData();
-    if ( !m_lightCB.ApplyChanges() )
-        return;
 }
 
 void Application::Cleanup()

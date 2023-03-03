@@ -36,7 +36,7 @@ void CameraController::RemoveCam( int num )
 	delete m_vCamList[num];
 }
 
-Camera* CameraController::GetCurentCam()
+Camera* CameraController::GetCurrentCam()
 {
 	return m_vCamList[m_iCurrentCamNumber];
 }

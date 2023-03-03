@@ -41,6 +41,10 @@ public:
 	void AdjustRot( XMFLOAT3 rot );
 	void Reshape( FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth );
 
+	inline float GetFov() const noexcept { return m_fFov; }
+	inline void SetFov( float fov ) noexcept { m_fFov = fov; }
+	inline void AdjustFov( float fov ) noexcept { m_fFov += fov; }
+
 	inline FLOAT GetNear() const noexcept { return m_fNearDepth; }
 	inline void SetNear( FLOAT nearDepth ) noexcept { m_fNearDepth = nearDepth; Reshape( m_fWindowWidth, m_fWindowHeight, m_fNearDepth, m_fFarDepth ); }
 
@@ -55,12 +59,12 @@ public:
 
 private:
 	// Movement data
-	const XMFLOAT3 m_fDefaultUp = { 0.0f,1.0f,0.0f };
-	const XMFLOAT3 m_fDefaultDown = { 0.0f,-1.0f,0.0f };
-	const XMFLOAT3 m_fDefaultForward = { 0.0f,0.0f,1.0f };
-	const XMFLOAT3 m_fDefaultBack = { 0.0f,0.0f,-1.0f };
-	const XMFLOAT3 m_fDefaultLeft = { -1.0f,0.0f,0.0f };
-	const XMFLOAT3 m_fDefaultRight = { 1.0f,0.0f,0.0f };
+	const XMFLOAT3 m_fDefaultUp = { 0.0f, 1.0f, 0.0f };
+	const XMFLOAT3 m_fDefaultDown = { 0.0f, -1.0f, 0.0f };
+	const XMFLOAT3 m_fDefaultForward = { 0.0f, 0.0f, 1.0f };
+	const XMFLOAT3 m_fDefaultBack = { 0.0f, 0.0f, -1.0f };
+	const XMFLOAT3 m_fDefaultLeft = { -1.0f, 0.0f, 0.0f };
+	const XMFLOAT3 m_fDefaultRight = { 1.0f, 0.0f, 0.0f };
 
 	XMFLOAT3 m_fVecUp;
 	XMFLOAT3 m_fVecDown;
@@ -71,6 +75,7 @@ private:
 
 	// Camera data
 	XMFLOAT3 m_fRot;
+	float m_fFov = 75.0f;
 	float m_fCameraSpeed = 0.1f;
 
 	XMFLOAT3 m_fEye;

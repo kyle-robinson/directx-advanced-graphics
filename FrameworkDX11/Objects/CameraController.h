@@ -17,7 +17,7 @@ public:
 	void RemoveAllCams();
 	void RemoveCam( int num );
 
-	Camera* GetCurentCam();
+	Camera* GetCurrentCam();
 	Camera* GetCam( int num );
 	Camera* GetCam( std::string name );
 

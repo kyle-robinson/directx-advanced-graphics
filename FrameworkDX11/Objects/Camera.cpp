@@ -39,7 +39,8 @@ void Camera::Update()
 	XMStoreFloat3( &m_fVecDown, XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultDown ), mRotation ) );
 
 	// Initialize the projection matrix
-	XMStoreFloat4x4( &m_mProjection, XMMatrixPerspectiveFovLH( 0.25f * XM_PI, m_fWindowWidth / m_fWindowHeight, m_fNearDepth, m_fFarDepth ) );
+	XMStoreFloat4x4( &m_mProjection, XMMatrixPerspectiveFovLH(
+		XMConvertToRadians( m_fFov ), m_fWindowWidth / m_fWindowHeight, m_fNearDepth, m_fFarDepth ) );
 }
 
 void Camera::UpdatePointAt()

@@ -33,7 +33,7 @@ void Input::UpdateMouse( float dt )
             {
                 if ( me.GetType() == Mouse::MouseEvent::EventType::RawMove )
                 {
-                    m_pCameraControl->GetCurentCam()->AdjustRot( XMFLOAT3(
+                    m_pCameraControl->GetCurrentCam()->AdjustRot( XMFLOAT3(
                         static_cast<float>( me.GetPosY() ) * 0.005f,
                         static_cast<float>( me.GetPosX() ) * 0.005f,
                         0.0f
@@ -48,6 +48,21 @@ void Input::UpdateMouse( float dt )
                 ShowCursor();
                 EnableImGuiMouse();
                 m_bMovingCursor = false;
+            }
+
+            if ( me.GetType() == Mouse::MouseEvent::EventType::WheelUp )
+            {
+                if ( m_pCameraControl->GetCurrentCam()->GetFov() > 50.0f )
+                {
+                    m_pCameraControl->GetCurrentCam()->AdjustFov( -1.0f );
+                }
+            }
+            else if ( me.GetType() == Mouse::MouseEvent::EventType::WheelDown )
+            {
+                if ( m_pCameraControl->GetCurrentCam()->GetFov() < 110.0f )
+                {
+				    m_pCameraControl->GetCurrentCam()->AdjustFov( 1.0f );
+                }
             }
         }
     }
@@ -71,50 +86,50 @@ void Input::UpdateKeyboard( float dt )
         // Camera movement
         if ( m_keyboard.KeyIsPressed( 'W' ) )
         {
-            m_pCameraControl->GetCurentCam()->AdjustPos( {
-                m_pCameraControl->GetCurentCam()->GetVecForward().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurentCam()->GetVecForward().y * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurentCam()->GetVecForward().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
+            m_pCameraControl->GetCurrentCam()->AdjustPos( {
+                m_pCameraControl->GetCurrentCam()->GetVecForward().x * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                m_pCameraControl->GetCurrentCam()->GetVecForward().y * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                m_pCameraControl->GetCurrentCam()->GetVecForward().z * m_pCameraControl->GetCurrentCam()->GetCamSpeed()
             } );
         }
         if ( m_keyboard.KeyIsPressed( 'S' ) )
         {
-            m_pCameraControl->GetCurentCam()->AdjustPos( {
-                m_pCameraControl->GetCurentCam()->GetVecBack().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurentCam()->GetVecBack().y * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurentCam()->GetVecBack().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
+            m_pCameraControl->GetCurrentCam()->AdjustPos( {
+                m_pCameraControl->GetCurrentCam()->GetVecBack().x * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                m_pCameraControl->GetCurrentCam()->GetVecBack().y * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                m_pCameraControl->GetCurrentCam()->GetVecBack().z * m_pCameraControl->GetCurrentCam()->GetCamSpeed()
             } );
         }
         if ( m_keyboard.KeyIsPressed( 'D' ) )
         {
-            m_pCameraControl->GetCurentCam()->AdjustPos( {
-                m_pCameraControl->GetCurentCam()->GetVecRight().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurentCam()->GetVecRight().y * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurentCam()->GetVecRight().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
+            m_pCameraControl->GetCurrentCam()->AdjustPos( {
+                m_pCameraControl->GetCurrentCam()->GetVecRight().x * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                m_pCameraControl->GetCurrentCam()->GetVecRight().y * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                m_pCameraControl->GetCurrentCam()->GetVecRight().z * m_pCameraControl->GetCurrentCam()->GetCamSpeed()
             } );
         }
         if ( m_keyboard.KeyIsPressed( 'A' ) )
         {
-            m_pCameraControl->GetCurentCam()->AdjustPos( {
-                m_pCameraControl->GetCurentCam()->GetVecLeft().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurentCam()->GetVecLeft().y * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurentCam()->GetVecLeft().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
+            m_pCameraControl->GetCurrentCam()->AdjustPos( {
+                m_pCameraControl->GetCurrentCam()->GetVecLeft().x * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                m_pCameraControl->GetCurrentCam()->GetVecLeft().y * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                m_pCameraControl->GetCurrentCam()->GetVecLeft().z * m_pCameraControl->GetCurrentCam()->GetCamSpeed()
             } );
         }
         if ( m_keyboard.KeyIsPressed( VK_CONTROL ) )
         {
-            m_pCameraControl->GetCurentCam()->AdjustPos( {
-                m_pCameraControl->GetCurentCam()->GetVecDown().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurentCam()->GetVecDown().y * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurentCam()->GetVecDown().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
+            m_pCameraControl->GetCurrentCam()->AdjustPos( {
+                m_pCameraControl->GetCurrentCam()->GetVecDown().x * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                m_pCameraControl->GetCurrentCam()->GetVecDown().y * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                m_pCameraControl->GetCurrentCam()->GetVecDown().z * m_pCameraControl->GetCurrentCam()->GetCamSpeed()
             } );
         }
         if ( m_keyboard.KeyIsPressed( VK_SPACE ) )
         {
-            m_pCameraControl->GetCurentCam()->AdjustPos( {
-                m_pCameraControl->GetCurentCam()->GetVecUp().x * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurentCam()->GetVecUp().y * m_pCameraControl->GetCurentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurentCam()->GetVecUp().z * m_pCameraControl->GetCurentCam()->GetCamSpeed()
+            m_pCameraControl->GetCurrentCam()->AdjustPos( {
+                m_pCameraControl->GetCurrentCam()->GetVecUp().x * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                m_pCameraControl->GetCurrentCam()->GetVecUp().y * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                m_pCameraControl->GetCurrentCam()->GetVecUp().z * m_pCameraControl->GetCurrentCam()->GetCamSpeed()
             } );
         }
     }
