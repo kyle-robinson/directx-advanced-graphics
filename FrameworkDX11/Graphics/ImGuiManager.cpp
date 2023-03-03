@@ -166,19 +166,55 @@ void ImGuiManager::SceneWindow( UINT width, UINT height, ID3D11ShaderResourceVie
 
 void ImGuiManager::CameraMenu( CameraController* cameraControl )
 {
-    static const char* cCurrentItem = NULL;
-    static bool bLoad = false;
-    static std::string sName;
-
-    if ( !bLoad )
-    {
-        sName = cameraControl->GetCurentCam()->GetCamName();
-        cCurrentItem = sName.c_str();
-        bLoad = true;
-    }
+    static std::string sName = cameraControl->GetCurentCam()->GetCamName();
+    static const char* cCurrentItem = sName.c_str();
 
     if ( ImGui::Begin( "Cameras", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
+        ImGui::Text( "Current Camera" );
+        static float movementSpeed = cameraControl->GetCurentCam()->GetCamSpeed();
+        static float nearPlane = cameraControl->GetCurentCam()->GetNear();
+        static float farPlane = cameraControl->GetCurentCam()->GetFar();
+
+        std::function<void(int index)> UpdateCamera = [&](int index) -> void
+        {
+            sName = cameraControl->GetCamList()[index]->GetCamName();
+            cameraControl->SetCam( index );
+            cCurrentItem = sName.c_str();
+            movementSpeed = cameraControl->GetCurentCam()->GetCamSpeed();
+            nearPlane = cameraControl->GetCurentCam()->GetNear();
+            farPlane = cameraControl->GetCurentCam()->GetFar();
+        };
+
+        // Update camera when drawing voxel terrain
+        for ( int n = 0; n < cameraControl->GetCamList().size(); n++ )
+        {
+            if ( m_bUpdateCamera && cameraControl->GetCamList()[n]->GetCamName() == "Voxel Camera" )
+            {
+                m_bUpdateCamera = false;
+                UpdateCamera( n );
+            }
+        }
+
+        if ( ImGui::BeginCombo( "##Combo", cCurrentItem ) )
+        {
+            for ( int n = 0; n < cameraControl->GetCamList().size(); n++ )
+            {
+                bool is_selected = ( cCurrentItem == cameraControl->GetCamList()[n]->GetCamName().c_str() );
+
+                if ( ImGui::Selectable( cameraControl->GetCamList()[n]->GetCamName().c_str(), is_selected ) )
+                {
+                    UpdateCamera( n );
+                }
+
+                if ( is_selected )
+                {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+
         ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Instructions" ) )
         {
@@ -235,24 +271,10 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::Text( "HOME" );
-
-                ImGui::TableNextColumn();
-                ImGui::Text( "Enable Cursor" );
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text( "END" );
-
-                ImGui::TableNextColumn();
-                ImGui::Text( "Disable Cursor" );
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
                 ImGui::Text( "ESC" );
 
                 ImGui::TableNextColumn();
-                ImGui::Text( "Close Applicaiton" );
+                ImGui::Text( "Close Application" );
 
                 ImGui::EndTable();
             }
@@ -309,28 +331,17 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
 
         if ( ImGui::TreeNode( "Controls" ) )
         {
-            ImGui::Text( "Currrent Camera" );
-            static float movementSpeed = cameraControl->GetCurentCam()->GetCamSpeed();
-            if ( ImGui::BeginCombo( "##Combo", cCurrentItem ) )
-            {
-                for ( int n = 0; n < cameraControl->GetCamList().size(); n++ )
-                {
-                    bool is_selected = ( cCurrentItem == cameraControl->GetCamList()[n]->GetCamName().c_str() );
-                    if ( ImGui::Selectable( cameraControl->GetCamList()[n]->GetCamName().c_str(), is_selected ) )
-                    {
-                        sName = cameraControl->GetCamList()[n]->GetCamName();
-                        cameraControl->SetCam( n );
-                        cCurrentItem = sName.c_str();
-                        movementSpeed = cameraControl->GetCurentCam()->GetCamSpeed();
-                    }
+            ImGui::Text( "Near Plane" );
+            ImGui::SameLine();
+            HelpMarker( DRAG_HINT_TEXT );
+            if ( ImGui::DragFloat( "##Near Plane", &nearPlane, 0.1f, 0.0f, 10.0f ) )
+                cameraControl->GetCurentCam()->SetNear( nearPlane );
 
-                    if ( is_selected )
-                    {
-                        ImGui::SetItemDefaultFocus();
-                    }
-                }
-                ImGui::EndCombo();
-            }
+            ImGui::Text( "Far Plane" );
+            ImGui::SameLine();
+            HelpMarker( DRAG_HINT_TEXT );
+            if ( ImGui::DragFloat( "##Far Plane", &farPlane, 0.1f, 50.0f, 200.0f ) )
+                cameraControl->GetCurentCam()->SetFar( farPlane );
 
             ImGui::Text( "Movement Speed" );
             ImGui::SameLine();
@@ -346,17 +357,9 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl )
 
 void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB* postSettings, RasterizerController* rasterControl )
 {
-    static std::string sCurrentRasterState = "";
-    static const char* cCurrentShader = NULL;
-    static bool bLoadShader = false;
-    static std::string sShaderName;
-
-    if ( !bLoadShader )
-    {
-        sShaderName = shaderControl->GetShaderData().m_sName;
-        cCurrentShader = sShaderName.c_str();
-        bLoadShader = true;
-    }
+    static std::string sCurrentRasterState = "Back";
+    static std::string sShaderName = shaderControl->GetShaderData().m_sName;
+    static const char* cCurrentShader = sShaderName.c_str();
 
     if ( ImGui::Begin( "Shaders", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
@@ -460,7 +463,7 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
                     ImGui::InputFloat( "##Focal Distance", &postSettings->FocalDistance );
 
                     ImGui::Text( "Attenuation" );
-                    ImGui::InputFloat( "##Attuenation", &postSettings->BlurAttenuation );
+                    ImGui::InputFloat( "##Attenuation", &postSettings->BlurAttenuation );
                     ImGui::TreePop();
                 }
             }
@@ -474,13 +477,13 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
 void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vector<DrawableGameObject*>& gameObjects )
 {
     static int iSelectedIdx = 0;
-    static std::vector<ImGuizmoData> guizmoData;
-    static XMFLOAT4X4 world = XMFLOAT4X4();
-    static const char* cCurrentItemO = NULL;
-    static DrawableGameObject* currObject;
-    static bool bLoadO = false;
-    static std::string sNameO;
+    static std::string sNameO = gameObjects[0]->GetName();
+    static DrawableGameObject* currObject = gameObjects[0];
+    static const char* cCurrentItemO = sNameO.c_str();
+    static XMFLOAT4X4 world = currObject->GetTransfrom()->GetWorldMatrix();
 
+    static std::vector<ImGuizmoData> guizmoData;
+    static bool bLoadO = false;
     if ( !bLoadO )
     {
         for ( unsigned int i = 0; i < gameObjects.size(); i++ )
@@ -489,11 +492,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
             guizmoData[i].ID = i;
             m_iGizmoID++;
         }
-        sNameO = gameObjects[0]->GetName();
-        cCurrentItemO = sNameO.c_str();
-        currObject = gameObjects[0];
         bLoadO = true;
-        world = currObject->GetTransfrom()->GetWorldMatrix();
     }
 
     if ( ImGui::Begin( "Objects", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
@@ -522,296 +521,282 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
         }
 
         static bool bDrawObject = currObject->GetAppearance()->IsVisible();
-        if ( ImGui::Checkbox( "Draw Object?", &bDrawObject ) )
+        ImGui::Checkbox( "Draw Object?", &bDrawObject );
+        if ( bDrawObject )
         {
-            if ( bDrawObject )
+			currObject->GetAppearance()->Show();
+
+            if ( ImGui::TreeNode( "Transform Controls" ) )
             {
-			    currObject->GetAppearance()->Show();
-            }
-            else
-            {
-			    currObject->GetAppearance()->Hide();
-            }
-        }
-
-        if ( ImGui::TreeNode( "Transform Controls" ) )
-        {
-            static XMFLOAT3 position = { 0.0f, 0.0f, 0.0f };
-            static XMFLOAT3 rotation = { 0.0f, 0.0f, 0.0f };
-            if ( ImGuizmo::IsUsing() )
-            {
-                position = currObject->GetTransfrom()->GetPosition();
-                rotation = currObject->GetTransfrom()->GetRotation();
-            }
-
-            ImGui::Text( "Position" );
-            ImGui::SameLine();
-            HelpMarker( DRAG_HINT_TEXT );
-            if ( ImGui::DragFloat3( std::string( "##Position" ).append( std::to_string( iSelectedIdx ) ).c_str(), &position.x, 0.01f ) )
-                currObject->GetTransfrom()->SetPosition( position );
-
-            ImGui::Text( "Rotation" );
-            ImGui::SameLine();
-            HelpMarker( DRAG_HINT_TEXT );
-            if ( ImGui::DragFloat3( std::string( "##Rotation" ).append( std::to_string( iSelectedIdx ) ).c_str(), &rotation.x, 1.0f ) )
-                currObject->GetTransfrom()->SetRotation( rotation );
-
-            if ( ImGui::Button( "Reset" ) )
-            {
-                rotation = { 0.0f, 0.0f, 0.0f };
-                position = { 0.0f, 0.0f, 0.0f };
-            }
-
-            ImGui::TreePop();
-        }
-        ImGui::Separator();
-
-        if ( ImGui::TreeNode( "Texture Controls" ) )
-        {
-            MaterialPropertiesCB materialData = currObject->GetAppearance()->GetMaterialData();
-
-            bool useTexture = materialData.Material.UseTexture;
-            if ( ImGui::Checkbox( "Use Texture?", &useTexture ) )
-                materialData.Material.UseTexture = useTexture;
-
-            if ( useTexture )
-            {
-                if ( ImGui::BeginTable( "Texture Table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp ) )
+                static XMFLOAT3 position = { 0.0f, 0.0f, 0.0f };
+                static XMFLOAT3 rotation = { 0.0f, 0.0f, 0.0f };
+                if ( ImGuizmo::IsUsing() )
                 {
-                    ImGui::TableSetupColumn( "Type" );
-                    ImGui::TableSetupColumn( "File" );
-                    ImGui::TableSetupColumn( "Change" );
-                    ImGui::TableHeadersRow();
-
-                    // Change diffuse texture
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text( "Diffuse" );
-
-                    ImGui::TableNextColumn();
-                    static std::string sDiffuseTex = currObject->GetAppearance()->GetDiffuseName();
-                    ImGui::Text( sDiffuseTex.c_str() );
-
-                    ImGui::TableNextColumn();
-                    if ( ImGui::Button( "Load##DiffuseButton" ) )
-                    {
-                        ImGuiFileDialog::Instance()->OpenDialog( "Load Diffuse##Dialog", "Load Diffuse Map", ".dds,.jpg,.png", "." );
-                        ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
-                        ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
-                    }
-
-                    if ( ImGuiFileDialog::Instance()->Display( "Load Diffuse##Dialog" ) )
-                    {
-                        if ( ImGuiFileDialog::Instance()->IsOk() )
-                        {
-                            try
-                            {
-                                std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
-                                sDiffuseTex = ImGuiFileDialog::Instance()->GetCurrentFileName();
-                                ID3D11ShaderResourceView* pTexture = nullptr;
-                                HRESULT hr = S_OK;
-                                if ( filePath.find( ".dds" ) != std::string::npos )
-                                {
-                                    hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
-                                }
-                                else if ( filePath.find( ".jpg" ) != std::string::npos )
-                                {
-                                    hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
-                                }
-                                else if ( filePath.find( ".png" ) != std::string::npos )
-                                {
-                                    hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
-                                }
-                                COM_ERROR_IF_FAILED( hr, "Failed to load DIFFUSE texture!" );
-                                currObject->GetAppearance()->SetTextureRV( "Resources/Textures" + sDiffuseTex, pTexture );
-                            }
-                            catch ( COMException& exception )
-                            {
-                                ErrorLogger::Log( exception );
-                                return;
-                            }
-                        }
-                        ImGuiFileDialog::Instance()->Close();
-                    }
-
-                    // Change normal texture
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text( "Normal" );
-
-                    ImGui::TableNextColumn();
-                    static std::string sNormalTex = currObject->GetAppearance()->GetNormalName();
-                    ImGui::Text( sNormalTex.c_str() );
-
-                    ImGui::TableNextColumn();
-                    if ( ImGui::Button( "Load##NormalButton" ) )
-                    {
-                        ImGuiFileDialog::Instance()->OpenDialog( "Load Normal##Dialog", "Load Normal Map", ".dds,.jpg,.png", "." );
-                        ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
-                        ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
-                    }
-
-                    if ( ImGuiFileDialog::Instance()->Display( "Load Normal##Dialog" ) )
-                    {
-                        if ( ImGuiFileDialog::Instance()->IsOk() )
-                        {
-                            try
-                            {
-                                std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
-                                sNormalTex = ImGuiFileDialog::Instance()->GetCurrentFileName();
-                                ID3D11ShaderResourceView* pTexture = nullptr;
-                                HRESULT hr = S_OK;
-                                if ( filePath.find( ".dds" ) != std::string::npos )
-                                {
-                                    hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
-                                }
-                                else if ( filePath.find( ".jpg" ) != std::string::npos )
-                                {
-                                    hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
-                                }
-                                else if ( filePath.find( ".png" ) != std::string::npos )
-                                {
-                                    hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
-                                }
-                                COM_ERROR_IF_FAILED( hr, "Failed to load NORMAL texture!" );
-                                currObject->GetAppearance()->SetNormalRV( "Resources/Textures" + sNormalTex, pTexture );
-                            }
-                            catch ( COMException& exception )
-                            {
-                                ErrorLogger::Log( exception );
-                                return;
-                            }
-                        }
-                        ImGuiFileDialog::Instance()->Close();
-                    }
-
-                    // Change parallax texture
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text( "Parallax" );
-
-                    ImGui::TableNextColumn();
-                    static std::string sParallaxTex = currObject->GetAppearance()->GetParallaxName();
-                    ImGui::Text( sParallaxTex.c_str() );
-
-                    ImGui::TableNextColumn();
-                    if ( ImGui::Button( "Load##ParallaxButton" ) )
-                    {
-                        ImGuiFileDialog::Instance()->OpenDialog( "Load Parallax##Dialog", "Load Parallax Map", ".dds,.jpg,.png", "." );
-                        ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
-                        ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
-                    }
-
-                    if ( ImGuiFileDialog::Instance()->Display( "Load Parallax##Dialog" ) )
-                    {
-                        if ( ImGuiFileDialog::Instance()->IsOk() )
-                        {
-                            try
-                            {
-                                std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
-                                sParallaxTex = ImGuiFileDialog::Instance()->GetCurrentFileName();
-                                ID3D11ShaderResourceView* pTexture = nullptr;
-                                HRESULT hr = S_OK;
-                                if ( filePath.find( ".dds" ) != std::string::npos )
-                                {
-                                    hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
-                                }
-                                else if ( filePath.find( ".jpg" ) != std::string::npos )
-                                {
-                                    hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
-                                }
-                                else if ( filePath.find( ".png" ) != std::string::npos )
-                                {
-                                    hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
-                                }
-                                COM_ERROR_IF_FAILED( hr, "Failed to load PARALLAX texture!" );
-                                currObject->GetAppearance()->SetParallaxRV( "Resources/Textures" + sParallaxTex, pTexture );
-                            }
-                            catch ( COMException& exception )
-                            {
-                                ErrorLogger::Log( exception );
-                                return;
-                            }
-                        }
-                        ImGuiFileDialog::Instance()->Close();
-                    }
-
-                    ImGui::EndTable();
+                    position = currObject->GetTransfrom()->GetPosition();
+                    rotation = currObject->GetTransfrom()->GetRotation();
                 }
 
-                if ( ImGui::TreeNode( "Colour Controls" ) )
+                ImGui::Text( "Position" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
+                if ( ImGui::DragFloat3( std::string( "##Position" ).append( std::to_string( iSelectedIdx ) ).c_str(), &position.x, 0.01f ) )
+                    currObject->GetTransfrom()->SetPosition( position );
+
+                ImGui::Text( "Rotation" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
+                if ( ImGui::DragFloat3( std::string( "##Rotation" ).append( std::to_string( iSelectedIdx ) ).c_str(), &rotation.x, 1.0f ) )
+                    currObject->GetTransfrom()->SetRotation( rotation );
+
+                if ( ImGui::Button( "Reset" ) )
                 {
-                    ImGui::Text( "Ambient" );
-                    ImGui::SameLine();
-                    HelpMarker( COLOR_PICKER_HINT_TEXT );
-                    ImGui::ColorEdit3( "##Ambient", &materialData.Material.Ambient.x );
-
-                    ImGui::Text( "Diffuse" );
-                    ImGui::SameLine();
-                    HelpMarker( COLOR_PICKER_HINT_TEXT );
-                    ImGui::ColorEdit3( "##Diffuse", &materialData.Material.Diffuse.x );
-
-                    ImGui::Text( "Emissive" );
-                    ImGui::SameLine();
-                    HelpMarker( COLOR_PICKER_HINT_TEXT );
-                    ImGui::ColorEdit3( "##Emissive", &materialData.Material.Emissive.x );
-
-                    ImGui::Text( "Specular" );
-                    ImGui::SameLine();
-                    HelpMarker( COLOR_PICKER_HINT_TEXT );
-                    ImGui::ColorEdit3( "##Specular", &materialData.Material.Specular.x );
-
-                    ImGui::Text( "Power" );
-                    ImGui::SameLine();
-                    HelpMarker( DRAG_HINT_TEXT );
-                    ImGui::DragFloat( "##Power", &materialData.Material.SpecularPower, 1.0f, 1.0f, 32.0f );
-                    ImGui::TreePop();
+                    rotation = { 0.0f, 0.0f, 0.0f };
+                    position = { 0.0f, 0.0f, 0.0f };
                 }
 
-                if ( ImGui::TreeNode( "Parallax Controls" ) )
-                {
-                    ImGui::Text( "Height Scale" );
-                    ImGui::SameLine();
-                    HelpMarker( DRAG_HINT_TEXT );
-                    ImGui::DragFloat( "##Height Scale", &materialData.Material.HeightScale, 0.1f, 0.0f, 100.0f );
-
-                    ImGui::Text( "Min Layers" );
-                    ImGui::SameLine();
-                    HelpMarker( DRAG_HINT_TEXT );
-                    ImGui::DragFloat( "##Min Layers", &materialData.Material.MinLayers, 1.0f, 1.0f, 30.0f );
-
-                    ImGui::Text( "Max Layers" );
-                    ImGui::SameLine();
-                    HelpMarker( DRAG_HINT_TEXT );
-                    ImGui::DragFloat( "##Max Layers", &materialData.Material.MaxLayers, 1.0f, 1.0f, 30.0f );
-                    ImGui::TreePop();
-                }
+                ImGui::TreePop();
             }
+            ImGui::Separator();
 
-            currObject->GetAppearance()->SetMaterialData( materialData );
-            ImGui::TreePop();
+            if ( ImGui::TreeNode( "Texture Controls" ) )
+            {
+                MaterialPropertiesCB materialData = currObject->GetAppearance()->GetMaterialData();
+
+                bool useTexture = materialData.Material.UseTexture;
+                if ( ImGui::Checkbox( "Use Texture?", &useTexture ) )
+                    materialData.Material.UseTexture = useTexture;
+
+                if ( useTexture )
+                {
+                    if ( ImGui::BeginTable( "Texture Table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp ) )
+                    {
+                        ImGui::TableSetupColumn( "Type" );
+                        ImGui::TableSetupColumn( "File" );
+                        ImGui::TableSetupColumn( "Change" );
+                        ImGui::TableHeadersRow();
+
+                        // Change diffuse texture
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::Text( "Diffuse" );
+
+                        ImGui::TableNextColumn();
+                        static std::string sDiffuseTex = currObject->GetAppearance()->GetDiffuseName();
+                        ImGui::Text( sDiffuseTex.c_str() );
+
+                        ImGui::TableNextColumn();
+                        if ( ImGui::Button( "Load##DiffuseButton" ) )
+                        {
+                            ImGuiFileDialog::Instance()->OpenDialog( "Load Diffuse##Dialog", "Load Diffuse Map", ".dds,.jpg,.png", "." );
+                            ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
+                            ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
+                        }
+
+                        if ( ImGuiFileDialog::Instance()->Display( "Load Diffuse##Dialog" ) )
+                        {
+                            if ( ImGuiFileDialog::Instance()->IsOk() )
+                            {
+                                try
+                                {
+                                    std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+                                    sDiffuseTex = ImGuiFileDialog::Instance()->GetCurrentFileName();
+                                    ID3D11ShaderResourceView* pTexture = nullptr;
+                                    HRESULT hr = S_OK;
+                                    if ( filePath.find( ".dds" ) != std::string::npos )
+                                    {
+                                        hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                    }
+                                    else if ( filePath.find( ".jpg" ) != std::string::npos )
+                                    {
+                                        hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                    }
+                                    else if ( filePath.find( ".png" ) != std::string::npos )
+                                    {
+                                        hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                    }
+                                    COM_ERROR_IF_FAILED( hr, "Failed to load DIFFUSE texture!" );
+                                    currObject->GetAppearance()->SetTextureRV( sDiffuseTex, pTexture );
+                                }
+                                catch ( COMException& exception )
+                                {
+                                    ErrorLogger::Log( exception );
+                                }
+                            }
+                            ImGuiFileDialog::Instance()->Close();
+                        }
+
+                        // Change normal texture
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::Text( "Normal" );
+
+                        ImGui::TableNextColumn();
+                        static std::string sNormalTex = currObject->GetAppearance()->GetNormalName();
+                        ImGui::Text( sNormalTex.c_str() );
+
+                        ImGui::TableNextColumn();
+                        if ( ImGui::Button( "Load##NormalButton" ) )
+                        {
+                            ImGuiFileDialog::Instance()->OpenDialog( "Load Normal##Dialog", "Load Normal Map", ".dds,.jpg,.png", "." );
+                            ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
+                            ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
+                        }
+
+                        if ( ImGuiFileDialog::Instance()->Display( "Load Normal##Dialog" ) )
+                        {
+                            if ( ImGuiFileDialog::Instance()->IsOk() )
+                            {
+                                try
+                                {
+                                    std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+                                    sNormalTex = ImGuiFileDialog::Instance()->GetCurrentFileName();
+                                    ID3D11ShaderResourceView* pTexture = nullptr;
+                                    HRESULT hr = S_OK;
+                                    if ( filePath.find( ".dds" ) != std::string::npos )
+                                    {
+                                        hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                    }
+                                    else if ( filePath.find( ".jpg" ) != std::string::npos )
+                                    {
+                                        hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                    }
+                                    else if ( filePath.find( ".png" ) != std::string::npos )
+                                    {
+                                        hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                    }
+                                    COM_ERROR_IF_FAILED( hr, "Failed to load NORMAL texture!" );
+                                    currObject->GetAppearance()->SetNormalRV( sNormalTex, pTexture );
+                                }
+                                catch ( COMException& exception )
+                                {
+                                    ErrorLogger::Log( exception );
+                                }
+                            }
+                            ImGuiFileDialog::Instance()->Close();
+                        }
+
+                        // Change parallax texture
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::Text( "Parallax" );
+
+                        ImGui::TableNextColumn();
+                        static std::string sParallaxTex = currObject->GetAppearance()->GetParallaxName();
+                        ImGui::Text( sParallaxTex.c_str() );
+
+                        ImGui::TableNextColumn();
+                        if ( ImGui::Button( "Load##ParallaxButton" ) )
+                        {
+                            ImGuiFileDialog::Instance()->OpenDialog( "Load Parallax##Dialog", "Load Parallax Map", ".dds,.jpg,.png", "." );
+                            ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
+                            ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
+                        }
+
+                        if ( ImGuiFileDialog::Instance()->Display( "Load Parallax##Dialog" ) )
+                        {
+                            if ( ImGuiFileDialog::Instance()->IsOk() )
+                            {
+                                try
+                                {
+                                    std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+                                    sParallaxTex = ImGuiFileDialog::Instance()->GetCurrentFileName();
+                                    ID3D11ShaderResourceView* pTexture = nullptr;
+                                    HRESULT hr = S_OK;
+                                    if ( filePath.find( ".dds" ) != std::string::npos )
+                                    {
+                                        hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                    }
+                                    else if ( filePath.find( ".jpg" ) != std::string::npos )
+                                    {
+                                        hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                    }
+                                    else if ( filePath.find( ".png" ) != std::string::npos )
+                                    {
+                                        hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                    }
+                                    COM_ERROR_IF_FAILED( hr, "Failed to load PARALLAX texture!" );
+                                    currObject->GetAppearance()->SetParallaxRV( sParallaxTex, pTexture );
+                                }
+                                catch ( COMException& exception )
+                                {
+                                    ErrorLogger::Log( exception );
+                                }
+                            }
+                            ImGuiFileDialog::Instance()->Close();
+                        }
+
+                        ImGui::EndTable();
+                    }
+
+                    if ( ImGui::TreeNode( "Colour Controls" ) )
+                    {
+                        ImGui::Text( "Ambient" );
+                        ImGui::SameLine();
+                        HelpMarker( COLOR_PICKER_HINT_TEXT );
+                        ImGui::ColorEdit3( "##Ambient", &materialData.Material.Ambient.x );
+
+                        ImGui::Text( "Diffuse" );
+                        ImGui::SameLine();
+                        HelpMarker( COLOR_PICKER_HINT_TEXT );
+                        ImGui::ColorEdit3( "##Diffuse", &materialData.Material.Diffuse.x );
+
+                        ImGui::Text( "Emissive" );
+                        ImGui::SameLine();
+                        HelpMarker( COLOR_PICKER_HINT_TEXT );
+                        ImGui::ColorEdit3( "##Emissive", &materialData.Material.Emissive.x );
+
+                        ImGui::Text( "Specular" );
+                        ImGui::SameLine();
+                        HelpMarker( COLOR_PICKER_HINT_TEXT );
+                        ImGui::ColorEdit3( "##Specular", &materialData.Material.Specular.x );
+
+                        ImGui::Text( "Power" );
+                        ImGui::SameLine();
+                        HelpMarker( DRAG_HINT_TEXT );
+                        ImGui::DragFloat( "##Power", &materialData.Material.SpecularPower, 1.0f, 1.0f, 32.0f );
+                        ImGui::TreePop();
+                    }
+
+                    if ( ImGui::TreeNode( "Parallax Controls" ) )
+                    {
+                        ImGui::Text( "Height Scale" );
+                        ImGui::SameLine();
+                        HelpMarker( DRAG_HINT_TEXT );
+                        ImGui::DragFloat( "##Height Scale", &materialData.Material.HeightScale, 0.1f, 0.0f, 100.0f );
+
+                        ImGui::Text( "Min Layers" );
+                        ImGui::SameLine();
+                        HelpMarker( DRAG_HINT_TEXT );
+                        ImGui::DragFloat( "##Min Layers", &materialData.Material.MinLayers, 1.0f, 1.0f, 30.0f );
+
+                        ImGui::Text( "Max Layers" );
+                        ImGui::SameLine();
+                        HelpMarker( DRAG_HINT_TEXT );
+                        ImGui::DragFloat( "##Max Layers", &materialData.Material.MaxLayers, 1.0f, 1.0f, 30.0f );
+                        ImGui::TreePop();
+                    }
+                }
+
+                currObject->GetAppearance()->SetMaterialData( materialData );
+                ImGui::TreePop();
+            }
+            ImGui::Separator();
+
+            SpawnImGuizmo( currObject->GetTransfrom(), pCamera, world, guizmoData[iSelectedIdx] );
         }
-        ImGui::Separator();
-
-        SpawnImGuizmo( currObject->GetTransfrom(), pCamera, world, guizmoData[iSelectedIdx] );
+        else
+        {
+			currObject->GetAppearance()->Hide();
+        }
     }
     ImGui::End();
 }
 
 void ImGuiManager::LightMenu( LightController* lightControl )
 {
-    static const char* cCurrentItemL = NULL;
-    static Light currLightData;
-    static bool bLoadL = false;
-    static std::string nameL;
-
-    if ( !bLoadL )
-    {
-        nameL = lightControl->GetLight( 0 )->GetName();
-        currLightData = lightControl->GetLightList()[0]->GetLightData();
-        cCurrentItemL = nameL.c_str();
-        bLoadL = true;
-    }
+    static std::string nameL = lightControl->GetLight( 0 )->GetName();
+    static Light currLightData = lightControl->GetLightList()[0]->GetLightData();
+    static const char* cCurrentItemL = nameL.c_str();
 
     if ( ImGui::Begin( "Lights", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
@@ -840,98 +825,99 @@ void ImGuiManager::LightMenu( LightController* lightControl )
         bool enable = currLightData.Enabled;
         if ( ImGui::Checkbox( "Enabled?", &enable ) )
             currLightData.Enabled = enable;
-
-        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
-        if ( ImGui::TreeNode( "Light Data" ) )
+        if ( enable )
         {
-            ImGui::Text( "Position" );
-            ImGui::SameLine();
-            HelpMarker( DRAG_HINT_TEXT );
-            ImGui::DragFloat3( "##Position", &currLightData.Position.x, 1.0f, -10.0f, 10.0f );
-
-            ImGui::Text( "Colour" );
-            ImGui::SameLine();
-            HelpMarker( COLOR_PICKER_HINT_TEXT );
-            float colour[] = { currLightData.Color.x, currLightData.Color.y, currLightData.Color.z, currLightData.Color.w };
-            if ( ImGui::ColorEdit4( "##Colour", colour, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_DisplayRGB ) )
-                currLightData.Color = { colour[0], colour[1], colour[2], colour[3] };
-
-            ImGui::TreePop();
-        }
-        ImGui::Separator();
-
-        if ( ImGui::TreeNode( "Shadow Direction" ) )
-        {
-            XMFLOAT3 lightDirection = lightControl->GetLight( nameL )->GetCamera()->GetRot();
-
-            ImGui::Text( "Pitch" );
-            ImGui::SliderAngle( "##Pitch", &lightDirection.x, 0.995f * -90.0f, 0.995f * 90.0f );
-
-            ImGui::Text( "Yaw" );
-            ImGui::SliderAngle( "##Yaw", &lightDirection.y, -180.0f, 180.0f );
-
-            lightControl->GetLight( nameL )->GetCamera()->SetRot( lightDirection );
-            ImGui::TreePop();
-        }
-        ImGui::Separator();
-
-        if ( ImGui::TreeNode( ( currLightData.LightType == LightType::DirectionalLight ) ? "Direction" : "Attenuation" ) )
-        {
-            switch ( currLightData.LightType )
+            if ( ImGui::TreeNode( "Light Data" ) )
             {
-            case LightType::PointLight:
-                ImGui::Text( "Constant" );
+                ImGui::Text( "Position" );
                 ImGui::SameLine();
                 HelpMarker( DRAG_HINT_TEXT );
-                ImGui::DragFloat( "##Constant", &currLightData.ConstantAttenuation, 0.1f, 1.0f, 10.0f, "%.2f" );
+                ImGui::DragFloat3( "##Position", &currLightData.Position.x, 1.0f, -10.0f, 10.0f );
 
-                ImGui::Text( "Linear" );
+                ImGui::Text( "Colour" );
                 ImGui::SameLine();
-                HelpMarker( DRAG_HINT_TEXT );
-                ImGui::DragFloat( "##Linear", &currLightData.LinearAttenuation, 0.1f, 0.0f, 5.0f, "%.4f" );
+                HelpMarker( COLOR_PICKER_HINT_TEXT );
+                float colour[] = { currLightData.Color.x, currLightData.Color.y, currLightData.Color.z, currLightData.Color.w };
+                if ( ImGui::ColorEdit4( "##Colour", colour, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_DisplayRGB ) )
+                    currLightData.Color = { colour[0], colour[1], colour[2], colour[3] };
 
-                ImGui::Text( "Quadratic" );
-                ImGui::SameLine();
-                HelpMarker( DRAG_HINT_TEXT );
-                ImGui::DragFloat( "##Quadratic", &currLightData.QuadraticAttenuation, 0.1f, 0.0f, 2.0f, "%.7f" );
+                ImGui::TreePop();
+            }
+            ImGui::Separator();
+
+            if ( ImGui::TreeNode( "Shadow Direction" ) )
+            {
+                XMFLOAT3 lightDirection = lightControl->GetLight( nameL )->GetCamera()->GetRot();
+
+                ImGui::Text( "Pitch" );
+                ImGui::SliderAngle( "##Pitch", &lightDirection.x, 0.995f * -90.0f, 0.995f * 90.0f );
+
+                ImGui::Text( "Yaw" );
+                ImGui::SliderAngle( "##Yaw", &lightDirection.y, -180.0f, 180.0f );
+
+                lightControl->GetLight( nameL )->GetCamera()->SetRot( lightDirection );
+                ImGui::TreePop();
+            }
+            ImGui::Separator();
+
+            if ( ImGui::TreeNode( ( currLightData.LightType == LightType::DirectionalLight ) ? "Direction" : "Attenuation" ) )
+            {
+                switch ( currLightData.LightType )
+                {
+                case LightType::PointLight:
+                    ImGui::Text( "Constant" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    ImGui::DragFloat( "##Constant", &currLightData.ConstantAttenuation, 0.1f, 1.0f, 10.0f, "%.2f" );
+
+                    ImGui::Text( "Linear" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    ImGui::DragFloat( "##Linear", &currLightData.LinearAttenuation, 0.1f, 0.0f, 5.0f, "%.4f" );
+
+                    ImGui::Text( "Quadratic" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    ImGui::DragFloat( "##Quadratic", &currLightData.QuadraticAttenuation, 0.1f, 0.0f, 2.0f, "%.7f" );
+                    break;
+
+                case LightType::SpotLight:
+                {
+                    ImGui::Text( "Constant" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    ImGui::DragFloat( "##Constant", &currLightData.ConstantAttenuation, 0.1f, 1.0f, 10.0f, "%.2f" );
+
+                    ImGui::Text( "Linear" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    ImGui::DragFloat( "##Linear", &currLightData.LinearAttenuation, 0.01f, 0.0f, 5.0f, "%.4f" );
+
+                    ImGui::Text( "Quadratic" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    ImGui::DragFloat( "##Quadratic", &currLightData.QuadraticAttenuation, 0.001f, 0.0f, 2.0f, "%.7f" );
+
+                    ImGui::Text( "Spot Angle" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    float SpotAngle = XMConvertToDegrees( currLightData.SpotAngle );
+                    ImGui::DragFloat( "##Spot Angle", &SpotAngle, 0.1f );
+                    currLightData.SpotAngle = XMConvertToRadians( SpotAngle );
+                }
                 break;
 
-            case LightType::SpotLight:
-            {
-                ImGui::Text( "Constant" );
-                ImGui::SameLine();
-                HelpMarker( DRAG_HINT_TEXT );
-                ImGui::DragFloat( "##Constant", &currLightData.ConstantAttenuation, 0.1f, 1.0f, 10.0f, "%.2f" );
-
-                ImGui::Text( "Linear" );
-                ImGui::SameLine();
-                HelpMarker( DRAG_HINT_TEXT );
-                ImGui::DragFloat( "##Linear", &currLightData.LinearAttenuation, 0.01f, 0.0f, 5.0f, "%.4f" );
-
-                ImGui::Text( "Quadratic" );
-                ImGui::SameLine();
-                HelpMarker( DRAG_HINT_TEXT );
-                ImGui::DragFloat( "##Quadratic", &currLightData.QuadraticAttenuation, 0.001f, 0.0f, 2.0f, "%.7f" );
-
-                ImGui::Text( "Spot Angle" );
-                ImGui::SameLine();
-                HelpMarker( DRAG_HINT_TEXT );
-                float SpotAngle = XMConvertToDegrees( currLightData.SpotAngle );
-                ImGui::DragFloat( "##Spot Angle", &SpotAngle, 0.1f );
-                currLightData.SpotAngle = XMConvertToRadians( SpotAngle );
+                case LightType::DirectionalLight:
+                {
+                    ImGui::Text( "Direction" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    ImGui::DragFloat3( "##Direction", &currLightData.Direction.x );
+                }
+                break;
+                }
+                ImGui::TreePop();
             }
-            break;
-
-            case LightType::DirectionalLight:
-            {
-                ImGui::Text( "Direction" );
-                ImGui::SameLine();
-                HelpMarker( DRAG_HINT_TEXT );
-                ImGui::DragFloat3( "##Direction", &currLightData.Direction.x );
-            }
-            break;
-            }
-            ImGui::TreePop();
         }
 
         lightControl->GetLight( nameL )->SetLightData( currLightData );
@@ -945,13 +931,13 @@ void ImGuiManager::BillboardMenu( BillboardObject* billboardObject )
     static std::string nameBB;
     static const char* cCurrentItemBB = NULL;
     static std::vector<SimpleVertexBillboard> vBbVerts;
-    vBbVerts = billboardObject->GetPosistions();
+    vBbVerts = billboardObject->GetPositions();
 
     if ( ImGui::Begin( "Billboard Control", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
         if ( ImGui::BeginCombo( "##Combo", cCurrentItemBB ) )
         {
-            for ( int n = 0; n < billboardObject->GetPosistions().size(); n++ )
+            for ( int n = 0; n < billboardObject->GetPositions().size(); n++ )
             {
                 std::string name = "Billboard ";
                 name += std::to_string( n );
@@ -961,13 +947,13 @@ void ImGuiManager::BillboardMenu( BillboardObject* billboardObject )
                     iPicked = n;
                     nameBB = name;
                     cCurrentItemBB = nameBB.c_str();
-                    vBbVerts = billboardObject->GetPosistions();
+                    vBbVerts = billboardObject->GetPositions();
                 }
 
                 if ( is_selected )
                 {
                     ImGui::SetItemDefaultFocus();
-                    vBbVerts = billboardObject->GetPosistions();
+                    vBbVerts = billboardObject->GetPositions();
                 }
             }
             ImGui::EndCombo();
@@ -1019,12 +1005,11 @@ std::vector<XMFLOAT2> CubicBezierCurve( std::vector<XMFLOAT2> controlPoints )
 
 void ImGuiManager::BezierSplineMenu()
 {
+    // Setup Bezier spline
     static std::vector<XMFLOAT2> points;
     static bool bLoadSpline = false;
-
     if ( !bLoadSpline )
     {
-        // Setup bezier spline
         points = {
             XMFLOAT2{ 0.0f, 0.0f },
             XMFLOAT2{ 2.0f, 1.0f },
@@ -1154,494 +1139,503 @@ void ImGuiManager::BezierSplineMenu()
     ImGui::End();
 }
 
-void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
+void ImGuiManager::TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, CameraController* camControl, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
     if ( ImGui::Begin( "Terrain", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
-        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Terrain##Normal" ) )
         {
             ImGui::Checkbox( "Draw Terrain?", terrain->GetIsDraw() );
-
-            if ( ImGui::TreeNode( "Terrain Info" ) )
+            if ( *terrain->GetIsDraw() )
             {
-                ImGui::Text( "Width: %i", terrain->GetHeightMapWidth() );
-                ImGui::Text( "Height: %i", terrain->GetHeightMapHeight() );
-                ImGui::Text( "Cell Spacing: %f", terrain->GetCellSpacing() );
-
-                switch ( terrain->GetGenType() )
+                if ( ImGui::TreeNode( "Terrain Info" ) )
                 {
-                case TerrainGenType::HeightMapLoad:
-                    ImGui::Text( "GenType: HeightMap" );
-                    ImGui::Text( terrain->GetHeightMapName().c_str() );
-                    ImGui::Text( "Height Scale: %i", terrain->GetHeightScale() );
-                    break;
+                    ImGui::Text( "Width: %i", terrain->GetHeightMapWidth() );
+                    ImGui::Text( "Height: %i", terrain->GetHeightMapHeight() );
+                    ImGui::Text( "Cell Spacing: %f", terrain->GetCellSpacing() );
 
-                case TerrainGenType::FaultLine:
-                    ImGui::Text( "GenType: FaultLine" );
-                    ImGui::Text( "Seed: %i", terrain->GetSeed() );
-                    ImGui::Text( "Displacment: %f", terrain->GetDisplacement() );
-                    ImGui::Text( "Iteration Count: %i", terrain->GetNumOfIterations() );
-                    break;
-
-                case TerrainGenType::Noise:
-                    ImGui::Text( "GenType: Noise" );
-                    ImGui::Text( "Seed: %i", terrain->GetSeed() );
-                    ImGui::Text( "Frequency: %f", terrain->GetFrequency() );
-                    ImGui::Text( "Octave Count: %i", terrain->GetNumOfOctaves() );
-                    ImGui::Text( "Height Scale: %i", terrain->GetHeightScale() );
-                    break;
-
-                case TerrainGenType::DiamondSquare:
-                    ImGui::Text( "GenType: Diamond Square" );
-                    ImGui::Text( "Seed: %i", terrain->GetSeed() );
-                    ImGui::Text( "Range: %i", terrain->GetRange() );
-                    ImGui::Text( "Height Scale: %i", terrain->GetHeightScale() );
-                    break;
-                }
-                ImGui::TreePop();
-            }
-
-            if ( ImGui::TreeNode( "Re-Build Options##Terrain" ) )
-            {
-                static TerrainGenType mode = (TerrainGenType)0;
-                const char* items[] = { "HeightMapLoad", "FaultLine", "Noise", "DiamondSquare" };
-                static const char* current_item = "HeightMapLoad";
-
-                if ( ImGui::BeginCombo( "##Combo", current_item ) )
-                {
-                    for ( int n = 0; n < IM_ARRAYSIZE( items ); n++ )
-                    {
-                        bool is_selected = ( current_item == items[n] );
-                        if ( ImGui::Selectable( items[n], is_selected ) )
-                        {
-                            current_item = items[n];
-                            mode = (TerrainGenType)n;
-
-                            if ( is_selected )
-                            {
-                                ImGui::SetItemDefaultFocus();
-                            }
-                        }
-                    }
-                    ImGui::EndCombo();
-                }
-
-                static int width = 514;
-                ImGui::Text( "Width" );
-                ImGui::InputInt( "##Width", &width );
-
-                static int length = 514;
-                ImGui::Text( "Length" );
-                ImGui::InputInt( "##Length", &length );
-
-                static float cellSpacing = 1.0f;
-                ImGui::Text( "Cell Spacing" );
-                ImGui::InputFloat( "##Cell Spacing", &cellSpacing );
-
-                static float heightScale = 50.0f;
-                static float frequency = 0.01f;
-                static float displacement = 0.01f;
-                static int seed = 1234;
-                static int range = 196;
-                static int numberOfOctaves = 3;
-
-                switch ( mode )
-                {
-                case TerrainGenType::HeightMapLoad:
-                    ImGui::Text( "Height Scale" );
-                    ImGui::InputFloat( "##HeightScale", &heightScale );
-                    break;
-
-                case TerrainGenType::FaultLine:
-                    ImGui::Text( "Seed" );
-                    ImGui::InputInt( "##Seed", &seed );
-                    ImGui::Text( "Interaction Count" );
-                    ImGui::InputInt( "##NumberOfIteration", &range );
-                    ImGui::Text( "Displacement" );
-                    ImGui::InputFloat( "##Displacement", &displacement );
-                    break;
-
-                case TerrainGenType::Noise:
-                    ImGui::Text( "Seed" );
-                    ImGui::InputInt( "##Seed", &seed );
-                    ImGui::Text( "Frequency" );
-                    ImGui::InputFloat( "##Frequency", &frequency );
-                    ImGui::Text( "Octave Count" );
-                    ImGui::InputInt( "##NumberOfOctaves", &numberOfOctaves );
-                    ImGui::Text( "Height Scale" );
-                    ImGui::InputFloat( "##HeightScale", &heightScale );
-                    break;
-
-                case TerrainGenType::DiamondSquare:
-                    ImGui::Text( "Seed" );
-                    ImGui::InputInt( "##Seed", &seed );
-                    ImGui::Text( "Range" );
-                    ImGui::InputInt( "##Range", &range );
-                    ImGui::Text( "Height Scale" );
-                    ImGui::InputFloat( "##HeightScale", &heightScale );
-                    break;
-                }
-
-                if ( ImGui::Button( "Re-Build Terrain##Normal" ) )
-                {
-                    switch ( mode )
+                    switch ( terrain->GetGenType() )
                     {
                     case TerrainGenType::HeightMapLoad:
+                        ImGui::Text( "GenType: HeightMap" );
+                        ImGui::Text( terrain->GetHeightMapName().c_str() );
+                        ImGui::Text( "Height Scale: %i", terrain->GetHeightScale() );
                         break;
 
                     case TerrainGenType::FaultLine:
-                        terrain->SetFaultLineData( seed, range, displacement );
+                        ImGui::Text( "GenType: FaultLine" );
+                        ImGui::Text( "Seed: %i", terrain->GetSeed() );
+                        ImGui::Text( "Displacement: %f", terrain->GetDisplacement() );
+                        ImGui::Text( "Iteration Count: %i", terrain->GetNumOfIterations() );
                         break;
 
                     case TerrainGenType::Noise:
-                        terrain->SetNoiseData( seed, frequency, numberOfOctaves );
+                        ImGui::Text( "GenType: Noise" );
+                        ImGui::Text( "Seed: %i", terrain->GetSeed() );
+                        ImGui::Text( "Frequency: %f", terrain->GetFrequency() );
+                        ImGui::Text( "Octave Count: %i", terrain->GetNumOfOctaves() );
+                        ImGui::Text( "Height Scale: %i", terrain->GetHeightScale() );
                         break;
 
                     case TerrainGenType::DiamondSquare:
-                        terrain->SetDiamondSquareData( seed, range );
+                        ImGui::Text( "GenType: Diamond Square" );
+                        ImGui::Text( "Seed: %i", terrain->GetSeed() );
+                        ImGui::Text( "Range: %i", terrain->GetRange() );
+                        ImGui::Text( "Height Scale: %i", terrain->GetHeightScale() );
+                        break;
+                    }
+                    ImGui::TreePop();
+                }
+
+                if ( ImGui::TreeNode( "Re-Build Options##Terrain" ) )
+                {
+                    static TerrainGenType mode = (TerrainGenType)0;
+                    const char* items[] = { "HeightMapLoad", "FaultLine", "Noise", "DiamondSquare" };
+                    static const char* current_item = "HeightMapLoad";
+
+                    if ( ImGui::BeginCombo( "##Combo", current_item ) )
+                    {
+                        for ( int n = 0; n < IM_ARRAYSIZE( items ); n++ )
+                        {
+                            bool is_selected = ( current_item == items[n] );
+                            if ( ImGui::Selectable( items[n], is_selected ) )
+                            {
+                                current_item = items[n];
+                                mode = (TerrainGenType)n;
+
+                                if ( is_selected )
+                                {
+                                    ImGui::SetItemDefaultFocus();
+                                }
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+
+                    static int width = 514;
+                    ImGui::Text( "Width" );
+                    ImGui::InputInt( "##Width", &width );
+
+                    static int length = 514;
+                    ImGui::Text( "Length" );
+                    ImGui::InputInt( "##Length", &length );
+
+                    static float cellSpacing = 1.0f;
+                    ImGui::Text( "Cell Spacing" );
+                    ImGui::InputFloat( "##Cell Spacing", &cellSpacing );
+
+                    static float heightScale = 50.0f;
+                    static float frequency = 0.01f;
+                    static float displacement = 0.01f;
+                    static int seed = 1234;
+                    static int range = 196;
+                    static int numberOfOctaves = 3;
+
+                    switch ( mode )
+                    {
+                    case TerrainGenType::HeightMapLoad:
+                        ImGui::Text( "Height Scale" );
+                        ImGui::InputFloat( "##HeightScale", &heightScale );
+                        break;
+
+                    case TerrainGenType::FaultLine:
+                        ImGui::Text( "Seed" );
+                        ImGui::InputInt( "##Seed", &seed );
+                        ImGui::Text( "Interaction Count" );
+                        ImGui::InputInt( "##NumberOfIteration", &range );
+                        ImGui::Text( "Displacement" );
+                        ImGui::InputFloat( "##Displacement", &displacement );
+                        break;
+
+                    case TerrainGenType::Noise:
+                        ImGui::Text( "Seed" );
+                        ImGui::InputInt( "##Seed", &seed );
+                        ImGui::Text( "Frequency" );
+                        ImGui::InputFloat( "##Frequency", &frequency );
+                        ImGui::Text( "Octave Count" );
+                        ImGui::InputInt( "##NumberOfOctaves", &numberOfOctaves );
+                        ImGui::Text( "Height Scale" );
+                        ImGui::InputFloat( "##HeightScale", &heightScale );
+                        break;
+
+                    case TerrainGenType::DiamondSquare:
+                        ImGui::Text( "Seed" );
+                        ImGui::InputInt( "##Seed", &seed );
+                        ImGui::Text( "Range" );
+                        ImGui::InputInt( "##Range", &range );
+                        ImGui::Text( "Height Scale" );
+                        ImGui::InputFloat( "##HeightScale", &heightScale );
                         break;
                     }
 
-                    terrain->ReBuildTerrain( XMFLOAT2( width, length ), heightScale, cellSpacing, mode, pDevice );
-                }
-                ImGui::NewLine();
-                ImGui::Separator();
-                ImGui::NewLine();
-
-                ImGui::Text( "Height Map Override" );
-                ImGui::Text( terrain->GetHeightMapName().c_str() );
-
-                // Open file dialog to load height map
-                if ( ImGui::Button( "Load Height Map##Button" ) )
-                {
-                    ImGuiFileDialog::Instance()->OpenDialog( "Load Height Map##Dialog", "Load Height Map", ".json", "." );
-                    ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
-                    ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
-                }
-
-                // Display file dialog window
-                if ( ImGuiFileDialog::Instance()->Display( "Load Height Map##Dialog" ) )
-                {
-                    if ( ImGuiFileDialog::Instance()->IsOk() )
+                    if ( ImGui::Button( "Re-Build Terrain##Normal" ) )
                     {
-                        std::string fileName = ImGuiFileDialog::Instance()->GetCurrentFileName();
-                        int position = fileName.find( ".json" );
-                        std::string fileNameNoExt = fileName.erase( position );
-
-                        TerrainData terrainData;
-                        TerrainJsonLoad::LoadData( fileNameNoExt, terrainData );
-                        TerrainGenType genType = (TerrainGenType)terrainData.Mode;
-                        double heightScale = 0;
-
-                        switch ( genType )
+                        switch ( mode )
                         {
                         case TerrainGenType::HeightMapLoad:
-                            heightScale = terrainData.HeightMapSettings.HeightScale;
                             break;
 
                         case TerrainGenType::FaultLine:
-                            terrain->SetFaultLineData( terrainData.FaultLineSettings.Seed, terrainData.FaultLineSettings.IterationCount, terrainData.FaultLineSettings.Displacement );
-                            heightScale = terrain->GetHeightScale();
+                            terrain->SetFaultLineData( seed, range, displacement );
                             break;
 
                         case TerrainGenType::Noise:
-                            terrain->SetNoiseData( terrainData.NoiseSettings.Seed, terrainData.NoiseSettings.Frequency, terrainData.NoiseSettings.NumOfOctaves );
-                            heightScale = terrainData.NoiseSettings.HeightScale;
+                            terrain->SetNoiseData( seed, frequency, numberOfOctaves );
                             break;
 
                         case TerrainGenType::DiamondSquare:
-                            terrain->SetDiamondSquareData( terrainData.DiamondSquareSettings.Seed, terrainData.DiamondSquareSettings.Range );
-                            heightScale = terrainData.DiamondSquareSettings.HeightScale;
+                            terrain->SetDiamondSquareData( seed, range );
                             break;
                         }
 
-                        terrain->ReBuildTerrain( XMFLOAT2( terrainData.Width, terrainData.Depth ), heightScale, terrainData.CellSpacing, genType, pDevice );
+                        terrain->ReBuildTerrain( XMFLOAT2( width, length ), heightScale, cellSpacing, mode, pDevice );
                     }
-                    ImGuiFileDialog::Instance()->Close();
-                }
+                    ImGui::NewLine();
+                    ImGui::Separator();
+                    ImGui::NewLine();
 
-                ImGui::SameLine();
-                // Open file dialog to save height map
-                if ( ImGui::Button( "Save Height Map##Button" ) )
-                {
-                    ImGuiFileDialog::Instance()->OpenDialog( "Save Height Map##Dialog", "Save Height Map", ".json", ".", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite );
-                    ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
-                    ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
-                }
+                    ImGui::Text( "Height Map Override" );
+                    ImGui::Text( terrain->GetHeightMapName().c_str() );
 
-                 // Display file dialog window
-                if ( ImGuiFileDialog::Instance()->Display( "Save Height Map##Dialog" ) )
-                {
-                    if ( ImGuiFileDialog::Instance()->IsOk() )
+                    // Open file dialog to load height map
+                    if ( ImGui::Button( "Load Height Map##Button" ) )
                     {
-                        TerrainData terrainData;
-                        terrainData.Width = terrain->GetHeightMapWidth();
-                        terrainData.Depth = terrain->GetHeightMapHeight();
-                        terrainData.CellSpacing = terrain->GetCellSpacing();
-                        terrainData.Mode = (int)terrain->GetGenType();
-
-                        switch ( terrain->GetGenType() )
-                        {
-                        case TerrainGenType::HeightMapLoad:
-                            terrainData.HeightMapSettings.HeightMapFile = terrain->GetHeightMapName();
-                            terrainData.HeightMapSettings.HeightScale = terrain->GetHeightScale();
-                            break;
-
-                        case TerrainGenType::FaultLine:
-                            terrainData.FaultLineSettings.Seed = terrain->GetSeed();
-                            terrainData.FaultLineSettings.IterationCount = terrain->GetNumOfIterations();
-                            terrainData.FaultLineSettings.Displacement = terrain->GetDisplacement();
-                            break;
-
-                        case TerrainGenType::Noise:
-                            terrainData.NoiseSettings.Seed = terrain->GetSeed();
-                            terrainData.NoiseSettings.HeightScale = terrain->GetHeightScale();
-                            terrainData.NoiseSettings.Frequency = terrain->GetFrequency();
-                            terrainData.NoiseSettings.NumOfOctaves = terrain->GetNumOfOctaves();
-                            break;
-
-                        case TerrainGenType::DiamondSquare:
-                            terrainData.DiamondSquareSettings.Seed = terrain->GetSeed();
-                            terrainData.DiamondSquareSettings.HeightScale = terrain->GetHeightScale();
-                            terrainData.DiamondSquareSettings.Range = terrain->GetRange();
-                            break;
-                        }
-
-                        std::string filePath = ImGuiFileDialog::Instance()->GetCurrentFileName();
-                        int position = filePath.find( ".json" );
-                        std::string fileName = filePath.erase( position );
-                        TerrainJsonLoad::StoreData( fileName, terrainData );
+                        ImGuiFileDialog::Instance()->OpenDialog( "Load Height Map##Dialog", "Load Height Map", ".json", "." );
+                        ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
+                        ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
                     }
 
-                    ImGuiFileDialog::Instance()->Close();
-                }
-
-                ImGui::TreePop();
-                ImGui::NewLine();
-            }
-
-            if ( ImGui::TreeNode( "Transfrom Controls" ) )
-            {
-                ImGui::Text( "Position" );
-                ImGui::SameLine();
-                HelpMarker( DRAG_HINT_TEXT );
-                XMFLOAT3 posTerrain = terrain->GetTransfrom()->GetPosition();
-                ImGui::DragFloat3( "##Position", &posTerrain.x );
-                terrain->GetTransfrom()->SetPosition( posTerrain );
-
-                ImGui::Text( "Rotation" );
-                ImGui::SameLine();
-                HelpMarker( DRAG_HINT_TEXT );
-                XMFLOAT3 rotationTerrain = terrain->GetTransfrom()->GetRotation();
-                ImGui::DragFloat3( "##Rotation", &rotationTerrain.x, 1.0f, 0.0f, 360.0f );
-                terrain->GetTransfrom()->SetRotation( rotationTerrain );
-
-                ImGui::Text( "Scale" );
-                ImGui::SameLine();
-                HelpMarker( DRAG_HINT_TEXT );
-                XMFLOAT3 scaleTerrain = terrain->GetTransfrom()->GetScale();
-                ImGui::DragFloat3( "##Scale", &scaleTerrain.x );
-                terrain->GetTransfrom()->SetScale( scaleTerrain );
-
-                ImGui::TreePop();
-            }
-
-            if ( ImGui::TreeNode( "Texture Controls" ) )
-            {
-                if ( ImGui::BeginTable( "Texture Name", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp ) )
-                {
-                    ImGui::TableSetupColumn( "Name" );
-                    ImGui::TableSetupColumn( "Texture" );
-                    ImGui::TableHeadersRow();
-
-                    for ( size_t i = 0; i < terrain->GetTexNames().size(); i++ )
+                    // Display file dialog window
+                    if ( ImGuiFileDialog::Instance()->Display( "Load Height Map##Dialog" ) )
                     {
-                        ImGui::TableNextRow();
-                        ImGui::TableNextColumn();
-                        std::string texType = "";
-                        switch ( i )
+                        if ( ImGuiFileDialog::Instance()->IsOk() )
                         {
-                        case 0: texType = "Grass"; break;
-                        case 1: texType = "Dark Dirt"; break;
-                        case 2: texType = "Light Dirt"; break;
-                        case 3: texType = "Stone"; break;
-                        case 4: texType = "Snow"; break;
-                        }
-                        ImGui::Text( texType.c_str() );
+                            std::string fileName = ImGuiFileDialog::Instance()->GetCurrentFileName();
+                            int position = fileName.find( ".json" );
+                            std::string fileNameNoExt = fileName.erase( position );
 
-                        ImGui::TableNextColumn();
-                        ImGui::Text( terrain->GetTexNames()[i].c_str() );
+                            TerrainData terrainData;
+                            TerrainJsonLoad::LoadData( fileNameNoExt, terrainData );
+                            TerrainGenType genType = (TerrainGenType)terrainData.Mode;
+                            double heightScale = 0;
 
-                        ImGui::TableNextColumn();
-                        if ( ImGui::Button( "Load##Button" ) )
-                        {
-                            ImGuiFileDialog::Instance()->OpenDialog( std::string( "Load##" ).append( texType ).c_str(), "Load Terrain Texture", ".dds,.jpg,.png", "." );
-                            ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
-                            ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
-                        }
-
-                        if ( ImGuiFileDialog::Instance()->Display( std::string( "Load##" ).append( texType ).c_str() ) )
-                        {
-                            if ( ImGuiFileDialog::Instance()->IsOk() )
+                            switch ( genType )
                             {
-                                try
-                                {
-                                    std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
-                                    std::string fileName = ImGuiFileDialog::Instance()->GetCurrentFileName();
-                                    ID3D11ShaderResourceView* pTexture = nullptr;
-                                    HRESULT hr = S_OK;
-                                    if ( filePath.find( ".dds" ) != std::string::npos )
-                                    {
-                                        hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
-                                    }
-                                    else if ( filePath.find( ".jpg" ) != std::string::npos )
-                                    {
-                                        hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
-                                    }
-                                    else if ( filePath.find( ".png" ) != std::string::npos )
-                                    {
-                                        hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
-                                    }
-                                    COM_ERROR_IF_FAILED( hr, "Failed to load TERRAIN texture!" );
-                                    terrain->SetTexture( i, "Resources/Textures/" + fileName, pTexture );
-                                }
-                                catch ( COMException& exception )
-                                {
-                                    ErrorLogger::Log( exception );
-                                    return;
-                                }
+                            case TerrainGenType::HeightMapLoad:
+                                heightScale = terrainData.HeightMapSettings.HeightScale;
+                                break;
+
+                            case TerrainGenType::FaultLine:
+                                terrain->SetFaultLineData( terrainData.FaultLineSettings.Seed, terrainData.FaultLineSettings.IterationCount, terrainData.FaultLineSettings.Displacement );
+                                heightScale = terrain->GetHeightScale();
+                                break;
+
+                            case TerrainGenType::Noise:
+                                terrain->SetNoiseData( terrainData.NoiseSettings.Seed, terrainData.NoiseSettings.Frequency, terrainData.NoiseSettings.NumOfOctaves );
+                                heightScale = terrainData.NoiseSettings.HeightScale;
+                                break;
+
+                            case TerrainGenType::DiamondSquare:
+                                terrain->SetDiamondSquareData( terrainData.DiamondSquareSettings.Seed, terrainData.DiamondSquareSettings.Range );
+                                heightScale = terrainData.DiamondSquareSettings.HeightScale;
+                                break;
                             }
-                            ImGuiFileDialog::Instance()->Close();
+
+                            terrain->ReBuildTerrain( XMFLOAT2( terrainData.Width, terrainData.Depth ), heightScale, terrainData.CellSpacing, genType, pDevice );
                         }
+                        ImGuiFileDialog::Instance()->Close();
                     }
 
-                    ImGui::EndTable();
+                    ImGui::SameLine();
+                    // Open file dialog to save height map
+                    if ( ImGui::Button( "Save Height Map##Button" ) )
+                    {
+                        ImGuiFileDialog::Instance()->OpenDialog( "Save Height Map##Dialog", "Save Height Map", ".json", ".", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite );
+                        ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
+                        ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
+                    }
+
+                     // Display file dialog window
+                    if ( ImGuiFileDialog::Instance()->Display( "Save Height Map##Dialog" ) )
+                    {
+                        if ( ImGuiFileDialog::Instance()->IsOk() )
+                        {
+                            TerrainData terrainData;
+                            terrainData.Width = terrain->GetHeightMapWidth();
+                            terrainData.Depth = terrain->GetHeightMapHeight();
+                            terrainData.CellSpacing = terrain->GetCellSpacing();
+                            terrainData.Mode = (int)terrain->GetGenType();
+
+                            switch ( terrain->GetGenType() )
+                            {
+                            case TerrainGenType::HeightMapLoad:
+                                terrainData.HeightMapSettings.HeightMapFile = terrain->GetHeightMapName();
+                                terrainData.HeightMapSettings.HeightScale = terrain->GetHeightScale();
+                                break;
+
+                            case TerrainGenType::FaultLine:
+                                terrainData.FaultLineSettings.Seed = terrain->GetSeed();
+                                terrainData.FaultLineSettings.IterationCount = terrain->GetNumOfIterations();
+                                terrainData.FaultLineSettings.Displacement = terrain->GetDisplacement();
+                                break;
+
+                            case TerrainGenType::Noise:
+                                terrainData.NoiseSettings.Seed = terrain->GetSeed();
+                                terrainData.NoiseSettings.HeightScale = terrain->GetHeightScale();
+                                terrainData.NoiseSettings.Frequency = terrain->GetFrequency();
+                                terrainData.NoiseSettings.NumOfOctaves = terrain->GetNumOfOctaves();
+                                break;
+
+                            case TerrainGenType::DiamondSquare:
+                                terrainData.DiamondSquareSettings.Seed = terrain->GetSeed();
+                                terrainData.DiamondSquareSettings.HeightScale = terrain->GetHeightScale();
+                                terrainData.DiamondSquareSettings.Range = terrain->GetRange();
+                                break;
+                            }
+
+                            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentFileName();
+                            int position = filePath.find( ".json" );
+                            std::string fileName = filePath.erase( position );
+                            TerrainJsonLoad::StoreData( fileName, terrainData );
+                        }
+
+                        ImGuiFileDialog::Instance()->Close();
+                    }
+
+                    ImGui::TreePop();
+                    ImGui::NewLine();
                 }
 
-                float layer1MaxHeight = terrain->GetTerrainData().Layer1MaxHeight;
-                float layer2MaxHeight = terrain->GetTerrainData().Layer2MaxHeight;
-                float layer3MaxHeight = terrain->GetTerrainData().Layer3MaxHeight;
-                float layer4MaxHeight = terrain->GetTerrainData().Layer4MaxHeight;
-                float layer5MaxHeight = terrain->GetTerrainData().Layer5MaxHeight;
-
-                ImGui::Text( "Layer 1 Max Height" );
-                ImGui::SameLine();
-                HelpMarker( SLIDER_HINT_TEXT );
-                ImGui::SliderFloat( "##Layer1MaxHeight", &layer1MaxHeight, 0.0f, layer2MaxHeight );
-
-                ImGui::Text( "Layer 2 Max Height" );
-                ImGui::SameLine();
-                HelpMarker( SLIDER_HINT_TEXT );
-                ImGui::SliderFloat( "##Layer2MaxHeight", &layer2MaxHeight, layer1MaxHeight, layer3MaxHeight );
-
-                ImGui::Text( "Layer 3 Max Height" );
-                ImGui::SameLine();
-                HelpMarker( SLIDER_HINT_TEXT );
-                ImGui::SliderFloat( "##Layer3MaxHeight", &layer3MaxHeight, layer2MaxHeight, layer4MaxHeight );
-
-                ImGui::Text( "Layer 4 Max Height" );
-                ImGui::SameLine();
-                HelpMarker( SLIDER_HINT_TEXT );
-                ImGui::SliderFloat( "##Layer4MaxHeight", &layer4MaxHeight, layer3MaxHeight, layer5MaxHeight );
-
-                ImGui::Text( "Layer 5 Max Height" );
-                ImGui::SameLine();
-                HelpMarker( SLIDER_HINT_TEXT );
-                ImGui::SliderFloat( "##Layer5MaxHeight", &layer5MaxHeight, layer4MaxHeight, 100000.0f );
-
-                terrain->SetTexHeights( layer1MaxHeight, layer2MaxHeight, layer3MaxHeight, layer4MaxHeight, layer5MaxHeight );
-                ImGui::TreePop();
-            }
-
-            if ( ImGui::TreeNode( "LOD Controls" ) )
-            {
-                float floatMinTess = terrain->GetTerrainData().MinTess;
-                ImGui::Text( "Min Tess" );
-                ImGui::SameLine();
-                HelpMarker( SLIDER_HINT_TEXT );
-                ImGui::SliderFloat( "##Min Tess", &floatMinTess, 0.0f, 6.0f );
-
-                float floatMaxTess = terrain->GetTerrainData().MaxTess;
-                ImGui::Text( "Max Tess" );
-                ImGui::SameLine();
-                HelpMarker( SLIDER_HINT_TEXT );
-                ImGui::SliderFloat( "##Max Tess", &floatMaxTess, 0.0f, 6.0f );
-
-                if ( floatMaxTess < floatMaxTess )
+                if ( ImGui::TreeNode( "Transform Controls" ) )
                 {
-                    floatMaxTess = floatMinTess;
+                    ImGui::Text( "Position" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    XMFLOAT3 posTerrain = terrain->GetTransfrom()->GetPosition();
+                    ImGui::DragFloat3( "##Position", &posTerrain.x );
+                    terrain->GetTransfrom()->SetPosition( posTerrain );
+
+                    ImGui::Text( "Rotation" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    XMFLOAT3 rotationTerrain = terrain->GetTransfrom()->GetRotation();
+                    ImGui::DragFloat3( "##Rotation", &rotationTerrain.x, 1.0f, 0.0f, 360.0f );
+                    terrain->GetTransfrom()->SetRotation( rotationTerrain );
+
+                    ImGui::Text( "Scale" );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    XMFLOAT3 scaleTerrain = terrain->GetTransfrom()->GetScale();
+                    ImGui::DragFloat3( "##Scale", &scaleTerrain.x );
+                    terrain->GetTransfrom()->SetScale( scaleTerrain );
+
+                    ImGui::TreePop();
                 }
-                terrain->SetMaxTess( floatMaxTess );
-                terrain->SetMinTess( floatMinTess );
 
-                float minTessDist = terrain->GetTerrainData().MinDist;
-                ImGui::Text( "Min Tess Distance" );
-                ImGui::SameLine();
-                HelpMarker( SLIDER_HINT_TEXT );
-                ImGui::SliderFloat( "##Min Tess Distance", &minTessDist, 1.0f, 1000.0f );
-
-                float maxTessDist = terrain->GetTerrainData().MaxDist;
-                ImGui::Text( "Max Tess Distance" );
-                ImGui::SameLine();
-                HelpMarker( SLIDER_HINT_TEXT );
-                ImGui::SliderFloat( "##Max Tess Distance", &maxTessDist, 1.0f, 1000.0f );
-
-                if ( maxTessDist < minTessDist )
+                if ( ImGui::TreeNode( "Texture Controls" ) )
                 {
-                    maxTessDist = minTessDist;
+                    if ( ImGui::BeginTable( "Texture Name", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp ) )
+                    {
+                        ImGui::TableSetupColumn( "Name" );
+                        ImGui::TableSetupColumn( "Texture" );
+                        ImGui::TableHeadersRow();
+
+                        for ( size_t i = 0; i < terrain->GetTexNames().size(); i++ )
+                        {
+                            ImGui::TableNextRow();
+                            ImGui::TableNextColumn();
+                            std::string texType = "";
+                            switch ( i )
+                            {
+                            case 0: texType = "Grass"; break;
+                            case 1: texType = "Dark Dirt"; break;
+                            case 2: texType = "Light Dirt"; break;
+                            case 3: texType = "Stone"; break;
+                            case 4: texType = "Snow"; break;
+                            }
+                            ImGui::Text( texType.c_str() );
+
+                            ImGui::TableNextColumn();
+                            ImGui::Text( terrain->GetTexNames()[i].c_str() );
+
+                            ImGui::TableNextColumn();
+                            if ( ImGui::Button( "Load##Button" ) )
+                            {
+                                ImGuiFileDialog::Instance()->OpenDialog( std::string( "Load##" ).append( texType ).c_str(), "Load Terrain Texture", ".dds,.jpg,.png", "." );
+                                ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
+                                ImGui::SetNextWindowPos( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once, ImVec2( 0.5f, 0.5f ) );
+                            }
+
+                            if ( ImGuiFileDialog::Instance()->Display( std::string( "Load##" ).append( texType ).c_str() ) )
+                            {
+                                if ( ImGuiFileDialog::Instance()->IsOk() )
+                                {
+                                    try
+                                    {
+                                        std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+                                        std::string fileName = ImGuiFileDialog::Instance()->GetCurrentFileName();
+                                        ID3D11ShaderResourceView* pTexture = nullptr;
+                                        HRESULT hr = S_OK;
+                                        if ( filePath.find( ".dds" ) != std::string::npos )
+                                        {
+                                            hr = CreateDDSTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                        }
+                                        else if ( filePath.find( ".jpg" ) != std::string::npos )
+                                        {
+                                            hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                        }
+                                        else if ( filePath.find( ".png" ) != std::string::npos )
+                                        {
+                                            hr = CreateWICTextureFromFile( pDevice, StringHelper::ToWide( filePath ).c_str(), nullptr, &pTexture );
+                                        }
+                                        COM_ERROR_IF_FAILED( hr, "Failed to load TERRAIN texture!" );
+                                        terrain->SetTexture( i, fileName, pTexture );
+                                    }
+                                    catch ( COMException& exception )
+                                    {
+                                        ErrorLogger::Log( exception );
+                                    }
+                                }
+                                ImGuiFileDialog::Instance()->Close();
+                            }
+                        }
+
+                        ImGui::EndTable();
+                    }
+
+                    float layer1MaxHeight = terrain->GetTerrainData().Layer1MaxHeight;
+                    float layer2MaxHeight = terrain->GetTerrainData().Layer2MaxHeight;
+                    float layer3MaxHeight = terrain->GetTerrainData().Layer3MaxHeight;
+                    float layer4MaxHeight = terrain->GetTerrainData().Layer4MaxHeight;
+                    float layer5MaxHeight = terrain->GetTerrainData().Layer5MaxHeight;
+
+                    ImGui::Text( "Layer 1 Max Height" );
+                    ImGui::SameLine();
+                    HelpMarker( SLIDER_HINT_TEXT );
+                    ImGui::SliderFloat( "##Layer1MaxHeight", &layer1MaxHeight, 0.0f, layer2MaxHeight );
+
+                    ImGui::Text( "Layer 2 Max Height" );
+                    ImGui::SameLine();
+                    HelpMarker( SLIDER_HINT_TEXT );
+                    ImGui::SliderFloat( "##Layer2MaxHeight", &layer2MaxHeight, layer1MaxHeight, layer3MaxHeight );
+
+                    ImGui::Text( "Layer 3 Max Height" );
+                    ImGui::SameLine();
+                    HelpMarker( SLIDER_HINT_TEXT );
+                    ImGui::SliderFloat( "##Layer3MaxHeight", &layer3MaxHeight, layer2MaxHeight, layer4MaxHeight );
+
+                    ImGui::Text( "Layer 4 Max Height" );
+                    ImGui::SameLine();
+                    HelpMarker( SLIDER_HINT_TEXT );
+                    ImGui::SliderFloat( "##Layer4MaxHeight", &layer4MaxHeight, layer3MaxHeight, layer5MaxHeight );
+
+                    ImGui::Text( "Layer 5 Max Height" );
+                    ImGui::SameLine();
+                    HelpMarker( SLIDER_HINT_TEXT );
+                    ImGui::SliderFloat( "##Layer5MaxHeight", &layer5MaxHeight, layer4MaxHeight, 100000.0f );
+
+                    terrain->SetTexHeights( layer1MaxHeight, layer2MaxHeight, layer3MaxHeight, layer4MaxHeight, layer5MaxHeight );
+                    ImGui::TreePop();
                 }
-                terrain->SetMaxTessDist( maxTessDist );
-                terrain->SetMinTessDist( minTessDist );
 
-                ImGui::TreePop();
+                if ( ImGui::TreeNode( "LOD Controls" ) )
+                {
+                    float floatMinTess = terrain->GetTerrainData().MinTess;
+                    ImGui::Text( "Min Tess" );
+                    ImGui::SameLine();
+                    HelpMarker( SLIDER_HINT_TEXT );
+                    ImGui::SliderFloat( "##Min Tess", &floatMinTess, 0.0f, 6.0f );
+
+                    float floatMaxTess = terrain->GetTerrainData().MaxTess;
+                    ImGui::Text( "Max Tess" );
+                    ImGui::SameLine();
+                    HelpMarker( SLIDER_HINT_TEXT );
+                    ImGui::SliderFloat( "##Max Tess", &floatMaxTess, 0.0f, 6.0f );
+
+                    if ( floatMaxTess < floatMaxTess )
+                    {
+                        floatMaxTess = floatMinTess;
+                    }
+                    terrain->SetMaxTess( floatMaxTess );
+                    terrain->SetMinTess( floatMinTess );
+
+                    float minTessDist = terrain->GetTerrainData().MinDist;
+                    ImGui::Text( "Min Tess Distance" );
+                    ImGui::SameLine();
+                    HelpMarker( SLIDER_HINT_TEXT );
+                    ImGui::SliderFloat( "##Min Tess Distance", &minTessDist, 1.0f, 1000.0f );
+
+                    float maxTessDist = terrain->GetTerrainData().MaxDist;
+                    ImGui::Text( "Max Tess Distance" );
+                    ImGui::SameLine();
+                    HelpMarker( SLIDER_HINT_TEXT );
+                    ImGui::SliderFloat( "##Max Tess Distance", &maxTessDist, 1.0f, 1000.0f );
+
+                    if ( maxTessDist < minTessDist )
+                    {
+                        maxTessDist = minTessDist;
+                    }
+                    terrain->SetMaxTessDist( maxTessDist );
+                    terrain->SetMinTessDist( minTessDist );
+
+                    ImGui::TreePop();
+                }
             }
-
             ImGui::TreePop();
         }
         ImGui::Separator();
 
-        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Voxel Terrain" ) )
         {
-            ImGui::Checkbox( "Draw Voxels?", voxelTerrain->GetIsDraw() );
-
-            if ( ImGui::TreeNode( "Voxel Info" ) )
+            if ( ImGui::Checkbox( "Draw Voxels?", voxelTerrain->GetIsDraw() ) )
             {
-                ImGui::Text( "Chunk Count: %i", voxelTerrain->GetNumberOfChunks() );
-                ImGui::Text( "Octave Count: %i", voxelTerrain->GetOctaves() );
-                ImGui::Text( "Frequency: %f", voxelTerrain->GetFrequency() );
-                ImGui::Text( "Seed: %i", voxelTerrain->GetSeed() );
-                ImGui::TreePop();
+                // Only switch camera when drawing voxels
+                if ( *voxelTerrain->GetIsDraw() )
+                {
+                    m_bUpdateCamera = true;
+                    camControl->SetCam( "Voxel Camera" );
+                }
             }
 
-            if ( ImGui::TreeNode( "Rebuild Options##Voxel" ) )
+            if ( *voxelTerrain->GetIsDraw() )
             {
-                static int seed;
-                ImGui::Text( "Seed" );
-                ImGui::InputInt( "#Seed Voxel", &seed );
-
-                static float frequency;
-                ImGui::Text( "Frequency" );
-                ImGui::InputFloat( "##Frequency Voxel", &frequency );
-
-                static int octave;
-                ImGui::Text( "Octaves" );
-                ImGui::InputInt( "##Octaves Voxel", &octave );
-
-                static int numberOfChunksX = 0;
-                ImGui::Text( "Chunk Count X" );
-                ImGui::InputInt( "##Number of Chunk X", &numberOfChunksX );
-
-                static int numberOfChunksZ = 0;
-                ImGui::Text( "Chunk Count Z" );
-                ImGui::InputInt( "##Number of Chunk Z", &numberOfChunksZ );
-
-                if ( ImGui::Button( "Re-Build Terrain##Voxel" ) )
+                if ( ImGui::TreeNode( "Voxel Info" ) )
                 {
-                    voxelTerrain->RebuildMap( pDevice, pContext, seed, numberOfChunksX, numberOfChunksZ, frequency, octave );
+                    ImGui::Text( "Chunk Count: %i", voxelTerrain->GetNumberOfChunks() );
+                    ImGui::Text( "Octave Count: %i", voxelTerrain->GetOctaves() );
+                    ImGui::Text( "Frequency: %f", voxelTerrain->GetFrequency() );
+                    ImGui::Text( "Seed: %i", voxelTerrain->GetSeed() );
+                    ImGui::TreePop();
                 }
-                ImGui::TreePop();
+
+                if ( ImGui::TreeNode( "Rebuild Options##Voxel" ) )
+                {
+                    static int seed;
+                    ImGui::Text( "Seed" );
+                    ImGui::InputInt( "#Seed Voxel", &seed );
+
+                    static float frequency;
+                    ImGui::Text( "Frequency" );
+                    ImGui::InputFloat( "##Frequency Voxel", &frequency );
+
+                    static int octave;
+                    ImGui::Text( "Octaves" );
+                    ImGui::InputInt( "##Octaves Voxel", &octave );
+
+                    static int numberOfChunksX = 0;
+                    ImGui::Text( "Chunk Count X" );
+                    ImGui::InputInt( "##Number of Chunk X", &numberOfChunksX );
+
+                    static int numberOfChunksZ = 0;
+                    ImGui::Text( "Chunk Count Z" );
+                    ImGui::InputInt( "##Number of Chunk Z", &numberOfChunksZ );
+
+                    if ( ImGui::Button( "Re-Build Terrain##Voxel" ) )
+                    {
+                        voxelTerrain->RebuildMap( pDevice, pContext, seed, numberOfChunksX, numberOfChunksZ, frequency, octave );
+                    }
+                    ImGui::TreePop();
+                }
             }
 
             ImGui::TreePop();
@@ -1655,293 +1649,294 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel, Camera* pCamera )
     if ( ImGui::Begin( "Animation", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
         static bool bDraw = animModel->IsVisible();
-        if ( ImGui::Checkbox( "Draw Animated Model?", &bDraw ) )
-        {
-			if ( bDraw )
-			{
-				animModel->Show();
-			}
-			else
-			{
-				animModel->Hide();
-			}
-        }
+        ImGui::Checkbox( "Draw Animated Model?", &bDraw );
+		if ( bDraw )
+		{
+			animModel->Show();
 
-        ImGui::SetNextItemOpen( true, ImGuiCond_Once );
-        if ( ImGui::TreeNode( "Model Data" ) )
-        {
-            std::string modelName = "Model Name: ";
-            modelName += animModel->GetModelName().c_str();
-            ImGui::Text( modelName.c_str() );
-            if ( ImGui::BeginTable( "Mesh Data", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp ) )
+            if ( ImGui::TreeNode( "Model Data" ) )
             {
-                ImGui::TableSetupColumn( "ID" );
-                ImGui::TableSetupColumn( "Face Count" );
-                ImGui::TableSetupColumn( "Vertex Count" );
-                ImGui::TableSetupColumn( "Diffuse Tex" );
-                ImGui::TableHeadersRow();
-
-                for ( size_t i = 0; i < animModel->GetSubsets().size(); i++ )
-                {
-                    Subset data = animModel->GetSubsets()[i];
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text( "%i", data.m_uId );
-
-                    ImGui::TableNextColumn();
-                    ImGui::Text( "%i", data.m_uFaceCount );
-
-                    ImGui::TableNextColumn();
-                    ImGui::Text( "%i", data.m_uVertexCount );
-
-                    ImGui::TableNextColumn();
-                    std::wstring diffuseMap = animModel->GetMaterialData()[i].DiffuseMapName.c_str();
-                    ImGui::Text( StringHelper::ToNarrow( diffuseMap ).c_str() );
-                }
-                ImGui::EndTable();
-            }
-
-            static bool bRequiresUpdate = true;
-            if ( ImGuizmo::IsUsing() )
-                bRequiresUpdate = true;
-
-            ImGui::Text( "Position" );
-            ImGui::SameLine();
-            HelpMarker( DRAG_HINT_TEXT );
-            static float modelPos[3];
-            if ( bRequiresUpdate )
-            {
-                modelPos[0] = animModel->GetTransformData()->GetPosition().x;
-                modelPos[1] = animModel->GetTransformData()->GetPosition().y;
-                modelPos[2] = animModel->GetTransformData()->GetPosition().z;
-            }
-            if ( ImGui::DragFloat3( "##PositionModel", modelPos, 0.01f ) )
-                animModel->GetTransformData()->SetPosition( XMFLOAT3( modelPos ) );
-
-            ImGui::Text( "Rotation" );
-            ImGui::SameLine();
-            HelpMarker( DRAG_HINT_TEXT );
-            static float modelRotation[3];
-            if ( bRequiresUpdate )
-            {
-                modelRotation[0] = animModel->GetTransformData()->GetRotation().x;
-                modelRotation[1] = animModel->GetTransformData()->GetRotation().y;
-                modelRotation[2] = animModel->GetTransformData()->GetRotation().z;
-            }
-            if ( ImGui::DragFloat3( "##RotationModel", modelRotation ) )
-                animModel->GetTransformData()->SetRotation( XMFLOAT3( modelRotation ) );
-
-            ImGui::Text( "Scale" );
-            ImGui::SameLine();
-            HelpMarker( DRAG_HINT_TEXT );
-            static float modelScale[3];
-            if ( bRequiresUpdate )
-            {
-                modelScale[0] = animModel->GetTransformData()->GetScale().x;
-                modelScale[1] = animModel->GetTransformData()->GetScale().y;
-                modelScale[2] = animModel->GetTransformData()->GetScale().z;
-            }
-            if ( ImGui::DragFloat3( "##ScaleModel", modelScale, 0.01f ) )
-                animModel->GetTransformData()->SetScale( XMFLOAT3( modelScale ) );
-
-            bRequiresUpdate = false;
-            ImGui::TreePop();
-        }
-        ImGui::Separator();
-
-        if ( ImGui::TreeNode( "Bone Data##Node" ) )
-        {
-            if ( ImGui::BeginChild( "Bone List", ImVec2( 0, 250 ), true ) )
-            {
-                if ( ImGui::BeginTable( "Bone Data##Table", 3, ImGuiTableFlags_BordersInner | ImGuiTableFlags_SizingStretchSame ) )
+                std::string modelName = "Model Name: ";
+                modelName += animModel->GetModelName().c_str();
+                ImGui::Text( modelName.c_str() );
+                if ( ImGui::BeginTable( "Mesh Data", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp ) )
                 {
                     ImGui::TableSetupColumn( "ID" );
-                    ImGui::TableSetupColumn( "Parent" );
-                    ImGui::TableSetupColumn( "Child" );
-					ImGui::TableHeadersRow();
+                    ImGui::TableSetupColumn( "Face Count" );
+                    ImGui::TableSetupColumn( "Vertex Count" );
+                    ImGui::TableSetupColumn( "Diffuse Tex" );
+                    ImGui::TableHeadersRow();
 
-                    for ( size_t i = 0; i < animModel->GetSkeleton()->GetBoneData().size(); i++ )
+                    for ( size_t i = 0; i < animModel->GetSubsets().size(); i++ )
                     {
-                        Bone* data = animModel->GetSkeleton()->GetBoneData()[i];
+                        Subset data = animModel->GetSubsets()[i];
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
-                        ImGui::Text( "%i", i );
+                        ImGui::Text( "%i", data.m_uId );
 
                         ImGui::TableNextColumn();
-                        ImGui::Text( "%i", data->Getparent() );
+                        ImGui::Text( "%i", data.m_uFaceCount );
 
                         ImGui::TableNextColumn();
-                        std::string childData = "";
-                        for ( size_t i = 0; i < data->GetChild().size(); i++ )
-                        {
-                            if ( data->GetChild()[i] == -1 )
-                            {
-                                childData = "No Child";
-                            }
-                            else if ( i == data->GetChild().size() - 1 )
-                            {
-                                childData += std::to_string( data->GetChild()[i] );
-                            }
-                            else
-                            {
-                                childData += std::to_string( data->GetChild()[i] ) + ", ";
-                            }
-                        }
-                        ImGui::Text( childData.c_str() );
+                        ImGui::Text( "%i", data.m_uVertexCount );
 
+                        ImGui::TableNextColumn();
+                        std::wstring diffuseMap = animModel->GetMaterialData()[i].DiffuseMapName.c_str();
+                        ImGui::Text( StringHelper::ToNarrow( diffuseMap ).c_str() );
                     }
                     ImGui::EndTable();
                 }
-            }
-            ImGui::EndChild();
 
-            static int boneNum = 0;
-            static int boneNumPrev = -1;
-            static float bonePos[3];
-            static float boneScale[3];
-            ImGui::Text( "Bone Number" );
-            ImGui::InputInt( "##Bone Num", &boneNum );
-            if ( boneNum > animModel->GetSkeleton()->BoneCount() )
-            {
-                boneNum = animModel->GetSkeleton()->BoneCount() - 1;
-            }
-            else if ( boneNum < 0 )
-            {
-                boneNum = 0;
-            }
+                static bool bRequiresUpdate = true;
+                if ( ImGuizmo::IsUsing() )
+                    bRequiresUpdate = true;
 
-            if ( boneNum != boneNumPrev )
-            {
-                bonePos[0] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldPos().x;
-                bonePos[1] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldPos().y;
-                bonePos[2] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldPos().z;
-                boneScale[0] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldScale().x;
-                boneScale[1] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldScale().y;
-                boneScale[2] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldScale().z;
-                boneNumPrev = boneNum;
-            }
-
-            ImGui::Text( "Position" );
-            ImGui::SameLine();
-            HelpMarker( DRAG_HINT_TEXT );
-            ImGui::DragFloat3( "##Bone Position", bonePos, 0.01f );
-
-            ImGui::Text( "Rotation" );
-            ImGui::SameLine();
-            HelpMarker( DRAG_HINT_TEXT );
-            static float boneRotation[3];
-            ImGui::DragFloat3( "##Bone Rotation", boneRotation );
-
-            ImGui::Text( "Scale" );
-            ImGui::SameLine();
-            HelpMarker( DRAG_HINT_TEXT );
-            ImGui::DragFloat3( "##Bone Scale", boneScale, 0.01f );
-
-            if ( ImGui::Button( "Apply Changes" ) )
-            {
-                animModel->GetSkeleton()->SetBonePosition( boneNum, XMFLOAT3( bonePos ) );
-                XMMATRIX rotation = XMMatrixRotationX(
-                    XMConvertToRadians( boneRotation[0] ) ) *
-                    XMMatrixRotationY( XMConvertToRadians( boneRotation[1] ) ) *
-                    XMMatrixRotationZ( XMConvertToRadians( boneRotation[2] ) );
-                XMFLOAT4 orientation;
-                XMStoreFloat4( &orientation, XMQuaternionRotationMatrix( rotation ) );
-                animModel->GetSkeleton()->SetBoneRotQuat( boneNum, XMFLOAT4( orientation ) );
-                animModel->GetSkeleton()->SetBoneScale( boneNum, XMFLOAT3( boneScale ) );
-            }
-
-            ImGui::TreePop();
-        }
-        ImGui::Separator();
-
-        if ( ImGui::TreeNode( "Animation Data" ) )
-        {
-            // Set animation
-            static std::vector<std::string> animationName = animModel->GetSkeleton()->AnimationClips();
-            static const char* cCurrentItem = animationName[0].c_str();
-
-            ImGui::Text( "Animation Clip" );
-            if ( ImGui::BeginCombo( "##Combo", cCurrentItem ) )
-            {
-                for ( int n = 0; n < animationName.size(); n++ )
-                {
-                    bool is_selected = ( cCurrentItem == animationName[n].c_str() );
-                    if ( ImGui::Selectable( animationName[n].c_str(), is_selected ) )
-                    {
-                        cCurrentItem = animationName[n].c_str();
-                        if ( is_selected )
-                        {
-                            ImGui::SetItemDefaultFocus();
-                            animModel->SetAnimation( animationName[n] );
-                        }
-                    }
-                }
-                ImGui::EndCombo();
-            }
-
-            animModel->SetAnimation( cCurrentItem );
-            static bool isLoop = animModel->GetIsLoop();
-            ImGui::Checkbox( "Loop Animation?", &isLoop );
-            animModel->SetIsLoop( isLoop );
-            float TimePos = animModel->GetTimePos();
-
-            if ( !isLoop )
-            {
-                ImGui::Text( "Animation Time Position" );
+                ImGui::Text( "Position" );
                 ImGui::SameLine();
                 HelpMarker( DRAG_HINT_TEXT );
-                ImGui::DragFloat( "##Animation Time Position", &TimePos, 0.001f );
-                animModel->SetTimePos( TimePos );
-            }
-
-            // Current animation data
-            if ( ImGui::TreeNode( "Animation Info" ) )
-            {
-                if ( ImGui::BeginTable( "##Animation Info", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame ) )
+                static float modelPos[3];
+                if ( bRequiresUpdate )
                 {
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text( "Animation Start" );
-
-                    ImGui::TableNextColumn();
-                    std::string sStart = std::format( "{:.3f}", animModel->GetSkeleton()->GetClipStartTime( animModel->GetClipName() ) );
-                    ImGui::Text( sStart.c_str() );
-
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text( "Animation End" );
-
-                    ImGui::TableNextColumn();
-                    std::string sEnd = std::format( "{:.3f}", animModel->GetSkeleton()->GetClipEndTime( animModel->GetClipName() ) );
-                    ImGui::Text( sEnd.c_str() );
-
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text( "Animation Time" );
-
-                    ImGui::TableNextColumn();
-                    std::string sTime = std::format( "{:.3f}", animModel->GetTimePos() );
-                    ImGui::Text( sTime.c_str() );
-
-                    ImGui::EndTable();
+                    modelPos[0] = animModel->GetTransform()->GetPosition().x;
+                    modelPos[1] = animModel->GetTransform()->GetPosition().y;
+                    modelPos[2] = animModel->GetTransform()->GetPosition().z;
                 }
+                if ( ImGui::DragFloat3( "##PositionModel", modelPos, 0.01f ) )
+                    animModel->GetTransform()->SetPosition( XMFLOAT3( modelPos ) );
+
+                ImGui::Text( "Rotation" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
+                static float modelRotation[3];
+                if ( bRequiresUpdate )
+                {
+                    modelRotation[0] = animModel->GetTransform()->GetRotation().x;
+                    modelRotation[1] = animModel->GetTransform()->GetRotation().y;
+                    modelRotation[2] = animModel->GetTransform()->GetRotation().z;
+                }
+                if ( ImGui::DragFloat3( "##RotationModel", modelRotation ) )
+                    animModel->GetTransform()->SetRotation( XMFLOAT3( modelRotation ) );
+
+                ImGui::Text( "Scale" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
+                static float modelScale[3];
+                if ( bRequiresUpdate )
+                {
+                    modelScale[0] = animModel->GetTransform()->GetScale().x;
+                    modelScale[1] = animModel->GetTransform()->GetScale().y;
+                    modelScale[2] = animModel->GetTransform()->GetScale().z;
+                }
+                if ( ImGui::DragFloat3( "##ScaleModel", modelScale, 0.01f ) )
+                    animModel->GetTransform()->SetScale( XMFLOAT3( modelScale ) );
+
+                bRequiresUpdate = false;
                 ImGui::TreePop();
             }
+            ImGui::Separator();
 
-            ImGui::TreePop();
-        }
-        ImGui::Separator();
+            if ( ImGui::TreeNode( "Bone Data##Node" ) )
+            {
+                if ( ImGui::BeginChild( "Bone List", ImVec2( 0, 250 ), true ) )
+                {
+                    if ( ImGui::BeginTable( "Bone Data##Table", 3, ImGuiTableFlags_BordersInner | ImGuiTableFlags_SizingStretchSame ) )
+                    {
+                        ImGui::TableSetupColumn( "ID" );
+                        ImGui::TableSetupColumn( "Parent" );
+                        ImGui::TableSetupColumn( "Child" );
+					    ImGui::TableHeadersRow();
 
-        static bool bLoad = false;
-        static ImGuizmoData imguizmoData = ImGuizmoData();
-        if ( !bLoad )
-        {
-            imguizmoData.ID = m_iGizmoID;
-            m_iGizmoID++;
-            bLoad = true;
-        }
-        static XMFLOAT4X4 world = animModel->GetTransformData()->GetWorldMatrix();
-        SpawnImGuizmo( animModel->GetTransformData(), pCamera, world, imguizmoData );
+                        for ( size_t i = 0; i < animModel->GetSkeleton()->GetBoneData().size(); i++ )
+                        {
+                            Bone* data = animModel->GetSkeleton()->GetBoneData()[i];
+                            ImGui::TableNextRow();
+                            ImGui::TableNextColumn();
+                            ImGui::Text( "%i", i );
+
+                            ImGui::TableNextColumn();
+                            ImGui::Text( "%i", data->Getparent() );
+
+                            ImGui::TableNextColumn();
+                            std::string childData = "";
+                            for ( size_t i = 0; i < data->GetChild().size(); i++ )
+                            {
+                                if ( data->GetChild()[i] == -1 )
+                                {
+                                    childData = "No Child";
+                                }
+                                else if ( i == data->GetChild().size() - 1 )
+                                {
+                                    childData += std::to_string( data->GetChild()[i] );
+                                }
+                                else
+                                {
+                                    childData += std::to_string( data->GetChild()[i] ) + ", ";
+                                }
+                            }
+                            ImGui::Text( childData.c_str() );
+
+                        }
+                        ImGui::EndTable();
+                    }
+                }
+                ImGui::EndChild();
+
+                static int boneNum = 0;
+                static int boneNumPrev = -1;
+                static float bonePos[3];
+                static float boneScale[3];
+                ImGui::Text( "Bone Number" );
+                ImGui::InputInt( "##Bone Num", &boneNum );
+                if ( boneNum > animModel->GetSkeleton()->BoneCount() )
+                {
+                    boneNum = animModel->GetSkeleton()->BoneCount() - 1;
+                }
+                else if ( boneNum < 0 )
+                {
+                    boneNum = 0;
+                }
+
+                if ( boneNum != boneNumPrev )
+                {
+                    bonePos[0] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldPos().x;
+                    bonePos[1] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldPos().y;
+                    bonePos[2] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldPos().z;
+                    boneScale[0] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldScale().x;
+                    boneScale[1] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldScale().y;
+                    boneScale[2] = animModel->GetSkeleton()->GetBoneData()[boneNum]->GetWorldScale().z;
+                    boneNumPrev = boneNum;
+                }
+
+                ImGui::Text( "Position" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
+                ImGui::DragFloat3( "##Bone Position", bonePos, 0.01f );
+
+                ImGui::Text( "Rotation" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
+                static float boneRotation[3];
+                ImGui::DragFloat3( "##Bone Rotation", boneRotation );
+
+                ImGui::Text( "Scale" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
+                ImGui::DragFloat3( "##Bone Scale", boneScale, 0.01f );
+
+                if ( ImGui::Button( "Apply Changes" ) )
+                {
+                    animModel->GetSkeleton()->SetBonePosition( boneNum, XMFLOAT3( bonePos ) );
+                    XMMATRIX rotation = XMMatrixRotationX(
+                        XMConvertToRadians( boneRotation[0] ) ) *
+                        XMMatrixRotationY( XMConvertToRadians( boneRotation[1] ) ) *
+                        XMMatrixRotationZ( XMConvertToRadians( boneRotation[2] ) );
+                    XMFLOAT4 orientation;
+                    XMStoreFloat4( &orientation, XMQuaternionRotationMatrix( rotation ) );
+                    animModel->GetSkeleton()->SetBoneRotQuat( boneNum, XMFLOAT4( orientation ) );
+                    animModel->GetSkeleton()->SetBoneScale( boneNum, XMFLOAT3( boneScale ) );
+                }
+
+                ImGui::TreePop();
+            }
+            ImGui::Separator();
+
+            if ( ImGui::TreeNode( "Animation Data" ) )
+            {
+                // Set animation
+                static std::vector<std::string> animationName = animModel->GetSkeleton()->AnimationClips();
+                static const char* cCurrentItem = animationName[0].c_str();
+                static int selectedIdx = 0;
+
+                ImGui::Text( "Animation Clip" );
+                if ( ImGui::BeginCombo( "##Combo", cCurrentItem ) )
+                {
+                    for ( int n = 0; n < animationName.size(); n++ )
+                    {
+                        bool is_selected = ( cCurrentItem == animationName[n].c_str() );
+                        if ( ImGui::Selectable( animationName[n].c_str(), is_selected ) )
+                        {
+                            cCurrentItem = animationName[n].c_str();
+                            if ( is_selected )
+                            {
+                                animModel->SetAnimation( cCurrentItem );
+                                ImGui::SetItemDefaultFocus();
+                                selectedIdx = n;
+                            }
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
+
+                if ( animationName[selectedIdx] == "Walk" )
+                {
+                    static bool isLoop = animModel->GetIsLoop();
+                    if ( ImGui::Checkbox( "Loop Animation?", &isLoop ) )
+                        animModel->SetIsLoop( isLoop );
+
+                    if ( !isLoop )
+                    {
+                        ImGui::Text( "Animation Time Position" );
+                        ImGui::SameLine();
+                        HelpMarker( DRAG_HINT_TEXT );
+                        float timePos = animModel->GetTimePos();
+                        if ( ImGui::DragFloat( "##Animation Time Position", &timePos, 0.001f ) )
+                        animModel->SetTimePos( timePos );
+                    }
+
+                    // Current animation data
+                    if ( ImGui::TreeNode( "Animation Info" ) )
+                    {
+                        if ( ImGui::BeginTable( "##Animation Info", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame ) )
+                        {
+                            ImGui::TableNextRow();
+                            ImGui::TableNextColumn();
+                            ImGui::Text( "Animation Start" );
+
+                            ImGui::TableNextColumn();
+                            std::string sStart = std::format( "{:.3f}", animModel->GetSkeleton()->GetClipStartTime( animModel->GetClipName() ) );
+                            ImGui::Text( sStart.c_str() );
+
+                            ImGui::TableNextRow();
+                            ImGui::TableNextColumn();
+                            ImGui::Text( "Animation End" );
+
+                            ImGui::TableNextColumn();
+                            std::string sEnd = std::format( "{:.3f}", animModel->GetSkeleton()->GetClipEndTime( animModel->GetClipName() ) );
+                            ImGui::Text( sEnd.c_str() );
+
+                            ImGui::TableNextRow();
+                            ImGui::TableNextColumn();
+                            ImGui::Text( "Animation Time" );
+
+                            ImGui::TableNextColumn();
+                            std::string sTime = std::format( "{:.3f}", animModel->GetTimePos() );
+                            ImGui::Text( sTime.c_str() );
+
+                            ImGui::EndTable();
+                        }
+                        ImGui::TreePop();
+                    }
+                }
+
+                ImGui::TreePop();
+            }
+            ImGui::Separator();
+
+            static bool bLoad = false;
+            static ImGuizmoData imguizmoData = ImGuizmoData();
+            if ( !bLoad )
+            {
+                imguizmoData.ID = m_iGizmoID;
+                m_iGizmoID++;
+                bLoad = true;
+            }
+            static XMFLOAT4X4 world = animModel->GetTransform()->GetWorldMatrix();
+            SpawnImGuizmo( animModel->GetTransform(), pCamera, world, imguizmoData );
+		}
+		else
+		{
+			animModel->Hide();
+		}
     }
     ImGui::End();
 }
@@ -1953,89 +1948,91 @@ void ImGuiManager::SpawnImGuizmo( Transform* pTransform, Camera* pCamera, XMFLOA
     ImGuizmo::SetID( imguizmoData.ID );
     ImGuizmo::SetRect( m_vSceneWindowPos.x, m_vSceneWindowPos.y, m_vSceneWindowSize.x, m_vSceneWindowSize.y );
 
-    ImGui::SetNextItemOpen( true, ImGuiCond_Once );
     if ( ImGui::TreeNode( std::string( "Gizmo Controls###" ).append( std::to_string( imguizmoData.ID ) ).c_str() ) )
     {
-        ImGui::Text( "Gizmo Operation" );
-        if ( ImGui::BeginTable( "Gizmo Operation###Table", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchSame ) )
+        ImGui::PushID( imguizmoData.ID + idOffset * 6 );
+        ImGui::Checkbox( std::string( "Visible?###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.IsVisible );
+        ImGui::PopID();
+
+        if ( imguizmoData.IsVisible )
         {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::PushID( imguizmoData.ID + idOffset );
-            if ( ImGui::RadioButton( std::string( "Translate###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoOperation == ImGuizmo::TRANSLATE ) )
-                imguizmoData.CurrentGizmoOperation = ImGuizmo::TRANSLATE;
-            ImGui::PopID();
-
-            ImGui::TableNextColumn();
-            ImGui::PushID( imguizmoData.ID + idOffset * 2 );
-            if ( ImGui::RadioButton( std::string( "Rotate###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoOperation == ImGuizmo::ROTATE ) )
-				imguizmoData.CurrentGizmoOperation = ImGuizmo::ROTATE;
-            ImGui::PopID();
-
-            ImGui::TableNextColumn();
-            ImGui::PushID( imguizmoData.ID + idOffset * 3 );
-            if ( ImGui::RadioButton( std::string( "Scale###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoOperation == ImGuizmo::SCALE ) )
-                imguizmoData.CurrentGizmoOperation = ImGuizmo::SCALE;
-            ImGui::PopID();
-
-            ImGui::EndTable();
-        }
-
-        if ( imguizmoData.CurrentGizmoOperation != ImGuizmo::SCALE )
-        {
-            ImGui::Text( "Gizmo Mode" );
-            if ( ImGui::BeginTable( "Gizmo Mode###Table", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchSame ) )
+            ImGui::Text( "Gizmo Operation" );
+            if ( ImGui::BeginTable( "Gizmo Operation###Table", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchSame ) )
             {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::PushID( imguizmoData.ID + idOffset * 4 );
-                if ( ImGui::RadioButton( std::string( "World###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoMode == ImGuizmo::WORLD ) )
-                    imguizmoData.CurrentGizmoMode = ImGuizmo::WORLD;
+                ImGui::PushID( imguizmoData.ID + idOffset );
+                if ( ImGui::RadioButton( std::string( "Translate###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoOperation == ImGuizmo::TRANSLATE ) )
+                    imguizmoData.CurrentGizmoOperation = ImGuizmo::TRANSLATE;
                 ImGui::PopID();
 
                 ImGui::TableNextColumn();
-                ImGui::PushID( imguizmoData.ID + idOffset * 5 );
-                if ( ImGui::RadioButton( std::string( "Local###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoMode == ImGuizmo::LOCAL ) )
-                    imguizmoData.CurrentGizmoMode = ImGuizmo::LOCAL;
+                ImGui::PushID( imguizmoData.ID + idOffset * 2 );
+                if ( ImGui::RadioButton( std::string( "Rotate###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoOperation == ImGuizmo::ROTATE ) )
+				    imguizmoData.CurrentGizmoOperation = ImGuizmo::ROTATE;
                 ImGui::PopID();
 
-                ImGui::NextColumn();
-                // Extra column to better fit radio buttons
+                ImGui::TableNextColumn();
+                ImGui::PushID( imguizmoData.ID + idOffset * 3 );
+                if ( ImGui::RadioButton( std::string( "Scale###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoOperation == ImGuizmo::SCALE ) )
+                    imguizmoData.CurrentGizmoOperation = ImGuizmo::SCALE;
+                ImGui::PopID();
 
                 ImGui::EndTable();
             }
-        }
 
-        if ( ImGui::BeginTable( "Gizmo Options###", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchProp ) )
-        {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::PushID( imguizmoData.ID + idOffset * 6 );
-            ImGui::Checkbox( std::string( "Visible?###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.IsVisible );
-            ImGui::PopID();
+            if ( imguizmoData.CurrentGizmoOperation != ImGuizmo::SCALE )
+            {
+                ImGui::Text( "Gizmo Mode" );
+                if ( ImGui::BeginTable( "Gizmo Mode###Table", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchSame ) )
+                {
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::PushID( imguizmoData.ID + idOffset * 4 );
+                    if ( ImGui::RadioButton( std::string( "World###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoMode == ImGuizmo::WORLD ) )
+                        imguizmoData.CurrentGizmoMode = ImGuizmo::WORLD;
+                    ImGui::PopID();
 
-            ImGui::TableNextColumn();
-            ImGui::PushID( imguizmoData.ID + idOffset * 7 );
-            if ( ImGui::Checkbox( std::string( "Enable?###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.Enable ) )
-                ImGuizmo::Enable( imguizmoData.Enable );
-            ImGui::PopID();
+                    ImGui::TableNextColumn();
+                    ImGui::PushID( imguizmoData.ID + idOffset * 5 );
+                    if ( ImGui::RadioButton( std::string( "Local###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), imguizmoData.CurrentGizmoMode == ImGuizmo::LOCAL ) )
+                        imguizmoData.CurrentGizmoMode = ImGuizmo::LOCAL;
+                    ImGui::PopID();
 
-            ImGui::TableNextColumn();
-            ImGui::PushID( imguizmoData.ID + idOffset * 8 );
-            ImGui::Checkbox( std::string( "Use Snapping?###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.UseSnap );
-            ImGui::PopID();
+                    ImGui::NextColumn();
+                    // Extra column to better fit radio buttons
 
-            ImGui::EndTable();
-        }
+                    ImGui::EndTable();
+                }
+            }
 
-        if ( imguizmoData.UseSnap )
-        {
-            ImGui::Text( "Snap Amount" );
-            ImGui::SameLine();
-            HelpMarker( SLIDER_HINT_TEXT );
-            ImGui::PushID( imguizmoData.ID + idOffset * 9 );
-            ImGui::SliderFloat( std::string( "###Snap" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.SnapAmount.x, 0.0f, 2.5f );
-            ImGui::PopID();
+            ImGui::Text( "Gizmo Options" );
+            if ( ImGui::BeginTable( "Gizmo Options###", 2, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchProp ) )
+            {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::PushID( imguizmoData.ID + idOffset * 7 );
+                if ( ImGui::Checkbox( std::string( "Enable?###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.Enable ) )
+                    ImGuizmo::Enable( imguizmoData.Enable );
+                ImGui::PopID();
+
+                ImGui::TableNextColumn();
+                ImGui::PushID( imguizmoData.ID + idOffset * 8 );
+                ImGui::Checkbox( std::string( "Use Snapping?###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.UseSnap );
+                ImGui::PopID();
+
+                ImGui::EndTable();
+            }
+
+            if ( imguizmoData.UseSnap )
+            {
+                ImGui::Text( "Snap Amount" );
+                ImGui::SameLine();
+                HelpMarker( SLIDER_HINT_TEXT );
+                ImGui::PushID( imguizmoData.ID + idOffset * 9 );
+                ImGui::SliderFloat( std::string( "###Snap" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.SnapAmount.x, 0.0f, 2.5f );
+                ImGui::PopID();
+            }
         }
 
         ImGui::TreePop();

@@ -5,7 +5,7 @@ AnimatedModel::AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D
     : m_sModelName( modelFile )
 {
     M3DLoader loader;
-    loader.LoadM3d( modelFile, m_vSkinVert, m_vIndex2, m_vSubsets, m_vMat, m_skeletonData );
+    loader.LoadM3d( modelFile, m_vSkinVert, m_vIndex2, m_vSubsets, m_vMat, m_skeleton );
 
      // Appearance
     m_pAppearance = new Appearance();
@@ -16,10 +16,10 @@ AnimatedModel::AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D
     shaderControl->NewAnimationShader( "Animation", L"Animation.hlsl", pDevice, pContext );
 
     // Transform data
-    m_pTransformData = new Transform();
-    m_pTransformData->SetPosition( 3.0f, -2.0f, 0.0f );
-    m_pTransformData->SetRotation( 0.0f, 180.0f, 0.0f );
-    m_pTransformData->SetScale( 0.05f, 0.05f, 0.05f );
+    m_pTransform = new Transform();
+    m_pTransform->SetPosition( 0.0f, -2.0f, 0.0f );
+    m_pTransform->SetRotation( 0.0f, 180.0f, 0.0f );
+    m_pTransform->SetScale( 0.05f, 0.05f, 0.05f );
 
     // Textures
     std::wstring filePath = L"Resources/AnimModel/";
@@ -78,9 +78,8 @@ AnimatedModel::AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D
         return;
     }
 
-    m_vFinalTransforms.resize( m_skeletonData.BoneCount() );
-    m_vFinalTransforms = m_skeletonData.GetFinalTransforms( m_sClipName, 0.0f );
-    m_skeletonData.InverseKin( 18, XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
+    m_vFinalTransforms.resize( m_skeleton.BoneCount() );
+    m_vFinalTransforms = m_skeleton.GetFinalTransforms( m_sClipName, 0.0f );
 }
 
 AnimatedModel::~AnimatedModel()
@@ -96,7 +95,7 @@ void AnimatedModel::Draw( ID3D11DeviceContext* pContext, ShaderController* shade
         pContext->VSSetShader( shaderControl->GetShaderByName( "Animation" ).m_pVertexShader, nullptr, 0 );
         pContext->PSSetShader( shaderControl->GetShaderByName( "Animation" ).m_pPixelShader, nullptr, 0 );
 
-        XMFLOAT4X4 WorldAsFloat = m_pTransformData->GetWorldMatrix();
+        XMFLOAT4X4 WorldAsFloat = m_pTransform->GetWorldMatrix();
         XMMATRIX mGO = XMLoadFloat4x4( &WorldAsFloat );
         buffer.data.mWorld = XMMatrixTranspose( mGO );
         if ( !buffer.ApplyChanges() )
@@ -125,15 +124,15 @@ void AnimatedModel::Update( float dt )
     if ( m_bLoopAnimation )
     {
         m_fTimePos += dt;
-        m_vFinalTransforms = m_skeletonData.GetFinalTransforms( m_sClipName, m_fTimePos );
+        m_vFinalTransforms = m_skeleton.GetFinalTransforms( m_sClipName, m_fTimePos );
 
         // Loop animation
-        if ( m_fTimePos > m_skeletonData.GetClipEndTime( m_sClipName ) )
+        if ( m_fTimePos > m_skeleton.GetClipEndTime( m_sClipName ) )
             m_fTimePos = 0.0f;
     }
     else
     {
-        m_vFinalTransforms = m_skeletonData.GetFinalTransforms( m_sClipName, m_fTimePos );
+        m_vFinalTransforms = m_skeleton.GetFinalTransforms( m_sClipName, m_fTimePos );
     }
 }
 
@@ -181,10 +180,10 @@ void AnimatedModel::CleanUp()
     }
     m_pNormalMapResourceView.clear();
 
-    if ( m_pTransformData )
+    if ( m_pTransform )
     {
-        delete m_pTransformData;
-        m_pTransformData = nullptr;
+        delete m_pTransform;
+        m_pTransform = nullptr;
     }
 
     if ( m_pAppearance )
@@ -193,7 +192,7 @@ void AnimatedModel::CleanUp()
         m_pAppearance = nullptr;
     }
 
-    m_skeletonData.CleanUp();
+    m_skeleton.CleanUp();
 }
 
 void AnimatedModel::ProcessMesh( aiMesh* mesh, const aiScene* scene, const XMMATRIX& transformMatrix, std::vector<SkinnedVertex>& verts, std::vector<WORD>& index )

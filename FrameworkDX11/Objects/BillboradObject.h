@@ -29,7 +29,7 @@ public:
 
 	void SetTexture( std::string texName, ID3D11Device* pDevice );
 	inline void SetPositions( std::vector<SimpleVertexBillboard> pos ) noexcept { m_vPositions = pos; }
-	inline std::vector<SimpleVertexBillboard> GetPosistions() const noexcept { return m_vPositions; }
+	inline std::vector<SimpleVertexBillboard> GetPositions() const noexcept { return m_vPositions; }
 
 private:
 	void CleanUp();

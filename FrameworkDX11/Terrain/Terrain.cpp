@@ -72,6 +72,7 @@ Terrain::Terrain( std::string heightMapName, XMFLOAT2 size, double scale, Terrai
     m_eTerrainCreationType( genType )
 {
     m_pTransform = new Transform();
+    m_pTransform->SetPosition( 0.0f, -50.0f, 0.0f );
     m_pApperance = new TerrainAppearance( m_iHeightMapHeight, m_iHeightMapWidth, 1.0f, m_vHeightMapData );
     shaderControl->NewTessellationShader( "Terrain", L"Terrain.hlsl", pDevice, pContext );
 

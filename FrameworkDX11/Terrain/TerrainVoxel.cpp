@@ -119,10 +119,10 @@ bool AabbOutsideFrustumTest( XMFLOAT3 center, XMFLOAT3 min, XMFLOAT3 max, std::v
 
 #pragma region TERRAIN-VOXEL
 TerrainVoxel::TerrainVoxel( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ShaderController* shaderControl, int numOfChunks_X, int numOfChunks_Z ) :
-    m_fDefaultChunkSize( XMFLOAT3( 16, 0, 16 ) ),
+    m_fDefaultChunkSize( XMFLOAT3( 8.0f, 0.0f, 8.0f ) ),
     m_iNumOfChunksX( numOfChunks_X ),
     m_iNumOfChunksZ( numOfChunks_Z ),
-    m_iNumOfChunks( numOfChunks_X* numOfChunks_Z )
+    m_iNumOfChunks( numOfChunks_X * numOfChunks_Z )
 {
     shaderControl->NewShader( "Voxel", L"Voxel.hlsl", pDevice, pContext );
     m_vChunkData.resize( m_iNumOfChunksX );
@@ -143,15 +143,18 @@ TerrainVoxel::TerrainVoxel( ID3D11Device* pDevice, ID3D11DeviceContext* pContext
         m_pGroundTextureRV.push_back( res );
     }
 
-    for ( float x = 0; x < m_iNumOfChunksX; x++ )
+    int xIdx = 0;
+    // Center the terrain and move it in front of the spawn location
+    for ( float x = -( m_iNumOfChunksX / 2 ); x < m_iNumOfChunksX / 2; x++ )
     {
         m_vChunkData.push_back( std::vector<Chunk*>() );
-        for ( float z = 0; z < m_iNumOfChunksZ; z++ )
+        for ( float z = 1; z < m_iNumOfChunksZ + 1; z++ )
         {
-            m_vChunkData[x].push_back( new Chunk( pDevice, pContext,
+            m_vChunkData[xIdx].push_back( new Chunk( pDevice, pContext,
                 XMFLOAT3( ( m_fDefaultChunkSize.x * 2 ) * x, 0,
                 ( m_fDefaultChunkSize.z * 2 ) * z ), m_fDefaultChunkSize ) );
         }
+        xIdx++;
     }
 
     try
@@ -182,8 +185,8 @@ void TerrainVoxel::Draw( ID3D11DeviceContext* pContext, ShaderController* shader
         pContext->PSSetConstantBuffers( 3, 1, m_cubeInfoCB.GetAddressOf() );
 
         // Setup frustrum planes for culling terrain when not in view
-        XMFLOAT4X4 viewAsFloats = camControl->GetCam( 2 )->GetView();
-        XMFLOAT4X4 projectionAsFloats = camControl->GetCam( 2 )->GetProjection();
+        XMFLOAT4X4 viewAsFloats = camControl->GetCam( 1 )->GetView();
+        XMFLOAT4X4 projectionAsFloats = camControl->GetCam( 1 )->GetProjection();
 
         XMMATRIX RTTview = XMLoadFloat4x4( &viewAsFloats );
         XMMATRIX RTTprojection = XMLoadFloat4x4( &projectionAsFloats );
@@ -280,10 +283,10 @@ void TerrainVoxel::CleanUp()
 #pragma endregion
 
 #pragma region CHUNK
-Chunk::Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos, XMFLOAT3 Size ) :
-    m_iXSize( Size.x ),
-    m_iZSize( Size.z ),
-    m_iMaxHeight( Size.y )
+Chunk::Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos, XMFLOAT3 size ) :
+    m_iXSize( size.x ),
+    m_iZSize( size.z ),
+    m_iMaxHeight( size.y )
 {
     m_vAllCubesInChunk.resize( m_iXSize );
     m_pChunkTransform = new Transform();
@@ -291,11 +294,11 @@ Chunk::Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos
     GenerateTerrain( pDevice, pContext );
 }
 
-Chunk::Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos, XMFLOAT3 Size, int Seed, float Frequancy, int Octave )
+Chunk::Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos, XMFLOAT3 size, int seed, float frequency, int octave )
 {
-    m_iSeed = Seed;
-    m_fFrequency = Frequancy;
-    m_iOctaves = Octave;
+    m_iSeed = seed;
+    m_fFrequency = frequency;
+    m_iOctaves = octave;
     m_vAllCubesInChunk.resize( m_iXSize );
     m_pChunkTransform = new Transform();
     m_pChunkTransform->SetPosition( pos );
@@ -311,8 +314,8 @@ void Chunk::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl
     ConstantBuffer<MatrixBuffer>& buffer, ConstantBuffer<VoxelCube>& voxelBuffer, CameraController* camControl )
 {
     // Setup frustrum planes for culling terrain when not in view
-    XMFLOAT4X4 viewAsFloats = camControl->GetCam( 2 )->GetView();
-    XMFLOAT4X4 projectionAsFloats = camControl->GetCam( 2 )->GetProjection();
+    XMFLOAT4X4 viewAsFloats = camControl->GetCam( 1 )->GetView();
+    XMFLOAT4X4 projectionAsFloats = camControl->GetCam( 1 )->GetProjection();
 
     XMMATRIX RTTview = XMLoadFloat4x4( &viewAsFloats );
     XMMATRIX RTTprojection = XMLoadFloat4x4( &projectionAsFloats );
@@ -332,9 +335,9 @@ void Chunk::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl
     {
         if ( x->GetIsActive() )
         {
-            x->GetTransForm()->SetParent( m_pChunkTransform->GetWorldMatrix() );
-            XMFLOAT3 center = x->GetTransForm()->GetPosition();
-            XMFLOAT4X4 world = x->GetTransForm()->GetWorldMatrix();
+            x->GetTransform()->SetParent( m_pChunkTransform->GetWorldMatrix() );
+            XMFLOAT3 center = x->GetTransform()->GetPosition();
+            XMFLOAT4X4 world = x->GetTransform()->GetWorldMatrix();
             XMFLOAT3 pos = XMFLOAT3( 0, 0, 0 );
             XMFLOAT3 pos2;
             XMStoreFloat3( &pos2, XMVector3Transform( XMLoadFloat3( &pos ), XMLoadFloat4x4( &world ) ) );
@@ -343,7 +346,7 @@ void Chunk::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl
 
             if ( !AabbOutsideFrustumTest( pos2, minVertex, maxVertex, planes ) )
             {
-                XMFLOAT4X4 WorldAsFloat = x->GetTransForm()->GetWorldMatrix();
+                XMFLOAT4X4 WorldAsFloat = x->GetTransform()->GetWorldMatrix();
                 XMMATRIX mGO = XMLoadFloat4x4( &WorldAsFloat );
                 buffer.data.mWorld = XMMatrixTranspose( mGO );
                 if ( !buffer.ApplyChanges() )
@@ -394,7 +397,7 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
 
     // Create cave systems
     noise.SetNoiseType( FastNoiseLite::NoiseType_Perlin );
-    noise.SetFrequency( 0.09 );
+    noise.SetFrequency( 0.09f );
     noise.SetFractalType( FastNoiseLite::FractalType::FractalType_None );
     noise.SetFractalOctaves( 6 );
     for ( float x = 0; x < m_iXSize; x++ )
@@ -496,7 +499,7 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
                 if ( !lXNegative || !lXPositive || !lYNegative || !lYPositive || !lZNegative || !lZPositive )
                 {
                     m_vAllCubesInChunk[x][y][z]->InitMesh_Cube( lXNegative, lXPositive, lYNegative, lYPositive, lZNegative, lZPositive, pDevice, pContext );
-                    m_vAllCubesInChunk[x][y][z]->GetTransForm()->SetPosition( x / 0.5f, z / 0.5f, y / 0.5f );
+                    m_vAllCubesInChunk[x][y][z]->GetTransform()->SetPosition( x / 0.5f, z / 0.5f, y / 0.5f );
 
                     // Set the type for each cube
                     float a = noise2.GetNoise( (float)x, (float)y, (float)z );

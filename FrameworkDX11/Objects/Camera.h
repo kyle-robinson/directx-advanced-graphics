@@ -41,6 +41,12 @@ public:
 	void AdjustRot( XMFLOAT3 rot );
 	void Reshape( FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth );
 
+	inline FLOAT GetNear() const noexcept { return m_fNearDepth; }
+	inline void SetNear( FLOAT nearDepth ) noexcept { m_fNearDepth = nearDepth; Reshape( m_fWindowWidth, m_fWindowHeight, m_fNearDepth, m_fFarDepth ); }
+
+	inline FLOAT GetFar() const noexcept { return m_fFarDepth; }
+	inline void SetFar( FLOAT farDepth ) noexcept { m_fFarDepth = farDepth; Reshape( m_fWindowWidth, m_fWindowHeight, m_fNearDepth, m_fFarDepth ); }
+
 	inline float GetCamSpeed() const noexcept { return m_fCameraSpeed; }
 	inline void SetCamSpeed( float speed ) noexcept { m_fCameraSpeed = speed; }
 

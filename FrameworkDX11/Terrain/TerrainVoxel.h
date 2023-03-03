@@ -41,7 +41,7 @@ public:
     inline bool GetIsActive() const noexcept { return m_bIsActive; }
     inline void SetIsActive( bool isActive ) noexcept { m_bIsActive = isActive; }
 
-    inline Transform* GetTransForm() const noexcept { return m_pCubeTransform; }
+    inline Transform* GetTransform() const noexcept { return m_pCubeTransform; }
     inline TerrainAppearance* GetAppearance() noexcept { return m_pCubeAppearance; }
 
     void SetBlockType( BlockType block );

@@ -23,7 +23,7 @@ public:
     void Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl, ConstantBuffer<MatrixBuffer>& buffer );
     void Update( float dt );
 
-    inline Skeleton* GetSkeleton() noexcept { return &m_skeletonData; }
+    inline Skeleton* GetSkeleton() noexcept { return &m_skeleton; }
 
     inline void SetAnimation( std::string clipName )
     {
@@ -36,7 +36,7 @@ public:
         }
     }
 
-    inline Transform* GetTransformData() const noexcept { return m_pTransformData; }
+    inline Transform* GetTransform() const noexcept { return m_pTransform; }
     inline std::string GetModelName() const noexcept { return m_sModelName; }
     inline std::vector<Subset> GetSubsets() const noexcept { return m_vSubsets; }
     inline std::vector<M3dMaterial> GetMaterialData() const noexcept { return m_vMat; }
@@ -49,11 +49,11 @@ public:
     inline void SetTimePos( float time )
     {
         m_fTimePos = time;
-        if ( m_skeletonData.GetClipEndTime( m_sClipName ) < m_fTimePos )
+        if ( m_skeleton.GetClipEndTime( m_sClipName ) < m_fTimePos )
         {
-            m_fTimePos = m_skeletonData.GetClipEndTime( m_sClipName );
+            m_fTimePos = m_skeleton.GetClipEndTime( m_sClipName );
         }
-        if ( m_skeletonData.GetClipStartTime( m_sClipName ) > m_fTimePos )
+        if ( m_skeleton.GetClipStartTime( m_sClipName ) > m_fTimePos )
         {
             m_fTimePos = 0;
             m_fTimePos = 0;
@@ -71,12 +71,12 @@ private:
 
     float m_fTimePos = 0.0f;
     bool m_bLoopAnimation = false;
-    std::string m_sClipName = "BindPose";
+    std::string m_sClipName = "T-Pose";
 
     float m_fPrevTime;
-    std::string m_sPrevClipName = "BindPose";
+    std::string m_sPrevClipName = "T-Pose";
 
-    bool m_bDraw = true;
+    bool m_bDraw = false;
     Appearance* m_pAppearance;
     std::string m_sModelName;
 
@@ -86,8 +86,8 @@ private:
     std::vector<M3dMaterial> m_vMat;
     std::vector<SkinnedVertex> m_vSkinVert;
 
-    Skeleton m_skeletonData;
-    Transform* m_pTransformData;
+    Skeleton m_skeleton;
+    Transform* m_pTransform;
     std::vector<XMFLOAT4X4> m_vFinalTransforms;
     ConstantBuffer<SkinnedCB> m_finalTransformsCB;
 

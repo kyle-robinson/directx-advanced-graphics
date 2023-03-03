@@ -10,6 +10,7 @@
 #include <vector>
 
 #define NUM_VERTICES 36
+#define FOLDER_PATH "Resources/Textures/"
 
 struct SimpleVertex
 {
@@ -34,15 +35,18 @@ public:
 
 	inline std::string GetDiffuseName() const noexcept { return m_sDiffuseName; }
 	inline ID3D11ShaderResourceView** GetTextureResourceView() noexcept { return &m_pTextureResourceView; }
-	inline void SetTextureRV( std::string name, ID3D11ShaderResourceView* textureRV ) noexcept { m_sDiffuseName = name; m_pTextureResourceView = textureRV; }
+	inline void SetTextureRV( std::string name, ID3D11ShaderResourceView* textureRV ) noexcept
+		{ m_sDiffuseName = name; m_pTextureResourceView = textureRV; }
 
 	inline std::string GetNormalName() const noexcept { return m_sNormalName; }
 	inline ID3D11ShaderResourceView** GetNormalMapResourceView() noexcept { return &m_pNormalMapResourceView; }
-	inline void SetNormalRV( std::string name, ID3D11ShaderResourceView* textureRV ) noexcept { m_sNormalName = name; m_pNormalMapResourceView = textureRV; }
+	inline void SetNormalRV( std::string name, ID3D11ShaderResourceView* textureRV ) noexcept
+		{ m_sNormalName = name; m_pNormalMapResourceView = textureRV; }
 
 	inline std::string GetParallaxName() const noexcept { return m_sParallaxName; }
 	inline ID3D11ShaderResourceView** GetParallaxMapResourceView() noexcept { return &m_pParallaxMapResourceView; }
-	inline void SetParallaxRV( std::string name, ID3D11ShaderResourceView* textureRV ) noexcept { m_sParallaxName = name; m_pParallaxMapResourceView = textureRV; }
+	inline void SetParallaxRV( std::string name, ID3D11ShaderResourceView* textureRV ) noexcept
+		{ m_sParallaxName = name; m_pParallaxMapResourceView = textureRV; }
 	void SetTextures( ID3D11DeviceContext* pContext );
 
 	inline ID3D11SamplerState** GetTextureSamplerState() noexcept { return &m_pSamplerLinear; }

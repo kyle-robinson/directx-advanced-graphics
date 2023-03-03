@@ -62,11 +62,7 @@ void Input::UpdateKeyboard( float dt )
         unsigned char keycode = kbe.GetKeyCode();
         if ( m_bAllowKeyboardInputs )
         {
-            // Set cursor enabled/disabled
-            if ( keycode == VK_HOME )
-                EnableCursor();
-            else if ( keycode == VK_END )
-                DisableCursor();
+
         }
     }
 

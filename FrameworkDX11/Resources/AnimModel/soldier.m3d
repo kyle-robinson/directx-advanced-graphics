@@ -118930,7 +118930,7 @@ ParentIndexOfBone56: 55
 ParentIndexOfBone57: 56
 
 ***************AnimationClips****************
-AnimationClip Take1
+AnimationClip Walk
 {
 	Bone0 #Keyframes: 76
 	{

@@ -58,7 +58,7 @@ public:
 	void ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vector<DrawableGameObject*>& gameObjects );
 	void LightMenu( LightController* lightControl );
 	void BillboardMenu( BillboardObject* billboardObject );
-	void TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+	void TerrainMenu( Terrain* terrain, TerrainVoxel* voxelTerrain, CameraController* camControl, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 	void AnimationMenu( AnimatedModel* animModel, Camera* pCamera );
 	void BezierSplineMenu();
 
@@ -70,6 +70,7 @@ private:
 
 	int m_iGizmoID = 0;
 	int m_iActiveGizmoID = -1;
+	bool m_bUpdateCamera = false;
 	bool m_bUsingTranslation = true;
 	bool m_bUsingManipulator = false;
 

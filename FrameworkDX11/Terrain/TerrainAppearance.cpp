@@ -215,7 +215,7 @@ void TerrainAppearance::SetTextures( std::vector<std::string> texNames, ID3D11De
 	ID3D11ShaderResourceView* res = nullptr;
 	for ( auto name : texNames )
 	{
-		std::wstring wide_string = std::wstring( name.begin(), name.end() );
+		std::wstring wide_string = L"Resources/Textures/" + std::wstring( name.begin(), name.end() );
 		CreateDDSTextureFromFile( pDevice, wide_string.c_str(), nullptr, &res );
 		m_vGroundTextureRV.push_back( res );
 	}

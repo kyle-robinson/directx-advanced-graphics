@@ -27,7 +27,7 @@ void Skeleton::Set( std::vector<int>& boneHierarchy, std::vector<XMFLOAT4X4>& bo
 		m_vBoneData[boneHierarchy[bone]]->AddChild( bone );
 	}
 
-	RebuildBindPose();
+	RebuildPose();
 }
 
 std::vector<XMFLOAT4X4> Skeleton::GetFinalTransforms( const std::string& clipName, float timePos )
@@ -91,7 +91,7 @@ void Skeleton::CleanUp()
 	m_vBoneData.clear();
 }
 
-void Skeleton::RebuildBindPose()
+void Skeleton::RebuildPose()
 {
 	AnimationClip Clip;
 	Clip.m_vBoneAnimations.resize( BoneCount() );
@@ -143,7 +143,7 @@ void Skeleton::RebuildBindPose()
 		Clip.m_vBoneAnimations[i] = BoneAnimation;
 	}
 
-	m_mAnimations["BindPose"] = Clip;
+	m_mAnimations["T-Pose"] = Clip;
 }
 
 void Skeleton::SetChild( int bone )
@@ -176,67 +176,4 @@ XMFLOAT3 Skeleton::CalculateError( XMFLOAT3 endEffector, XMFLOAT3 target )
 	dist.y = XMVectorGetY( distVec );
 	dist.z = XMVectorGetZ( distVec );
 	return dist;
-}
-
-void Skeleton::InverseKin( int endEffector, XMFLOAT3 target )
-{
-	float maxErrand = 0;
-	float maxItr = 2;
-
-	XMFLOAT3 endeffector = XMFLOAT3(
-		m_vBoneData[endEffector]->GetRealPos().x,
-		m_vBoneData[endEffector]->GetRealPos().y,
-		m_vBoneData[endEffector]->GetRealPos().z );
-	float error = CalculateError( endeffector, target ).x;
-	int iteraction = 0;
-
-	// Model animation
-	AnimationClip animationClip;
-	animationClip.m_vBoneAnimations.resize( m_vBoneData.size() );
-	while ( error > maxErrand && iteraction < maxItr )
-	{
-		// Animation frame
-		for ( size_t i = 0; i < m_vBoneData.size(); i++ )
-		{
-			XMFLOAT3 e = endeffector;
-			XMFLOAT3 j = XMFLOAT3( m_vBoneData[i]->GetRealPos().x, m_vBoneData[i]->GetRealPos().y, m_vBoneData[i]->GetRealPos().z );
-			XMVECTOR endpos = XMLoadFloat3( &e );
-			XMVECTOR jointPos = XMLoadFloat3( &j );
-			XMVECTOR targetpos = XMLoadFloat3( &target );
-			if ( XMVector3Equal( endpos, jointPos ) )
-			{
-				animationClip.m_vBoneAnimations[i].m_vKeyframes.push_back( Keyframe() );
-				animationClip.m_vBoneAnimations[i].m_vKeyframes.back().m_fTranslation = j;
-				animationClip.m_vBoneAnimations[i].m_vKeyframes.back().m_fRotationQuat = m_vBoneData[endEffector]->GetWorldRot();
-				animationClip.m_vBoneAnimations[i].m_vKeyframes.back().m_fScale = XMFLOAT3( 1, 1, 1 );
-				animationClip.m_vBoneAnimations[i].m_vKeyframes.back().m_fTimePos = iteraction;
-				continue;
-			}
-
-			XMVECTOR tocurrentVec = endpos - jointPos;
-			XMVECTOR toTargetVec = targetpos - jointPos;
-			tocurrentVec = XMVector3Normalize( tocurrentVec );
-			toTargetVec = XMVector3Normalize( toTargetVec );
-			float cosPhi = XMVectorGetX( XMVector3Dot( tocurrentVec, toTargetVec ) );
-			float phiStep = acos( cosPhi );
-			XMFLOAT3 axis;
-			XMStoreFloat3( &axis, XMVector3Cross( tocurrentVec, toTargetVec ) );
-
-			// Rotation of the current joint
-			XMVECTOR qauternionV = XMQuaternionRotationAxis( XMLoadFloat3( &axis ), phiStep );
-			XMFLOAT4 quaternionF;
-			XMStoreFloat4( &quaternionF, qauternionV );
-
-			animationClip.m_vBoneAnimations[i].m_vKeyframes.push_back( Keyframe() );
-			animationClip.m_vBoneAnimations[i].m_vKeyframes.back().m_fTranslation = j;
-			XMStoreFloat4( &animationClip.m_vBoneAnimations[i].m_vKeyframes.back().m_fRotationQuat, qauternionV );
-			animationClip.m_vBoneAnimations[i].m_vKeyframes.back().m_fScale = XMFLOAT3( 1, 1, 1 );
-			animationClip.m_vBoneAnimations[i].m_vKeyframes.back().m_fTimePos = iteraction;
-		}
-
-		error = CalculateError( endeffector, target ).x;
-		iteraction++;
-	}
-
-	m_mAnimations["Clip2"] = animationClip;
 }

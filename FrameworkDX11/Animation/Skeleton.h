@@ -31,9 +31,8 @@ public:
     inline std::vector<Bone*> GetBoneData() const noexcept{ return m_vBoneData; }
     inline int BoneCount() const noexcept { return m_vBoneData.size(); }
 
-    void InverseKin( int endEffector, XMFLOAT3 target );
     void CleanUp();
-    void RebuildBindPose();
+    void RebuildPose();
 
     inline void SetBonePosition( int Bone, XMFLOAT3 Pos )
     {

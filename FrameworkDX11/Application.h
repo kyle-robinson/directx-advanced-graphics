@@ -46,10 +46,10 @@ private:
 	XMMATRIX m_mView;
 
 	// Objects
+	AnimatedModel* m_pAnimModel;
 	DrawableGameObject* m_pSky;
 	DrawableGameObject* m_pCube;
-	DrawableGameObject* m_pGround;
-	AnimatedModel* m_pAnimModel;
+	std::vector<DrawableGameObject*> m_pWalls;
 
 	// Lights
 	LightController* m_pLightController;
