@@ -99,7 +99,7 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>$(ProjectDir);$(ProjectDir)Animation;$(ProjectDir)Graphics;$(ProjectDir)Input;$(ProjectDir)Objects;$(ProjectDir)Resources;$(ProjectDir)Terrain;$(ProjectDir)Utility;$(ProjectDir)Window;$(SolutionDir)External/imgui;$(SolutionDir)External/rapidjson;$(SolutionDir)External;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)Animation;$(ProjectDir)Graphics;$(ProjectDir)Input;$(ProjectDir)Model;$(ProjectDir)Objects;$(ProjectDir)Resources;$(ProjectDir)Terrain;$(ProjectDir)Utility;$(ProjectDir)Window;$(SolutionDir)External/imgui;$(SolutionDir)External/rapidjson;$(SolutionDir)External;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)External/lib;$(SolutionDir)External/lib/_x64/_Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -177,7 +177,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <PreprocessorDefinitions>NOMINMAX;WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;WIN32;_x64;_DEBUG;DEBUG;PROFILE;_WINDOWS;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>
@@ -465,6 +465,13 @@
     <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Input\Keyboard.h" />
     <ClInclude Include="Input\Mouse.h" />
+    <ClInclude Include="Model\Colour.h" />
+    <ClInclude Include="Model\GameObject.h" />
+    <ClInclude Include="Model\GameObject3D.h" />
+    <ClInclude Include="Model\Mesh.h" />
+    <ClInclude Include="Model\Model.h" />
+    <ClInclude Include="Model\RenderableGameObject.h" />
+    <ClInclude Include="Model\Texture.h" />
     <ClInclude Include="Objects\Appearance.h" />
     <ClInclude Include="Objects\BillboradObject.h" />
     <ClInclude Include="Objects\Camera.h" />
@@ -535,6 +542,13 @@
     <ClCompile Include="Input\Mouse.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Model\Colour.cpp" />
+    <ClCompile Include="Model\GameObject.cpp" />
+    <ClCompile Include="Model\GameObject3D.cpp" />
+    <ClCompile Include="Model\Mesh.cpp" />
+    <ClCompile Include="Model\Model.cpp" />
+    <ClCompile Include="Model\RenderableGameObject.cpp" />
+    <ClCompile Include="Model\Texture.cpp" />
     <ClCompile Include="Objects\Appearance.cpp" />
     <ClCompile Include="Objects\BillboradObject.cpp" />
     <ClCompile Include="Objects\Camera.cpp" />
@@ -986,6 +1000,14 @@
     <Font Include="Resources\Fonts\OpenSans-Italic.ttf" />
     <Font Include="Resources\Fonts\OpenSans-Light.ttf" />
     <Font Include="Resources\Fonts\OpenSans-Regular.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Shaders\Sky_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Resources\Shaders\Sky_VS.hlsl">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

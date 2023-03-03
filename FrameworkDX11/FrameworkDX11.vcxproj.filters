@@ -159,6 +159,27 @@
     <ClCompile Include="..\External\imgui\gizmo\ImSequencer.cpp">
       <Filter>Resources\ImGui\ImGuizmo</Filter>
     </ClCompile>
+    <ClCompile Include="Model\Colour.cpp">
+      <Filter>Objects\Sky</Filter>
+    </ClCompile>
+    <ClCompile Include="Model\GameObject.cpp">
+      <Filter>Objects\Sky</Filter>
+    </ClCompile>
+    <ClCompile Include="Model\GameObject3D.cpp">
+      <Filter>Objects\Sky</Filter>
+    </ClCompile>
+    <ClCompile Include="Model\Mesh.cpp">
+      <Filter>Objects\Sky</Filter>
+    </ClCompile>
+    <ClCompile Include="Model\Model.cpp">
+      <Filter>Objects\Sky</Filter>
+    </ClCompile>
+    <ClCompile Include="Model\RenderableGameObject.cpp">
+      <Filter>Objects\Sky</Filter>
+    </ClCompile>
+    <ClCompile Include="Model\Texture.cpp">
+      <Filter>Objects\Sky</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
@@ -447,6 +468,27 @@
     <ClInclude Include="..\External\imgui\gizmo\ImZoomSlider.h">
       <Filter>Resources\ImGui\ImGuizmo</Filter>
     </ClInclude>
+    <ClInclude Include="Model\Colour.h">
+      <Filter>Objects\Sky</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\GameObject.h">
+      <Filter>Objects\Sky</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\GameObject3D.h">
+      <Filter>Objects\Sky</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Mesh.h">
+      <Filter>Objects\Sky</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Model.h">
+      <Filter>Objects\Sky</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\RenderableGameObject.h">
+      <Filter>Objects\Sky</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Texture.h">
+      <Filter>Objects\Sky</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Window">
@@ -586,6 +628,9 @@
     </Filter>
     <Filter Include="Resources\ImGui\ImGuizmo">
       <UniqueIdentifier>{8fa2585b-177e-4067-a5ea-56ef0c13247d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Objects\Sky">
+      <UniqueIdentifier>{ed1c2a71-880f-4a34-acdf-bf3374f44952}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -731,6 +776,12 @@
       <Filter>Resources\Shaders\Vertex</Filter>
     </None>
     <None Include="Resources\Shaders\Voxel_VS.hlsl">
+      <Filter>Resources\Shaders\Vertex</Filter>
+    </None>
+    <None Include="Resources\Shaders\Sky_PS.hlsl">
+      <Filter>Resources\Shaders\Pixel</Filter>
+    </None>
+    <None Include="Resources\Shaders\Sky_VS.hlsl">
       <Filter>Resources\Shaders\Vertex</Filter>
     </None>
   </ItemGroup>

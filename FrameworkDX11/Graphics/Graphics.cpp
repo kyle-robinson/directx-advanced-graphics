@@ -70,6 +70,7 @@ void Graphics::InitializeShaders()
         hr = m_pShaderController->NewShader( "ParallaxOcclusionMap_TBN", L"ParallaxOcclusion1.hlsl", m_pDevice.Get(), m_pContext.Get() );
         hr = m_pShaderController->NewShader( "ParallaxOcclusionShadowMap", L"ParallaxOcclusionShadow2.hlsl", m_pDevice.Get(), m_pContext.Get() );
         hr = m_pShaderController->NewShader( "ParallaxOcclusionShadowMap_TBN", L"ParallaxOcclusionShadow1.hlsl", m_pDevice.Get(), m_pContext.Get() );
+        hr = m_pShaderController->NewShader( "Sky", L"Sky.hlsl", m_pDevice.Get(), m_pContext.Get() );
         hr = m_pShaderController->NewShader( "Depth", L"Depth.hlsl", m_pDevice.Get(), m_pContext.Get() );
         hr = m_pShaderController->NewShader( "DepthLight", L"DepthLight.hlsl", m_pDevice.Get(), m_pContext.Get() );
         COM_ERROR_IF_FAILED( hr, "Failed to create a STANDARD SHADER!" );
@@ -120,4 +121,5 @@ void Graphics::InitializeSamplerStates()
 {
     m_pSamplerController->CreateState( "Wrap", Bind::Sampler::Type::WRAP, m_pDevice.Get() );
     m_pSamplerController->CreateState( "Border", Bind::Sampler::Type::BORDER, m_pDevice.Get() );
+    m_pSamplerController->CreateState( "Clamp", Bind::Sampler::Type::CLAMP, m_pDevice.Get() );
 }

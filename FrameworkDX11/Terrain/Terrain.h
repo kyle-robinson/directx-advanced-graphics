@@ -42,8 +42,8 @@ public:
 	float Average( int i, int j );
 	void Smooth();
 
-	inline TerrainAppearance* GetApperance() const noexcept { return m_pApperance; }
-	inline Transform* GetTransfrom() const noexcept { return m_pTransform; }
+	inline TerrainAppearance* GetApperance() const noexcept { return m_pAppearance; }
+	inline Transform* GetTransform() const noexcept { return m_pTransform; }
 	void SetBlendMap( std::string name, ID3D11Device* pDevice );
 
 	inline int GetHeightMapWidth() const noexcept { return m_iHeightMapWidth; }
@@ -138,7 +138,7 @@ private:
 	// Grid data
 	XMFLOAT2 m_fGridSize;
 	Transform* m_pTransform;
-	TerrainAppearance* m_pApperance;
+	TerrainAppearance* m_pAppearance;
 
 	// Texture data
 	float m_fCellSpacing = 1.0f;

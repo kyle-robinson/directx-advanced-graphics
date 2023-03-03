@@ -18,13 +18,13 @@ public:
 	inline std::string GetName() const noexcept { return m_sName; }
 	inline void SetName( std::string name ) noexcept { m_sName = name; }
 
-	inline Appearance* GetAppearance() const noexcept { return m_pApperance; }
-	inline Transform* GetTransfrom() const noexcept { return m_pTransform; }
+	inline Appearance* GetAppearance() const noexcept { return m_pAppearance; }
+	inline Transform* GetTransform() const noexcept { return m_pTransform; }
 
 protected:
 	std::string m_sName;
 	Transform* m_pTransform;
-	Appearance* m_pApperance;
+	Appearance* m_pAppearance;
 };
 
 #endif

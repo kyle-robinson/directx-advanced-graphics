@@ -73,15 +73,15 @@ Terrain::Terrain( std::string heightMapName, XMFLOAT2 size, double scale, Terrai
 {
     m_pTransform = new Transform();
     m_pTransform->SetPosition( 0.0f, -50.0f, 0.0f );
-    m_pApperance = new TerrainAppearance( m_iHeightMapHeight, m_iHeightMapWidth, 1.0f, m_vHeightMapData );
+    m_pAppearance = new TerrainAppearance( m_iHeightMapHeight, m_iHeightMapWidth, 1.0f, m_vHeightMapData );
     shaderControl->NewTessellationShader( "Terrain", L"Terrain.hlsl", pDevice, pContext );
 
     CreateHeightData();
     BuildHeightMap( pDevice );
 
-    m_pApperance->SetHeightData( m_vHeightMapData );
-    m_pApperance->CalcAllPatchBoundsY();
-    m_pApperance->InitMesh_Terrain( pDevice );
+    m_pAppearance->SetHeightData( m_vHeightMapData );
+    m_pAppearance->CalcAllPatchBoundsY();
+    m_pAppearance->InitMesh_Terrain( pDevice );
 
     try
     {
@@ -162,12 +162,12 @@ void Terrain::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderContr
         pContext->DSSetShaderResources( 1, 1, &m_pHeightMapSRV );
 
         pContext->PSSetShader( shaderControl->GetShaderByName( "Terrain" ).m_pPixelShader, nullptr, 0 );
-        pContext->PSSetShaderResources( 0, 1, m_pApperance->GetTextureResourceView().data() );
+        pContext->PSSetShaderResources( 0, 1, m_pAppearance->GetTextureResourceView().data() );
         pContext->PSSetConstantBuffers( 4, 1, m_terrainCB.GetAddressOf() );
         pContext->PSSetShaderResources( 0, 1, &m_pBlendMap );
         pContext->PSSetShaderResources( 1, 1, &m_pHeightMapSRV );
-        pContext->PSSetShaderResources( 2, 5, m_pApperance->GetTextureResourceView().data() );
-        m_pApperance->DrawTerrain( pContext );
+        pContext->PSSetShaderResources( 2, 5, m_pAppearance->GetTextureResourceView().data() );
+        m_pAppearance->DrawTerrain( pContext );
 
         // As HLSL sets tessellation stages, but does not disable them, do that here
         pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
@@ -384,13 +384,13 @@ void Terrain::ReBuildTerrain( XMFLOAT2 size, double scale, float cellSpacing, Te
     CreateHeightData();
     BuildHeightMap( pDevice );
 
-    m_pApperance->SetWidth( size.x );
-    m_pApperance->SetDepth( size.y );
-    m_pApperance->SetCellSpacing( m_fCellSpacing );
+    m_pAppearance->SetWidth( size.x );
+    m_pAppearance->SetDepth( size.y );
+    m_pAppearance->SetCellSpacing( m_fCellSpacing );
 
-    m_pApperance->SetHeightData( m_vHeightMapData );
-    m_pApperance->CalcAllPatchBoundsY();
-    m_pApperance->InitMesh_Terrain( pDevice );
+    m_pAppearance->SetHeightData( m_vHeightMapData );
+    m_pAppearance->CalcAllPatchBoundsY();
+    m_pAppearance->InitMesh_Terrain( pDevice );
 }
 
 void Terrain::SetTexHeights( float height1, float height2, float height3, float height4, float height5 )
@@ -404,13 +404,13 @@ void Terrain::SetTexHeights( float height1, float height2, float height3, float 
 
 void Terrain::SetTextures( std::vector<std::string> texGroundName, ID3D11Device* pDevice )
 {
-    m_pApperance->SetTextures( texGroundName, pDevice );
+    m_pAppearance->SetTextures( texGroundName, pDevice );
     m_vTexGround = texGroundName;
 }
 
 void Terrain::SetTexture( int index, std::string texName, ID3D11ShaderResourceView* texture )
 {
-    m_pApperance->SetTexture( index, texture );
+    m_pAppearance->SetTexture( index, texture );
     m_vTexGround[index] = texName;
 }
 
@@ -562,10 +562,10 @@ void Terrain::CleanUp()
         delete m_pTransform;
         m_pTransform = nullptr;
     }
-    if ( m_pApperance )
+    if ( m_pAppearance )
     {
-        delete m_pApperance;
-        m_pApperance = nullptr;
+        delete m_pAppearance;
+        m_pAppearance = nullptr;
     }
     if ( m_pHeightMapSRV )
     {

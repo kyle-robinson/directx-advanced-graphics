@@ -22,7 +22,7 @@ AnimatedModel::AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D
     m_pTransform->SetScale( 0.05f, 0.05f, 0.05f );
 
     // Textures
-    std::wstring filePath = L"Resources/AnimModel/";
+    std::wstring filePath = L"Resources/Models/Soldier/";
     m_pTextureResourceView.resize( m_vMat.size(), nullptr );
     m_pNormalMapResourceView.resize( m_vMat.size(), nullptr );
     for ( size_t i = 0; i < m_vMat.size(); i++ )

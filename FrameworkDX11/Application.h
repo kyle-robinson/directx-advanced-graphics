@@ -12,6 +12,7 @@
 #include "AnimatedModel.h"
 #include "LightController.h"
 #include "DrawableGameObject.h"
+#include "RenderableGameObject.h"
 
 class Application : public WindowContainer
 {
@@ -46,9 +47,9 @@ private:
 	XMMATRIX m_mView;
 
 	// Objects
-	AnimatedModel* m_pAnimModel;
-	DrawableGameObject* m_pSky;
+	AnimatedModel* m_pSoldier;
 	DrawableGameObject* m_pCube;
+	RenderableGameObject m_pSky;
 	std::vector<DrawableGameObject*> m_pWalls;
 
 	// Lights
@@ -58,7 +59,6 @@ private:
 	// Input
 	CameraController* m_pCamController;
 	ImGuiManager* m_pImGuiManager;
-	Camera* m_pCamera;
 	Input* m_pInput;
 	Timer m_timer;
 

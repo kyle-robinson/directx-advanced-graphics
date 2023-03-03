@@ -41,15 +41,6 @@ bool Application::InitMesh()
         HRESULT hr = m_pCube->GetAppearance()->InitMesh_Cube( m_gfx.GetDevice(), m_gfx.GetContext() );
         COM_ERROR_IF_FAILED( hr, "Failed to create CUBE mesh!" );
 
-        m_pSky = new DrawableGameObject( "Sky" );
-        hr = m_pSky->GetAppearance()->InitMesh_Cube( m_gfx.GetDevice(), m_gfx.GetContext() );
-        COM_ERROR_IF_FAILED( hr, "Failed to create SKY mesh!" );
-        ID3D11ShaderResourceView* pSkyTexture = nullptr;
-        std::string skyTexName = "clouds.jpg";
-        hr = CreateWICTextureFromFile( m_gfx.GetDevice(), StringHelper::ToWide( FOLDER_PATH + skyTexName ).c_str(), nullptr, &pSkyTexture );
-        COM_ERROR_IF_FAILED( hr, "Failed to create SKY texture!" );
-        m_pSky->GetAppearance()->SetTextureRV( skyTexName, pSkyTexture );
-
         std::vector<std::string> wallNames = { "Bottom Quad", "Back Quad", "Right Quad" };
         for ( unsigned int i = 0; i < WALL_COUNT; i++ )
         {
@@ -58,11 +49,11 @@ bool Application::InitMesh()
             COM_ERROR_IF_FAILED( hr, "Failed to create a WALL mesh!" );
             m_pWalls.push_back( wall );
         }
-        m_pWalls[0]->GetTransfrom()->SetPosition( -5.0f, -2.0f, 5.0f );
-        m_pWalls[1]->GetTransfrom()->SetPosition( -5.0f, 8.0f, 5.0f );
-        m_pWalls[1]->GetTransfrom()->SetRotation( -90.0f, 0.0f, 0.0f );
-        m_pWalls[2]->GetTransfrom()->SetPosition( 5.0f, 8.0f, 5.0f );
-        m_pWalls[2]->GetTransfrom()->SetRotation( -90.0f, 90.0f, 0.0f );
+        m_pWalls[0]->GetTransform()->SetPosition( -5.0f, -2.0f, 5.0f );
+        m_pWalls[1]->GetTransform()->SetPosition( -5.0f, 8.0f, 5.0f );
+        m_pWalls[1]->GetTransform()->SetRotation( -90.0f, 0.0f, 0.0f );
+        m_pWalls[2]->GetTransform()->SetPosition( 5.0f, 8.0f, 5.0f );
+        m_pWalls[2]->GetTransform()->SetRotation( -90.0f, 90.0f, 0.0f );
 
         // Create the constant buffers
         hr = m_matrixCB.Initialize( m_gfx.GetDevice(), m_gfx.GetContext() );
@@ -89,7 +80,13 @@ bool Application::InitMesh()
     m_pVoxelTerrain = new TerrainVoxel( m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController(), 5, 5 );
 
     // Create animated model
-    m_pAnimModel = new AnimatedModel( "Resources/AnimModel/soldier.m3d", m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController() );
+    m_pSoldier = new AnimatedModel( "Resources/Models/Soldier/soldier.m3d", m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController() );
+
+#if defined ( _x64 )
+    if ( !m_pSky.Initialize( "Resources/Models/Skysphere/sphere.obj", m_gfx.GetDevice(), m_gfx.GetContext(), m_matrixCB ) )
+        return false;
+    m_pSky.SetScale( 100.0f, 100.0f, 100.0f );
+#endif
 
     return true;
 }
@@ -98,10 +95,10 @@ bool Application::InitWorld()
 {
     // Initialize the camera
     m_pCamController = new CameraController();
-    m_pCamera = new Camera( XMFLOAT3( 0.0f, 0.0f, -5.0f ), XMFLOAT3( 0.0f, 0.0f, 0.0f ),
+    Camera* pCamera = new Camera( XMFLOAT3( 0.0f, 0.0f, -5.0f ), XMFLOAT3( 0.0f, 0.0f, 0.0f ),
         XMFLOAT3( 0.0f, 1.0f, 0.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 175.0f );
-    m_pCamera->SetCamName( "Free Camera" );
-    m_pCamController->AddCam( m_pCamera );
+    pCamera->SetCamName( "Free Camera" );
+    m_pCamController->AddCam( pCamera );
     m_pInput->AddCamControl( m_pCamController );
 
     // Post settings
@@ -165,7 +162,7 @@ bool Application::InitDevice()
         XMFLOAT4( -3.5f, 0.0f, -4.0f, 0.0f ), XMFLOAT4( Colors::White ),
         XMConvertToRadians( 45.0f ), 1.0f, 0.0f, 0.0f, m_gfx.GetDevice(), m_gfx.GetContext() );
     m_pLightController->GetLight( "Point" )->GetCamera()->SetRot( XMFLOAT3( 0.0f, 45.0f, 0.0f ) );
-    m_pLightController->GetLight( "Point" )->GetLightObject()->GetTransfrom()->SetRotation( 0.0f, 45.0f, 0.0f );
+    m_pLightController->GetLight( "Point" )->GetLightObject()->GetTransform()->SetRotation( 0.0f, 45.0f, 0.0f );
 
     m_pLightController->AddLight( "Spot", true, LightType::SpotLight,
         XMFLOAT4( 0.0f, 5.0f, 0.0f, 0.0f ), XMFLOAT4( Colors::White ),
@@ -188,20 +185,21 @@ void Application::Update()
     if ( *m_pVoxelTerrain->GetIsDraw() )
         m_pCamController->GetCurentCam()->SetFar( 100.0f );
 
+#if defined ( _x64 )
     // Update the skybox based on the camera
-    m_pSky->Update( dt, m_gfx.GetContext() );
-    m_pSky->GetTransfrom()->SetPosition( m_pCamController->GetCurentCam()->GetPosition() );
+    m_pSky.SetPosition( m_pCamController->GetCurentCam()->GetPosition() );
     float farPlane = m_pCamController->GetCurentCam()->GetFar();
     static float farPlaneOffset = 0.5f;
-    m_pSky->GetTransfrom()->SetScale( farPlane * farPlaneOffset,
+    m_pSky.SetScale( farPlane * farPlaneOffset,
         farPlane * farPlaneOffset, farPlane * farPlaneOffset );
+#endif
 
     // Update the cube transform, material etc.
     m_pCube->Update( dt, m_gfx.GetContext() );
     for ( unsigned int i = 0; i < m_pWalls.size(); i++ )
         m_pWalls[i]->Update( dt, m_gfx.GetContext() );
     m_pLightController->Update( dt, m_gfx.GetContext() );
-    m_pAnimModel->Update( dt );
+    m_pSoldier->Update( dt );
 }
 
 void Application::Draw()
@@ -231,11 +229,12 @@ void Application::Draw()
     m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->SetRenderTarget( m_gfx.GetContext() );
 
     // Set shadow samplers
+    m_gfx.GetSamplerController()->SetState( "Wrap", 0u, m_gfx.GetContext() );
     m_gfx.GetSamplerController()->SetState( "Border", 1u, m_gfx.GetContext() );
     m_gfx.GetSamplerController()->SetState( "Border", 2u, m_gfx.GetContext() );
 
     // get the game object world transform
-    XMFLOAT4X4 WorldAsFloat = m_pCube->GetTransfrom()->GetWorldMatrix();
+    XMFLOAT4X4 WorldAsFloat = m_pCube->GetTransform()->GetWorldMatrix();
     XMMATRIX mGO = XMLoadFloat4x4( &WorldAsFloat );
 
     XMFLOAT4X4 viewAsFloats = m_pCamController->GetCurentCam()->GetView();
@@ -276,9 +275,9 @@ void Application::Draw()
     m_pCube->GetAppearance()->SetTextures( m_gfx.GetContext() );
     m_pCube->Draw( m_gfx.GetContext() );
 
-    // Draw anim model
+    // Draw animated model
     m_gfx.GetRasterizerController()->SetState( "None", m_gfx.GetContext() );
-    m_pAnimModel->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), m_matrixCB );
+    m_pSoldier->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), m_matrixCB );
 
     // Set set for additional objects
     m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pVertexShader, nullptr, 0 );
@@ -287,24 +286,8 @@ void Application::Draw()
     m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pPixelShader, nullptr, 0 );
     m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
 
-    // Draw skybox
-    WorldAsFloat = m_pSky->GetTransfrom()->GetWorldMatrix();
-    mGO = XMLoadFloat4x4( &WorldAsFloat );
-    m_matrixCB.data.mWorld = XMMatrixTranspose( mGO );
-    if ( !m_matrixCB.ApplyChanges() )
-        return;
-    XMFLOAT4 ambientTemp = m_lightCB.data.GlobalAmbient;
-    m_lightCB.data.GlobalAmbient = XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f );
-    for ( unsigned int i = 0; i < MAX_LIGHTS; i++ )
-        m_lightCB.data.Lights[i].Enabled = 0;
-    if ( !m_lightCB.ApplyChanges() )
-        return;
-    m_pSky->GetAppearance()->SetTextures( m_gfx.GetContext() );
-    m_pSky->Draw( m_gfx.GetContext() );
-
     // Draw walls
     m_gfx.GetRasterizerController()->SetOverrideState( m_gfx.GetContext() );
-    m_lightCB.data.GlobalAmbient = ambientTemp;
     for ( unsigned int i = 0; i < MAX_LIGHTS; i++ )
         m_lightCB.data.Lights[i].Enabled = 1;
     if ( !m_lightCB.ApplyChanges() )
@@ -312,7 +295,7 @@ void Application::Draw()
 
     for ( unsigned int i = 0; i < m_pWalls.size(); i++ )
     {
-        WorldAsFloat = m_pWalls[i]->GetTransfrom()->GetWorldMatrix();
+        WorldAsFloat = m_pWalls[i]->GetTransform()->GetWorldMatrix();
         mGO = XMLoadFloat4x4( &WorldAsFloat );
         m_matrixCB.data.mWorld = XMMatrixTranspose( mGO );
         if ( !m_matrixCB.ApplyChanges() )
@@ -321,11 +304,29 @@ void Application::Draw()
         m_pWalls[i]->Draw( m_gfx.GetContext() );
     }
 
+    // Render the lights
+    m_pLightController->Draw( m_gfx.GetContext(), m_matrixCB );
+
     // Render terrain
     m_pVoxelTerrain->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), m_matrixCB, m_pCamController );
     m_pTerrain->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), m_matrixCB, m_pCamController );
 
+#if defined ( _x64 )
+    // Draw skybox
+    m_gfx.GetRasterizerController()->SetState( "None", m_gfx.GetContext() );
+    m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Sky" ).m_pVertexShader, nullptr, 0 );
+    m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
+    m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Sky" ).m_pPixelShader, nullptr, 0 );
+
+    XMFLOAT4X4 view = m_pCamController->GetCurentCam()->GetView();
+    XMFLOAT4X4 proj = m_pCamController->GetCurentCam()->GetProjection();
+    XMMATRIX viewMat = XMLoadFloat4x4( &view );
+    XMMATRIX projMat = XMLoadFloat4x4( &proj );
+    m_pSky.Draw( viewMat, projMat );
+#endif
+
     // Post 2d
+    //m_gfx.GetSamplerController()->SetState( "Wrap", 0u, m_gfx.GetContext() );
     m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
     m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pVertexShader, nullptr, 0 );
     m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, m_matrixCB.GetAddressOf() );
@@ -340,7 +341,7 @@ void Application::Draw()
     // Render 3d objects
     m_gfx.GetRenderTargetController()->GetRenderTarget( "Depth" )->SetRenderTarget( m_gfx.GetContext() );
 
-    WorldAsFloat = m_pCube->GetTransfrom()->GetWorldMatrix();
+    WorldAsFloat = m_pCube->GetTransform()->GetWorldMatrix();
     mGO = XMLoadFloat4x4( &WorldAsFloat );
 
     viewAsFloats = m_pCamController->GetCurentCam()->GetView();
@@ -371,7 +372,7 @@ void Application::Draw()
     // Render the quads
     for ( unsigned int i = 0; i < m_pWalls.size(); i++ )
     {
-        WorldAsFloat = m_pWalls[i]->GetTransfrom()->GetWorldMatrix();
+        WorldAsFloat = m_pWalls[i]->GetTransform()->GetWorldMatrix();
         mGO = XMLoadFloat4x4( &WorldAsFloat );
         m_matrixCB.data.mWorld = XMMatrixTranspose( mGO );
         if ( !m_matrixCB.ApplyChanges() )
@@ -379,9 +380,6 @@ void Application::Draw()
         m_pWalls[i]->GetAppearance()->SetTextures( m_gfx.GetContext() );
         m_pWalls[i]->Draw( m_gfx.GetContext() );
     }
-
-    // Render the lights
-    m_pLightController->Draw( m_gfx.GetContext(), m_matrixCB );
 
     // Setup the viewport
     m_gfx.GetViewports()[1]->Bind( m_gfx.GetContext() );
@@ -565,7 +563,7 @@ void Application::Draw()
     m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_postProcessingCB.data, m_gfx.GetRasterizerController() );
     m_pImGuiManager->BezierSplineMenu();
     m_pImGuiManager->TerrainMenu( m_gfx.GetDevice(), m_gfx.GetContext(), m_pTerrain, m_pVoxelTerrain );
-    m_pImGuiManager->AnimationMenu( m_pAnimModel, m_pCamController->GetCurentCam() );
+    m_pImGuiManager->AnimationMenu( m_pSoldier, m_pCamController->GetCurentCam() );
     m_pImGuiManager->EndRender();
 
     m_gfx.GetSwapChain()->Present( 1, 0 );
@@ -607,8 +605,8 @@ void Application::Cleanup()
     delete m_pVoxelTerrain;
     m_pVoxelTerrain = nullptr;
 
-    delete m_pAnimModel;
-    m_pAnimModel = nullptr;
+    delete m_pSoldier;
+    m_pSoldier = nullptr;
 
     // Remove any bound render target or depth/stencil buffer
     ID3D11RenderTargetView* nullViews[] = { nullptr };

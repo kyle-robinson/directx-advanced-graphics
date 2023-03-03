@@ -51,7 +51,7 @@ void LightController::Draw( ID3D11DeviceContext* pContext, ConstantBuffer<Matrix
 {
     for ( auto lightData : m_vLightData )
     {
-        XMFLOAT4X4 worldAsFloat1 = lightData->GetLightObject()->GetTransfrom()->GetWorldMatrix();
+        XMFLOAT4X4 worldAsFloat1 = lightData->GetLightObject()->GetTransform()->GetWorldMatrix();
         XMMATRIX mGO = XMLoadFloat4x4( &worldAsFloat1 );
         buffer.data.mWorld = XMMatrixTranspose( mGO );
         if ( !buffer.ApplyChanges() )

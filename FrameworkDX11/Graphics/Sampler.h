@@ -16,7 +16,8 @@ namespace Bind
 		enum class Type
 		{
 			WRAP,
-			BORDER
+			BORDER,
+			CLAMP
 		};
 		Sampler( ID3D11Device* device, Type type )
 		{
@@ -32,11 +33,23 @@ namespace Bind
 				{
 					samplerDesc.MinLOD = 0;
 					samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+					samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+					samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 				}
 
 				if ( type == Type::BORDER )
 				{
 					samplerDesc.BorderColor[0] = 1.0f;
+					samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+					samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+				}
+
+				if ( type == Type::WRAP )
+				{
+					samplerDesc.MinLOD = 0;
+					samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+					samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+					samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 				}
 
 				HRESULT hr = device->CreateSamplerState( &samplerDesc, pSampler.GetAddressOf() );

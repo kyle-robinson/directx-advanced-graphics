@@ -7,7 +7,7 @@ DrawableGameObject::DrawableGameObject( std::string name )
 {
 	m_sName = name;
 	m_pTransform = new Transform();
-	m_pApperance = new Appearance();
+	m_pAppearance = new Appearance();
 }
 
 DrawableGameObject::~DrawableGameObject()
@@ -23,10 +23,10 @@ void DrawableGameObject::CleanUp()
 		m_pTransform = nullptr;
 	}
 
-	if ( m_pApperance )
+	if ( m_pAppearance )
 	{
-		delete m_pApperance;
-		m_pApperance = nullptr;
+		delete m_pAppearance;
+		m_pAppearance = nullptr;
 	}
 }
 
@@ -34,10 +34,10 @@ void DrawableGameObject::Update( float dt, ID3D11DeviceContext* pContext )
 {
 	static float cummulativeTime = 0;
 	cummulativeTime += dt;
-	m_pApperance->Update( pContext );
+	m_pAppearance->Update( pContext );
 }
 
 void DrawableGameObject::Draw( ID3D11DeviceContext* pContext )
 {
-	m_pApperance->Draw( pContext );
+	m_pAppearance->Draw( pContext );
 }

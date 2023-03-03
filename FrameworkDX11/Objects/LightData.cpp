@@ -36,7 +36,7 @@ LightData::LightData( std::string name, bool enabled, LightType lightType, XMFLO
 
 	m_pLightObject = new DrawableGameObject( name );
 	m_pLightObject->GetAppearance()->InitMesh_Cube( pDevice, pContext );
-	m_pLightObject->GetTransfrom()->SetScale( 0.2f, 0.2f, 0.2f );
+	m_pLightObject->GetTransform()->SetScale( 0.2f, 0.2f, 0.2f );
 
 	MaterialPropertiesCB materialData;
 	materialData.Material.Diffuse = XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f );
@@ -67,7 +67,7 @@ void LightData::Update( float dt, ID3D11DeviceContext* pContext )
 	{
 		if ( m_pLightObject->GetAppearance() )
 		{
-			m_pLightObject->GetTransfrom()->SetPosition( m_lightData.Position.x, m_lightData.Position.y, m_lightData.Position.z );
+			m_pLightObject->GetTransform()->SetPosition( m_lightData.Position.x, m_lightData.Position.y, m_lightData.Position.z );
 			m_pLightObject->Update( dt, pContext );
 		}
 	}
@@ -163,7 +163,7 @@ void LightData::CreateShadowMap( ID3D11DeviceContext* pContext, std::vector<Draw
 
 	for ( DrawableGameObject* object : objects )
 	{
-		XMFLOAT4X4 worldAsFloat = object->GetTransfrom()->GetWorldMatrix();
+		XMFLOAT4X4 worldAsFloat = object->GetTransform()->GetWorldMatrix();
 		XMMATRIX mGO = XMLoadFloat4x4( &worldAsFloat );
 		buffer.data.mWorld = XMMatrixTranspose( mGO );
 		if ( !buffer.ApplyChanges() )

@@ -23,7 +23,7 @@ ShaderController::ShaderData ShaderController::GetFullScreenShaderByName( std::s
         }
     }
 
-    assert( false && "Shader does not exsit in fullscreen shader list" );
+    assert( false && "Shader does not exist in fullscreen shader list" );
     return m_vFullScreenShaderData[0];
 }
 

@@ -466,7 +466,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
     static std::string sNameO = gameObjects[0]->GetName();
     static DrawableGameObject* currObject = gameObjects[0];
     static const char* cCurrentItemO = sNameO.c_str();
-    static XMFLOAT4X4 world = currObject->GetTransfrom()->GetWorldMatrix();
+    static XMFLOAT4X4 world = currObject->GetTransform()->GetWorldMatrix();
 
     static std::vector<ImGuizmoData> guizmoData;
     static bool bLoadO = false;
@@ -495,7 +495,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
                     sNameO = gameObjects[i]->GetName();
                     cCurrentItemO = sNameO.c_str();
                     currObject = gameObjects[i];
-                    world = currObject->GetTransfrom()->GetWorldMatrix();
+                    world = currObject->GetTransform()->GetWorldMatrix();
                 }
 
                 if ( is_selected )
@@ -518,21 +518,21 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
                 static XMFLOAT3 rotation = { 0.0f, 0.0f, 0.0f };
                 if ( ImGuizmo::IsUsing() )
                 {
-                    position = currObject->GetTransfrom()->GetPosition();
-                    rotation = currObject->GetTransfrom()->GetRotation();
+                    position = currObject->GetTransform()->GetPosition();
+                    rotation = currObject->GetTransform()->GetRotation();
                 }
 
                 ImGui::Text( "Position" );
                 ImGui::SameLine();
                 HelpMarker( DRAG_HINT_TEXT );
                 if ( ImGui::DragFloat3( std::string( "##Position" ).append( std::to_string( iSelectedIdx ) ).c_str(), &position.x, 0.01f ) )
-                    currObject->GetTransfrom()->SetPosition( position );
+                    currObject->GetTransform()->SetPosition( position );
 
                 ImGui::Text( "Rotation" );
                 ImGui::SameLine();
                 HelpMarker( DRAG_HINT_TEXT );
                 if ( ImGui::DragFloat3( std::string( "##Rotation" ).append( std::to_string( iSelectedIdx ) ).c_str(), &rotation.x, 1.0f ) )
-                    currObject->GetTransfrom()->SetRotation( rotation );
+                    currObject->GetTransform()->SetRotation( rotation );
 
                 if ( ImGui::Button( "Reset" ) )
                 {
@@ -768,7 +768,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
             }
             ImGui::Separator();
 
-            SpawnImGuizmo( currObject->GetTransfrom(), pCamera, world, guizmoData[iSelectedIdx] );
+            SpawnImGuizmo( currObject->GetTransform(), pCamera, world, guizmoData[iSelectedIdx] );
         }
         else
         {
@@ -1397,23 +1397,23 @@ void ImGuiManager::TerrainMenu( ID3D11Device* pDevice, ID3D11DeviceContext* pCon
                     ImGui::Text( "Position" );
                     ImGui::SameLine();
                     HelpMarker( DRAG_HINT_TEXT );
-                    XMFLOAT3 posTerrain = terrain->GetTransfrom()->GetPosition();
+                    XMFLOAT3 posTerrain = terrain->GetTransform()->GetPosition();
                     ImGui::DragFloat3( "##Position", &posTerrain.x );
-                    terrain->GetTransfrom()->SetPosition( posTerrain );
+                    terrain->GetTransform()->SetPosition( posTerrain );
 
                     ImGui::Text( "Rotation" );
                     ImGui::SameLine();
                     HelpMarker( DRAG_HINT_TEXT );
-                    XMFLOAT3 rotationTerrain = terrain->GetTransfrom()->GetRotation();
+                    XMFLOAT3 rotationTerrain = terrain->GetTransform()->GetRotation();
                     ImGui::DragFloat3( "##Rotation", &rotationTerrain.x, 1.0f, 0.0f, 360.0f );
-                    terrain->GetTransfrom()->SetRotation( rotationTerrain );
+                    terrain->GetTransform()->SetRotation( rotationTerrain );
 
                     ImGui::Text( "Scale" );
                     ImGui::SameLine();
                     HelpMarker( DRAG_HINT_TEXT );
-                    XMFLOAT3 scaleTerrain = terrain->GetTransfrom()->GetScale();
+                    XMFLOAT3 scaleTerrain = terrain->GetTransform()->GetScale();
                     ImGui::DragFloat3( "##Scale", &scaleTerrain.x );
-                    terrain->GetTransfrom()->SetScale( scaleTerrain );
+                    terrain->GetTransform()->SetScale( scaleTerrain );
 
                     ImGui::TreePop();
                 }
