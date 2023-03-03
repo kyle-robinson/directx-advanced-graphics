@@ -525,25 +525,26 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
 
             if ( ImGui::TreeNode( "Transform Controls" ) )
             {
-                static XMFLOAT3 position = { 0.0f, 0.0f, 0.0f };
-                static XMFLOAT3 rotation = { 0.0f, 0.0f, 0.0f };
-                if ( ImGuizmo::IsUsing() )
-                {
-                    position = currObject->GetTransform()->GetPosition();
-                    rotation = currObject->GetTransform()->GetRotation();
-                }
-
                 ImGui::Text( "Position" );
                 ImGui::SameLine();
                 HelpMarker( DRAG_HINT_TEXT );
+                XMFLOAT3 position = currObject->GetTransform()->GetPosition();
                 if ( ImGui::DragFloat3( std::string( "##Position" ).append( std::to_string( iSelectedIdx ) ).c_str(), &position.x, 0.01f ) )
                     currObject->GetTransform()->SetPosition( position );
 
                 ImGui::Text( "Rotation" );
                 ImGui::SameLine();
                 HelpMarker( DRAG_HINT_TEXT );
+                XMFLOAT3 rotation = currObject->GetTransform()->GetRotation();
                 if ( ImGui::DragFloat3( std::string( "##Rotation" ).append( std::to_string( iSelectedIdx ) ).c_str(), &rotation.x, 1.0f ) )
                     currObject->GetTransform()->SetRotation( rotation );
+
+                ImGui::Text( "Scale" );
+                ImGui::SameLine();
+                HelpMarker( DRAG_HINT_TEXT );
+                XMFLOAT3 scale = currObject->GetTransform()->GetScale();
+                if ( ImGui::DragFloat3( std::string( "##Scale" ).append( std::to_string( iSelectedIdx ) ).c_str(), &scale.x, 1.0f ) )
+                    currObject->GetTransform()->SetScale( scale );
 
                 if ( ImGui::Button( "Reset" ) )
                 {
@@ -1676,50 +1677,27 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel, Camera* pCamera )
                     ImGui::EndTable();
                 }
 
-                static bool bRequiresUpdate = true;
-                if ( ImGuizmo::IsUsing() )
-                    bRequiresUpdate = true;
-
                 ImGui::Text( "Position" );
                 ImGui::SameLine();
                 HelpMarker( DRAG_HINT_TEXT );
-                static float modelPos[3];
-                if ( bRequiresUpdate )
-                {
-                    modelPos[0] = animModel->GetTransform()->GetPosition().x;
-                    modelPos[1] = animModel->GetTransform()->GetPosition().y;
-                    modelPos[2] = animModel->GetTransform()->GetPosition().z;
-                }
-                if ( ImGui::DragFloat3( "##PositionModel", modelPos, 0.01f ) )
-                    animModel->GetTransform()->SetPosition( XMFLOAT3( modelPos ) );
+                XMFLOAT3 position = animModel->GetTransform()->GetPosition();
+                if ( ImGui::DragFloat3( "##PositionModel", &position.x, 0.01f ) )
+                    animModel->GetTransform()->SetPosition( position );
 
                 ImGui::Text( "Rotation" );
                 ImGui::SameLine();
                 HelpMarker( DRAG_HINT_TEXT );
-                static float modelRotation[3];
-                if ( bRequiresUpdate )
-                {
-                    modelRotation[0] = animModel->GetTransform()->GetRotation().x;
-                    modelRotation[1] = animModel->GetTransform()->GetRotation().y;
-                    modelRotation[2] = animModel->GetTransform()->GetRotation().z;
-                }
-                if ( ImGui::DragFloat3( "##RotationModel", modelRotation ) )
-                    animModel->GetTransform()->SetRotation( XMFLOAT3( modelRotation ) );
+                XMFLOAT3 rotation = animModel->GetTransform()->GetRotation();
+                if ( ImGui::DragFloat3( "##RotationModel", &rotation.x ) )
+                    animModel->GetTransform()->SetRotation( rotation );
 
                 ImGui::Text( "Scale" );
                 ImGui::SameLine();
                 HelpMarker( DRAG_HINT_TEXT );
-                static float modelScale[3];
-                if ( bRequiresUpdate )
-                {
-                    modelScale[0] = animModel->GetTransform()->GetScale().x;
-                    modelScale[1] = animModel->GetTransform()->GetScale().y;
-                    modelScale[2] = animModel->GetTransform()->GetScale().z;
-                }
-                if ( ImGui::DragFloat3( "##ScaleModel", modelScale, 0.01f ) )
-                    animModel->GetTransform()->SetScale( XMFLOAT3( modelScale ) );
+                XMFLOAT3 scale = animModel->GetTransform()->GetScale();
+                if ( ImGui::DragFloat3( "##ScaleModel", &scale.x, 0.01f ) )
+                    animModel->GetTransform()->SetScale( scale );
 
-                bRequiresUpdate = false;
                 ImGui::TreePop();
             }
             ImGui::Separator();
