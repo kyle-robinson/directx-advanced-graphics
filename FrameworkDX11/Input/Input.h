@@ -26,6 +26,7 @@ private:
 	void UpdateKeyboard( float dt );
 
 	bool m_bMovingCursor = false;
+	bool m_bUsingSpotCamera = false;
 	bool m_bAllowMouseInputs = true;
 	bool m_bAllowKeyboardInputs = true;
 	CameraController* m_pCameraControl;

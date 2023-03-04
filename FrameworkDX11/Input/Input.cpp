@@ -17,6 +17,16 @@ void Input::AddCamControl( CameraController* cam )
 
 void Input::Update( float dt )
 {
+    // Update control scheme if using the spot camera
+    if ( m_pCameraControl->GetCurrentCam()->GetCamName() == "Spot Camera" )
+    {
+		m_bUsingSpotCamera = true;
+	}
+    else
+    {
+		m_bUsingSpotCamera = false;
+	}
+
     UpdateMouse( dt );
     UpdateKeyboard( dt );
 }
@@ -27,7 +37,7 @@ void Input::UpdateMouse( float dt )
     while ( !m_mouse.EventBufferIsEmpty() )
     {
         Mouse::MouseEvent me = m_mouse.ReadEvent();
-        if ( m_bAllowMouseInputs )
+        if ( m_bAllowMouseInputs && !m_bUsingSpotCamera )
         {
             if ( m_mouse.IsRightDown() || !m_bCursorEnabled )
             {
@@ -86,18 +96,24 @@ void Input::UpdateKeyboard( float dt )
         // Camera movement
         if ( m_keyboard.KeyIsPressed( 'W' ) )
         {
+            XMFLOAT3 moveVec = m_bUsingSpotCamera ?
+                m_pCameraControl->GetCurrentCam()->GetVecUp() :
+                m_pCameraControl->GetCurrentCam()->GetVecForward();
             m_pCameraControl->GetCurrentCam()->AdjustPos( {
-                m_pCameraControl->GetCurrentCam()->GetVecForward().x * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurrentCam()->GetVecForward().y * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurrentCam()->GetVecForward().z * m_pCameraControl->GetCurrentCam()->GetCamSpeed()
+                moveVec.x* m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                moveVec.y* m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                moveVec.z * m_pCameraControl->GetCurrentCam()->GetCamSpeed()
             } );
         }
         if ( m_keyboard.KeyIsPressed( 'S' ) )
         {
+            XMFLOAT3 moveVec = m_bUsingSpotCamera ?
+                m_pCameraControl->GetCurrentCam()->GetVecDown() :
+                m_pCameraControl->GetCurrentCam()->GetVecBack();
             m_pCameraControl->GetCurrentCam()->AdjustPos( {
-                m_pCameraControl->GetCurrentCam()->GetVecBack().x * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurrentCam()->GetVecBack().y * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
-                m_pCameraControl->GetCurrentCam()->GetVecBack().z * m_pCameraControl->GetCurrentCam()->GetCamSpeed()
+                moveVec.x* m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                moveVec.y* m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
+                moveVec.z * m_pCameraControl->GetCurrentCam()->GetCamSpeed()
             } );
         }
         if ( m_keyboard.KeyIsPressed( 'D' ) )
@@ -116,7 +132,7 @@ void Input::UpdateKeyboard( float dt )
                 m_pCameraControl->GetCurrentCam()->GetVecLeft().z * m_pCameraControl->GetCurrentCam()->GetCamSpeed()
             } );
         }
-        if ( m_keyboard.KeyIsPressed( VK_CONTROL ) )
+        if ( m_keyboard.KeyIsPressed( VK_CONTROL ) && !m_bUsingSpotCamera )
         {
             m_pCameraControl->GetCurrentCam()->AdjustPos( {
                 m_pCameraControl->GetCurrentCam()->GetVecDown().x * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),
@@ -124,7 +140,7 @@ void Input::UpdateKeyboard( float dt )
                 m_pCameraControl->GetCurrentCam()->GetVecDown().z * m_pCameraControl->GetCurrentCam()->GetCamSpeed()
             } );
         }
-        if ( m_keyboard.KeyIsPressed( VK_SPACE ) )
+        if ( m_keyboard.KeyIsPressed( VK_SPACE ) && !m_bUsingSpotCamera )
         {
             m_pCameraControl->GetCurrentCam()->AdjustPos( {
                 m_pCameraControl->GetCurrentCam()->GetVecUp().x * m_pCameraControl->GetCurrentCam()->GetCamSpeed(),

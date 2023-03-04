@@ -202,6 +202,9 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels
         ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Instructions" ) )
         {
+            if ( cameraControl->GetCurrentCam()->GetCamName() == "Spot Camera" )
+                ImGui::TextColored( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ), "Disabled some inputs while using spot camera!" );
+
             if ( ImGui::BeginTable( "Controls", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame ) )
             {
                 ImGui::TableNextRow();
@@ -851,24 +854,27 @@ void ImGuiManager::LightMenu( LightController* lightControl, CameraController* c
             }
             ImGui::Separator();
 
-            if ( ImGui::TreeNode( "Shadow Direction" ) )
+            if ( nameL != "Spot" )
             {
-                XMFLOAT3 lightDirection = lightControl->GetLight( nameL )->GetCamera()->GetRot();
+                if ( ImGui::TreeNode( "Shadow Direction" ) )
+                {
+                    XMFLOAT3 lightDirection = lightControl->GetLight( nameL )->GetCamera()->GetRot();
 
-                ImGui::Text( "Pitch" );
-                ImGui::SliderAngle( "##Pitch", &lightDirection.x, 0.995f * -90.0f, 0.995f * 90.0f );
+                    ImGui::Text( "Pitch" );
+                    ImGui::SliderAngle( "##Pitch", &lightDirection.x, 0.995f * -90.0f, 0.995f * 90.0f );
 
-                ImGui::Text( "Yaw" );
-                ImGui::SliderAngle( "##Yaw", &lightDirection.y, -180.0f, 180.0f, "%.0f deg", ImGuiSliderFlags_AlwaysClamp );
-                if ( lightDirection.y > XMConvertToRadians( 180.0f ) )
-                    lightDirection.y = XMConvertToRadians( -180.0f );
-                else if ( lightDirection.y < XMConvertToRadians( -180.0f ) )
-                    lightDirection.y = XMConvertToRadians( 180.0f );
+                    ImGui::Text( "Yaw" );
+                    ImGui::SliderAngle( "##Yaw", &lightDirection.y, -180.0f, 180.0f, "%.0f deg", ImGuiSliderFlags_AlwaysClamp );
+                    if ( lightDirection.y > XMConvertToRadians( 180.0f ) )
+                        lightDirection.y = XMConvertToRadians( -180.0f );
+                    else if ( lightDirection.y < XMConvertToRadians( -180.0f ) )
+                        lightDirection.y = XMConvertToRadians( 180.0f );
 
-                lightControl->GetLight( nameL )->GetCamera()->SetRot( lightDirection );
-                ImGui::TreePop();
+                    lightControl->GetLight( nameL )->GetCamera()->SetRot( lightDirection );
+                    ImGui::TreePop();
+                }
+                ImGui::Separator();
             }
-            ImGui::Separator();
 
             if ( ImGui::TreeNode( ( currLightData.LightType == LightType::DirectionalLight ) ? "Direction" : "Attenuation" ) )
             {
@@ -911,9 +917,9 @@ void ImGuiManager::LightMenu( LightController* lightControl, CameraController* c
                     ImGui::Text( "Spot Angle" );
                     ImGui::SameLine();
                     HelpMarker( DRAG_HINT_TEXT );
-                    float SpotAngle = XMConvertToDegrees( currLightData.SpotAngle );
-                    ImGui::DragFloat( "##Spot Angle", &SpotAngle, 0.1f );
-                    currLightData.SpotAngle = XMConvertToRadians( SpotAngle );
+                    float spotAngle = XMConvertToDegrees( currLightData.SpotAngle );
+                    ImGui::DragFloat( "##Spot Angle", &spotAngle, 0.1f );
+                    currLightData.SpotAngle = XMConvertToRadians( spotAngle );
                 }
                 break;
 

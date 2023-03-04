@@ -103,7 +103,8 @@ bool Application::InitializeWorld()
 
     m_pLightController->AddLight( "Spot", true, LightType::SpotLight,
         XMFLOAT4( 0.0f, 5.0f, 0.0f, 0.0f ), XMFLOAT4( Colors::White ),
-        XMConvertToRadians( 10.0f ), 1.0f, 0.0f, 0.0f, m_gfx.GetDevice(), m_gfx.GetContext() );
+        XMConvertToRadians( 25.0f ), 1.0f, 0.0f, 0.0f, m_gfx.GetDevice(), m_gfx.GetContext() );
+    m_pLightController->GetLight( "Spot" )->GetCamera()->SetRot( XMFLOAT3( XMConvertToRadians( 90.0f ), 0.0f, 0.0f ) );
 
     // Initialize the cameras
     m_pCamController = new CameraController();
@@ -209,7 +210,7 @@ void Application::Draw()
         m_pCamController->GetCurrentCam()->GetPosition().z, 0.0f );
     if ( !m_matrixCB.ApplyChanges() )
         return;
-    m_lightCB.data.EyePosition = m_pCamController->GetCam( 0 )->GetPositionFloat4();
+    m_lightCB.data.EyePosition = m_pCamController->GetCurrentCam()->GetPositionFloat4();
     for ( unsigned int i = 0; i < m_pLightController->GetLightList().size(); ++i )
         m_lightCB.data.Lights[i] = m_pLightController->GetLight( i )->GetLightData();
     if ( !m_lightCB.ApplyChanges() )
@@ -223,13 +224,10 @@ void Application::Draw()
     m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
     m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderData().m_pPixelShader, nullptr, 0 );
     m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
-
-    ID3D11ShaderResourceView* ShadowMaps[2];
-    ShadowMaps[0] = m_pLightController->GetLight( 0 )->GetShadow()->DepthMapSRV();
-    ShadowMaps[1] = m_pLightController->GetLight( 1 )->GetShadow()->DepthMapSRV();
-    m_gfx.GetContext()->PSSetShaderResources( 3, 2, ShadowMaps );
-
-    // Set textures to buffer
+    ID3D11ShaderResourceView* shadowMaps[MAX_LIGHTS];
+    for ( unsigned int i = 0; i < MAX_LIGHTS; i++ )
+        shadowMaps[i] = m_pLightController->GetLight( i )->GetShadow()->DepthMapSRV();
+    m_gfx.GetContext()->PSSetShaderResources( 3, MAX_LIGHTS, shadowMaps );
     m_pCube->GetAppearance()->SetTextures( m_gfx.GetContext() );
     m_pCube->Draw( m_gfx.GetContext() );
 
@@ -284,7 +282,6 @@ void Application::Draw()
 #endif
 
     // Post 2d
-    //m_gfx.GetSamplerController()->SetState( "Wrap", 0u, m_gfx.GetContext() );
     m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
     m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pVertexShader, nullptr, 0 );
     m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, m_matrixCB.GetAddressOf() );
