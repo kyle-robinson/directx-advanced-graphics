@@ -39,11 +39,11 @@ void LightController::AddLight( Light light )
     m_vLightData.push_back( lightData );
 }
 
-void LightController::Update( float dt, ID3D11DeviceContext* pContext )
+void LightController::Update( float dt, ID3D11DeviceContext* pContext, std::string camName )
 {
     for ( auto lightData : m_vLightData )
     {
-        lightData->Update( dt, pContext );
+        lightData->Update( dt, pContext, camName );
     }
 }
 

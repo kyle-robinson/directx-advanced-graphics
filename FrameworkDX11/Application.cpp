@@ -23,7 +23,7 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 
     m_gfx.Initialize( m_window.GetHWND(), width, height );
 
-    if ( !InitDevice() )
+    if ( !InitializeWorld() )
         return false;
 
     if ( !m_pImGuiManager->Initialize( m_window.GetHWND(), m_gfx.GetDevice(), m_gfx.GetContext() ) )
@@ -32,7 +32,7 @@ bool Application::Initialize( HINSTANCE hInstance, int width, int height )
     return true;
 }
 
-bool Application::InitMesh()
+bool Application::InitializeWorld()
 {
     try
     {
@@ -64,6 +64,17 @@ bool Application::InitMesh()
 
         hr = m_postProcessingCB.Initialize( m_gfx.GetDevice(), m_gfx.GetContext() );
         COM_ERROR_IF_FAILED( hr, "Failed to create POST PROCESSING constant buffer!" );
+
+        // Create full screen buffer
+        ScreenVertex svQuad[4] =
+        {
+            { XMFLOAT3( -1.0f, 1.0f, 0.0f ), XMFLOAT2( 0.0f, 0.0f ) },
+            { XMFLOAT3( 1.0f, 1.0f, 0.0f ), XMFLOAT2( 1.0f, 0.0f ) },
+            { XMFLOAT3( -1.0f, -1.0f, 0.0f ), XMFLOAT2( 0.0f, 1.0f ) },
+            { XMFLOAT3( 1.0f, -1.0f, 0.0f ), XMFLOAT2( 1.0f, 1.0f ) }
+        };
+        hr = m_screenVB.Initialize( m_gfx.GetDevice(), svQuad, ARRAYSIZE( svQuad ) );
+        COM_ERROR_IF_FAILED( hr, "Failed to create SCREEN VERTEX BUFFER!" );
     }
     catch ( COMException& exception )
     {
@@ -82,69 +93,34 @@ bool Application::InitMesh()
     // Create animated model
     m_pSoldier = new AnimatedModel( "Resources/Models/Soldier/soldier.m3d", m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController() );
 
-#if defined ( _x64 )
-    if ( !m_pSky.Initialize( "Resources/Models/Skysphere/sphere.obj", m_gfx.GetDevice(), m_gfx.GetContext(), m_matrixCB ) )
-        return false;
-    m_pSky.SetScale( 100.0f, 100.0f, 100.0f );
-#endif
+    // Create lights
+    m_pDepthLight = new ShadowMap( m_gfx.GetDevice(), m_gfx.GetWidth(), m_gfx.GetHeight() );
 
-    return true;
-}
+    m_pLightController->AddLight( "Point", true, LightType::PointLight,
+        XMFLOAT4( -3.0f, 0.0f, -3.0f, 0.0f ), XMFLOAT4( Colors::White ),
+        XMConvertToRadians( 45.0f ), 1.0f, 0.0f, 0.0f, m_gfx.GetDevice(), m_gfx.GetContext() );
+    m_pLightController->GetLight( "Point" )->GetCamera()->SetRot( XMFLOAT3( 0.0f, XMConvertToRadians( 45.0f ), 0.0f ) );
 
-bool Application::InitWorld()
-{
-    // Initialize the camera
+    m_pLightController->AddLight( "Spot", true, LightType::SpotLight,
+        XMFLOAT4( 0.0f, 5.0f, 0.0f, 0.0f ), XMFLOAT4( Colors::White ),
+        XMConvertToRadians( 10.0f ), 1.0f, 0.0f, 0.0f, m_gfx.GetDevice(), m_gfx.GetContext() );
+
+    // Initialize the cameras
     m_pCamController = new CameraController();
     Camera* pCamera = new Camera( XMFLOAT3( 0.0f, 0.0f, -5.0f ), XMFLOAT3( 0.0f, 0.0f, 0.0f ),
         XMFLOAT3( 0.0f, 1.0f, 0.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 175.0f );
     pCamera->SetCamName( "Free Camera" );
     m_pCamController->AddCam( pCamera );
+    for ( unsigned int i = 0; i < MAX_LIGHTS; i++ )
+        m_pCamController->AddCam( m_pLightController->GetLight( i )->GetCamera() );
     m_pInput->AddCamControl( m_pCamController );
 
-    try
-    {
-        ScreenVertex svQuad[4] =
-        {
-            { XMFLOAT3( -1.0f, 1.0f, 0.0f ), XMFLOAT2( 0.0f, 0.0f ) },
-            { XMFLOAT3( 1.0f, 1.0f, 0.0f ), XMFLOAT2( 1.0f, 0.0f ) },
-            { XMFLOAT3( -1.0f, -1.0f, 0.0f ), XMFLOAT2( 0.0f, 1.0f ) },
-            { XMFLOAT3( 1.0f, -1.0f, 0.0f ), XMFLOAT2( 1.0f, 1.0f ) }
-        };
-
-        // Create vertex buffer
-        HRESULT hr = m_screenVB.Initialize( m_gfx.GetDevice(), svQuad, ARRAYSIZE( svQuad ) );
-        COM_ERROR_IF_FAILED( hr, "Failed to create SCREEN VERTEX BUFFER!" );
-    }
-    catch ( COMException& exception )
-    {
-        ErrorLogger::Log( exception );
+    // Initialize the sky
+#if defined ( _x64 )
+    if ( !m_pSky.Initialize( "Resources/Models/Skysphere/sphere.obj", m_gfx.GetDevice(), m_gfx.GetContext(), m_matrixCB ) )
         return false;
-    }
-
-    return true;
-}
-
-bool Application::InitDevice()
-{
-	// Initialize scene objects and data
-    if ( !InitMesh() )
-        return false;
-
-    if ( !InitWorld() )
-        return false;
-
-    // Create lights
-    m_pDepthLight = new ShadowMap( m_gfx.GetDevice(), m_gfx.GetWidth(), m_gfx.GetHeight() );
-
-    m_pLightController->AddLight( "Point", true, LightType::PointLight,
-        XMFLOAT4( -3.5f, 0.0f, -4.0f, 0.0f ), XMFLOAT4( Colors::White ),
-        XMConvertToRadians( 45.0f ), 1.0f, 0.0f, 0.0f, m_gfx.GetDevice(), m_gfx.GetContext() );
-    m_pLightController->GetLight( "Point" )->GetCamera()->SetRot( XMFLOAT3( 0.0f, 45.0f, 0.0f ) );
-    m_pLightController->GetLight( "Point" )->GetLightObject()->GetTransform()->SetRotation( 0.0f, 45.0f, 0.0f );
-
-    m_pLightController->AddLight( "Spot", true, LightType::SpotLight,
-        XMFLOAT4( 0.0f, 5.0f, 0.0f, 0.0f ), XMFLOAT4( Colors::White ),
-        XMConvertToRadians( 10.0f ), 1.0f, 0.0f, 0.0f, m_gfx.GetDevice(), m_gfx.GetContext() );
+    m_pSky.SetScale( 100.0f, 100.0f, 100.0f );
+#endif
 
     return true;
 }
@@ -176,7 +152,7 @@ void Application::Update()
     m_pCube->Update( dt, m_gfx.GetContext() );
     for ( unsigned int i = 0; i < m_pWalls.size(); i++ )
         m_pWalls[i]->Update( dt, m_gfx.GetContext() );
-    m_pLightController->Update( dt, m_gfx.GetContext() );
+    m_pLightController->Update( dt, m_gfx.GetContext(), m_pCamController->GetCurrentCam()->GetCamName() );
     m_pSoldier->Update( dt );
 }
 
@@ -541,7 +517,7 @@ void Application::Draw()
     m_pImGuiManager->SceneWindow( m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetRenderTargetController()->GetRenderTarget( "Final" )->GetTexture(), m_pInput );
     m_pImGuiManager->CameraMenu( m_pCamController, *m_pVoxelTerrain->GetIsDraw() );
     m_pImGuiManager->ObjectMenu( m_gfx.GetDevice(), m_pCamController->GetCurrentCam(), gameObjects );
-    m_pImGuiManager->LightMenu( m_pLightController );
+    m_pImGuiManager->LightMenu( m_pLightController, m_pCamController );
     m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_postProcessingCB.data, m_gfx.GetRasterizerController() );
     m_pImGuiManager->BezierSplineMenu();
     m_pImGuiManager->TerrainMenu( m_gfx.GetDevice(), m_gfx.GetContext(), m_pTerrain, m_pVoxelTerrain );

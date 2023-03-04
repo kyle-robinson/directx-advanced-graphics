@@ -19,7 +19,7 @@ public:
 	void AddLight( std::string name, bool enabled, LightType lightType, XMFLOAT4 pos, XMFLOAT4 colour, float angle, float constantAttenuation, float linearAttenuation, float quadraticAttenuation, ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 	void AddLight( Light light );
 
-	void Update( float dt, ID3D11DeviceContext* pContext );
+	void Update( float dt, ID3D11DeviceContext* pContext, std::string camName );
 	void Draw( ID3D11DeviceContext* pContext, ConstantBuffer<MatrixBuffer>& buffer );
 	void RemoveAllLights();
 

@@ -56,7 +56,7 @@ public:
 	void CameraMenu( CameraController* cameraControl, bool usingVoxels );
 	void ShaderMenu( ShaderController* shaderControl, PostProcessingCB* postSettings, RasterizerController* rasterControl );
 	void ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vector<DrawableGameObject*>& gameObjects );
-	void LightMenu( LightController* lightControl );
+	void LightMenu( LightController* lightControl, CameraController* camControl );
 	void BillboardMenu( BillboardObject* billboardObject );
 	void TerrainMenu( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, Terrain* terrain, TerrainVoxel* voxelTerrain );
 	void AnimationMenu( AnimatedModel* animModel, Camera* pCamera );

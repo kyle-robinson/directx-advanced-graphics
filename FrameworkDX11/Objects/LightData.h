@@ -16,7 +16,7 @@ public:
 	LightData( Light lightData );
 	~LightData();
 
-	void Update( float dt, ID3D11DeviceContext* pContext );
+	void Update( float dt, ID3D11DeviceContext* pContext, std::string camName );
 	void Draw( ID3D11DeviceContext* pContext );
 
 	Light GetLightData();

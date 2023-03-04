@@ -790,7 +790,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
     ImGui::End();
 }
 
-void ImGuiManager::LightMenu( LightController* lightControl )
+void ImGuiManager::LightMenu( LightController* lightControl, CameraController* camControl )
 {
     static std::string nameL = lightControl->GetLight( 0 )->GetName();
     static Light currLightData = lightControl->GetLightList()[0]->GetLightData();
@@ -823,14 +823,22 @@ void ImGuiManager::LightMenu( LightController* lightControl )
         bool enable = currLightData.Enabled;
         if ( ImGui::Checkbox( "Enabled?", &enable ) )
             currLightData.Enabled = enable;
+
         if ( enable )
         {
+            bool isLightCamera = ( nameL + " Camera" ) == camControl->GetCurrentCam()->GetCamName();
+            if ( isLightCamera )
+                currLightData.Position = camControl->GetCurrentCam()->GetPositionFloat4();
+
             if ( ImGui::TreeNode( "Light Data" ) )
             {
                 ImGui::Text( "Position" );
                 ImGui::SameLine();
                 HelpMarker( DRAG_HINT_TEXT );
-                ImGui::DragFloat3( "##Position", &currLightData.Position.x, 1.0f, -10.0f, 10.0f );
+                if ( isLightCamera ) ImGui::TextColored( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ), "Can't adjust position while light camera is active!" );
+                ImGui::PushItemFlag( ImGuiItemFlags_Disabled, isLightCamera );
+                ImGui::DragFloat3( "##Position", &currLightData.Position.x, 0.01f );
+                ImGui::PopItemFlag();
 
                 ImGui::Text( "Colour" );
                 ImGui::SameLine();
@@ -851,7 +859,11 @@ void ImGuiManager::LightMenu( LightController* lightControl )
                 ImGui::SliderAngle( "##Pitch", &lightDirection.x, 0.995f * -90.0f, 0.995f * 90.0f );
 
                 ImGui::Text( "Yaw" );
-                ImGui::SliderAngle( "##Yaw", &lightDirection.y, -180.0f, 180.0f );
+                ImGui::SliderAngle( "##Yaw", &lightDirection.y, -180.0f, 180.0f, "%.0f deg", ImGuiSliderFlags_AlwaysClamp );
+                if ( lightDirection.y > XMConvertToRadians( 180.0f ) )
+                    lightDirection.y = XMConvertToRadians( -180.0f );
+                else if ( lightDirection.y < XMConvertToRadians( -180.0f ) )
+                    lightDirection.y = XMConvertToRadians( 180.0f );
 
                 lightControl->GetLight( nameL )->GetCamera()->SetRot( lightDirection );
                 ImGui::TreePop();

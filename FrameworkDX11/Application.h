@@ -25,9 +25,7 @@ public:
 	void Draw();
 
 private:
-	bool InitDevice();
-	bool InitMesh();
-	bool InitWorld();
+	bool InitializeWorld();
 	void Cleanup();
 
 	// Constant buffers
