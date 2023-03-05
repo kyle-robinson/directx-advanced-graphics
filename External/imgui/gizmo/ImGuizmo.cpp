@@ -2743,14 +2743,14 @@ namespace IMGUIZMO_NAMESPACE
       }
    }
 
-   void ViewManipulate(float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
+   void ViewManipulate(float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor, const char* name)
    {
       // Scale is always local or matrix will be skewed when applying world scale or oriented matrix
       ComputeContext(view, projection, matrix, (operation & SCALE) ? LOCAL : mode);
-      ViewManipulate(view, length, position, size, backgroundColor);
+      ViewManipulate(view, length, position, size, backgroundColor, name);
    }
 
-   bool ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
+   bool ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor, const char* name)
    {
       static bool isDraging = false;
       static bool isClicking = false;
@@ -2766,6 +2766,8 @@ namespace IMGUIZMO_NAMESPACE
 
       ImGuiIO& io = ImGui::GetIO();
       gContext.mDrawList->AddRectFilled(position, position + size, backgroundColor);
+      // Inserted code to draw the name of the view cube roughly centered below it
+      gContext.mDrawList->AddText(position + ImVec2((strlen(name) > 7) ? 0.0f : size.x / 4.0f, size.y), IM_COL32(0xFF, 0xFF, 0xFF, 0xFF), name);
       matrix_t viewInverse;
       viewInverse.Inverse(*(matrix_t*)view);
 

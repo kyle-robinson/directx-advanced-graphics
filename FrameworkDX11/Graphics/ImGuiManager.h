@@ -27,6 +27,7 @@ private:
 	{
 		ImGuizmoData()
 			: ID( 0 )
+			, Name( "" )
 			, Enable( true )
 			, UseSnap( false )
 			, ShowCube( true )
@@ -41,6 +42,7 @@ private:
 		bool UseSnap;
 		bool ShowCube;
 		bool IsVisible;
+		std::string Name;
 		XMFLOAT3 SnapAmount;
 		ImGuizmo::MODE CurrentGizmoMode;
 		ImGuizmo::OPERATION CurrentGizmoOperation;

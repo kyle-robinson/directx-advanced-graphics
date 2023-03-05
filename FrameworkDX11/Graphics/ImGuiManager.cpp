@@ -498,6 +498,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
         for ( unsigned int i = 0; i < gameObjects.size(); i++ )
         {
             guizmoData.push_back( ImGuizmoData() );
+            guizmoData[i].Name = gameObjects[i]->GetName();
             guizmoData[i].ID = i;
             m_iGizmoID++;
         }
@@ -818,6 +819,7 @@ void ImGuiManager::LightMenu( LightController* lightControl, Camera* pCamera )
         for ( unsigned int i = 0; i < MAX_LIGHTS; i++ )
         {
             guizmoData.push_back( ImGuizmoData() );
+            guizmoData[i].Name = lightControl->GetLightList()[i]->GetName();
             guizmoData[i].ID = m_iGizmoID;
             m_iGizmoID++;
         }
@@ -1958,6 +1960,7 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel, Camera* pCamera )
             static ImGuizmoData imguizmoData = ImGuizmoData();
             if ( !bLoad )
             {
+                imguizmoData.Name = "Soldier";
                 imguizmoData.ID = m_iGizmoID;
                 m_iGizmoID++;
                 bLoad = true;
@@ -2126,9 +2129,9 @@ void ImGuiManager::SpawnImGuizmo( Transform* pTransform, Camera* pCamera, XMFLOA
             // Render the view cube
             XMFLOAT4X4 tempView = view;
             float* tempViewPtr = (float*)&tempView;
-            float viewManipulateRight = m_vSceneWindowPos.x + m_vSceneWindowSize.x;
-            float viewManipulateTop = m_vSceneWindowPos.y;
-            if ( ImGuizmo::ViewManipulate( tempViewPtr, 8.0f, ImVec2( viewManipulateRight - ( size * multiplier ), viewManipulateTop + 20.0f ), ImVec2( size, size ), 0x10101010 ) )
+            // x == right view, y == top view
+            ImVec2 viewManipulate = ImVec2( m_vSceneWindowPos.x + m_vSceneWindowSize.x - ( size * multiplier ), m_vSceneWindowPos.y + 20.0f );
+            if ( ImGuizmo::ViewManipulate( tempViewPtr, 8.0f, viewManipulate, ImVec2( size, size ), 0x10101010, imguizmoData.Name.c_str() ) )
             {
                 for ( int i = 0; i < 16; i++ )
                 {
