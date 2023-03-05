@@ -29,6 +29,7 @@ private:
 			: ID( 0 )
 			, Enable( true )
 			, UseSnap( false )
+			, ShowCube( true )
 			, IsVisible( false )
 			, SnapAmount( { 1.0f, 1.0f, 1.0f } )
 			, CurrentGizmoMode( ImGuizmo::WORLD )
@@ -38,6 +39,7 @@ private:
 		int ID;
 		bool Enable;
 		bool UseSnap;
+		bool ShowCube;
 		bool IsVisible;
 		XMFLOAT3 SnapAmount;
 		ImGuizmo::MODE CurrentGizmoMode;
@@ -70,6 +72,7 @@ private:
 
 	int m_iGizmoID = 0;
 	int m_iActiveGizmoID = -1;
+	bool m_bResetViewCube = false;
 	bool m_bUsingTranslation = true;
 	bool m_bUsingManipulator = false;
 

@@ -72,6 +72,7 @@ void ImGuiManager::BeginRender()
     ImGui::ShowDemoWindow();
     ImPlot::ShowDemoWindow();
     ImGui::ShowMetricsWindow();
+    m_bResetViewCube = true;
 }
 
 void ImGuiManager::EndRender()
@@ -2038,9 +2039,14 @@ void ImGuiManager::SpawnImGuizmo( Transform* pTransform, Camera* pCamera, XMFLOA
             }
 
             ImGui::Text( "Gizmo Options" );
-            if ( ImGui::BeginTable( "Gizmo Options###", 2, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchProp ) )
+            if ( ImGui::BeginTable( "Gizmo Options###", 3, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchProp ) )
             {
                 ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::PushID( imguizmoData.ID + idOffset * 10 );
+                ImGui::Checkbox( std::string( "View Cube?###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.ShowCube );
+                ImGui::PopID();
+
                 ImGui::TableNextColumn();
                 ImGui::PushID( imguizmoData.ID + idOffset * 7 );
                 if ( ImGui::Checkbox( std::string( "Enable?###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.Enable ) )
@@ -2096,22 +2102,45 @@ void ImGuiManager::SpawnImGuizmo( Transform* pTransform, Camera* pCamera, XMFLOA
             pTransform->SetScale( scale );
         }
 
-        static float size = 128.0f;
-        XMFLOAT4X4 tempView = view;
-        float* tempViewPtr = (float*)&tempView;
-        float viewManipulateRight = m_vSceneWindowPos.x + m_vSceneWindowSize.x;
-        float viewManipulateTop = m_vSceneWindowPos.y;
-        ImGuizmo::ViewManipulate( tempViewPtr, 8.0f,
-            ImVec2( viewManipulateRight - size, viewManipulateTop + 20.0f ),
-            ImVec2( size, size ), 0x10101010 );
-        for ( int i = 0; i < 16; i++ )
+        if ( imguizmoData.ShowCube )
         {
-            if ( tempViewPtr[i] != viewPtr[i] )
+            // Handle sizing for multiple cubes
+            static float size = 64.0f;
+            static float multiplier = 1.0f;
+            if ( m_bResetViewCube )
             {
-                pCamera->SetLookAtPos( XMFLOAT3( pTransform->GetPosition() ) );
-				break;
-			}
-		}
+			    size = 64.0f;
+			    multiplier = 1.0f;
+			    m_bResetViewCube = false;
+		    }
+            else
+            {
+                multiplier += 1.0f;
+            }
+
+            // Counter to prevent manipulation of the view over multiple frames
+            static int counter = 0;
+            if ( counter > 0 )
+                counter--;
+
+            // Render the view cube
+            XMFLOAT4X4 tempView = view;
+            float* tempViewPtr = (float*)&tempView;
+            float viewManipulateRight = m_vSceneWindowPos.x + m_vSceneWindowSize.x;
+            float viewManipulateTop = m_vSceneWindowPos.y;
+            if ( ImGuizmo::ViewManipulate( tempViewPtr, 8.0f, ImVec2( viewManipulateRight - ( size * multiplier ), viewManipulateTop + 20.0f ), ImVec2( size, size ), 0x10101010 ) )
+            {
+                for ( int i = 0; i < 16; i++ )
+                {
+                    if ( tempViewPtr[i] != viewPtr[i] && counter == 0 )
+                    {
+                        pCamera->SetLookAtPos( XMFLOAT3( pTransform->GetPosition() ) );
+                        counter = 50;
+				        break;
+			        }
+		        }
+            }
+        }
     }
 
     // Handle ImGuizmo operation for when using multiple manipulators
