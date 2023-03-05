@@ -1,112 +1,274 @@
 #include "stdafx.h"
 #include "Camera.h"
 
-Camera::Camera( XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up, FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth )
-	: m_fEye( position ), m_fAt( at ), m_fUp( up ), m_fWindowWidth( windowWidth ), m_fWindowHeight( windowHeight ), m_fNearDepth( nearDepth ), m_fFarDepth( farDepth )
+Camera::Camera( XMFLOAT3 position, FLOAT width, FLOAT height, FLOAT nearPlane, FLOAT farPlane )
+	: m_fWindowWidth( width ), m_fWindowHeight( height ), m_fNear( nearPlane ), m_fFar( farPlane )
 {
-	m_fRot = { 0.0f,0.0f,0.0f };
-	Update();
+	pos = position;
+	posVector = XMLoadFloat3( &pos );
+	rot = XMFLOAT3( 0.0f, 0.0f, 0.0f );
+	rotVector = XMLoadFloat3( &rot );
+	UpdateViewMatrix();
+	UpdateProjection();
 }
 
-Camera::~Camera() {}
-
-void Camera::Update()
+void Camera::UpdateProjection()
 {
-	// Get quaternion rotation
-	XMFLOAT4 fOrientation;
-	Quaternion qOrientation;
-	XMMATRIX mRotation;
-
-	XMMATRIX rotation = XMMatrixRotationX( m_fRot.x ) * XMMatrixRotationY( m_fRot.y ) * XMMatrixRotationZ( m_fRot.z );
-	XMStoreFloat4( &fOrientation, XMQuaternionRotationMatrix( rotation ) );
-	qOrientation.r = fOrientation.w;
-	qOrientation.i = fOrientation.x;
-	qOrientation.j = fOrientation.y;
-	qOrientation.k = fOrientation.z;
-	CalculateTransformMatrixRowMajor( mRotation, { 0,0,0 }, qOrientation );
-
-	// Initialize the view matrix
-	XMVECTOR camTarget = XMVector3Transform( XMLoadFloat3( &m_fDefaultForward ), mRotation );
-	camTarget += XMLoadFloat3( &m_fEye );
-	XMVECTOR upDir = XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultUp ), mRotation );
-	XMStoreFloat4x4( &m_mView, XMMatrixLookAtLH( XMLoadFloat3( &m_fEye ), camTarget, upDir ) );
-
-	XMStoreFloat3( &m_fVecForward, XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultForward ), mRotation ) );
-	XMStoreFloat3( &m_fVecBack, XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultBack ), mRotation ) );
-	XMStoreFloat3( &m_fVecLeft, XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultLeft ), mRotation ) );
-	XMStoreFloat3( &m_fVecRight, XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultRight ), mRotation ) );
-	XMStoreFloat3( &m_fVecUp, XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultUp ), mRotation ) );
-	XMStoreFloat3( &m_fVecDown, XMVector3TransformCoord( XMLoadFloat3( &m_fDefaultDown ), mRotation ) );
-
-	// Initialize the projection matrix
-	XMStoreFloat4x4( &m_mProjection, XMMatrixPerspectiveFovLH(
-		XMConvertToRadians( m_fFov ), m_fWindowWidth / m_fWindowHeight, m_fNearDepth, m_fFarDepth ) );
+	if ( m_bPerspective )
+	{
+		UpdatePerspective();
+	}
+	else
+	{
+		UpdateOrthographic();
+	}
 }
 
-void Camera::UpdatePointAt()
+void Camera::UpdatePerspective()
 {
-	XMStoreFloat4x4( &m_mView, XMMatrixLookAtLH( XMLoadFloat3( &m_fEye ), XMLoadFloat3( &m_fAt ), XMLoadFloat3( &m_fUp ) ) );
-	XMStoreFloat4x4( &m_mProjection, XMMatrixPerspectiveFovLH( XM_PI / 2, 1.0f, m_fNearDepth, m_fFarDepth ) );
+	projectionMatrix = XMMatrixPerspectiveFovLH( XMConvertToRadians( m_fFov ), m_fWindowWidth / m_fWindowHeight, m_fNear, m_fFar );
 }
 
-void Camera::Reshape( FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth )
+void Camera::UpdateOrthographic()
 {
-	m_fWindowWidth = windowWidth;
-	m_fWindowHeight = windowHeight;
-	m_fNearDepth = nearDepth;
-	m_fFarDepth = farDepth;
+	float zoom = m_fFov * 0.0001f;
+	projectionMatrix = XMMatrixOrthographicLH( m_fWindowWidth * zoom, m_fWindowHeight * zoom, m_fNear, m_fFar );
+	SetLookAtPos( XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
 }
 
-void Camera::SetPosition( XMFLOAT3 position )
+const XMFLOAT4X4& Camera::GetView() const
 {
-	m_fEye = position;
+	XMFLOAT4X4 view;
+	XMStoreFloat4x4( &view, viewMatrix );
+	return view;
 }
 
-void Camera::AdjustPos( XMFLOAT3 position )
+const XMMATRIX& Camera::GetViewMatrix() const
 {
-	m_fEye.x += position.x;
-	m_fEye.y += position.y;
-	m_fEye.z += position.z;
+	return viewMatrix;
 }
 
-void Camera::SetRot( XMFLOAT3 rot )
+const XMFLOAT4X4& Camera::GetProjection() const
 {
-	m_fRot = rot;
-	if ( m_fRot.x >= XMConvertToRadians( 90.0f ) )
-		m_fRot.x = XMConvertToRadians( 90.0f );
-
-	if ( m_fRot.x <= XMConvertToRadians( -90.0f ) )
-		m_fRot.x = XMConvertToRadians( -90.0f );
+	XMFLOAT4X4 projection;
+	XMStoreFloat4x4( &projection, projectionMatrix );
+	return projection;
 }
 
-void Camera::AdjustRot( XMFLOAT3 rot )
+const XMMATRIX& Camera::GetProjectionMatrix() const
 {
-	m_fRot.x += rot.x;
-	m_fRot.y += rot.y;
-	m_fRot.z += rot.z;
-
-	if ( m_fRot.x >= XMConvertToRadians( 90.0f ) )
-		m_fRot.x = XMConvertToRadians( 90.0f );
-
-	if ( m_fRot.x <= XMConvertToRadians( -90.0f ) )
-		m_fRot.x = XMConvertToRadians( -90.0f );
+	return projectionMatrix;
 }
 
-XMFLOAT4X4 Camera::GetViewProjection() const noexcept
+const XMVECTOR& Camera::GetPositionVec() const
 {
-	XMMATRIX view = XMLoadFloat4x4( &m_mView );
-	XMMATRIX projection = XMLoadFloat4x4( &m_mProjection );
-	XMFLOAT4X4 viewProj;
-	XMStoreFloat4x4( &viewProj, view * projection );
-	return viewProj;
+	return posVector;
 }
 
-XMFLOAT4 Camera::GetPositionFloat4() noexcept
+const XMFLOAT4& Camera::GetPositionF4() const
 {
-	XMFLOAT4 Pos;
-	Pos.x = m_fEye.x;
-	Pos.y = m_fEye.y;
-	Pos.z = m_fEye.z;
-	Pos.w = 1.0f;
-	return Pos;
+	return XMFLOAT4( pos.x, pos.y, pos.z, 1.0f );
+}
+
+const XMFLOAT3& Camera::GetPosition() const
+{
+	return pos;
+}
+
+const XMVECTOR& Camera::GetRotationVec() const
+{
+	return rotVector;
+}
+
+const XMFLOAT4& Camera::GetRotationF4() const
+{
+	return XMFLOAT4( rot.x, rot.y, rot.z, 1.0f );
+}
+
+const XMFLOAT3& Camera::GetRotation() const
+{
+	return rot;
+}
+
+void Camera::SetPosition( const XMVECTOR& pos )
+{
+	XMStoreFloat3( &this->pos, pos );
+	posVector = pos;
+	UpdateViewMatrix();
+}
+
+void Camera::SetPosition( const XMFLOAT3& pos )
+{
+	posVector = XMLoadFloat3( &pos );
+	UpdateViewMatrix();
+}
+
+void Camera::SetPosition( float x, float y, float z )
+{
+	pos = XMFLOAT3( x, y, z );
+	posVector = XMLoadFloat3( &pos );
+	UpdateViewMatrix();
+}
+
+void Camera::AdjustPosition( const XMVECTOR& pos )
+{
+	posVector += pos;
+	XMStoreFloat3( &this->pos, posVector );
+	UpdateViewMatrix();
+}
+
+void Camera::AdjustPosition( float x, float y, float z )
+{
+	pos.x += x;
+	pos.y += y;
+	pos.z += z;
+	posVector = XMLoadFloat3( &pos );
+	UpdateViewMatrix();
+}
+
+void Camera::SetRotation( const XMVECTOR& rot )
+{
+	rotVector = rot;
+	XMStoreFloat3( &this->rot, rot );
+	UpdateViewMatrix();
+}
+
+void Camera::SetRotation( const XMFLOAT3& rot )
+{
+	rotVector = XMLoadFloat3( &rot );
+	UpdateViewMatrix();
+}
+
+void Camera::SetRotation( float x, float y, float z )
+{
+	rot = XMFLOAT3( x, y, z );
+	rotVector = XMLoadFloat3( &rot );
+	UpdateViewMatrix();
+}
+
+void Camera::AdjustRotation( const XMVECTOR& rot )
+{
+	rotVector += rot;
+	XMStoreFloat3( &this->rot, rotVector );
+	UpdateViewMatrix();
+}
+
+void Camera::AdjustRotation( float x, float y, float z )
+{
+	rot.x += x;
+	rot.y += y;
+	rot.z += z;
+	rotVector = XMLoadFloat3( &rot );
+	UpdateViewMatrix();
+}
+
+void Camera::SetLookAtPos( XMFLOAT3 lookAtPos )
+{
+	//Verify that look at pos is not the same as cam pos. They cannot be the same as that wouldn't make sense and would result in undefined behavior.
+	if ( lookAtPos.x == pos.x && lookAtPos.y == pos.y && lookAtPos.z == pos.z )
+		return;
+
+	lookAtPos.x = pos.x - lookAtPos.x;
+	lookAtPos.y = pos.y - lookAtPos.y;
+	lookAtPos.z = pos.z - lookAtPos.z;
+
+	float pitch = 0.0f;
+	if ( lookAtPos.y != 0.0f )
+	{
+		const float distance = sqrt( lookAtPos.x * lookAtPos.x + lookAtPos.z * lookAtPos.z );
+		pitch = atan( lookAtPos.y / distance );
+	}
+
+	float yaw = 0.0f;
+	if ( lookAtPos.x != 0.0f )
+	{
+		yaw = atan( lookAtPos.x / lookAtPos.z );
+	}
+	if ( lookAtPos.z > 0 )
+		yaw += XM_PI;
+
+	SetRotation( pitch, yaw, 0.0f );
+}
+
+const XMVECTOR& Camera::GetForwardVector( bool omitY )
+{
+	if ( omitY )
+		return vec_forward_noY;
+	else
+		return vec_forward;
+}
+
+const XMVECTOR& Camera::GetRightVector( bool omitY )
+{
+	if ( omitY )
+		return vec_right_noY;
+	else
+		return vec_right;
+}
+
+const XMVECTOR& Camera::GetBackwardVector( bool omitY )
+{
+	if ( omitY )
+		return vec_backward_noY;
+	else
+		return vec_backward;
+}
+
+const XMVECTOR& Camera::GetLeftVector( bool omitY )
+{
+	if ( omitY )
+		return vec_left_noY;
+	else
+		return vec_left;
+}
+
+const XMVECTOR& Camera::GetUpVector( bool omitY )
+{
+	if ( omitY )
+		return vec_up_noY;
+	else
+		return vec_up;
+}
+
+const XMVECTOR& Camera::GetDownVector( bool omitY )
+{
+	if ( omitY )
+		return vec_down_noY;
+	else
+		return vec_down;
+}
+
+void Camera::UpdateViewMatrix() //Updates view matrix and also updates the movement vectors
+{
+	//Calculate camera rotation matrix
+	XMMATRIX camRotationMatrix = XMMatrixRotationRollPitchYaw( rot.x, rot.y, rot.z );
+	//Calculate unit vector of cam target based off camera forward value transformed by cam rotation matrix
+	XMVECTOR camTarget = XMVector3TransformCoord( DEFAULT_FORWARD_VECTOR, camRotationMatrix );
+	//Adjust cam target to be offset by the camera's current position
+	camTarget += posVector;
+	//Calculate up direction based on current rotation
+	XMVECTOR upDir = XMVector3TransformCoord( DEFAULT_UP_VECTOR, camRotationMatrix );
+	//Rebuild view matrix
+	viewMatrix = XMMatrixLookAtLH( posVector, camTarget, upDir );
+
+	UpdateDirectionVectors();
+}
+
+void Camera::UpdateDirectionVectors()
+{
+	XMMATRIX vecRotationMatrix = XMMatrixRotationRollPitchYaw( rot.x, rot.y, 0.0f );
+	vec_forward = XMVector3TransformCoord( DEFAULT_FORWARD_VECTOR, vecRotationMatrix );
+	vec_backward = XMVector3TransformCoord( DEFAULT_BACKWARD_VECTOR, vecRotationMatrix );
+	vec_left = XMVector3TransformCoord( DEFAULT_LEFT_VECTOR, vecRotationMatrix );
+	vec_right = XMVector3TransformCoord( DEFAULT_RIGHT_VECTOR, vecRotationMatrix );
+	vec_up = XMVector3TransformCoord( DEFAULT_UP_VECTOR, vecRotationMatrix );
+	vec_down = XMVector3TransformCoord( DEFAULT_DOWN_VECTOR, vecRotationMatrix );
+
+	XMMATRIX vecRotationMatrixNoY = XMMatrixRotationRollPitchYaw( 0.0f, rot.y, 0.0f );
+	vec_forward_noY = XMVector3TransformCoord( DEFAULT_FORWARD_VECTOR, vecRotationMatrixNoY );
+	vec_backward_noY = XMVector3TransformCoord( DEFAULT_BACKWARD_VECTOR, vecRotationMatrixNoY );
+	vec_left_noY = XMVector3TransformCoord( DEFAULT_LEFT_VECTOR, vecRotationMatrixNoY );
+	vec_right_noY = XMVector3TransformCoord( DEFAULT_RIGHT_VECTOR, vecRotationMatrixNoY );
+	vec_up_noY = XMVector3TransformCoord( DEFAULT_UP_VECTOR, vecRotationMatrix );
+	vec_down_noY = XMVector3TransformCoord( DEFAULT_DOWN_VECTOR, vecRotationMatrix );
 }

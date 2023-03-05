@@ -50,9 +50,8 @@ LightData::LightData( std::string name, bool enabled, LightType lightType, XMFLO
 	materialData.Material.MinLayers = 10.0f;
 	m_pLightObject->GetAppearance()->SetMaterialData( materialData );
 
-	m_pCamLight = new Camera( XMFLOAT3{ pos.x, pos.y, pos.z },
-		XMFLOAT3{ 0.0f, 0.0f, 0.0f }, XMFLOAT3{ 0.0f, 1.0f, 0.0f }, 1280, 720, 0.01f, 100.0f );
-	m_pCamLight->SetCamName( name + " Camera" );
+	m_pCamLight = new Camera( XMFLOAT3{ pos.x, pos.y, pos.z }, 1280, 720, 0.01f, 100.0f );
+	m_pCamLight->SetName( name + " Camera" );
 	m_pShadow = new ShadowMap( pDevice, 1280, 720 );
 }
 
@@ -80,10 +79,9 @@ void LightData::Update( float dt, ID3D11DeviceContext* pContext, std::string cam
 	}
 
 	if ( camActive )
-		m_lightData.Position = m_pCamLight->GetPositionFloat4();
+		m_lightData.Position = m_pCamLight->GetPositionF4();
 	else
 		m_pCamLight->SetPosition( XMFLOAT3{ m_lightData.Position.x, m_lightData.Position.y, m_lightData.Position.z } );
-	m_pCamLight->Update();
 }
 
 void LightData::Draw( ID3D11DeviceContext* pContext )

@@ -8,92 +8,97 @@ using namespace DirectX;
 class Camera
 {
 public:
-	Camera( XMFLOAT3 position, XMFLOAT3 at, XMFLOAT3 up, FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth );
-	~Camera();
+	Camera( XMFLOAT3 position, FLOAT width, FLOAT height, FLOAT nearPlane, FLOAT farPlane );
 
-	void Update();
-	void UpdatePointAt();
+	const XMFLOAT4X4& GetView() const;
+	const XMMATRIX& GetViewMatrix() const;
+	const XMFLOAT4X4& GetProjection() const;
+	const XMMATRIX& GetProjectionMatrix() const;
 
-	inline XMFLOAT4X4 GetView() const noexcept { return m_mView; }
-	inline XMFLOAT4X4 GetProjection() const noexcept { return m_mProjection; }
-	XMFLOAT4X4 GetViewProjection() const noexcept;
+	const XMVECTOR& GetPositionVec() const;
+	const XMFLOAT4& GetPositionF4() const;
+	const XMFLOAT3& GetPosition() const;
+	const XMVECTOR& GetRotationVec() const;
+	const XMFLOAT4& GetRotationF4() const;
+	const XMFLOAT3& GetRotation() const;
 
-	XMFLOAT4 GetPositionFloat4() noexcept;
-	inline XMFLOAT3 GetPosition() const noexcept { return m_fEye; }
-	inline XMFLOAT3 GetLookAt() const noexcept { return m_fAt; }
-	inline XMFLOAT3 GetUp() const noexcept { return m_fUp; }
+	void SetPosition( const XMVECTOR& pos );
+	void SetPosition( const XMFLOAT3& pos );
+	void SetPosition( float x, float y, float z );
+	void AdjustPosition( const XMVECTOR& pos );
+	void AdjustPosition( float x, float y, float z );
+	void SetRotation( const XMVECTOR& rot );
+	void SetRotation( const XMFLOAT3& rot );
+	void SetRotation( float x, float y, float z );
+	void AdjustRotation( const XMVECTOR& rot );
+	void AdjustRotation( float x, float y, float z );
+	void SetLookAtPos( XMFLOAT3 lookAtPos );
 
-	inline XMFLOAT3 GetVecForward() const noexcept { return m_fVecForward; }
-	inline XMFLOAT3 GetVecBack() const noexcept { return m_fVecBack; }
-	inline XMFLOAT3 GetVecLeft() const noexcept { return m_fVecLeft; }
-	inline XMFLOAT3 GetVecRight() const noexcept { return m_fVecRight; }
-	inline XMFLOAT3 GetVecUp() const noexcept { return m_fVecUp; }
-	inline XMFLOAT3 GetVecDown() const noexcept { return m_fVecDown; }
-
-	void SetPosition( XMFLOAT3 position );
-	void AdjustPos( XMFLOAT3 position );
-
-	inline void SetLookAt( XMFLOAT3 lookAt ) noexcept { m_fAt = lookAt; }
-	inline void SetUp( XMFLOAT3 up ) noexcept { m_fUp = up; }
-
-	XMFLOAT3 GetRot() { return m_fRot; }
-	void SetRot( XMFLOAT3 rot );
-	void AdjustRot( XMFLOAT3 rot );
-	void Reshape( FLOAT windowWidth, FLOAT windowHeight, FLOAT nearDepth, FLOAT farDepth );
+	const XMVECTOR& GetForwardVector( bool omitY = false );
+	const XMVECTOR& GetRightVector( bool omitY = false );
+	const XMVECTOR& GetBackwardVector( bool omitY = false );
+	const XMVECTOR& GetLeftVector( bool omitY = false );
+	const XMVECTOR& GetUpVector( bool omitY = false );
+	const XMVECTOR& GetDownVector( bool omitY = false );
 
 	inline float GetFov() const noexcept { return m_fFov; }
 	inline void SetFov( float fov ) noexcept { m_fFov = fov; }
-	inline void AdjustFov( float fov ) noexcept { m_fFov += fov; }
+	inline void AdjustFov( float fov ) noexcept { m_fFov += fov; UpdateProjection(); }
+	inline FLOAT GetNear() const noexcept { return m_fNear; }
+	inline void SetNear( FLOAT nearDepth ) noexcept { m_fNear = nearDepth; UpdateProjection(); }
+	inline FLOAT GetFar() const noexcept { return m_fFar; }
+	inline void SetFar( FLOAT farDepth ) noexcept { m_fFar = farDepth; UpdateProjection(); }
+	inline bool IsPerspective() const noexcept { return m_bPerspective; }
+	inline void SetPerspective() noexcept { m_bPerspective = true; UpdateProjection(); }
+	inline void SetOrthographic() noexcept { m_bPerspective = false; UpdateProjection(); }
 
-	inline FLOAT GetNear() const noexcept { return m_fNearDepth; }
-	inline void SetNear( FLOAT nearDepth ) noexcept { m_fNearDepth = nearDepth; Reshape( m_fWindowWidth, m_fWindowHeight, m_fNearDepth, m_fFarDepth ); }
-
-	inline FLOAT GetFar() const noexcept { return m_fFarDepth; }
-	inline void SetFar( FLOAT farDepth ) noexcept { m_fFarDepth = farDepth; Reshape( m_fWindowWidth, m_fWindowHeight, m_fNearDepth, m_fFarDepth ); }
-
-	inline float GetCamSpeed() const noexcept { return m_fCameraSpeed; }
-	inline void SetCamSpeed( float speed ) noexcept { m_fCameraSpeed = speed; }
-
-	inline std::string GetCamName() const noexcept { return m_sCamName; }
-	inline void SetCamName( std::string name ) noexcept { m_sCamName = name; }
-
+	inline float GetSpeed() const noexcept { return m_fCameraSpeed; }
+	inline void SetSpeed( float speed ) noexcept { m_fCameraSpeed = speed; }
+	inline std::string GetName() const noexcept { return m_sCamName; }
+	inline void SetName( std::string name ) noexcept { m_sCamName = name; }
 private:
-	// Movement data
-	const XMFLOAT3 m_fDefaultUp = { 0.0f, 1.0f, 0.0f };
-	const XMFLOAT3 m_fDefaultDown = { 0.0f, -1.0f, 0.0f };
-	const XMFLOAT3 m_fDefaultForward = { 0.0f, 0.0f, 1.0f };
-	const XMFLOAT3 m_fDefaultBack = { 0.0f, 0.0f, -1.0f };
-	const XMFLOAT3 m_fDefaultLeft = { -1.0f, 0.0f, 0.0f };
-	const XMFLOAT3 m_fDefaultRight = { 1.0f, 0.0f, 0.0f };
+	void UpdateProjection();
+	void UpdatePerspective();
+	void UpdateOrthographic();
+	void UpdateViewMatrix();
+	void UpdateDirectionVectors();
 
-	XMFLOAT3 m_fVecUp;
-	XMFLOAT3 m_fVecDown;
-	XMFLOAT3 m_fVecForward;
-	XMFLOAT3 m_fVecBack;
-	XMFLOAT3 m_fVecLeft;
-	XMFLOAT3 m_fVecRight;
+	XMVECTOR posVector;
+	XMVECTOR rotVector;
+	XMFLOAT3 pos;
+	XMFLOAT3 rot;
+	XMMATRIX viewMatrix;
+	XMMATRIX projectionMatrix;
 
-	// Camera data
-	XMFLOAT3 m_fRot;
-	float m_fFov = 75.0f;
-	float m_fCameraSpeed = 0.1f;
+	const XMVECTOR DEFAULT_FORWARD_VECTOR = XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f );
+	const XMVECTOR DEFAULT_BACKWARD_VECTOR = XMVectorSet( 0.0f, 0.0f, -1.0f, 0.0f );
+	const XMVECTOR DEFAULT_UP_VECTOR = XMVectorSet( 0.0f, 1.0f, 0.0f, 0.0f );
+	const XMVECTOR DEFAULT_DOWN_VECTOR = XMVectorSet( 0.0f, -1.0f, 0.0f, 0.0f );
+	const XMVECTOR DEFAULT_LEFT_VECTOR = XMVectorSet( -1.0f, 0.0f, 0.0f, 0.0f );
+	const XMVECTOR DEFAULT_RIGHT_VECTOR = XMVectorSet( 1.0f, 0.0f, 0.0f, 0.0f );
 
-	XMFLOAT3 m_fEye;
-	XMFLOAT3 m_fAt;
-	XMFLOAT3 m_fUp;
+	XMVECTOR vec_forward;
+	XMVECTOR vec_left;
+	XMVECTOR vec_right;
+	XMVECTOR vec_backward;
+	XMVECTOR vec_up;
+	XMVECTOR vec_down;
 
+	XMVECTOR vec_forward_noY;
+	XMVECTOR vec_left_noY;
+	XMVECTOR vec_right_noY;
+	XMVECTOR vec_backward_noY;
+	XMVECTOR vec_up_noY;
+	XMVECTOR vec_down_noY;
+
+	FLOAT m_fFar;
+	FLOAT m_fNear;
 	FLOAT m_fWindowWidth;
 	FLOAT m_fWindowHeight;
-	FLOAT m_fNearDepth;
-	FLOAT m_fFarDepth;
-
-	// Matrices
-	XMFLOAT4X4 m_mView;
-	XMFLOAT4X4 m_mProjection;
-
-	// Mouse Data
-	XMFLOAT2 m_fMousePos;
+	float m_fFov = 75.0f;
 	std::string m_sCamName;
+	bool m_bPerspective = true;
+	float m_fCameraSpeed = 0.1f;
 };
 
 #endif

@@ -99,18 +99,17 @@ bool Application::InitializeWorld()
     m_pLightController->AddLight( "Point", true, LightType::PointLight,
         XMFLOAT4( -3.0f, 0.0f, -3.0f, 0.0f ), XMFLOAT4( Colors::White ),
         XMConvertToRadians( 45.0f ), 1.0f, 0.0f, 0.0f, m_gfx.GetDevice(), m_gfx.GetContext() );
-    m_pLightController->GetLight( "Point" )->GetCamera()->SetRot( XMFLOAT3( 0.0f, XMConvertToRadians( 45.0f ), 0.0f ) );
+    m_pLightController->GetLight( "Point" )->GetCamera()->SetRotation( 0.0f, XMConvertToRadians( 45.0f ), 0.0f );
 
     m_pLightController->AddLight( "Spot", true, LightType::SpotLight,
         XMFLOAT4( 0.0f, 5.0f, 0.0f, 0.0f ), XMFLOAT4( Colors::White ),
         XMConvertToRadians( 25.0f ), 1.0f, 0.0f, 0.0f, m_gfx.GetDevice(), m_gfx.GetContext() );
-    m_pLightController->GetLight( "Spot" )->GetCamera()->SetRot( XMFLOAT3( XMConvertToRadians( 90.0f ), 0.0f, 0.0f ) );
+    m_pLightController->GetLight( "Spot" )->GetCamera()->SetRotation( XMConvertToRadians( 90.0f ), 0.0f, 0.0f );
 
     // Initialize the cameras
     m_pCamController = new CameraController();
-    Camera* pCamera = new Camera( XMFLOAT3( 0.0f, 0.0f, -5.0f ), XMFLOAT3( 0.0f, 0.0f, 0.0f ),
-        XMFLOAT3( 0.0f, 1.0f, 0.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 175.0f );
-    pCamera->SetCamName( "Free Camera" );
+    Camera* pCamera = new Camera( XMFLOAT3( 0.0f, 0.0f, -5.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 175.0f );
+    pCamera->SetName( "Free Camera" );
     m_pCamController->AddCam( pCamera );
     for ( unsigned int i = 0; i < MAX_LIGHTS; i++ )
         m_pCamController->AddCam( m_pLightController->GetLight( i )->GetCamera() );
@@ -133,7 +132,6 @@ void Application::Update()
         return;
 
     m_pInput->Update( dt );
-    m_pCamController->Update();
     m_pTerrain->Update();
 
     // Can't adjust far plane when drawing voxels
@@ -153,7 +151,7 @@ void Application::Update()
     m_pCube->Update( dt, m_gfx.GetContext() );
     for ( unsigned int i = 0; i < m_pWalls.size(); i++ )
         m_pWalls[i]->Update( dt, m_gfx.GetContext() );
-    m_pLightController->Update( dt, m_gfx.GetContext(), m_pCamController->GetCurrentCam()->GetCamName() );
+    m_pLightController->Update( dt, m_gfx.GetContext(), m_pCamController->GetCurrentCam()->GetName() );
     m_pSoldier->Update( dt );
 }
 
@@ -210,7 +208,7 @@ void Application::Draw()
         m_pCamController->GetCurrentCam()->GetPosition().z, 0.0f );
     if ( !m_matrixCB.ApplyChanges() )
         return;
-    m_lightCB.data.EyePosition = m_pCamController->GetCurrentCam()->GetPositionFloat4();
+    m_lightCB.data.EyePosition = m_pCamController->GetCurrentCam()->GetPositionF4();
     for ( unsigned int i = 0; i < m_pLightController->GetLightList().size(); ++i )
         m_lightCB.data.Lights[i] = m_pLightController->GetLight( i )->GetLightData();
     if ( !m_lightCB.ApplyChanges() )
@@ -514,7 +512,7 @@ void Application::Draw()
     m_pImGuiManager->SceneWindow( m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetRenderTargetController()->GetRenderTarget( "Final" )->GetTexture(), m_pInput );
     m_pImGuiManager->CameraMenu( m_pCamController, *m_pVoxelTerrain->GetIsDraw() );
     m_pImGuiManager->ObjectMenu( m_gfx.GetDevice(), m_pCamController->GetCurrentCam(), gameObjects );
-    m_pImGuiManager->LightMenu( m_pLightController, m_pCamController );
+    m_pImGuiManager->LightMenu( m_pLightController, m_pCamController->GetCurrentCam() );
     m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_postProcessingCB.data, m_gfx.GetRasterizerController() );
     m_pImGuiManager->BezierSplineMenu();
     m_pImGuiManager->TerrainMenu( m_gfx.GetDevice(), m_gfx.GetContext(), m_pTerrain, m_pVoxelTerrain );

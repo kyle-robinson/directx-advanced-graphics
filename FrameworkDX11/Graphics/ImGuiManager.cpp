@@ -167,12 +167,12 @@ void ImGuiManager::SceneWindow( UINT width, UINT height, ID3D11ShaderResourceVie
 
 void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels )
 {
-    static std::string sName = cameraControl->GetCurrentCam()->GetCamName();
+    static std::string sName = cameraControl->GetCurrentCam()->GetName();
     static const char* cCurrentItem = sName.c_str();
 
     if ( ImGui::Begin( "Cameras", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
-        float movementSpeed = cameraControl->GetCurrentCam()->GetCamSpeed();
+        float movementSpeed = cameraControl->GetCurrentCam()->GetSpeed();
         float nearPlane = cameraControl->GetCurrentCam()->GetNear();
         float farPlane = cameraControl->GetCurrentCam()->GetFar();
         float fov = cameraControl->GetCurrentCam()->GetFov();
@@ -182,11 +182,11 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels
         {
             for ( int i = 0; i < cameraControl->GetCamList().size(); i++ )
             {
-                bool is_selected = ( cCurrentItem == cameraControl->GetCamList()[i]->GetCamName().c_str() );
+                bool is_selected = ( cCurrentItem == cameraControl->GetCamList()[i]->GetName().c_str() );
 
-                if ( ImGui::Selectable( cameraControl->GetCamList()[i]->GetCamName().c_str(), is_selected ) )
+                if ( ImGui::Selectable( cameraControl->GetCamList()[i]->GetName().c_str(), is_selected ) )
                 {
-                    sName = cameraControl->GetCamList()[i]->GetCamName();
+                    sName = cameraControl->GetCamList()[i]->GetName();
                     cCurrentItem = sName.c_str();
                     cameraControl->SetCam( i );
                 }
@@ -202,7 +202,7 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels
         ImGui::SetNextItemOpen( true, ImGuiCond_Once );
         if ( ImGui::TreeNode( "Instructions" ) )
         {
-            if ( cameraControl->GetCurrentCam()->GetCamName() == "Spot Camera" )
+            if ( cameraControl->GetCurrentCam()->GetName() == "Spot Camera" )
                 ImGui::TextColored( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ), "Disabled some inputs while using spot camera!" );
 
             if ( ImGui::BeginTable( "Controls", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame ) )
@@ -277,7 +277,7 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels
         {
             for ( int n = 0; n < cameraControl->GetCamList().size(); n++ )
             {
-                if ( ImGui::TreeNode( cameraControl->GetCamList()[n]->GetCamName().append( "##" ).append( std::to_string( n ) ).c_str() ) )
+                if ( ImGui::TreeNode( cameraControl->GetCamList()[n]->GetName().append( "##" ).append( std::to_string( n ) ).c_str() ) )
                 {
                     if ( ImGui::BeginTable( "Camera Data", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchSame ) )
                     {
@@ -297,9 +297,9 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels
                         ImGui::Text( "Rotation" );
 
                         ImGui::TableNextColumn();
-                        std::string xRot = std::format( "{:.2f}", cameraControl->GetCamList()[n]->GetRot().x );
-                        std::string yRot = std::format( "{:.2f}", cameraControl->GetCamList()[n]->GetRot().y );
-                        std::string zRot = std::format( "{:.2f}", cameraControl->GetCamList()[n]->GetRot().z );
+                        std::string xRot = std::format( "{:.2f}", cameraControl->GetCamList()[n]->GetRotation().x );
+                        std::string yRot = std::format( "{:.2f}", cameraControl->GetCamList()[n]->GetRotation().y );
+                        std::string zRot = std::format( "{:.2f}", cameraControl->GetCamList()[n]->GetRotation().z );
                         std::string sRot = xRot + ", " + yRot + ", " + zRot;
                         ImGui::Text( sRot.c_str() );
 
@@ -308,7 +308,7 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels
                         ImGui::Text( "Speed" );
 
                         ImGui::TableNextColumn();
-                        std::string sSpeed = std::format( "{:.2f}", cameraControl->GetCurrentCam()->GetCamSpeed() );
+                        std::string sSpeed = std::format( "{:.2f}", cameraControl->GetCurrentCam()->GetSpeed() );
                         ImGui::Text( sSpeed.c_str() );
 
                         ImGui::EndTable();
@@ -347,7 +347,15 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels
             ImGui::SameLine();
             HelpMarker( SLIDER_HINT_TEXT );
             if ( ImGui::SliderFloat( "##Movement Speed", &movementSpeed, 0.1f, 1.0f, "%.1f" ) )
-                cameraControl->GetCurrentCam()->SetCamSpeed( movementSpeed );
+                cameraControl->GetCurrentCam()->SetSpeed( movementSpeed );
+
+            ImGui::Text( "Projection Type" );
+            static int projectionType = 0;
+            if ( ImGui::RadioButton( "Perspective", &projectionType, 0 ) )
+                cameraControl->GetCurrentCam()->SetPerspective();
+            ImGui::SameLine();
+            if ( ImGui::RadioButton( "Orthographic", &projectionType, 1 ) )
+                cameraControl->GetCurrentCam()->SetOrthographic();
 
             ImGui::TreePop();
         }
@@ -793,11 +801,27 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
     ImGui::End();
 }
 
-void ImGuiManager::LightMenu( LightController* lightControl, CameraController* camControl )
+void ImGuiManager::LightMenu( LightController* lightControl, Camera* pCamera )
 {
     static std::string nameL = lightControl->GetLight( 0 )->GetName();
-    static Light currLightData = lightControl->GetLightList()[0]->GetLightData();
+    static Light currLightData = lightControl->GetLight( 0 )->GetLightData();
+    static XMFLOAT4X4 world = lightControl->GetLight( 0 )->GetLightObject()->GetTransform()->GetWorldMatrix();
     static const char* cCurrentItemL = nameL.c_str();
+    static bool bUpdateWorld = false;
+    static int iSelectedIdx = 0;
+
+    static std::vector<ImGuizmoData> guizmoData;
+    static bool bLoadO = false;
+    if ( !bLoadO )
+    {
+        for ( unsigned int i = 0; i < MAX_LIGHTS; i++ )
+        {
+            guizmoData.push_back( ImGuizmoData() );
+            guizmoData[i].ID = m_iGizmoID;
+            m_iGizmoID++;
+        }
+        bLoadO = true;
+    }
 
     if ( ImGui::Begin( "Lights", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
@@ -809,10 +833,11 @@ void ImGuiManager::LightMenu( LightController* lightControl, CameraController* c
                 bool is_selected = ( cCurrentItemL == lightControl->GetLightList()[n]->GetName().c_str() );
                 if ( ImGui::Selectable( lightControl->GetLightList()[n]->GetName().c_str(), is_selected ) )
                 {
-                    nameL = lightControl->GetLightList()[n]->GetName().c_str();
+                    iSelectedIdx = n;
+                    bUpdateWorld = true;
+                    nameL = lightControl->GetLightList()[n]->GetName();
                     currLightData = lightControl->GetLightList()[n]->GetLightData();
                     cCurrentItemL = nameL.c_str();
-                    currLightData = lightControl->GetLight( nameL )->GetLightData();
                 }
 
                 if ( is_selected )
@@ -829,12 +854,18 @@ void ImGuiManager::LightMenu( LightController* lightControl, CameraController* c
 
         if ( enable )
         {
-            bool isLightCamera = ( nameL + " Camera" ) == camControl->GetCurrentCam()->GetCamName();
+            bool isLightCamera = ( nameL + " Camera" ) == pCamera->GetName();
             if ( isLightCamera )
-                currLightData.Position = camControl->GetCurrentCam()->GetPositionFloat4();
+                currLightData.Position = pCamera->GetPositionF4();
 
             if ( ImGui::TreeNode( "Light Data" ) )
             {
+                if ( bUpdateWorld )
+                {
+                    bUpdateWorld = false;
+                    world = lightControl->GetLight( nameL )->GetLightObject()->GetTransform()->GetWorldMatrix();
+                }
+
                 ImGui::Text( "Position" );
                 ImGui::SameLine();
                 HelpMarker( DRAG_HINT_TEXT );
@@ -858,7 +889,7 @@ void ImGuiManager::LightMenu( LightController* lightControl, CameraController* c
             {
                 if ( ImGui::TreeNode( "Shadow Direction" ) )
                 {
-                    XMFLOAT3 lightDirection = lightControl->GetLight( nameL )->GetCamera()->GetRot();
+                    XMFLOAT3 lightDirection = lightControl->GetLight( nameL )->GetCamera()->GetRotation();
 
                     ImGui::Text( "Pitch" );
                     ImGui::SliderAngle( "##Pitch", &lightDirection.x, 0.995f * -90.0f, 0.995f * 90.0f );
@@ -870,7 +901,7 @@ void ImGuiManager::LightMenu( LightController* lightControl, CameraController* c
                     else if ( lightDirection.y < XMConvertToRadians( -180.0f ) )
                         lightDirection.y = XMConvertToRadians( 180.0f );
 
-                    lightControl->GetLight( nameL )->GetCamera()->SetRot( lightDirection );
+                    lightControl->GetLight( nameL )->GetCamera()->SetRotation( lightDirection );
                     ImGui::TreePop();
                 }
                 ImGui::Separator();
@@ -934,6 +965,9 @@ void ImGuiManager::LightMenu( LightController* lightControl, CameraController* c
                 }
                 ImGui::TreePop();
             }
+            ImGui::Separator();
+
+            SpawnImGuizmo( lightControl->GetLightList()[iSelectedIdx]->GetLightObject()->GetTransform(), pCamera, world, guizmoData[iSelectedIdx] );
         }
 
         lightControl->GetLight( nameL )->SetLightData( currLightData );
@@ -2061,6 +2095,23 @@ void ImGuiManager::SpawnImGuizmo( Transform* pTransform, Camera* pCamera, XMFLOA
             XMFLOAT3 scale = XMFLOAT3( matrixScale[0], matrixScale[1], matrixScale[2] );
             pTransform->SetScale( scale );
         }
+
+        static float size = 128.0f;
+        XMFLOAT4X4 tempView = view;
+        float* tempViewPtr = (float*)&tempView;
+        float viewManipulateRight = m_vSceneWindowPos.x + m_vSceneWindowSize.x;
+        float viewManipulateTop = m_vSceneWindowPos.y;
+        ImGuizmo::ViewManipulate( tempViewPtr, 8.0f,
+            ImVec2( viewManipulateRight - size, viewManipulateTop + 20.0f ),
+            ImVec2( size, size ), 0x10101010 );
+        for ( int i = 0; i < 16; i++ )
+        {
+            if ( tempViewPtr[i] != viewPtr[i] )
+            {
+                pCamera->SetLookAtPos( XMFLOAT3( pTransform->GetPosition() ) );
+				break;
+			}
+		}
     }
 
     // Handle ImGuizmo operation for when using multiple manipulators

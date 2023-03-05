@@ -13,7 +13,7 @@ public:
 
     XMFLOAT4X4* GetOffSet() { return &_OffSet; }
     XMFLOAT4 GetOffSetPos() { return _PosOffSet; }
-    XMFLOAT4 GetOffSetRot() { return _RotQuatOffSet; }
+    XMFLOAT4 GetOffSetRotation() { return _RotQuatOffSet; }
     XMFLOAT4 GetOffSetScale() { return _ScaleOffSet; }
     
 

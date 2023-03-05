@@ -131,7 +131,7 @@ void Terrain::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderContr
         m_terrainCB.data.WorldFrustumPlanes[3] = worldPlanes[3];
         m_terrainCB.data.WorldFrustumPlanes[4] = worldPlanes[4];
         m_terrainCB.data.WorldFrustumPlanes[5] = worldPlanes[5];
-        m_terrainCB.data.gEyePosition = camControl->GetCam( 0 )->GetPositionFloat4();
+        m_terrainCB.data.gEyePosition = camControl->GetCam( 0 )->GetPositionF4();
         if ( !m_terrainCB.ApplyChanges() )
             return;
 

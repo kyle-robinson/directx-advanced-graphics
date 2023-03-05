@@ -24,7 +24,6 @@ public:
 	bool SetCam( int num );
 	bool SetCam( std::string name );
 
-	void Update();
 private:
 	void CleanUp();
 

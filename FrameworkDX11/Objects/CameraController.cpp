@@ -67,14 +67,6 @@ bool CameraController::SetCam( std::string name )
 	return false;
 }
 
-void CameraController::Update()
-{
-	for ( Camera* cam : m_vCamList )
-	{
-		cam->Update();
-	}
-}
-
 void CameraController::CleanUp()
 {
 	RemoveAllCams();
