@@ -20,7 +20,7 @@ namespace Bind
 			try
 			{
 				UINT createDeviceFlags = 0;
-            #ifdef _DEBUG
+            #if defined(DEBUG) || defined(_DEBUG)
                 createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
             #endif
 

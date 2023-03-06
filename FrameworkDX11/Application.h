@@ -12,7 +12,10 @@
 #include "AnimatedModel.h"
 #include "LightController.h"
 #include "DrawableGameObject.h"
+
+#if defined ( _x64 )
 #include "RenderableGameObject.h"
+#endif
 
 class Application : public WindowContainer
 {
@@ -46,8 +49,11 @@ private:
 	// Objects
 	AnimatedModel* m_pSoldier;
 	DrawableGameObject* m_pCube;
-	RenderableGameObject m_pSky;
 	std::vector<DrawableGameObject*> m_pWalls;
+
+#if defined ( _x64 )
+	RenderableGameObject m_pSky;
+#endif
 
 	// Lights
 	LightController* m_pLightController;

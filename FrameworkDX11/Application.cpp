@@ -556,6 +556,7 @@ void Application::Cleanup()
     ID3D11RenderTargetView* nullViews[] = { nullptr };
     m_gfx.GetContext()->OMSetRenderTargets( _countof( nullViews ), nullViews, nullptr );
 
+#if defined(DEBUG) || defined(_DEBUG)
     ID3D11Debug* debugDevice = nullptr;
     m_gfx.GetDevice()->QueryInterface( __uuidof( ID3D11Debug ), reinterpret_cast<void**>( &debugDevice ) );
 
@@ -564,4 +565,5 @@ void Application::Cleanup()
 
     if ( debugDevice )
         debugDevice->Release();
+#endif
 }
