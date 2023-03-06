@@ -22,7 +22,7 @@ A graphics framework created using DirectX 11 that implements a range of advance
 | Post-Processing | ImGui File Dialog |
 | Motion Blur | ImGuizmo Manipulator |
 | FXAA | ImGuizmo View Cube |
-| SSAO | Tesselation LODs |
+| SSAO | Tessellation LODs |
 | Deferred Shading | Skinned Mesh |
 
 ## Getting Started
