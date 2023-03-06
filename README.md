@@ -12,6 +12,7 @@ A graphics framework created using DirectX 11 that implements a range of advance
 
 ## List of Features
 
+### Semester 1
 - [x] Normal Mapping
 - [x] Parallax Mapping
 - [x] Occlusion Mapping
@@ -22,6 +23,13 @@ A graphics framework created using DirectX 11 that implements a range of advance
 - [x] FXAA
 - [x] SSAO
 - [x] Deferred Shading
+
+### Semester 2
+- [x] Shadow Mapping
+- [x] Terrain Generation
+- [x] Voxel Terrain Generation
+- [x] Model Animations
+- [x] Bezier Curve Splines
 
 ---
 
