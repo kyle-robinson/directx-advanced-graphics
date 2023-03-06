@@ -41,17 +41,27 @@ A graphics framework created using DirectX 11 that implements a range of advance
 
 ## Dependencies
 
-To use the engine, the following prerequisites must be met.
+To use the framework, the following prerequisites must be met.
 * Windows 10+
 * Visual Studio
 * Git Version Control
 
-The engine relies on the following libraries and APIs to function.
+The framework relies on the following libraries and APIs to function.
 * DirectX 11
-* XAudio2
 * ImGui
+* ImGuizmo
+* ImGuiFileDialog
+* M3d Loader
 * Assimp
-* nlohmann
+* rapidjson
+
+### Installing
+
+To download a copy of the framework, select "Download ZIP" from the main code repository page, or create a fork of the project. More information on forking a GitHub respository can be found [here](https://www.youtube.com/watch?v=XTolZqmZq6s).
+
+### Executing program
+
+As the project settings have been modified to support the addition of the aforementioned libraries and APIs, there are no additional steps required to execute the application.
 
 ## Appendices
 
