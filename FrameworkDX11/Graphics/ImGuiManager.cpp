@@ -461,18 +461,26 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
                 if ( ImGui::TreeNode( "DOF Settings" ) )
                 {
                     ImGui::Text( "Far Plane" );
-                    ImGui::InputFloat( "##Far Plane", &postSettings->FarPlane );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    ImGui::DragFloat( "##Far Plane", &postSettings->FarPlane );
                     if ( postSettings->FarPlane < 0 )
                         postSettings->FarPlane = 0;
 
                     ImGui::Text( "Focal Width" );
-                    ImGui::InputFloat( "##Focal Width", &postSettings->FocalWidth );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    ImGui::DragFloat( "##Focal Width", &postSettings->FocalWidth );
 
                     ImGui::Text( "Focal Distance" );
-                    ImGui::InputFloat( "##Focal Distance", &postSettings->FocalDistance );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    ImGui::DragFloat( "##Focal Distance", &postSettings->FocalDistance );
 
                     ImGui::Text( "Attenuation" );
-                    ImGui::InputFloat( "##Attenuation", &postSettings->BlurAttenuation );
+                    ImGui::SameLine();
+                    HelpMarker( DRAG_HINT_TEXT );
+                    ImGui::DragFloat( "##Attenuation", &postSettings->BlurAttenuation, 0.01f );
                     ImGui::TreePop();
                 }
             }
@@ -809,7 +817,6 @@ void ImGuiManager::LightMenu( LightController* lightControl, Camera* pCamera )
     static Light currLightData = lightControl->GetLight( 0 )->GetLightData();
     static XMFLOAT4X4 world = lightControl->GetLight( 0 )->GetLightObject()->GetTransform()->GetWorldMatrix();
     static const char* cCurrentItemL = nameL.c_str();
-    static bool bUpdateWorld = false;
     static int iSelectedIdx = 0;
 
     static std::vector<ImGuizmoData> guizmoData;
@@ -837,10 +844,10 @@ void ImGuiManager::LightMenu( LightController* lightControl, Camera* pCamera )
                 if ( ImGui::Selectable( lightControl->GetLightList()[n]->GetName().c_str(), is_selected ) )
                 {
                     iSelectedIdx = n;
-                    bUpdateWorld = true;
                     nameL = lightControl->GetLightList()[n]->GetName();
-                    currLightData = lightControl->GetLightList()[n]->GetLightData();
                     cCurrentItemL = nameL.c_str();
+                    currLightData = lightControl->GetLightList()[n]->GetLightData();
+                    world = lightControl->GetLight( nameL )->GetLightObject()->GetTransform()->GetWorldMatrix();
                 }
 
                 if ( is_selected )
@@ -863,18 +870,14 @@ void ImGuiManager::LightMenu( LightController* lightControl, Camera* pCamera )
 
             if ( ImGui::TreeNode( "Light Data" ) )
             {
-                if ( bUpdateWorld )
-                {
-                    bUpdateWorld = false;
-                    world = lightControl->GetLight( nameL )->GetLightObject()->GetTransform()->GetWorldMatrix();
-                }
-
                 ImGui::Text( "Position" );
                 ImGui::SameLine();
                 HelpMarker( DRAG_HINT_TEXT );
                 if ( isLightCamera ) ImGui::TextColored( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ), "Can't adjust position while light camera is active!" );
                 ImGui::PushItemFlag( ImGuiItemFlags_Disabled, isLightCamera );
-                ImGui::DragFloat3( "##Position", &currLightData.Position.x, 0.01f );
+                XMFLOAT3 position = lightControl->GetLightList()[iSelectedIdx]->GetLightObject()->GetTransform()->GetPosition();
+                ImGui::DragFloat3( "##Position", &position.x, 0.01f );
+                lightControl->GetLightList()[iSelectedIdx]->GetLightObject()->GetTransform()->SetPosition( position );
                 ImGui::PopItemFlag();
 
                 ImGui::Text( "Colour" );
@@ -970,9 +973,17 @@ void ImGuiManager::LightMenu( LightController* lightControl, Camera* pCamera )
             }
             ImGui::Separator();
 
-            SpawnImGuizmo( lightControl->GetLightList()[iSelectedIdx]->GetLightObject()->GetTransform(), pCamera, world, guizmoData[iSelectedIdx] );
+            if ( !isLightCamera )
+            {
+                SpawnImGuizmo( lightControl->GetLightList()[iSelectedIdx]->GetLightObject()->GetTransform(), pCamera, world, guizmoData[iSelectedIdx] );
+            }
         }
-
+        if ( guizmoData[iSelectedIdx].IsVisible )
+        {
+            XMFLOAT3 updatedPos = lightControl->GetLightList()[iSelectedIdx]->GetLightObject()->GetTransform()->GetPosition();
+            currLightData.Position = XMFLOAT4( updatedPos.x, updatedPos.y, updatedPos.z, 1.0f );
+            lightControl->GetLightList()[iSelectedIdx]->GetLightObject()->GetTransform()->SetPosition( updatedPos );
+        }
         lightControl->GetLight( nameL )->SetLightData( currLightData );
     }
     ImGui::End();
@@ -2058,7 +2069,7 @@ void ImGuiManager::SpawnImGuizmo( Transform* pTransform, Camera* pCamera, XMFLOA
 
                 ImGui::TableNextColumn();
                 ImGui::PushID( imguizmoData.ID + idOffset * 8 );
-                ImGui::Checkbox( std::string( "Use Snapping?###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.UseSnap );
+                ImGui::Checkbox( std::string( "Snapping?###" ).append( std::to_string( imguizmoData.ID ) ).c_str(), &imguizmoData.UseSnap );
                 ImGui::PopID();
 
                 ImGui::EndTable();

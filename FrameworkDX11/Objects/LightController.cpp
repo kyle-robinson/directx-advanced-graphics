@@ -25,18 +25,24 @@ void LightController::AddLight( std::string name, bool enabled, LightType lightT
 {
     LightData* lightData = new LightData( name, enabled, lightType, pos, colour, angle, constantAttenuation, linearAttenuation, quadraticAttenuation );
     m_vLightData.push_back( lightData );
+    XMFLOAT3 position = XMFLOAT3( pos.x, pos.y, pos.z );
+    m_vLightData.at( m_vLightData.size() - 1 )->GetLightObject()->GetTransform()->SetPosition( position );
 }
 
 void LightController::AddLight( std::string name, bool enabled, LightType lightType, XMFLOAT4 pos, XMFLOAT4 colour, float angle, float constantAttenuation, float linearAttenuation, float quadraticAttenuation, ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
     LightData* lightData = new LightData( name, enabled, lightType, pos, colour, angle, constantAttenuation, linearAttenuation, quadraticAttenuation, pDevice, pContext );
     m_vLightData.push_back( lightData );
+    XMFLOAT3 position = XMFLOAT3( pos.x, pos.y, pos.z );
+    m_vLightData.at( m_vLightData.size() - 1 )->GetLightObject()->GetTransform()->SetPosition( position );
 }
 
 void LightController::AddLight( Light light )
 {
     LightData* lightData = new LightData( light );
     m_vLightData.push_back( lightData );
+    XMFLOAT3 position = XMFLOAT3( light.Position.x, light.Position.y, light.Position.z );
+    m_vLightData.at( m_vLightData.size() - 1 )->GetLightObject()->GetTransform()->SetPosition( position );
 }
 
 void LightController::Update( float dt, ID3D11DeviceContext* pContext, std::string camName )
