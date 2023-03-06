@@ -49,11 +49,16 @@ bool Application::InitializeWorld()
             COM_ERROR_IF_FAILED( hr, "Failed to create a WALL mesh!" );
             m_pWalls.push_back( wall );
         }
-        m_pWalls[0]->GetTransform()->SetPosition( -5.0f, -2.0f, 5.0f );
-        m_pWalls[1]->GetTransform()->SetPosition( -5.0f, 8.0f, 5.0f );
-        m_pWalls[1]->GetTransform()->SetRotation( -90.0f, 0.0f, 0.0f );
-        m_pWalls[2]->GetTransform()->SetPosition( 5.0f, 8.0f, 5.0f );
-        m_pWalls[2]->GetTransform()->SetRotation( -90.0f, 90.0f, 0.0f );
+        m_pWalls[0]->GetTransform()->SetPosition( 0.0f, -2.5f, 0.0f );
+        m_pWalls[0]->GetTransform()->SetRotation( 90.0f, 0.0f, 0.0f );
+        m_pWalls[0]->GetTransform()->SetScale( 5.0f, 5.0f, 5.0f );
+
+        m_pWalls[1]->GetTransform()->SetPosition( 0.0f, 2.5f, 5.0f );
+        m_pWalls[1]->GetTransform()->SetScale( 5.0f, 5.0f, 5.0f );
+
+        m_pWalls[2]->GetTransform()->SetPosition( 5.0f, 2.5f, 0.0f );
+        m_pWalls[2]->GetTransform()->SetRotation( 0.0f, 90.0f, 0.0f );
+        m_pWalls[2]->GetTransform()->SetScale( 5.0f, 5.0f, 5.0f );
 
         // Create the constant buffers
         hr = m_matrixCB.Initialize( m_gfx.GetDevice(), m_gfx.GetContext() );
@@ -183,7 +188,7 @@ void Application::Draw()
 
     // Set shadow samplers
     m_gfx.GetSamplerController()->SetState( "Wrap", 0u, m_gfx.GetContext() );
-    m_gfx.GetSamplerController()->SetState( "Border", 1u, m_gfx.GetContext() );
+    m_gfx.GetSamplerController()->SetState( "Clamp", 1u, m_gfx.GetContext() );
     m_gfx.GetSamplerController()->SetState( "Border", 2u, m_gfx.GetContext() );
 
     // get the game object world transform
@@ -215,9 +220,9 @@ void Application::Draw()
         return;
 
     // Render the cube
+    m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderData().m_pVertexShader, nullptr, 0 );
     m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
     m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-    m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderData().m_pVertexShader, nullptr, 0 );
     m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, m_matrixCB.GetAddressOf() );
     m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
     m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderData().m_pPixelShader, nullptr, 0 );
@@ -228,6 +233,18 @@ void Application::Draw()
     m_gfx.GetContext()->PSSetShaderResources( 3, MAX_LIGHTS, shadowMaps );
     m_pCube->GetAppearance()->SetTextures( m_gfx.GetContext() );
     m_pCube->Draw( m_gfx.GetContext() );
+
+    // Render the walls
+    for ( unsigned int i = 0; i < m_pWalls.size(); i++ )
+    {
+        WorldAsFloat = m_pWalls[i]->GetTransform()->GetWorldMatrix();
+        mGO = XMLoadFloat4x4( &WorldAsFloat );
+        m_matrixCB.data.mWorld = XMMatrixTranspose( mGO );
+        if ( !m_matrixCB.ApplyChanges() )
+            return;
+        m_pWalls[i]->GetAppearance()->SetTextures( m_gfx.GetContext() );
+        m_pWalls[i]->Draw( m_gfx.GetContext() );
+    }
 
     // Draw animated model
     m_gfx.GetRasterizerController()->SetState( "None", m_gfx.GetContext() );
@@ -240,25 +257,8 @@ void Application::Draw()
     m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pPixelShader, nullptr, 0 );
     m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
 
-    // Draw walls
-    m_gfx.GetRasterizerController()->SetOverrideState( m_gfx.GetContext() );
-    for ( unsigned int i = 0; i < MAX_LIGHTS; i++ )
-        m_lightCB.data.Lights[i].Enabled = 1;
-    if ( !m_lightCB.ApplyChanges() )
-        return;
-
-    for ( unsigned int i = 0; i < m_pWalls.size(); i++ )
-    {
-        WorldAsFloat = m_pWalls[i]->GetTransform()->GetWorldMatrix();
-        mGO = XMLoadFloat4x4( &WorldAsFloat );
-        m_matrixCB.data.mWorld = XMMatrixTranspose( mGO );
-        if ( !m_matrixCB.ApplyChanges() )
-            return;
-        m_pWalls[i]->GetAppearance()->SetTextures( m_gfx.GetContext() );
-        m_pWalls[i]->Draw( m_gfx.GetContext() );
-    }
-
     // Render the lights
+    m_gfx.GetRasterizerController()->SetOverrideState( m_gfx.GetContext() );
     m_pLightController->Draw( m_gfx.GetContext(), m_matrixCB );
 
     // Render terrain
@@ -280,8 +280,8 @@ void Application::Draw()
 #endif
 
     // Post 2d
-    m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
     m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pVertexShader, nullptr, 0 );
+    m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
     m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, m_matrixCB.GetAddressOf() );
     m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
     m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pPixelShader, nullptr, 0 );
@@ -312,9 +312,9 @@ void Application::Draw()
         return;
 
     // Render the cube
+    m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Depth" ).m_pVertexShader, nullptr, 0 );
     m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
     m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-    m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Depth" ).m_pVertexShader, nullptr, 0 );
     m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, m_matrixCB.GetAddressOf() );
     m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Depth" ).m_pPixelShader, nullptr, 0 );
     if ( !m_postProcessingCB.ApplyChanges() )
@@ -322,7 +322,7 @@ void Application::Draw()
     m_gfx.GetContext()->PSSetConstantBuffers( 1, 1, m_postProcessingCB.GetAddressOf() );
     m_pCube->Draw( m_gfx.GetContext() );
 
-    // Render the quads
+    // Render the walls
     for ( unsigned int i = 0; i < m_pWalls.size(); i++ )
     {
         WorldAsFloat = m_pWalls[i]->GetTransform()->GetWorldMatrix();

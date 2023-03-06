@@ -9,9 +9,6 @@
 #include "DataStucts.h"
 #include <vector>
 
-#define NUM_VERTICES 36
-#define FOLDER_PATH "Resources/Textures/"
-
 struct SimpleVertex
 {
 	XMFLOAT3 Pos;

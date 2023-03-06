@@ -375,7 +375,7 @@ void ImGuiManager::ShaderMenu( ShaderController* shaderControl, PostProcessingCB
         ImGui::Text( "Current Shader" );
         if ( ImGui::BeginCombo( "##ShaderCombo", cCurrentShader ) )
         {
-            for ( int n = 0; n < shaderControl->GetShaderList().size(); n++ )
+            for ( int n = 0; n < 9; n++ ) // Set to 9 to hide shaders that would be used for post processing
             {
                 bool is_selected = ( cCurrentShader == shaderControl->GetShaderList()[n].m_sName.c_str() );
                 if ( ImGui::Selectable( shaderControl->GetShaderList()[n].m_sName.c_str(), is_selected ) )
@@ -781,7 +781,7 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
                         ImGui::Text( "Height Scale" );
                         ImGui::SameLine();
                         HelpMarker( DRAG_HINT_TEXT );
-                        ImGui::DragFloat( "##Height Scale", &materialData.Material.HeightScale, 0.1f, 0.0f, 100.0f );
+                        ImGui::DragFloat( "##Height Scale", &materialData.Material.HeightScale, 0.001f, 0.0f, 5.0f );
 
                         ImGui::Text( "Min Layers" );
                         ImGui::SameLine();

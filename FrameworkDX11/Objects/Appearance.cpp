@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Appearance.h"
 
+#define FOLDER_PATH "Resources/Textures/"
+
 Appearance::Appearance()
 {
 	m_pTextureResourceView = nullptr;
@@ -22,14 +24,21 @@ void Appearance::Draw( ID3D11DeviceContext* pContext )
 {
 	if ( m_bDraw )
 	{
-		pContext->PSSetConstantBuffers( 1, 1, m_materialCB.GetAddressOf() );
+		pContext->PSSetConstantBuffers( 1u, 1u, m_materialCB.GetAddressOf() );
 
 		// Set vertex buffer
 		UINT offset = 0;
-		pContext->IASetVertexBuffers( 0, 1, m_simpleVB.GetAddressOf(), m_simpleVB.StridePtr(), &offset );
-		pContext->IASetIndexBuffer( m_simpleIB.Get(), DXGI_FORMAT_R16_UINT, 0 );
-		pContext->PSSetSamplers( 0, 1, &m_pSamplerLinear );
-		pContext->DrawIndexed( m_simpleIB.IndexCount(), 0, 0 );
+		pContext->IASetVertexBuffers( 0u, 1u, m_simpleVB.GetAddressOf(), m_simpleVB.StridePtr(), &offset );
+		pContext->IASetIndexBuffer( m_simpleIB.Get(), DXGI_FORMAT_R16_UINT, 0u );
+		pContext->PSSetSamplers( 0u, 1u, &m_pSamplerLinear );
+		if ( m_simpleIB.IndexCount() == 1u ) // Needed for graphics debugging
+		{
+			pContext->Draw( m_simpleVB.VertexCount(), 0u );
+		}
+		else
+		{
+			pContext->DrawIndexed( m_simpleIB.IndexCount(), 0u, 0u );
+		}
 	}
 }
 
@@ -37,17 +46,17 @@ void Appearance::Draw( ID3D11DeviceContext* pContext, int vertToDraw, int start 
 {
 	// Set vertex buffer
 	UINT offset = 0;
-	pContext->IASetVertexBuffers( 0, 1, m_skinnedVB.GetAddressOf(), m_skinnedVB.StridePtr(), &offset );
-	pContext->IASetIndexBuffer( m_skinnedIB.Get(), DXGI_FORMAT_R16_UINT, 0 );
-	pContext->PSSetSamplers( 0, 1, &m_pSamplerLinear );
-	pContext->DrawIndexed( vertToDraw, start, 0 );
+	pContext->IASetVertexBuffers( 0u, 1u, m_skinnedVB.GetAddressOf(), m_skinnedVB.StridePtr(), &offset );
+	pContext->IASetIndexBuffer( m_skinnedIB.Get(), DXGI_FORMAT_R16_UINT, 0u );
+	pContext->PSSetSamplers( 0u, 1u, &m_pSamplerLinear );
+	pContext->DrawIndexed( vertToDraw, start, 0u );
 }
 
 void Appearance::SetTextures( ID3D11DeviceContext* pContext )
 {
-	pContext->PSSetShaderResources( 0, 1, &m_pTextureResourceView );
-	pContext->PSSetShaderResources( 1, 1, &m_pNormalMapResourceView );
-	pContext->PSSetShaderResources( 2, 1, &m_pParallaxMapResourceView );
+	pContext->PSSetShaderResources( 0u, 1u, &m_pTextureResourceView );
+	pContext->PSSetShaderResources( 1u, 1u, &m_pNormalMapResourceView );
+	pContext->PSSetShaderResources( 2u, 1u, &m_pParallaxMapResourceView );
 }
 
 bool Appearance::InitMesh_Cube( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
@@ -111,7 +120,7 @@ bool Appearance::InitMesh_Cube( ID3D11Device* pDevice, ID3D11DeviceContext* pCon
 	};
 
 	// Calculate tangent and bitangents
-	CalculateModelVectors( vertices, NUM_VERTICES );
+	CalculateModelVectors( vertices, ARRAYSIZE( vertices ) );
 
 	// Create index buffer
 	WORD indices[] =
@@ -194,65 +203,37 @@ bool Appearance::InitMesh_Cube( ID3D11Device* pDevice, ID3D11DeviceContext* pCon
 
 bool Appearance::InitMesh_Quad( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
-	// Create quad with height data
-	int cols = 2;
-	int rows = 2;
-	int numVertices = rows * cols;
-	int numFaces = ( rows - 1 ) * ( cols - 1 ) * 2;
-	float fWidth = 10.0f;
-	float fHeight = 10.0f;
-
-	// Define a vertex
-	std::vector<SimpleVertex> v;
-	float dx = fWidth / ( cols - 1 );
-	float dz = fHeight / ( rows - 1 );
-	float textCordY = 1.0f;
-	float textCordX = 0.0f;
-	float increasX = 1.0f / cols;
-	float increasZ = 1.0f / rows;
-
-	// Create vertex data
-	for ( UINT i = 0; i < rows; i++ )
+	// Create vertex buffer
+	SimpleVertex vertices[] =
 	{
-		for ( UINT j = 0; j < cols; j++ )
-		{
-			v.push_back( {
-				XMFLOAT3{ (float)( -0 * fWidth + j * dx ),
-				0, (float)( 0 * fHeight - i * dz ) },
-				XMFLOAT3( 0.0f, 1.0f, 0.0f ),
-				XMFLOAT2( textCordX,textCordY ),
-				XMFLOAT3( 0.0f,0.0f,0.0f ),
-				XMFLOAT3( 0.0f,0.0f,0.0f )
-			} );
-			textCordX += increasX;
-		}
-		textCordY -= increasZ;
-		textCordX = 0;
-	}
+		// Front
+		{ XMFLOAT3( -1.0f, 1.0f, 0.0f ), XMFLOAT3( 0.0f, 0.0f, -1.0f ), XMFLOAT2( 0.0f, 0.0f ) },
+		{ XMFLOAT3( 1.0f, -1.0f, 0.0f ), XMFLOAT3( 0.0f, 0.0f, -1.0f ) , XMFLOAT2( 1.0f, 1.0f ) },
+		{ XMFLOAT3( -1.0f, -1.0f, 0.0f ), XMFLOAT3( 0.0f, 0.0f, -1.0f ), XMFLOAT2( 0.0f, 1.0f ) },
 
-	// Create indices
-	std::vector<WORD> indices;
-	for ( UINT i = 0; i < rows - 1; i++ )
+		{ XMFLOAT3( 1.0f, 1.0f, 0.0f ), XMFLOAT3( 0.0f, 0.0f, -1.0f ), XMFLOAT2( 1.0f, 0.0f ) },
+		{ XMFLOAT3( 1.0f, -1.0f, 0.0f ), XMFLOAT3( 0.0f, 0.0f, -1.0f ) , XMFLOAT2( 1.0f, 1.0f ) },
+		{ XMFLOAT3( -1.0f, 1.0f, 0.0f ), XMFLOAT3( 0.0f, 0.0f, -1.0f ), XMFLOAT2( 0.0f, 0.0f ) }
+	};
+
+	// Calculate tangent and bitangents
+	CalculateModelVectors( vertices, ARRAYSIZE( vertices ) );
+
+	// Create index buffer
+	WORD indices[] =
 	{
-		for ( UINT j = 0; j < cols - 1; j++ )
-		{
-			indices.push_back( i * cols + j );
-			indices.push_back( i * cols + ( j + 1 ) );
-			indices.push_back( ( i + 1 ) * cols + j );
-			indices.push_back( ( i + 1 ) * cols + j );
-			indices.push_back( i * cols + ( j + 1 ) );
-			indices.push_back( ( i + 1 ) * cols + ( j + 1 ) );
-		}
-	}
+		0,1,2,
+		3,4,5
+	};
 
 	try
 	{
 		// Create vertex buffer
-		HRESULT hr = m_simpleVB.Initialize( pDevice, &v[0], v.size() );
+		HRESULT hr = m_simpleVB.Initialize( pDevice, vertices, ARRAYSIZE( vertices ) );
 		COM_ERROR_IF_FAILED( hr, "Failed to create QUAD VERTEX BUFFER!" );
 
 		// Create index buffer
-		hr = m_simpleIB.Initialize( pDevice, &indices[0], indices.size() );
+		hr = m_simpleIB.Initialize( pDevice, indices, ARRAYSIZE( indices ) );
 		COM_ERROR_IF_FAILED( hr, "Failed to create QUAD INDEX BUFFER!" );
 
 		// Create textures
@@ -287,6 +268,7 @@ bool Appearance::InitMesh_Quad( ID3D11Device* pDevice, ID3D11DeviceContext* pCon
 		return false;
 	}
 
+	// Setup material properties
 	m_materialCB.data.Material.Diffuse = XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f );
 	m_materialCB.data.Material.Specular = XMFLOAT4( 1.0f, 0.2f, 0.2f, 1.0f );
 	m_materialCB.data.Material.SpecularPower = 32.0f;

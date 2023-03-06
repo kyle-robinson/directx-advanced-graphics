@@ -186,7 +186,7 @@ void TerrainAppearance::InitMesh_Cube(
 	try
 	{
 		// Create vertex buffer
-		HRESULT hr = m_simpleVB.Initialize( pDevice, vertices, NUM_VERTICES );
+		HRESULT hr = m_simpleVB.Initialize( pDevice, vertices, ARRAYSIZE( vertices ) );
 		COM_ERROR_IF_FAILED( hr, "Failed to create TERRAIN CUBE VERTEX BUFFER!" );
 
 		if ( ind.size() > 0 )
