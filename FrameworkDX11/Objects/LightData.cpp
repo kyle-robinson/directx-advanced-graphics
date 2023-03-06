@@ -90,6 +90,7 @@ void LightData::Draw( ID3D11DeviceContext* pContext )
 	{
 		if ( m_pLightObject->GetAppearance() )
 		{
+			m_pLightObject->GetAppearance()->SetTextures( pContext );
 			m_pLightObject->Draw( pContext );
 		}
 	}

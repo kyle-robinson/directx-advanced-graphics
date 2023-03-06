@@ -279,35 +279,12 @@ void Application::Draw()
     m_pSky.Draw( viewMat, projMat );
 #endif
 
-    // Post 2d
-    m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pVertexShader, nullptr, 0 );
-    m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetShaderData().m_pVertexLayout );
-    m_gfx.GetContext()->VSSetConstantBuffers( 0, 1, m_matrixCB.GetAddressOf() );
-    m_gfx.GetContext()->VSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
-    m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetShaderByName( "Basic" ).m_pPixelShader, nullptr, 0 );
-    m_gfx.GetContext()->PSSetConstantBuffers( 2, 1, m_lightCB.GetAddressOf() );
-	for ( unsigned int i = 0; i < MAX_LIGHTS; i++ )
-        m_pLightController->GetLight( i )->GetLightObject()->GetAppearance()->SetTextures( m_gfx.GetContext() );
-    m_pLightController->Draw( m_gfx.GetContext(), m_matrixCB );
+    // Depth pass
     m_gfx.GetRasterizerController()->SetState( "Back", m_gfx.GetContext() );
-
-    // Render 3d objects
     m_gfx.GetRenderTargetController()->GetRenderTarget( "Depth" )->SetRenderTarget( m_gfx.GetContext() );
-
     WorldAsFloat = m_pCube->GetTransform()->GetWorldMatrix();
     mGO = XMLoadFloat4x4( &WorldAsFloat );
-
-    viewAsFloats = m_pCamController->GetCurrentCam()->GetView();
-    projectionAsFloats = m_pCamController->GetCurrentCam()->GetProjection();
-
-    RTTview = XMLoadFloat4x4( &viewAsFloats );
-    RTTprojection = XMLoadFloat4x4( &projectionAsFloats );
-
-    // Store matrices in constant buffer
     m_matrixCB.data.mWorld = XMMatrixTranspose( mGO );
-    m_matrixCB.data.mView = XMMatrixTranspose( RTTview );
-    m_matrixCB.data.mProjection = XMMatrixTranspose( RTTprojection );
-    m_matrixCB.data.vOutputColor = XMFLOAT4( 0, 0, 0, 0 );
     if ( !m_matrixCB.ApplyChanges() )
         return;
 
