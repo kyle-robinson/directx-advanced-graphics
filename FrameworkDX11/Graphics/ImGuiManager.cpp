@@ -569,8 +569,9 @@ void ImGuiManager::ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vect
 
                 if ( ImGui::Button( "Reset" ) )
                 {
-                    rotation = { 0.0f, 0.0f, 0.0f };
-                    position = { 0.0f, 0.0f, 0.0f };
+                    currObject->GetTransform()->SetPosition( { 0.0f, 0.0f, 0.0f } );
+                    currObject->GetTransform()->SetRotation( { 0.0f, 0.0f, 0.0f } );
+                    currObject->GetTransform()->SetScale( { 1.0f, 1.0f, 1.0f } );
                 }
 
                 ImGui::TreePop();
