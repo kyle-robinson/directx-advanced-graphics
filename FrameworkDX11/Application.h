@@ -3,32 +3,71 @@
 #define APPLICATION_H
 
 #include "Input.h"
-#include "Timer.h"
 #include "ImGuiManager.h"
 #include "WindowContainer.h"
-#include "LevelStateMachine.h"
+
+#include "Timer.h"
+#include "Terrain.h"
+#include "TerrainVoxel.h"
+#include "AnimatedModel.h"
+#include "LightController.h"
+#include "DrawableGameObject.h"
+
+#if defined ( _x64 )
+#include "RenderableGameObject.h"
+#endif
 
 class Application : public WindowContainer
 {
 public:
+	Application();
+	~Application();
+
 	bool Initialize( HINSTANCE hInstance, int width, int height );
-	void CleanupDevice();
-
-	bool ProcessMessages() noexcept;
 	void Update();
-	void Render();
-private:
-	// Objects
-	Timer m_timer;
-	Input m_input;
-	Camera m_camera;
-	ImGuiManager m_imgui;
+	void Draw();
 
-	// Levels
-	std::string m_sCurrentLevelName;
-	LevelStateMachine m_stateMachine;
-	std::vector<std::string> m_sLevelNames;
-	std::vector<std::shared_ptr<LevelContainer>> m_pLevels;
+private:
+	bool InitializeWorld();
+	void Cleanup();
+
+	// Constant buffers
+	ConstantBuffer<MatrixBuffer> m_matrixCB;
+	ConstantBuffer<LightPropertiesCB> m_lightCB;
+	ConstantBuffer<PostProcessingCB> m_postProcessingCB;
+
+	// Fullscreen quad
+	struct ScreenVertex
+	{
+		XMFLOAT3 pos;
+		XMFLOAT2 tex;
+	};
+	VertexBuffer<ScreenVertex> m_screenVB;
+	XMMATRIX m_mProjection;
+	XMMATRIX m_mView;
+
+	// Objects
+	AnimatedModel* m_pSoldier;
+	DrawableGameObject* m_pCube;
+	std::vector<DrawableGameObject*> m_pWalls;
+
+#if defined ( _x64 )
+	RenderableGameObject m_pSky;
+#endif
+
+	// Lights
+	LightController* m_pLightController;
+	ShadowMap* m_pDepthLight;
+
+	// Input
+	CameraController* m_pCamController;
+	ImGuiManager* m_pImGuiManager;
+	Input* m_pInput;
+	Timer m_timer;
+
+	// Terrain
+	TerrainVoxel* m_pVoxelTerrain;
+	Terrain* m_pTerrain;
 };
 
 #endif

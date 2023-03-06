@@ -1,0 +1,13 @@
+{
+	"Terrain_Data" : {
+		"Width" : 513,
+		"Depth" : 513,
+		"CellSpacing" : 1.0,
+		"Mode" : 1
+	},
+	"Terrain_Data_FaultLine" : {
+		"Seed" : 2004,
+		"Displacement" : 1.0,
+		"Iteration_Count" : 800
+	}
+}

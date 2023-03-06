@@ -3,6 +3,7 @@
 #define MESH_H
 
 #include "Texture.h"
+#include "Appearance.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "ConstantBuffer.h"
@@ -11,19 +12,12 @@
 #include <assimp/scene.h>
 #include <vector>
 
-struct VertexOBJ
-{
-	XMFLOAT3 Position;
-	XMFLOAT2 TexCoord;
-	XMFLOAT3 Normal;
-};
-
 class Mesh
 {
 public:
 	Mesh( ID3D11Device* device,
 		ID3D11DeviceContext* context,
-		std::vector<VertexOBJ>& vertices,
+		std::vector<SimpleVertex>& vertices,
 		std::vector<WORD>& indices,
 		std::vector<Texture>& textures,
 		const DirectX::XMMATRIX& transformMatrix );
@@ -31,7 +25,7 @@ public:
 	Mesh( const Mesh& mesh );
 	void Draw();
 private:
-	VertexBuffer<VertexOBJ> vertexBuffer;
+	VertexBuffer<SimpleVertex> vertexBuffer;
 	IndexBuffer indexBuffer;
 	ID3D11DeviceContext* context;
 	std::vector<Texture> textures;

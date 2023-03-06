@@ -2,9 +2,15 @@
 #ifndef WINDOWCONTAINER_H
 #define WINDOWCONTAINER_H
 
+#include <windows.h>
+#include <d3d11_1.h>
+#include <d3dcompiler.h>
+#include <directxmath.h>
+#include <directxcolors.h>
+
 #include "Mouse.h"
-#include "Keyboard.h"
 #include "Graphics.h"
+#include "Keyboard.h"
 #include "RenderWindow.h"
 
 class WindowContainer
@@ -15,9 +21,8 @@ public:
 
 	void EnableCursor() noexcept;
 	void DisableCursor() noexcept;
-	inline bool IsCursorEnabled() const noexcept { return cursorEnabled; }
+	inline bool IsCursorEnabled() const noexcept { return m_bCursorEnabled; }
 
-protected:
 	void ConfineCursor() noexcept;
 	void FreeCursor() noexcept;
 	void ShowCursor() noexcept;
@@ -25,14 +30,14 @@ protected:
 	void EnableImGuiMouse() noexcept;
 	void DisableImGuiMouse() noexcept;
 
-	bool windowResized = false;
-	bool cursorEnabled = true;
-	XMFLOAT2 windowSize;
+protected:
+	DirectX::XMFLOAT2 windowSize;
+	bool m_bCursorEnabled = true;
 
-	RenderWindow renderWindow;
-	Graphics graphics;
-	Keyboard keyboard;
-	Mouse mouse;
+	RenderWindow m_window;
+	Keyboard m_keyboard;
+	Graphics m_gfx;
+	Mouse m_mouse;
 };
 
 #endif

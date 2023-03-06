@@ -2,21 +2,34 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#include "Camera.h"
 #include "WindowContainer.h"
+#include "CameraController.h"
 
 class Input : public WindowContainer
 {
 public:
-	void Initialize( RenderWindow& window, Camera& pCamera );
+	Input();
+	~Input();
+
+	inline bool GetIsMovingCursor() const noexcept { return m_bMovingCursor; }
+	void AddCamControl( CameraController* cam );
 	void Update( float dt );
+
+	inline void BlockMouseInputs() noexcept { m_bAllowMouseInputs = false; }
+	inline void UnblockMouseInputs() noexcept { m_bAllowMouseInputs = true; m_mouse.Clear(); }
+
+	inline void BlockKeyInputs() noexcept { m_bAllowKeyboardInputs = false; }
+	inline void UnblockKeyInputs() noexcept { m_bAllowKeyboardInputs = true; m_keyboard.Clear(); }
 
 private:
 	void UpdateMouse( float dt );
 	void UpdateKeyboard( float dt );
-	void UpdateCameraCollisions();
 
-	Camera* m_pCamera;
+	bool m_bMovingCursor = false;
+	bool m_bUsingSpotCamera = false;
+	bool m_bAllowMouseInputs = true;
+	bool m_bAllowKeyboardInputs = true;
+	CameraController* m_pCameraControl;
 };
 
 #endif

@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Texture.h"
 #include <dxtk/WICTextureLoader.h>
-#include <dxtk/DDSTextureLoader.h>
 
 Texture::Texture( ID3D11Device* device, const Colour& color, aiTextureType type )
 {
@@ -16,10 +15,10 @@ Texture::Texture( ID3D11Device* device, const Colour* colorData, UINT width, UIN
 Texture::Texture( ID3D11Device* device, const std::string& filePath, aiTextureType type )
 {
 	this->type = type;
-	if ( StringConverter::GetFileExtension( filePath ) == ".dds" )
+	if ( StringHelper::GetFileExtension( filePath ) == ".dds" )
 	{
 		HRESULT hr = DirectX::CreateDDSTextureFromFile( device,
-			StringConverter::StringToWide( filePath ).c_str(),
+			StringHelper::ToWide( filePath ).c_str(),
 			texture.GetAddressOf(),
 			textureView.GetAddressOf() );
 		if ( FAILED( hr ) )
@@ -29,7 +28,7 @@ Texture::Texture( ID3D11Device* device, const std::string& filePath, aiTextureTy
 	else
 	{
 		HRESULT hr = DirectX::CreateWICTextureFromFile( device,
-			StringConverter::StringToWide( filePath ).c_str(),
+			StringHelper::ToWide( filePath ).c_str(),
 			texture.GetAddressOf(),
 			textureView.GetAddressOf() );
 		if ( FAILED( hr ) )
@@ -70,7 +69,7 @@ void Texture::InitializeColourTexture(  ID3D11Device* device, const Colour* colo
 {
 	this->type = type;
 	CD3D11_TEXTURE2D_DESC textureDesc( DXGI_FORMAT_R8G8B8A8_UNORM, width, height );
-	
+
 	D3D11_SUBRESOURCE_DATA initialData = { 0 };
 	initialData.pSysMem = colorData;
 	initialData.SysMemPitch = sizeof( Colour );

@@ -3,10 +3,10 @@
 
 /*   MOUSE EVENT   */
 Mouse::MouseEvent::MouseEvent() : type( EventType::Invalid ), x( 0 ), y( 0 )
-{ }
+{}
 
 Mouse::MouseEvent::MouseEvent( const EventType type, const int x, const int y ) : type( type ), x( x ), y( y )
-{ }
+{}
 
 bool Mouse::MouseEvent::IsValid() const noexcept
 {
@@ -156,4 +156,13 @@ Mouse::MouseEvent Mouse::ReadEvent() noexcept
 		eventBuffer.pop();
 		return e;
 	}
+}
+
+void Mouse::Clear() noexcept
+{
+	while ( !eventBuffer.empty() )
+		eventBuffer.pop();
+	isLeftDown = false;
+	isRightDown = false;
+	isMiddleDown = false;
 }

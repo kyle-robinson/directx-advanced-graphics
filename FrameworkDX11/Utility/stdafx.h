@@ -7,6 +7,7 @@
 
 // Data Structures
 #include <unordered_map>
+#include <cassert>
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -26,6 +27,12 @@
 using namespace DirectX;
 
 // Classes
+#include "Vector3.h"
+#include "ListHelper.h"
+#include "Quaternion.h"
 #include "ErrorLogger.h"
+#include "StringHelper.h"
+#include "RandomHelper.h"
+#include "DDSTextureLoader.h"
 
 #endif

@@ -1,39 +1,78 @@
 #include "stdafx.h"
 #include "Input.h"
-#include "Camera.h"
 
-void Input::Initialize( RenderWindow& window, Camera& pCamera )
+Input::Input()
 {
-    m_pCamera = &pCamera;
-    renderWindow = window;
+    // Update m_keyboard processing
+    m_keyboard.DisableAutoRepeatKeys();
+    m_keyboard.DisableAutoRepeatChars();
+}
 
-    // Update keyboard processing
-    keyboard.DisableAutoRepeatKeys();
-    keyboard.DisableAutoRepeatChars();
+Input::~Input() { }
+
+void Input::AddCamControl( CameraController* cam )
+{
+    m_pCameraControl = cam;
 }
 
 void Input::Update( float dt )
 {
+    // Update control scheme if using the spot camera
+    if ( m_pCameraControl->GetCurrentCam()->GetName() == "Spot Camera" )
+    {
+		m_bUsingSpotCamera = true;
+	}
+    else
+    {
+		m_bUsingSpotCamera = false;
+	}
+
     UpdateMouse( dt );
     UpdateKeyboard( dt );
-    UpdateCameraCollisions();
 }
 
 void Input::UpdateMouse( float dt )
 {
-    // update camera orientation
-    while ( !mouse.EventBufferIsEmpty() )
+    // Update camera orientation
+    while ( !m_mouse.EventBufferIsEmpty() )
     {
-        Mouse::MouseEvent me = mouse.ReadEvent();
-        if ( mouse.IsRightDown() || !cursorEnabled )
+        Mouse::MouseEvent me = m_mouse.ReadEvent();
+        if ( m_bAllowMouseInputs && !m_bUsingSpotCamera )
         {
-            if ( me.GetType() == Mouse::MouseEvent::EventType::RawMove )
+            if ( m_mouse.IsRightDown() || !m_bCursorEnabled )
             {
-                m_pCamera->AdjustRotation(
-                    static_cast<float>( me.GetPosY() ) * 0.005f,
-                    static_cast<float>( me.GetPosX() ) * 0.005f,
-                    0.0f
-                );
+                if ( me.GetType() == Mouse::MouseEvent::EventType::RawMove )
+                {
+                    m_pCameraControl->GetCurrentCam()->AdjustRotation(
+                        static_cast<float>( me.GetPosY() ) * 0.005f,
+                        static_cast<float>( me.GetPosX() ) * 0.005f,
+                        0.0f
+                    );
+                }
+                HideCursor();
+                DisableImGuiMouse();
+                m_bMovingCursor = true;
+            }
+            else if ( m_bMovingCursor )
+            {
+                ShowCursor();
+                EnableImGuiMouse();
+                m_bMovingCursor = false;
+            }
+
+            if ( me.GetType() == Mouse::MouseEvent::EventType::WheelUp )
+            {
+                if ( m_pCameraControl->GetCurrentCam()->GetFov() > 50.0f )
+                {
+                    m_pCameraControl->GetCurrentCam()->AdjustFov( -1.0f );
+                }
+            }
+            else if ( me.GetType() == Mouse::MouseEvent::EventType::WheelDown )
+            {
+                if ( m_pCameraControl->GetCurrentCam()->GetFov() < 110.0f )
+                {
+				    m_pCameraControl->GetCurrentCam()->AdjustFov( 1.0f );
+                }
             }
         }
     }
@@ -42,58 +81,87 @@ void Input::UpdateMouse( float dt )
 void Input::UpdateKeyboard( float dt )
 {
     // Handle input for single key presses
-	while ( !keyboard.KeyBufferIsEmpty() )
-	{
-		Keyboard::KeyboardEvent kbe = keyboard.ReadKey();
-		unsigned char keycode = kbe.GetKeyCode();
+    while ( !m_keyboard.KeyBufferIsEmpty() )
+    {
+        Keyboard::KeyboardEvent kbe = m_keyboard.ReadKey();
+        unsigned char keycode = kbe.GetKeyCode();
+        if ( m_bAllowKeyboardInputs )
+        {
 
-		// Set cursor enabled/disabled
-		if ( keycode == VK_HOME )
-			EnableCursor();
-		else if ( keycode == VK_END )
-			DisableCursor();
-	}
+        }
+    }
 
-    // Normalize diagonal movement speed
-	if ( keyboard.KeyIsPressed( 'W' ) && ( keyboard.KeyIsPressed( 'A' ) || keyboard.KeyIsPressed( 'S' ) ) )
-		m_pCamera->SetCameraSpeed( 2.0f );
-	if ( keyboard.KeyIsPressed( 'S' ) && ( keyboard.KeyIsPressed( 'A' ) || keyboard.KeyIsPressed( 'S' ) ) )
-        m_pCamera->SetCameraSpeed( 2.0f );
+    if ( m_bAllowKeyboardInputs )
+    {
+        // Camera movement
+        if ( m_keyboard.KeyIsPressed( 'W' ) )
+        {
+            XMFLOAT3 moveVec = m_bUsingSpotCamera ?
+                XMFLOAT3(
+                    XMVectorGetX( m_pCameraControl->GetCurrentCam()->GetUpVector() ),
+                    XMVectorGetY( m_pCameraControl->GetCurrentCam()->GetUpVector() ),
+                    XMVectorGetZ( m_pCameraControl->GetCurrentCam()->GetUpVector() ) )
+                :
+                XMFLOAT3(
+                    XMVectorGetX( m_pCameraControl->GetCurrentCam()->GetForwardVector() ),
+                    XMVectorGetY( m_pCameraControl->GetCurrentCam()->GetForwardVector() ),
+                    XMVectorGetZ( m_pCameraControl->GetCurrentCam()->GetForwardVector() ) );
+            m_pCameraControl->GetCurrentCam()->AdjustPosition( {
+                moveVec.x* m_pCameraControl->GetCurrentCam()->GetSpeed(),
+                moveVec.y* m_pCameraControl->GetCurrentCam()->GetSpeed(),
+                moveVec.z * m_pCameraControl->GetCurrentCam()->GetSpeed()
+            } );
+        }
+        if ( m_keyboard.KeyIsPressed( 'S' ) )
+        {
+            XMFLOAT3 moveVec = m_bUsingSpotCamera ?
+                XMFLOAT3(
+                    XMVectorGetX( m_pCameraControl->GetCurrentCam()->GetDownVector() ),
+                    XMVectorGetY( m_pCameraControl->GetCurrentCam()->GetDownVector() ),
+                    XMVectorGetZ( m_pCameraControl->GetCurrentCam()->GetDownVector() ) )
+                :
+                XMFLOAT3(
+                    XMVectorGetX( m_pCameraControl->GetCurrentCam()->GetBackwardVector() ),
+                    XMVectorGetY( m_pCameraControl->GetCurrentCam()->GetBackwardVector() ),
+                    XMVectorGetZ( m_pCameraControl->GetCurrentCam()->GetBackwardVector() ) );
 
-	if ( keyboard.KeyIsPressed( 'W' ) && ( keyboard.KeyIsPressed( 'D' ) || keyboard.KeyIsPressed( 'S' ) ) )
-        m_pCamera->SetCameraSpeed( 2.0f );
-	if ( keyboard.KeyIsPressed( 'S' ) && ( keyboard.KeyIsPressed( 'D' ) || keyboard.KeyIsPressed( 'S' ) ) )
-        m_pCamera->SetCameraSpeed( 2.0f );
-
-    // Camera movement
-    if ( keyboard.KeyIsPressed( 'W' ) ) m_pCamera->MoveForward( dt );
-    if ( keyboard.KeyIsPressed( 'A' ) ) m_pCamera->MoveLeft( dt );
-    if ( keyboard.KeyIsPressed( 'S' ) ) m_pCamera->MoveBackward( dt );
-    if ( keyboard.KeyIsPressed( 'D' ) ) m_pCamera->MoveRight( dt );
-    if ( keyboard.KeyIsPressed( VK_CONTROL ) ) m_pCamera->MoveDown( dt );
-    if ( keyboard.KeyIsPressed( VK_SPACE ) ) m_pCamera->MoveUp( dt );
-
-    // Camera speed
-    m_pCamera->SetCameraSpeed( 2.5f );
-}
-
-void Input::UpdateCameraCollisions()
-{
-    // x world collisions
-    if ( m_pCamera->GetPositionFloat3().x <= -5.0f )
-        m_pCamera->SetPosition( -5.0f, m_pCamera->GetPositionFloat3().y, m_pCamera->GetPositionFloat3().z );
-    if ( m_pCamera->GetPositionFloat3().x >= 5.0f )
-        m_pCamera->SetPosition( 5.0f, m_pCamera->GetPositionFloat3().y, m_pCamera->GetPositionFloat3().z );
-
-    // y world collisions
-    if ( m_pCamera->GetPositionFloat3().y <= -5.0f )
-        m_pCamera->SetPosition( m_pCamera->GetPositionFloat3().x, -5.0f, m_pCamera->GetPositionFloat3().z );
-    if ( m_pCamera->GetPositionFloat3().y >= 5.0f )
-        m_pCamera->SetPosition( m_pCamera->GetPositionFloat3().x, 5.0f, m_pCamera->GetPositionFloat3().z );
-
-    // z world collisions
-    if ( m_pCamera->GetPositionFloat3().z <= -5.0f )
-        m_pCamera->SetPosition( m_pCamera->GetPositionFloat3().x, m_pCamera->GetPositionFloat3().y, -5.0f );
-    if ( m_pCamera->GetPositionFloat3().z >= 5.0f )
-        m_pCamera->SetPosition( m_pCamera->GetPositionFloat3().x, m_pCamera->GetPositionFloat3().y, 5.0f );
+            m_pCameraControl->GetCurrentCam()->AdjustPosition( {
+                moveVec.x* m_pCameraControl->GetCurrentCam()->GetSpeed(),
+                moveVec.y* m_pCameraControl->GetCurrentCam()->GetSpeed(),
+                moveVec.z * m_pCameraControl->GetCurrentCam()->GetSpeed()
+            } );
+        }
+        if ( m_keyboard.KeyIsPressed( 'D' ) )
+        {
+            m_pCameraControl->GetCurrentCam()->AdjustPosition( {
+                XMVectorGetX( m_pCameraControl->GetCurrentCam()->GetRightVector() ) * m_pCameraControl->GetCurrentCam()->GetSpeed(),
+                XMVectorGetY( m_pCameraControl->GetCurrentCam()->GetRightVector() ) * m_pCameraControl->GetCurrentCam()->GetSpeed(),
+                XMVectorGetZ( m_pCameraControl->GetCurrentCam()->GetRightVector() ) * m_pCameraControl->GetCurrentCam()->GetSpeed()
+            } );
+        }
+        if ( m_keyboard.KeyIsPressed( 'A' ) )
+        {
+            m_pCameraControl->GetCurrentCam()->AdjustPosition( {
+                XMVectorGetX( m_pCameraControl->GetCurrentCam()->GetLeftVector() ) * m_pCameraControl->GetCurrentCam()->GetSpeed(),
+                XMVectorGetY( m_pCameraControl->GetCurrentCam()->GetLeftVector() ) * m_pCameraControl->GetCurrentCam()->GetSpeed(),
+                XMVectorGetZ( m_pCameraControl->GetCurrentCam()->GetLeftVector() ) * m_pCameraControl->GetCurrentCam()->GetSpeed()
+            } );
+        }
+        if ( m_keyboard.KeyIsPressed( VK_CONTROL ) && !m_bUsingSpotCamera )
+        {
+            m_pCameraControl->GetCurrentCam()->AdjustPosition( {
+                XMVectorGetX( m_pCameraControl->GetCurrentCam()->GetDownVector() ) * m_pCameraControl->GetCurrentCam()->GetSpeed(),
+                XMVectorGetY( m_pCameraControl->GetCurrentCam()->GetDownVector() ) * m_pCameraControl->GetCurrentCam()->GetSpeed(),
+                XMVectorGetZ( m_pCameraControl->GetCurrentCam()->GetDownVector() ) * m_pCameraControl->GetCurrentCam()->GetSpeed()
+            } );
+        }
+        if ( m_keyboard.KeyIsPressed( VK_SPACE ) && !m_bUsingSpotCamera )
+        {
+            m_pCameraControl->GetCurrentCam()->AdjustPosition( {
+                XMVectorGetX( m_pCameraControl->GetCurrentCam()->GetUpVector() ) * m_pCameraControl->GetCurrentCam()->GetSpeed(),
+                XMVectorGetY( m_pCameraControl->GetCurrentCam()->GetUpVector() ) * m_pCameraControl->GetCurrentCam()->GetSpeed(),
+                XMVectorGetZ( m_pCameraControl->GetCurrentCam()->GetUpVector() ) * m_pCameraControl->GetCurrentCam()->GetSpeed()
+            } );
+        }
+    }
 }

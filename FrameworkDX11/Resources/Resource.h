@@ -13,14 +13,6 @@
 #define IDI_TUTORIAL1           107
 #define IDI_SMALL               108
 #define IDC_TUTORIAL1           109
-#define IDC_CURSOR1				110
-#define IDC_CURSOR2				111
-#define IDC_CURSOR3				112
-#define IDC_CURSOR4				113
-#define IDC_CURSOR5				114
-#define IDC_CURSOR6				115
-#define IDC_CURSOR7				116
-#define IDC_CURSOR8				117
 #define IDC_MYICON              2
 #define IDC_STATIC              -1
 // Next default values for new objects

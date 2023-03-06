@@ -9,18 +9,9 @@ bool RenderWindow::Initialize( WindowContainer* pWindowContainer, HINSTANCE hIns
 	this->width = width;
 	this->height = height;
 	windowTitle = windowName;
-	windowTitle_Wide = StringConverter::StringToWide( windowName );
+	windowTitle_Wide = StringHelper::ToWide( windowName );
 	this->windowClass = windowClass;
-	windowClass_Wide = StringConverter::StringToWide( windowClass );
-
-	cursors.emplace( Color::BLUE, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR1 ) );
-	cursors.emplace( Color::RED, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR2 ) );
-	cursors.emplace( Color::GRAY, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR3 ) );
-	cursors.emplace( Color::PURPLE, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR4 ) );
-	cursors.emplace( Color::ORANGE, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR5 ) );
-	cursors.emplace( Color::YELLOW, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR6 ) );
-	cursors.emplace( Color::GREEN, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR7 ) );
-	cursors.emplace( Color::PINK, LoadCursor( hInstance, (LPCWSTR)IDC_CURSOR8 ) );
+	windowClass_Wide = StringHelper::ToWide( windowClass );
 
 	RegisterWindowClass();
 
@@ -71,7 +62,7 @@ LRESULT CALLBACK HandleMsgRedirect( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 		DestroyWindow( hWnd );
 		return 0;
 
-	// handle all other messages
+		// handle all other messages
 	default:
 	{
 		// get ptr to window class
@@ -82,7 +73,7 @@ LRESULT CALLBACK HandleMsgRedirect( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 	}
 }
 
-LRESULT CALLBACK HandleMsgSetup( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) noexcept
+LRESULT CALLBACK HandleMsgSetup( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam ) noexcept
 {
 	switch ( uMsg )
 	{
@@ -144,11 +135,11 @@ void RenderWindow::RegisterWindowClass() noexcept
 	wc.cbWndExtra = 0;
 	wc.hInstance = hInstance;
 	wc.hIcon = static_cast<HICON>( LoadImage( hInstance, MAKEINTRESOURCE( IDI_TUTORIAL1 ), IMAGE_ICON, 32, 32, 0 ) );
-    wc.hCursor = cursors[Color::BLUE];
-    wc.hbrBackground = (HBRUSH)( COLOR_WINDOW + 1 );
+	wc.hCursor = LoadCursor( NULL, IDC_ARROW );
+	wc.hbrBackground = (HBRUSH)( COLOR_WINDOW + 1 );
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = windowClass_Wide.c_str();
-	wc.hIconSm = static_cast< HICON >( LoadImage( hInstance, MAKEINTRESOURCE( IDI_TUTORIAL1 ), IMAGE_ICON, 16, 16, 0 ) );
+	wc.hIconSm = static_cast<HICON>( LoadImage( hInstance, MAKEINTRESOURCE( IDI_TUTORIAL1 ), IMAGE_ICON, 16, 16, 0 ) );
 	RegisterClassEx( &wc );
 }
 

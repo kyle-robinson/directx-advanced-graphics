@@ -3,7 +3,7 @@
 
 Mesh::Mesh( ID3D11Device* device,
 	ID3D11DeviceContext* context,
-	std::vector<VertexOBJ>& vertices,
+	std::vector<SimpleVertex>& vertices,
 	std::vector<WORD>& indices,
 	std::vector<Texture>& textures,
 	const DirectX::XMMATRIX& transformMatrix )

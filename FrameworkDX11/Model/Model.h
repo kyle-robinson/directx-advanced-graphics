@@ -3,7 +3,7 @@
 #define MODEL_H
 
 #include "Mesh.h"
-#include "structures.h"
+#include "Structures.h"
 
 class Model
 {
@@ -12,7 +12,7 @@ public:
 		const std::string& filePath,
 		ID3D11Device* device,
 		ID3D11DeviceContext* context,
-		ConstantBuffer<Matrices>& cb_vs_vertexshader );
+		ConstantBuffer<MatrixBuffer>& cb_vs_vertexshader );
 	void Draw( const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix );
 private:
 	bool LoadModel( const std::string& filePath );
@@ -26,7 +26,7 @@ private:
 	std::vector<Mesh> meshes;
 	ID3D11Device* device = nullptr;
 	ID3D11DeviceContext* context = nullptr;
-	ConstantBuffer<Matrices>* cbMatrices = nullptr;
+	ConstantBuffer<MatrixBuffer>* cbMatrices = nullptr;
 };
 
 #endif

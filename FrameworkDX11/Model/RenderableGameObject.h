@@ -11,7 +11,7 @@ public:
 		const std::string& filePath,
 		ID3D11Device* device,
 		ID3D11DeviceContext* context,
-		ConstantBuffer<Matrices>& cb_vs_vertexshader );
+		ConstantBuffer<MatrixBuffer>& cb_vs_vertexshader );
 	void Draw( const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix );
 protected:
 	Model model;

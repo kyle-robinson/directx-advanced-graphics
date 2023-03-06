@@ -1,0 +1,13 @@
+{
+	"Terrain_Data" : {
+		"Width" : 513,
+		"Depth" : 513,
+		"CellSpacing" : 1.0,
+		"Mode" : 3
+	},
+	"Terrain_Data_DiamondSquare" : {
+		"Seed" : 1234,
+		"HeightMap_Scale" : 100.0,
+		"Range" : 194
+	}
+}

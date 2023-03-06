@@ -6,17 +6,6 @@ class WindowContainer;
 class RenderWindow
 {
 public:
-	enum class Color
-	{
-		BLUE,
-		RED,
-		GRAY,
-		PURPLE,
-		ORANGE,
-		YELLOW,
-		GREEN,
-		PINK
-	};
 	bool Initialize(
 		WindowContainer* windowContainer,
 		HINSTANCE hInstance,
@@ -29,8 +18,6 @@ public:
 	HWND GetHWND() const noexcept;
 	~RenderWindow() noexcept;
 
-	inline HCURSOR GetCursor( Color color ) noexcept { return cursors[color]; }
-
 private:
 	void RegisterWindowClass() noexcept;
 	HWND hWnd = NULL;
@@ -40,7 +27,6 @@ private:
 	std::string windowClass = "";
 	std::wstring windowClass_Wide = L"";
 	int width, height;
-	std::unordered_map<Color, HCURSOR> cursors;
 };
 
 #endif

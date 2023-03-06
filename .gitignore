@@ -17,11 +17,10 @@
 mono_crash.*
 
 # Build results
-[Dd]ebug/
-!x64/[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-!x64/[Rr]elease/
+FrameworkDX11.tlog
+FrameworkDX11/[Dd]ebug
+FrameworkDX11/[Rr]elease
+FrameworkDX11/x64
 [Rr]eleases/
 x86/
 [Ww][Ii][Nn]32/

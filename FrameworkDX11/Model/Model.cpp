@@ -5,7 +5,7 @@ bool Model::Initialize(
 	const std::string& filePath,
 	ID3D11Device* device,
 	ID3D11DeviceContext* context,
-	ConstantBuffer<Matrices>& cb_vertexShader )
+	ConstantBuffer<MatrixBuffer>& cb_vertexShader )
 {
 	this->device = device;
 	this->context = context;
@@ -30,7 +30,7 @@ void Model::Draw( const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const
 	cbMatrices->data.mView = viewMatrix;
 	cbMatrices->data.mProjection = projectionMatrix;
 	context->VSSetConstantBuffers( 0, 1, cbMatrices->GetAddressOf() );
-	
+
 	for ( int i = 0; i < meshes.size(); i++ )
 	{
 		cbMatrices->data.mWorld = meshes[i].GetTransformMatrix() * worldMatrix;
@@ -41,7 +41,7 @@ void Model::Draw( const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const
 
 bool Model::LoadModel( const std::string& filePath )
 {
-	directory = StringConverter::GetDirectoryFromPath( filePath );
+	directory = StringHelper::GetDirectoryFromPath( filePath );
 	Assimp::Importer importer;
 	const aiScene* pScene = importer.ReadFile( filePath,
 		aiProcess_Triangulate | aiProcess_ConvertToLeftHanded );
@@ -54,7 +54,7 @@ bool Model::LoadModel( const std::string& filePath )
 void Model::ProcessNode( aiNode* node, const aiScene* scene, const XMMATRIX& parentTransformMatrix )
 {
 	XMMATRIX nodeTransformMatrix = XMMatrixTranspose( static_cast<XMMATRIX>( &node->mTransformation.a1 ) ) * parentTransformMatrix;
-	
+
 	for ( UINT i = 0; i < node->mNumMeshes; i++ )
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
@@ -67,17 +67,17 @@ void Model::ProcessNode( aiNode* node, const aiScene* scene, const XMMATRIX& par
 
 Mesh Model::ProcessMesh( aiMesh* mesh, const aiScene* scene, const XMMATRIX& transformMatrix )
 {
-	std::vector<VertexOBJ> vertices;
+	std::vector<SimpleVertex> vertices;
 	std::vector<WORD> indices;
 
 	// get vertices
 	for ( UINT i = 0; i < mesh->mNumVertices; i++ )
 	{
-		VertexOBJ vertex;
+		SimpleVertex vertex;
 
-		vertex.Position.x = mesh->mVertices[i].x;
-		vertex.Position.y = mesh->mVertices[i].y;
-		vertex.Position.z = mesh->mVertices[i].z;
+		vertex.Pos.x = mesh->mVertices[i].x;
+		vertex.Pos.y = mesh->mVertices[i].y;
+		vertex.Pos.z = mesh->mVertices[i].z;
 
 		if ( mesh->mTextureCoords[0] )
 		{

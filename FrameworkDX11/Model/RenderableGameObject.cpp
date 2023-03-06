@@ -5,7 +5,7 @@ bool RenderableGameObject::Initialize(
 	const std::string& filePath,
 	ID3D11Device* device,
 	ID3D11DeviceContext* context,
-	ConstantBuffer<Matrices>& cb_vs_vertexshader )
+	ConstantBuffer<MatrixBuffer>& cb_vs_vertexshader )
 {
 	if ( !model.Initialize( filePath, device, context, cb_vs_vertexshader ) )
 		return false;
