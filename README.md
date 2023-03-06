@@ -54,11 +54,13 @@ As the project settings have been modified to support the addition of the aforem
 
 ## Appendices
 
-<img src="https://i.imgur.com/AVgKNDb.gif" alt="DirectX Framework Thumbnail" border="10" width="49%" /> &nbsp;
-<img src="https://i.imgur.com/vhNMuQS.gif" alt="DirectX Framework Thumbnail" border="10" width="49%" />
+| ![model-animaiton.gif](https://i.imgur.com/AVgKNDb.gif) | ![terrain-generation.gif](https://i.imgur.com/vhNMuQS.gif) |
+| :---: | :---: |
+| *Model Animation* | *Terrain Generation* |
 
-<img src="https://i.imgur.com/EAuNINL.gif" alt="DirectX Framework Thumbnail" border="10" width="49%" /> &nbsp;
-<img src="https://i.imgur.com/InOw9ZV.gif" alt="DirectX Framework Thumbnail" border="10" width="49%" />
+| ![imguizmo-manipulator.gif](https://i.imgur.com/EAuNINL.gif) | ![voxel-terrain-generation.gif](https://i.imgur.com/InOw9ZV.gif) |
+| :---: | :---: |
+| *ImGuizmo Manipulator* | *Voxel Terrain Generation* |
 
 ---
 
