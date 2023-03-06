@@ -42,7 +42,7 @@ public:
 	const XMVECTOR& GetDownVector( bool omitY = false );
 
 	inline float GetFov() const noexcept { return m_fFov; }
-	inline void SetFov( float fov ) noexcept { m_fFov = fov; }
+	inline void SetFov( float fov ) noexcept { m_fFov = fov; UpdateProjection(); }
 	inline void AdjustFov( float fov ) noexcept { m_fFov += fov; UpdateProjection(); }
 	inline FLOAT GetNear() const noexcept { return m_fNear; }
 	inline void SetNear( FLOAT nearDepth ) noexcept { m_fNear = nearDepth; UpdateProjection(); }
