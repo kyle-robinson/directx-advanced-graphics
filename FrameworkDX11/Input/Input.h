@@ -21,10 +21,13 @@ public:
 	inline void BlockKeyInputs() noexcept { m_bAllowKeyboardInputs = false; }
 	inline void UnblockKeyInputs() noexcept { m_bAllowKeyboardInputs = true; m_keyboard.Clear(); }
 
+	inline bool IsImGuiEnabled() const noexcept { return m_bEnableImGui; }
+
 private:
 	void UpdateMouse( float dt );
 	void UpdateKeyboard( float dt );
 
+	bool m_bEnableImGui = true;
 	bool m_bMovingCursor = false;
 	bool m_bUsingSpotCamera = false;
 	bool m_bAllowMouseInputs = true;

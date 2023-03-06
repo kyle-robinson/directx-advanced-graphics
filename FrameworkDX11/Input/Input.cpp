@@ -87,7 +87,14 @@ void Input::UpdateKeyboard( float dt )
         unsigned char keycode = kbe.GetKeyCode();
         if ( m_bAllowKeyboardInputs )
         {
-
+            if ( keycode == VK_F1 )
+            {
+                m_bEnableImGui = true;
+            }
+            else if ( keycode == VK_F2 )
+            {
+                m_bEnableImGui = false;
+            }
         }
     }
 

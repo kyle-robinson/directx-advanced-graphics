@@ -210,27 +210,9 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels
             {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::Text( "W" );
+                ImGui::Text( "W A S D" );
                 ImGui::TableNextColumn();
-                ImGui::Text( "Move Forward" );
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text( "A" );
-                ImGui::TableNextColumn();
-                ImGui::Text( "Move Left" );
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text( "S" );
-                ImGui::TableNextColumn();
-                ImGui::Text( "Move Back" );
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text( "D" );
-                ImGui::TableNextColumn();
-                ImGui::Text( "Move Right" );
+                ImGui::Text( "Move Around" );
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -252,15 +234,21 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::Text( "Wheel Up" );
+                ImGui::Text( "Wheel Up/Down" );
                 ImGui::TableNextColumn();
-                ImGui::Text( "Zoom In" );
+                ImGui::Text( "Zoom In/Out" );
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::Text( "Wheel Down" );
+                ImGui::Text( "F1" );
                 ImGui::TableNextColumn();
-                ImGui::Text( "Zoom Out" );
+                ImGui::Text( "Show ImGui Windows" );
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text( "F2" );
+                ImGui::TableNextColumn();
+                ImGui::Text( "Hide ImGui Windows" );
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();

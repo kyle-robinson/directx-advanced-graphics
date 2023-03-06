@@ -465,7 +465,10 @@ void Application::Draw()
     m_gfx.GetContext()->Draw( 4, 0 );
 
     // Final post processing
-    m_gfx.GetRenderTargetController()->GetRenderTarget( "Final" )->SetRenderTarget( m_gfx.GetContext() );
+    if ( m_pInput->IsImGuiEnabled() )
+        m_gfx.GetRenderTargetController()->GetRenderTarget( "Final" )->SetRenderTarget( m_gfx.GetContext() );
+    else
+        m_gfx.GetBackBuffer()->Bind( m_gfx.GetContext(), m_gfx.GetDepthStencil().get(), Colors::DarkBlue );
     m_gfx.GetDepthStencil()->Clear( m_gfx.GetContext() );
     m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Final" ).m_pVertexLayout );
     m_gfx.GetSamplerController()->SetState( "Wrap", 0u, m_gfx.GetContext() );
@@ -482,19 +485,22 @@ void Application::Draw()
     m_gfx.GetContext()->PSSetShaderResources( 1, 1, &ResourceView2 );
     m_gfx.GetContext()->Draw( 4, 0 );
 
-    m_gfx.GetBackBuffer()->Bind( m_gfx.GetContext(), m_gfx.GetDepthStencil().get(), Colors::DarkBlue );
+    if ( m_pInput->IsImGuiEnabled() )
+    {
+        m_gfx.GetBackBuffer()->Bind( m_gfx.GetContext(), m_gfx.GetDepthStencil().get(), Colors::DarkBlue );
 
-    // Render ImGui windows
-    m_pImGuiManager->BeginRender();
-    m_pImGuiManager->SceneWindow( m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetRenderTargetController()->GetRenderTarget( "Final" )->GetTexture(), m_pInput );
-    m_pImGuiManager->CameraMenu( m_pCamController, *m_pVoxelTerrain->GetIsDraw() );
-    m_pImGuiManager->ObjectMenu( m_gfx.GetDevice(), m_pCamController->GetCurrentCam(), gameObjects );
-    m_pImGuiManager->LightMenu( m_pLightController, m_pCamController->GetCurrentCam() );
-    m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_postProcessingCB.data, m_gfx.GetRasterizerController() );
-    m_pImGuiManager->BezierSplineMenu();
-    m_pImGuiManager->TerrainMenu( m_gfx.GetDevice(), m_gfx.GetContext(), m_pTerrain, m_pVoxelTerrain );
-    m_pImGuiManager->AnimationMenu( m_pSoldier, m_pCamController->GetCurrentCam() );
-    m_pImGuiManager->EndRender();
+        // Render ImGui windows
+        m_pImGuiManager->BeginRender();
+        m_pImGuiManager->SceneWindow( m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetRenderTargetController()->GetRenderTarget( "Final" )->GetTexture(), m_pInput );
+        m_pImGuiManager->CameraMenu( m_pCamController, *m_pVoxelTerrain->GetIsDraw() );
+        m_pImGuiManager->ObjectMenu( m_gfx.GetDevice(), m_pCamController->GetCurrentCam(), gameObjects );
+        m_pImGuiManager->LightMenu( m_pLightController, m_pCamController->GetCurrentCam() );
+        m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_postProcessingCB.data, m_gfx.GetRasterizerController() );
+        m_pImGuiManager->BezierSplineMenu();
+        m_pImGuiManager->TerrainMenu( m_gfx.GetDevice(), m_gfx.GetContext(), m_pTerrain, m_pVoxelTerrain );
+        m_pImGuiManager->AnimationMenu( m_pSoldier, m_pCamController->GetCurrentCam() );
+        m_pImGuiManager->EndRender();
+    }
 
     m_gfx.GetSwapChain()->Present( 1, 0 );
 }
