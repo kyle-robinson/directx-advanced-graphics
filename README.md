@@ -12,35 +12,24 @@ A graphics framework created using DirectX 11 that implements a range of advance
 
 ## List of Features
 
-<details>
-  <summary><strong>Semester 1</strong></summary>
-  <ul>
-    <li>Normal Mapping</li>
-    <li>Parallax Mapping</li>
-    <li>Occlusion Mapping</li>
-    <li>Self-Shadowing</li>
-    <li>Render-To-Texture</li>
-    <li>Post-Processing</li>
-    <li>Motion Blur</li>
-    <li>FXAA</li>
-    <li>SSAO</li>
-    <li>Deferred Shading</li>
-  </ul>
-</details>
+| Semester 1 | Semester 2 |
+| :---: | :---: |
+| Normal Mapping | Shadow Mapping |
+| Parallax Mapping | Terrain Generation |
+| Occlusion Mapping | Voxel Terrain Generation |
+| Self-Shadowing | Model Animations |
+| Render-To-Texture | Bezier Curve Splines |
+| Post-Processing | ImGui File Dialog |
+| Motion Blur | ImGuizmo Manipulator |
+| FXAA | ImGuizmo View Cube |
+| SSAO | Tesselation LODs |
+| Deferred Shading | Skinned Mesh |
 
-<details>
-  <summary><strong>Semester 2</strong></summary>
-  <ul>
-    <li>Shadow Mapping</li>
-    <li>Terrain Generation</li>
-    <li>Voxel Terrain Generation</li>
-    <li>Model Animations</li>
-    <li>Bezier Curve Splines</li>
-  </ul>
-</details>
+## Getting Started
 
-## Dependencies
+The advanced graphics framework provides numerous tools for interacting with the graphics features that have been implemented. Refer to the following information on how to install and use the application.
 
+### Dependencies
 To use the framework, the following prerequisites must be met.
 * Windows 10+
 * Visual Studio
@@ -67,6 +56,9 @@ As the project settings have been modified to support the addition of the aforem
 
 <img src="https://i.imgur.com/AVgKNDb.gif" alt="DirectX Framework Thumbnail" border="10" width="49%" /> &nbsp;
 <img src="https://i.imgur.com/vhNMuQS.gif" alt="DirectX Framework Thumbnail" border="10" width="49%" />
+
+<img src="https://i.imgur.com/EAuNINL.gif" alt="DirectX Framework Thumbnail" border="10" width="49%" /> &nbsp;
+<img src="https://i.imgur.com/InOw9ZV.gif" alt="DirectX Framework Thumbnail" border="10" width="49%" />
 
 ---
 
