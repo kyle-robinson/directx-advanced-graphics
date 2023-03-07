@@ -44,7 +44,8 @@ The framework relies on the following libraries and APIs to function.
 * ImGuiFileDialog
 * M3d Loader
 * Assimp
-* rapidjson
+* Rapid Json
+* Fast Noise Lite
 
 ### Installing
 
