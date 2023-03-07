@@ -5,6 +5,8 @@
 [![MSBuild-Release](https://github.com/kyle-robinson/directx-advanced-graphics/actions/workflows/msbuild-release.yml/badge.svg)](https://github.com/kyle-robinson/directx-advanced-graphics/actions/workflows/msbuild-release.yml)
 &nbsp;
 [![CodeQL](https://github.com/kyle-robinson/directx-advanced-graphics/actions/workflows/codeql.yml/badge.svg)](https://github.com/kyle-robinson/directx-advanced-graphics/actions/workflows/codeql.yml)
+&nbsp;
+<img src="https://img.shields.io/static/v1?label=University&message=Year 3&color=954af7&style=flat&logo=nintendogamecube&logoColor=CCCCCC" />
 
 A graphics framework created using DirectX 11 that implements a range of advanced of graphics like complex texture mapping techniques and screen-space effects.<br/>
 
