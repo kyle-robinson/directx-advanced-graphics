@@ -65,19 +65,18 @@ As the project settings have been modified to support the addition of the aforem
 ---
 
 ### Credits
-
     Code Reference
-        Luna, F., (2011). <em>Introduction to 3D Game Programming with DirectX 11,</em> Mercury Learning & Information.
+        Luna, F., (2011). Introduction to 3D Game Programming with DirectX 11, Mercury Learning & Information.
         Available at: https://files.xray-engine.org/boox/3d_game_programming_with_DirectX11.pdf
-    
+
         "Mathematics for 3D Game Programmming and Computer Graphics" by Eric Lengyel
-    
+
     Model Animations
         https://github.com/jjuiddong/Introduction-to-3D-Game-Programming-With-DirectX11/blob/master/Chapter%2025%20Character%20Animation/SkinnedMesh/LoadM3d.h
-    
+
     Perlin Noise
         https://github.com/OneLoneCoder/videos/blob/master/OneLoneCoder_PerlinNoise.cpp
-    
+
     Shadow Mapping
         https://www.youtube.com/watch?v=CIGNP71FiG0
         https://www.youtube.com/watch?v=EPHjOUQ4rC8&list=PLqCJpWy5Fohd3S7ICFXwUomYW0Wv67pDD&index=64
