@@ -5,6 +5,8 @@
 [![MSBuild-Release](https://github.com/kyle-robinson/directx-advanced-graphics/actions/workflows/msbuild-release.yml/badge.svg)](https://github.com/kyle-robinson/directx-advanced-graphics/actions/workflows/msbuild-release.yml)
 &nbsp;
 [![CodeQL](https://github.com/kyle-robinson/directx-advanced-graphics/actions/workflows/codeql.yml/badge.svg)](https://github.com/kyle-robinson/directx-advanced-graphics/actions/workflows/codeql.yml)
+&nbsp;
+<img src="https://img.shields.io/static/v1?label=University&message=Year 3&color=954af7&style=flat&logo=nintendogamecube&logoColor=CCCCCC" />
 
 A graphics framework created using DirectX 11 that implements a range of advanced of graphics like complex texture mapping techniques and screen-space effects.<br/>
 
@@ -22,7 +24,7 @@ A graphics framework created using DirectX 11 that implements a range of advance
 | Post-Processing | ImGui File Dialog |
 | Motion Blur | ImGuizmo Manipulator |
 | FXAA | ImGuizmo View Cube |
-| SSAO | Tesselation LODs |
+| SSAO | Tessellation LODs |
 | Deferred Shading | Skinned Mesh |
 
 ## Getting Started
@@ -42,7 +44,8 @@ The framework relies on the following libraries and APIs to function.
 * ImGuiFileDialog
 * M3d Loader
 * Assimp
-* rapidjson
+* Rapid Json
+* Fast Noise Lite
 
 ### Installing
 
@@ -65,19 +68,18 @@ As the project settings have been modified to support the addition of the aforem
 ---
 
 ### Credits
-
     Code Reference
-        Luna, F., (2011). <em>Introduction to 3D Game Programming with DirectX 11,</em> Mercury Learning & Information.
+        Luna, F., (2011). Introduction to 3D Game Programming with DirectX 11, Mercury Learning & Information.
         Available at: https://files.xray-engine.org/boox/3d_game_programming_with_DirectX11.pdf
-    
+
         "Mathematics for 3D Game Programmming and Computer Graphics" by Eric Lengyel
-    
+
     Model Animations
         https://github.com/jjuiddong/Introduction-to-3D-Game-Programming-With-DirectX11/blob/master/Chapter%2025%20Character%20Animation/SkinnedMesh/LoadM3d.h
-    
+
     Perlin Noise
         https://github.com/OneLoneCoder/videos/blob/master/OneLoneCoder_PerlinNoise.cpp
-    
+
     Shadow Mapping
         https://www.youtube.com/watch?v=CIGNP71FiG0
         https://www.youtube.com/watch?v=EPHjOUQ4rC8&list=PLqCJpWy5Fohd3S7ICFXwUomYW0Wv67pDD&index=64
