@@ -1,3 +1,7 @@
+// Resources
+Texture2D txDiffuse[5] : register( t0 );
+SamplerState smpLinear : register( s0 );
+
 // Constant Buffers
 cbuffer VoxelCube : register( b3 )
 {
@@ -17,23 +21,17 @@ struct PS_INPUT
 float4 PS( PS_INPUT input ) : SV_TARGET
 {
     float4 texColor = { 1.0f, 0.0f, 0.0f, 1.0f };
-    float4 water = { 0.1f, 0.1f, 0.5f, 1.0f };
-    float4 grass = { 0.1f, 0.5f, 0.1f, 1.0f };
-    float4 lightDirt = { 0.8f, 0.6f, 0.5f, 1.0f };
-    float4 darkDirt = { 0.5f, 0.3f, 0.1f, 1.0f };
-    float4 stone = { 0.6f, 0.6f, 0.6f, 1.0f };
-    float4 snow = { 0.9f, 0.9f, 0.9f, 1.0f };
 
 	if ( CubeType == 1 )
-		texColor = water;
+		texColor = txDiffuse[0].Sample( smpLinear, input.Tex );
 	else if ( CubeType == 2 )
-		texColor = lightDirt;
+		texColor = txDiffuse[1].Sample( smpLinear, input.Tex );
 	else if ( CubeType == 3 )
-		texColor = snow;
+		texColor = txDiffuse[2].Sample( smpLinear, input.Tex );
 	else if ( CubeType == 4 )
-        texColor = stone;
+		texColor = txDiffuse[3].Sample( smpLinear, input.Tex );
 	else if ( CubeType == 5 )
-		texColor = grass;
+		texColor = txDiffuse[4].Sample( smpLinear, input.Tex );
 
 	return texColor;
 }

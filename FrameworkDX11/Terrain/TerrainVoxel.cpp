@@ -85,19 +85,19 @@ bool AabbOutsideFrustumTest( XMFLOAT3 center, XMFLOAT3 min, XMFLOAT3 max, std::v
         float planeConstant = frustumPlanes[planeID].w;
         XMFLOAT3 axisVert;
         // x-axis
-        if ( frustumPlanes[planeID].x < 0.0f )    // Which AABB vertex is furthest down (plane normals direction) the x axis
+        if ( frustumPlanes[planeID].x < 0.0f ) // Which AABB vertex is furthest down (plane normals direction) the x axis
             axisVert.x = min.x + center.x; // min x plus tree positions x
         else
             axisVert.x = max.x + center.x; // max x plus tree positions x
 
         // y-axis
-        if ( frustumPlanes[planeID].y < 0.0f )    // Which AABB vertex is furthest down (plane normals direction) the y axis
+        if ( frustumPlanes[planeID].y < 0.0f ) // Which AABB vertex is furthest down (plane normals direction) the y axis
             axisVert.y = min.y + center.y; // min y plus tree positions y
         else
             axisVert.y = max.y + center.y; // max y plus tree positions y
 
         // z-axis
-        if ( frustumPlanes[planeID].z < 0.0f )    // Which AABB vertex is furthest down (plane normals direction) the z axis
+        if ( frustumPlanes[planeID].z < 0.0f ) // Which AABB vertex is furthest down (plane normals direction) the z axis
             axisVert.z = min.z + center.z; // min z plus tree positions z
         else
             axisVert.z = max.z + center.z; // max z plus tree positions z
@@ -268,6 +268,7 @@ Chunk::Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos
     m_pChunkTransform = new Transform();
     m_pChunkTransform->SetPosition( pos );
     GenerateTerrain( pDevice, pContext );
+    SetupTextures( pDevice, pContext );
 }
 
 Chunk::Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos, XMFLOAT3 size, int seed, float frequency, int octave )
@@ -279,6 +280,7 @@ Chunk::Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos
     m_pChunkTransform = new Transform();
     m_pChunkTransform->SetPosition( pos );
     GenerateTerrain( pDevice, pContext );
+    SetupTextures( pDevice, pContext );
 }
 
 Chunk::~Chunk()
@@ -330,6 +332,10 @@ void Chunk::Draw( ID3D11DeviceContext* pContext, ShaderController* shaderControl
 				voxelBuffer.data = x->GetCubeData();
                 if ( !voxelBuffer.ApplyChanges() )
                     return;
+                ID3D11ShaderResourceView* cubeTextures[5u];
+                for ( unsigned int i = 0; i < 5u; i++ )
+                    cubeTextures[i] = m_vTextures.at( i );
+                pContext->PSSetShaderResources( 0u, 5u, cubeTextures );
                 x->GetAppearance()->Draw( pContext );
             }
         }
@@ -519,7 +525,38 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
             }
         }
     }
+}
 
+void Chunk::SetupTextures( ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
+{
+    try
+    {
+        ID3D11ShaderResourceView* pTexture = nullptr;
+        HRESULT hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/darkdirt.dds", nullptr, &pTexture );
+        COM_ERROR_IF_FAILED( hr, "Failed to create DARK DIRT texture for VOXEL TERRAIN!" );
+        m_vTextures.push_back( pTexture );
+
+        hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/lightdirt.dds", nullptr, &pTexture );
+        COM_ERROR_IF_FAILED( hr, "Failed to create LIGHT DIRT texture for VOXEL TERRAIN!" );
+        m_vTextures.push_back( pTexture );
+
+        hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/grass.dds", nullptr, &pTexture );
+        COM_ERROR_IF_FAILED( hr, "Failed to create GRASS texture for VOXEL TERRAIN!" );
+        m_vTextures.push_back( pTexture );
+
+        hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/stone.dds", nullptr, &pTexture );
+        COM_ERROR_IF_FAILED( hr, "Failed to create STONE texture for VOXEL TERRAIN!" );
+        m_vTextures.push_back( pTexture );
+
+        hr = CreateDDSTextureFromFile( pDevice, L"Resources/Textures/snow.dds", nullptr, &pTexture );
+        COM_ERROR_IF_FAILED( hr, "Failed to create SNOW texture for VOXEL TERRAIN!" );
+        m_vTextures.push_back( pTexture );
+    }
+    catch ( COMException& exception )
+    {
+        ErrorLogger::Log( exception );
+        return;
+    }
 }
 
 void Chunk::CleanUp()

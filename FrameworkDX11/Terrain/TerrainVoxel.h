@@ -74,11 +74,12 @@ public:
 
 private:
     void GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
+    void SetupTextures( ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
     void CleanUp();
 
     int m_iXSize = 16;
     int m_iZSize = 16;
-    int m_iSeed = 1338;
+    int m_iSeed = 1337;
     int m_iOctaves = 3;
     int m_iMaxHeight = 0;
     float m_fFrequency = 0.01f;
@@ -86,6 +87,7 @@ private:
     XMFLOAT3 m_fPos;
     Transform* m_pChunkTransform;
     std::vector<Block*> m_vCubesToDraw;
+    std::vector<ID3D11ShaderResourceView*> m_vTextures;
     std::vector<std::vector< std::vector<Block*>>> m_vAllCubesInChunk;
 };
 
@@ -111,7 +113,7 @@ private:
     int m_iNumOfChunksX = 0;
     int m_iNumOfChunksZ = 0;
 
-    int m_iSeed = 1338;
+    int m_iSeed = 1337;
     int m_iOctaves = 3;
     bool m_bToDraw = false;
     float m_fFrequency = 0.01f;

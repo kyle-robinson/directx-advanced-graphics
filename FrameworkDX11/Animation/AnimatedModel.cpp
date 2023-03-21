@@ -53,16 +53,16 @@ AnimatedModel::AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D
             m_pTextureResourceView[indexToAddDiff[j]] = diffuseMapTex;
         }
 
-        ID3D11ShaderResourceView* NormMapTex;
+        ID3D11ShaderResourceView* normalMapTex;
         std::wstring normalMap = filePath + m_vMat[i].NormalMapName;
-        CreateDDSTextureFromFile( pDevice, normalMap.c_str(), nullptr, &NormMapTex );
+        CreateDDSTextureFromFile( pDevice, normalMap.c_str(), nullptr, &normalMapTex );
         for ( size_t j = 0; j < indexToAddNormMap.size(); j++ )
         {
             if ( m_pNormalMapResourceView[indexToAddNormMap[j]] )
             {
                 continue;
             }
-            m_pNormalMapResourceView[indexToAddNormMap[j]] = NormMapTex;
+            m_pNormalMapResourceView[indexToAddNormMap[j]] = normalMapTex;
         }
     }
 
