@@ -93,26 +93,26 @@ void Skeleton::CleanUp()
 
 void Skeleton::RebuildPose()
 {
-	AnimationClip Clip;
-	Clip.m_vBoneAnimations.resize( BoneCount() );
+	AnimationClip clip;
+	clip.m_vBoneAnimations.resize( BoneCount() );
 
 	for ( size_t i = 0; i < BoneCount(); i++ )
 	{
-		BoneAnimation BoneAnimation;
-		BoneAnimation.m_vKeyframes.resize( 2 );
+		BoneAnimation boneAnimation;
+		boneAnimation.m_vKeyframes.resize( 2 );
 
-		Keyframe Frame;
+		Keyframe frame;
 		if ( i == 0 )
 		{
-			Frame.m_fTranslation= XMFLOAT3( m_vBoneData[i]->GetWorldPos().x, m_vBoneData[i]->GetWorldPos().y, m_vBoneData[i]->GetWorldPos().z );
-			Frame.m_fScale = XMFLOAT3( m_vBoneData[i]->GetWorldScale().x, m_vBoneData[i]->GetWorldScale().y, m_vBoneData[i]->GetWorldScale().z );
-			Frame.m_fRotationQuat = m_vBoneData[i]->GetWorldRot();
+			frame.m_fTranslation= XMFLOAT3( m_vBoneData[i]->GetWorldPos().x, m_vBoneData[i]->GetWorldPos().y, m_vBoneData[i]->GetWorldPos().z );
+			frame.m_fScale = XMFLOAT3( m_vBoneData[i]->GetWorldScale().x, m_vBoneData[i]->GetWorldScale().y, m_vBoneData[i]->GetWorldScale().z );
+			frame.m_fRotationQuat = m_vBoneData[i]->GetWorldRot();
 		}
 		else
 		{
 			XMMATRIX RealMat = XMMatrixMultiply(
 				XMLoadFloat4x4( m_vBoneData[i]->GetWorld() ),
-				XMMatrixInverse( nullptr, XMLoadFloat4x4( m_vBoneData[m_vBoneData[i]->Getparent()]->GetWorld() ) ) );
+				XMMatrixInverse( nullptr, XMLoadFloat4x4( m_vBoneData[m_vBoneData[i]->GetParent()]->GetWorld() ) ) );
 
 			XMVECTOR scalevec, rot, pos;
 			XMMatrixDecompose( &scalevec, &rot, &pos, RealMat );
@@ -126,24 +126,24 @@ void Skeleton::RebuildPose()
 			XMStoreFloat4( &rotQuatReal, rot );
 			XMStoreFloat4( &posReal, pos );
 			XMStoreFloat4x4( &real, RealMat );
-			Frame.m_fTranslation = XMFLOAT3( posReal.x, posReal.y, posReal.z );
-			Frame.m_fScale = XMFLOAT3( scaleReal.x, scaleReal.y, scaleReal.z );
-			Frame.m_fRotationQuat = rotQuatReal;
+			frame.m_fTranslation = XMFLOAT3( posReal.x, posReal.y, posReal.z );
+			frame.m_fScale = XMFLOAT3( scaleReal.x, scaleReal.y, scaleReal.z );
+			frame.m_fRotationQuat = rotQuatReal;
 			m_vBoneData[i]->SetReal( real );
 		}
 
-		m_vBoneData[i]->SetRealPos( Frame.m_fTranslation );
-		m_vBoneData[i]->SetRealRot( Frame.m_fRotationQuat );
-		m_vBoneData[i]->SetRealScale( Frame.m_fScale );
+		m_vBoneData[i]->SetRealPos( frame.m_fTranslation );
+		m_vBoneData[i]->SetRealRot( frame.m_fRotationQuat );
+		m_vBoneData[i]->SetRealScale( frame.m_fScale );
 
-		Frame.m_fTimePos = 0;
-		BoneAnimation.m_vKeyframes[0] = Frame;
-		Frame.m_fTimePos = 1;
-		BoneAnimation.m_vKeyframes[1] = Frame;
-		Clip.m_vBoneAnimations[i] = BoneAnimation;
+		frame.m_fTimePos = 0;
+		boneAnimation.m_vKeyframes[0] = frame;
+		frame.m_fTimePos = 1;
+		boneAnimation.m_vKeyframes[1] = frame;
+		clip.m_vBoneAnimations[i] = boneAnimation;
 	}
 
-	m_mAnimations["T-Pose"] = Clip;
+	m_mAnimations["T-Pose"] = clip;
 }
 
 void Skeleton::SetChild( int bone )

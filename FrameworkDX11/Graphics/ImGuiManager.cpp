@@ -15,7 +15,7 @@
 #include "fileDialog/ImGuiFileDialog.h"
 #include "backends/imgui_impl_dx11.h"
 #include "backends/imgui_impl_win32.h"
-#include "misc/cpp/imgui_stdlib.h"
+//#include "misc/cpp/imgui_stdlib.h"
 
 #include <dxtk/WICTextureLoader.h>
 #include <format>
@@ -1776,7 +1776,7 @@ void ImGuiManager::AnimationMenu( AnimatedModel* animModel, Camera* pCamera )
                             ImGui::Text( "%i", i );
 
                             ImGui::TableNextColumn();
-                            ImGui::Text( "%i", data->Getparent() );
+                            ImGui::Text( "%i", data->GetParent() );
 
                             ImGui::TableNextColumn();
                             std::string childData = "";
