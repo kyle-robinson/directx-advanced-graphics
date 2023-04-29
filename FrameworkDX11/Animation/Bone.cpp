@@ -8,10 +8,10 @@ Bone::Bone( XMFLOAT4X4 offSet, int parent ) : _OffSet( offSet ), _Parent( parent
     XMVECTOR pos;
     XMMATRIX offsetMat = XMLoadFloat4x4( &offSet );
     XMMatrixDecompose( &scalevec, &rot, &pos, offsetMat );
-    
-    XMStoreFloat4( &_ScaleOffSet,scalevec );
-    XMStoreFloat4( &_RotQuatOffSet,rot );
-    XMStoreFloat4( &_PosOffSet,pos );
+
+    XMStoreFloat4( &_ScaleOffSet, scalevec );
+    XMStoreFloat4( &_RotQuatOffSet, rot );
+    XMStoreFloat4( &_PosOffSet, pos );
 
     XMMATRIX worldJoint = XMMatrixInverse( nullptr, offsetMat );
     XMStoreFloat4x4( &_World, worldJoint );

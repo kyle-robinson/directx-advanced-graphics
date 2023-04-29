@@ -322,7 +322,7 @@ void ImGuiManager::CameraMenu( CameraController* cameraControl, bool usingVoxels
             HelpMarker( DRAG_HINT_TEXT );
             if ( usingVoxels ) ImGui::TextColored( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ), "Can't adjust far plane while drawing voxel terrain!" );
             ImGui::PushItemFlag( ImGuiItemFlags_Disabled, usingVoxels );
-            if ( ImGui::DragFloat( "##Far Plane", &farPlane, 0.1f, 100.0f, 200.0f ) )
+            if ( ImGui::DragFloat( "##Far Plane", &farPlane, 0.1f, 100.0f, 500.0f ) )
                 cameraControl->GetCurrentCam()->SetFar( farPlane );
             ImGui::PopItemFlag();
 
@@ -1265,11 +1265,11 @@ void ImGuiManager::TerrainMenu( ID3D11Device* pDevice, ID3D11DeviceContext* pCon
                         ImGui::EndCombo();
                     }
 
-                    static int width = 514;
+                    static int width = 513;
                     ImGui::Text( "Width" );
                     ImGui::InputInt( "##Width", &width );
 
-                    static int length = 514;
+                    static int length = 513;
                     ImGui::Text( "Length" );
                     ImGui::InputInt( "##Length", &length );
 

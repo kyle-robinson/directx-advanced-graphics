@@ -36,8 +36,7 @@ float BoneAnimation::GetEndTime()const
 }
 
 /// <summary>
-/// froward kinamiatics part 2
-/// bleands between the data
+/// Interpolate between keyframes
 /// </summary>
 void BoneAnimation::Interpolate( float t, XMFLOAT4X4& mat ) const
 {
