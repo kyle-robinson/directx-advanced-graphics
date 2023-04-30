@@ -1072,7 +1072,7 @@ void ImGuiManager::BezierSplineMenu()
         bLoadSpline = true;
     }
 
-    if ( ImGui::Begin( "Bezier Curve", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
+    if ( ImGui::Begin( "Bezier Curve", FALSE ) )
     {
         if ( ImGui::TreeNode( "Spline Points" ) )
         {
