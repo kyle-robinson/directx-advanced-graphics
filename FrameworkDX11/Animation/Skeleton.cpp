@@ -56,7 +56,7 @@ std::vector<XMFLOAT4X4> Skeleton::GetFinalTransforms( const std::string& clipNam
 		XMStoreFloat4x4( &toRootTransforms[i], toRoot );
 	}
 
-	// Move animation data into a useable transfrom space
+	// Move animation data into a useable transform space
 	for ( UINT i = 0; i < numBones; ++i )
 	{
 		XMMATRIX offset = XMLoadFloat4x4( m_vBoneData[i]->GetOffSet() );

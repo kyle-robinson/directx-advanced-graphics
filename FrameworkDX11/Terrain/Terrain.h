@@ -42,7 +42,7 @@ public:
 	float Average( int i, int j );
 	void Smooth();
 
-	inline TerrainAppearance* GetApperance() const noexcept { return m_pAppearance; }
+	inline TerrainAppearance* GetAppearance() const noexcept { return m_pAppearance; }
 	inline Transform* GetTransform() const noexcept { return m_pTransform; }
 	void SetBlendMap( std::string name, ID3D11Device* pDevice );
 

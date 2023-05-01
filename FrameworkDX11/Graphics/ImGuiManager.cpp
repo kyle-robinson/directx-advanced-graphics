@@ -1512,7 +1512,7 @@ void ImGuiManager::TerrainMenu( ID3D11Device* pDevice, ID3D11DeviceContext* pCon
                             ImGui::Text( terrain->GetTexNames()[i].c_str() );
 
                             ImGui::TableNextColumn();
-                            if ( ImGui::Button( "Load##Button" ) )
+                            if ( ImGui::Button( std::string( "Load##Button" ).append( texType ).c_str() ) )
                             {
                                 ImGuiFileDialog::Instance()->OpenDialog( std::string( "Load##" ).append( texType ).c_str(), "Load Terrain Texture", ".dds,.jpg,.png", "." );
                                 ImGui::SetNextWindowSize( ImVec2( ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f ), ImGuiCond_Once );
