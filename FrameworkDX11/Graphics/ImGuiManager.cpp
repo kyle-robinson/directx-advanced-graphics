@@ -1491,6 +1491,7 @@ void ImGuiManager::TerrainMenu( ID3D11Device* pDevice, ID3D11DeviceContext* pCon
                     {
                         ImGui::TableSetupColumn( "Name" );
                         ImGui::TableSetupColumn( "Texture" );
+                        ImGui::TableSetupColumn( "Change" );
                         ImGui::TableHeadersRow();
 
                         for ( size_t i = 0; i < terrain->GetTexNames().size(); i++ )
@@ -1657,7 +1658,7 @@ void ImGuiManager::TerrainMenu( ID3D11Device* pDevice, ID3D11DeviceContext* pCon
                 {
                     static int seed;
                     ImGui::Text( "Seed" );
-                    ImGui::InputInt( "#Seed Voxel", &seed );
+                    ImGui::InputInt( "##Seed Voxel", &seed );
 
                     static float frequency;
                     ImGui::Text( "Frequency" );
