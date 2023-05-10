@@ -27,238 +27,254 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler( HWND hWnd, UINT uMsg, WPARAM wPar
 LRESULT CALLBACK WindowContainer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
     ImGui_ImplWin32_WndProcHandler( hWnd, uMsg, wParam, lParam );
+    if ( ImGui::GetCurrentContext() == nullptr )
+        return -1;
     const auto& imio = ImGui::GetIO();
 
-    switch ( uMsg )
+    try
     {
-    case WM_ACTIVATE:
-        if ( !m_bCursorEnabled )
+        switch ( uMsg )
         {
-            if ( wParam & WA_ACTIVE )
-                DisableCursor();
-            else
-                EnableCursor();
-        }
-        break;
-
-    case WM_DESTROY:
-        PostQuitMessage( 0 );
-        break;
-
-        // Keyboard Events
-    case WM_KEYDOWN:
-    case WM_SYSKEYDOWN:
-    {
-        if ( imio.WantCaptureKeyboard )
-            return 0;
-
-        unsigned char keycode = static_cast<unsigned char>( wParam );
-        if ( m_keyboard.IsKeysAutoRepeat() )
-            m_keyboard.OnKeyPressed( keycode );
-        else
-        {
-            const bool wasPressed = lParam & 0x40000000;
-            if ( !wasPressed )
-                m_keyboard.OnKeyPressed( keycode );
-        }
-
-        switch ( wParam )
-        {
-        case VK_ESCAPE:
-            DestroyWindow( m_window.GetHWND() );
-            PostQuitMessage( 0 );
-            return 0;
-        }
-        return 0;
-    }
-    case WM_KEYUP:
-    case WM_SYSKEYUP:
-    {
-        if ( imio.WantCaptureKeyboard )
-            return 0;
-
-        unsigned char keycode = static_cast<unsigned char>( wParam );
-        m_keyboard.OnKeyReleased( keycode );
-        return 0;
-    }
-    case WM_CHAR:
-    {
-        if ( imio.WantCaptureKeyboard )
-            return 0;
-
-        unsigned char ch = static_cast<unsigned char>( wParam );
-        if ( m_keyboard.IsCharsAutoRepeat() )
-            m_keyboard.OnChar( ch );
-        else
-        {
-            const bool wasPressed = lParam & 0x40000000;
-            if ( !wasPressed )
-                m_keyboard.OnChar( ch );
-        }
-        return 0;
-    }
-
-    // Mouse Events
-    case WM_MOUSEMOVE:
-    {
-        if ( imio.WantCaptureMouse )
-            return 0;
-
-        int x = LOWORD( lParam );
-        int y = HIWORD( lParam );
-        const POINTS pt = MAKEPOINTS( lParam );
-
-        if ( !m_bCursorEnabled )
-        {
-            if ( !m_mouse.IsInWindow() )
+        case WM_ACTIVATE:
+            if ( !m_bCursorEnabled )
             {
-                SetCapture( m_window.GetHWND() );
-                m_mouse.OnMouseEnter( x, y );
+                if ( wParam & WA_ACTIVE )
+                    DisableCursor();
+                else
+                    EnableCursor();
+            }
+            break;
+
+        case WM_DESTROY:
+            PostQuitMessage( 0 );
+            break;
+
+            // Keyboard Events
+        case WM_KEYDOWN:
+        case WM_SYSKEYDOWN:
+        {
+            if ( imio.WantCaptureKeyboard )
+                return 0;
+
+            unsigned char keycode = static_cast<unsigned char>( wParam );
+            if ( m_keyboard.IsKeysAutoRepeat() )
+                m_keyboard.OnKeyPressed( keycode );
+            else
+            {
+                const bool wasPressed = lParam & 0x40000000;
+                if ( !wasPressed )
+                    m_keyboard.OnKeyPressed( keycode );
+            }
+
+            switch ( wParam )
+            {
+            case VK_ESCAPE:
+                DestroyWindow( m_window.GetHWND() );
+                PostQuitMessage( 0 );
+                return 0;
+            }
+            return 0;
+        }
+        case WM_KEYUP:
+        case WM_SYSKEYUP:
+        {
+            if ( imio.WantCaptureKeyboard )
+                return 0;
+
+            unsigned char keycode = static_cast<unsigned char>( wParam );
+            m_keyboard.OnKeyReleased( keycode );
+            return 0;
+        }
+        case WM_CHAR:
+        {
+            if ( imio.WantCaptureKeyboard )
+                return 0;
+
+            unsigned char ch = static_cast<unsigned char>( wParam );
+            if ( m_keyboard.IsCharsAutoRepeat() )
+                m_keyboard.OnChar( ch );
+            else
+            {
+                const bool wasPressed = lParam & 0x40000000;
+                if ( !wasPressed )
+                    m_keyboard.OnChar( ch );
+            }
+            return 0;
+        }
+
+        // Mouse Events
+        case WM_MOUSEMOVE:
+        {
+            if ( imio.WantCaptureMouse )
+                return 0;
+
+            int x = LOWORD( lParam );
+            int y = HIWORD( lParam );
+            const POINTS pt = MAKEPOINTS( lParam );
+
+            if ( !m_bCursorEnabled )
+            {
+                if ( !m_mouse.IsInWindow() )
+                {
+                    SetCapture( m_window.GetHWND() );
+                    m_mouse.OnMouseEnter( x, y );
+                    HideCursor();
+                }
+                return 0;
+            }
+
+            if ( pt.x >= 0 && pt.x < windowSize.x && pt.y >= 0 && pt.y < windowSize.y )
+            {
+                m_mouse.OnMouseMove( x, y );
+                if ( !m_mouse.IsInWindow() )
+                {
+                    SetCapture( m_window.GetHWND() );
+                    m_mouse.OnMouseEnter( x, y );
+                }
+            }
+            else
+            {
+                if ( wParam & ( MK_LBUTTON | MK_RBUTTON ) )
+                {
+                    m_mouse.OnMouseMove( x, y );
+                }
+                else
+                {
+                    ReleaseCapture();
+                    m_mouse.OnMouseLeave( x, y );
+                }
+            }
+
+            return 0;
+        }
+        case WM_LBUTTONDOWN:
+        {
+            SetForegroundWindow( m_window.GetHWND() );
+
+            if ( imio.WantCaptureMouse )
+                return 0;
+
+            int x = LOWORD( lParam );
+            int y = HIWORD( lParam );
+            m_mouse.OnLeftPressed( x, y );
+
+            if ( !m_bCursorEnabled )
+            {
+                ConfineCursor();
                 HideCursor();
             }
             return 0;
         }
+        case WM_LBUTTONUP:
+        {
+            if ( imio.WantCaptureMouse )
+                return 0;
 
-        if ( pt.x >= 0 && pt.x < windowSize.x && pt.y >= 0 && pt.y < windowSize.y )
-        {
-            m_mouse.OnMouseMove( x, y );
-            if ( !m_mouse.IsInWindow() )
-            {
-                SetCapture( m_window.GetHWND() );
-                m_mouse.OnMouseEnter( x, y );
-            }
-        }
-        else
-        {
-            if ( wParam & ( MK_LBUTTON | MK_RBUTTON ) )
-            {
-                m_mouse.OnMouseMove( x, y );
-            }
-            else
+            int x = LOWORD( lParam );
+            int y = HIWORD( lParam );
+            m_mouse.OnLeftReleased( x, y );
+
+            const POINTS pt = MAKEPOINTS( lParam );
+            if ( pt.x < 0 || pt.x >= windowSize.x || pt.y < 0 || pt.y >= windowSize.y )
             {
                 ReleaseCapture();
                 m_mouse.OnMouseLeave( x, y );
             }
-        }
-
-        return 0;
-    }
-    case WM_LBUTTONDOWN:
-    {
-        SetForegroundWindow( m_window.GetHWND() );
-
-        if ( imio.WantCaptureMouse )
             return 0;
-
-        int x = LOWORD( lParam );
-        int y = HIWORD( lParam );
-        m_mouse.OnLeftPressed( x, y );
-
-        if ( !m_bCursorEnabled )
-        {
-            ConfineCursor();
-            HideCursor();
         }
-        return 0;
-    }
-    case WM_LBUTTONUP:
-    {
-        if ( imio.WantCaptureMouse )
+        case WM_RBUTTONDOWN:
+        {
+            int x = LOWORD( lParam );
+            int y = HIWORD( lParam );
+            m_mouse.OnRightPressed( x, y );
+
             return 0;
-
-        int x = LOWORD( lParam );
-        int y = HIWORD( lParam );
-        m_mouse.OnLeftReleased( x, y );
-
-        const POINTS pt = MAKEPOINTS( lParam );
-        if ( pt.x < 0 || pt.x >= windowSize.x || pt.y < 0 || pt.y >= windowSize.y )
-        {
-            ReleaseCapture();
-            m_mouse.OnMouseLeave( x, y );
         }
-        return 0;
-    }
-    case WM_RBUTTONDOWN:
-    {
-        int x = LOWORD( lParam );
-        int y = HIWORD( lParam );
-        m_mouse.OnRightPressed( x, y );
-
-        return 0;
-    }
-    case WM_RBUTTONUP:
-    {
-        int x = LOWORD( lParam );
-        int y = HIWORD( lParam );
-        m_mouse.OnRightReleased( x, y );
-
-        const POINTS pt = MAKEPOINTS( lParam );
-        if ( pt.x < 0 || pt.x >= windowSize.x || pt.y < 0 || pt.y >= windowSize.y )
+        case WM_RBUTTONUP:
         {
-            ReleaseCapture();
-            m_mouse.OnMouseLeave( x, y );
-        }
+            int x = LOWORD( lParam );
+            int y = HIWORD( lParam );
+            m_mouse.OnRightReleased( x, y );
 
-        return 0;
-    }
-    case WM_MBUTTONDOWN:
-    {
-        if ( imio.WantCaptureMouse )
-            return 0;
-
-        int x = LOWORD( lParam );
-        int y = HIWORD( lParam );
-        m_mouse.OnMiddlePressed( x, y );
-        return 0;
-    }
-    case WM_MBUTTONUP:
-    {
-        if ( imio.WantCaptureMouse )
-            return 0;
-
-        int x = LOWORD( lParam );
-        int y = HIWORD( lParam );
-        m_mouse.OnMiddleReleased( x, y );
-        return 0;
-    }
-    case WM_MOUSEWHEEL:
-    {
-        if ( imio.WantCaptureMouse )
-            return 0;
-
-        int x = LOWORD( lParam );
-        int y = HIWORD( lParam );
-        if ( GET_WHEEL_DELTA_WPARAM( wParam ) > 0 )
-        {
-            m_mouse.OnWheelUp( x, y );
-        }
-        else if ( GET_WHEEL_DELTA_WPARAM( wParam ) < 0 )
-        {
-            m_mouse.OnWheelDown( x, y );
-        }
-        return 0;
-    }
-    case WM_INPUT:
-    {
-        UINT dataSize;
-        GetRawInputData( reinterpret_cast<HRAWINPUT>( lParam ), RID_INPUT, NULL, &dataSize, sizeof( RAWINPUTHEADER ) );
-        if ( dataSize > 0 )
-        {
-            std::unique_ptr<BYTE[]> rawData = std::make_unique<BYTE[]>( dataSize );
-            if ( GetRawInputData( reinterpret_cast<HRAWINPUT>( lParam ), RID_INPUT, rawData.get(), &dataSize, sizeof( RAWINPUTHEADER ) ) == dataSize )
+            const POINTS pt = MAKEPOINTS( lParam );
+            if ( pt.x < 0 || pt.x >= windowSize.x || pt.y < 0 || pt.y >= windowSize.y )
             {
-                RAWINPUT* raw = reinterpret_cast<RAWINPUT*>( rawData.get() );
-                if ( raw->header.dwType == RIM_TYPEMOUSE )
+                ReleaseCapture();
+                m_mouse.OnMouseLeave( x, y );
+            }
+
+            return 0;
+        }
+        case WM_MBUTTONDOWN:
+        {
+            if ( imio.WantCaptureMouse )
+                return 0;
+
+            int x = LOWORD( lParam );
+            int y = HIWORD( lParam );
+            m_mouse.OnMiddlePressed( x, y );
+            return 0;
+        }
+        case WM_MBUTTONUP:
+        {
+            if ( imio.WantCaptureMouse )
+                return 0;
+
+            int x = LOWORD( lParam );
+            int y = HIWORD( lParam );
+            m_mouse.OnMiddleReleased( x, y );
+            return 0;
+        }
+        case WM_MOUSEWHEEL:
+        {
+            if ( imio.WantCaptureMouse )
+                return 0;
+
+            int x = LOWORD( lParam );
+            int y = HIWORD( lParam );
+            if ( GET_WHEEL_DELTA_WPARAM( wParam ) > 0 )
+            {
+                m_mouse.OnWheelUp( x, y );
+            }
+            else if ( GET_WHEEL_DELTA_WPARAM( wParam ) < 0 )
+            {
+                m_mouse.OnWheelDown( x, y );
+            }
+            return 0;
+        }
+        case WM_INPUT:
+        {
+            UINT dataSize;
+            GetRawInputData( reinterpret_cast<HRAWINPUT>( lParam ), RID_INPUT, NULL, &dataSize, sizeof( RAWINPUTHEADER ) );
+            if ( dataSize > 0 )
+            {
+                std::unique_ptr<BYTE[]> rawData = std::make_unique<BYTE[]>( dataSize );
+                if ( GetRawInputData( reinterpret_cast<HRAWINPUT>( lParam ), RID_INPUT, rawData.get(), &dataSize, sizeof( RAWINPUTHEADER ) ) == dataSize )
                 {
-                    m_mouse.OnMouseMoveRaw( raw->data.mouse.lLastX, raw->data.mouse.lLastY );
+                    RAWINPUT* raw = reinterpret_cast<RAWINPUT*>( rawData.get() );
+                    if ( raw->header.dwType == RIM_TYPEMOUSE )
+                    {
+                        m_mouse.OnMouseMoveRaw( raw->data.mouse.lLastX, raw->data.mouse.lLastY );
+                    }
                 }
             }
+            return DefWindowProc( hWnd, uMsg, wParam, lParam );
         }
-        return DefWindowProc( hWnd, uMsg, wParam, lParam );
+        default:
+            return DefWindowProc( hWnd, uMsg, wParam, lParam );
+        }
     }
-    default:
-        return DefWindowProc( hWnd, uMsg, wParam, lParam );
-    }
+    catch ( COMException& exception )
+    {
+		ErrorLogger::Log( exception );
+		return -1;
+	}
+    catch ( ... )
+    {
+		ErrorLogger::Log( "WindowProc: Unknown exception!" );
+		return -1;
+	}
+
 
     return 0;
 }

@@ -47,27 +47,27 @@ private:
 	XMMATRIX m_mView;
 
 	// Objects
-	AnimatedModel* m_pSoldier;
 	DrawableGameObject* m_pCube;
 	std::vector<DrawableGameObject*> m_pWalls;
+	std::unique_ptr<AnimatedModel> m_pSoldier;
 
 #if defined ( _x64 )
 	RenderableGameObject m_pSky;
 #endif
 
 	// Lights
-	LightController* m_pLightController;
-	ShadowMap* m_pDepthLight;
+	std::unique_ptr<LightController> m_pLightController;
+	std::unique_ptr<ShadowMap> m_pDepthLight;
 
 	// Input
-	CameraController* m_pCamController;
-	ImGuiManager* m_pImGuiManager;
-	Input* m_pInput;
+	std::unique_ptr<CameraController> m_pCamController;
+	std::unique_ptr<ImGuiManager> m_pImGuiManager;
+	std::unique_ptr<Input> m_pInput;
 	Timer m_timer;
 
 	// Terrain
-	TerrainVoxel* m_pVoxelTerrain;
-	Terrain* m_pTerrain;
+	std::unique_ptr<TerrainVoxel> m_pVoxelTerrain;
+	std::unique_ptr<Terrain> m_pTerrain;
 };
 
 #endif

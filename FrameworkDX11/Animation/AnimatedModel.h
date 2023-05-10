@@ -24,19 +24,7 @@ public:
     void Update( float dt );
 
     inline Skeleton* GetSkeleton() noexcept { return &m_skeleton; }
-
-    inline void SetAnimation( std::string clipName )
-    {
-        if ( m_sClipName != clipName )
-        {
-            m_sPrevClipName = m_sClipName;
-            m_fPrevTime = m_fTimePos;
-            m_sClipName = clipName;
-            m_fTimePos = 0;
-        }
-    }
-
-    inline Transform* GetTransform() const noexcept { return m_pTransform; }
+    inline Transform* GetTransform() const noexcept { return m_pTransform.get(); }
     inline std::string GetModelName() const noexcept { return m_sModelName; }
     inline std::vector<Subset> GetSubsets() const noexcept { return m_vSubsets; }
     inline std::vector<M3dMaterial> GetMaterialData() const noexcept { return m_vMat; }
@@ -60,6 +48,17 @@ public:
         }
     }
 
+    inline void SetAnimation( std::string clipName )
+    {
+        if ( m_sClipName != clipName )
+        {
+            m_sPrevClipName = m_sClipName;
+            m_fPrevTime = m_fTimePos;
+            m_sClipName = clipName;
+            m_fTimePos = 0;
+        }
+    }
+
 	inline void Show() noexcept { m_bDraw = true; }
 	inline void Hide() noexcept { m_bDraw = false; }
 	inline bool IsVisible() const noexcept { return m_bDraw; }
@@ -77,8 +76,8 @@ private:
     std::string m_sPrevClipName = "T-Pose";
 
     bool m_bDraw = false;
-    Appearance* m_pAppearance;
     std::string m_sModelName;
+    std::unique_ptr<Appearance> m_pAppearance;
 
     std::vector<WORD> m_vIndex;
     std::vector<WORD> m_vIndex2;
@@ -87,7 +86,7 @@ private:
     std::vector<SkinnedVertex> m_vSkinVert;
 
     Skeleton m_skeleton;
-    Transform* m_pTransform;
+    std::unique_ptr<Transform> m_pTransform;
     std::vector<XMFLOAT4X4> m_vFinalTransforms;
     ConstantBuffer<SkinnedCB> m_finalTransformsCB;
 

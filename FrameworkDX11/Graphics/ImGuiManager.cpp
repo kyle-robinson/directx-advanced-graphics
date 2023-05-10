@@ -4,7 +4,6 @@
 #include "DrawableGameObject.h"
 #include "RasterizerController.h"
 #include "ShaderController.h"
-#include "BillboradObject.h"
 #include "AnimatedModel.h"
 #include "TerrainVoxel.h"
 #include "Terrain.h"
@@ -974,49 +973,6 @@ void ImGuiManager::LightMenu( LightController* lightControl, Camera* pCamera )
             lightControl->GetLightList()[iSelectedIdx]->GetLightObject()->GetTransform()->SetPosition( updatedPos );
         }
         lightControl->GetLight( nameL )->SetLightData( currLightData );
-    }
-    ImGui::End();
-}
-
-void ImGuiManager::BillboardMenu( BillboardObject* billboardObject )
-{
-    static int iPicked = 0;
-    static std::string nameBB;
-    static const char* cCurrentItemBB = NULL;
-    static std::vector<SimpleVertexBillboard> vBbVerts;
-    vBbVerts = billboardObject->GetPositions();
-
-    if ( ImGui::Begin( "Billboard Control", FALSE, ImGuiWindowFlags_AlwaysAutoResize ) )
-    {
-        if ( ImGui::BeginCombo( "##Combo", cCurrentItemBB ) )
-        {
-            for ( int n = 0; n < billboardObject->GetPositions().size(); n++ )
-            {
-                std::string name = "Billboard ";
-                name += std::to_string( n );
-                bool is_selected = ( cCurrentItemBB == name.c_str() );
-                if ( ImGui::Selectable( name.c_str(), is_selected ) )
-                {
-                    iPicked = n;
-                    nameBB = name;
-                    cCurrentItemBB = nameBB.c_str();
-                    vBbVerts = billboardObject->GetPositions();
-                }
-
-                if ( is_selected )
-                {
-                    ImGui::SetItemDefaultFocus();
-                    vBbVerts = billboardObject->GetPositions();
-                }
-            }
-            ImGui::EndCombo();
-        }
-
-        ImGui::Text( "Position" );
-        ImGui::SameLine();
-        HelpMarker( DRAG_HINT_TEXT );
-        ImGui::DragFloat3( "##Position", &vBbVerts[iPicked].Pos.x );
-        billboardObject->SetPositions( vBbVerts );
     }
     ImGui::End();
 }

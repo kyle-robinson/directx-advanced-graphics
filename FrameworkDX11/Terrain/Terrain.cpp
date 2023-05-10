@@ -71,9 +71,9 @@ Terrain::Terrain( std::string heightMapName, XMFLOAT2 size, double scale, Terrai
     m_fHeightScale( scale ),
     m_eTerrainCreationType( genType )
 {
-    m_pTransform = new Transform();
+    m_pTransform = std::make_unique<Transform>();
     m_pTransform->SetPosition( 0.0f, -50.0f, 0.0f );
-    m_pAppearance = new TerrainAppearance( m_iHeightMapHeight, m_iHeightMapWidth, 1.0f, m_vHeightMapData );
+    m_pAppearance = std::make_unique<TerrainAppearance>( m_iHeightMapHeight, m_iHeightMapWidth, 1.0f, m_vHeightMapData );
     shaderControl->NewTessellationShader( "Terrain", L"Terrain.hlsl", pDevice, pContext );
 
     CreateHeightData();
@@ -547,16 +547,6 @@ void Terrain::Square( int sideLength )
 
 void Terrain::CleanUp()
 {
-    if ( m_pTransform )
-    {
-        delete m_pTransform;
-        m_pTransform = nullptr;
-    }
-    if ( m_pAppearance )
-    {
-        delete m_pAppearance;
-        m_pAppearance = nullptr;
-    }
     if ( m_pHeightMapSRV )
     {
         m_pHeightMapSRV->Release();

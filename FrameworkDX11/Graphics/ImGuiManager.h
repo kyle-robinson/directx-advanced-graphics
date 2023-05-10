@@ -61,7 +61,6 @@ public:
 	void ShaderMenu( ShaderController* shaderControl, PostProcessingCB* postSettings, RasterizerController* rasterControl );
 	void ObjectMenu( ID3D11Device* pDevice, Camera* pCamera, std::vector<DrawableGameObject*>& gameObjects );
 	void LightMenu( LightController* lightControl, Camera* pCamera );
-	void BillboardMenu( BillboardObject* billboardObject );
 	void TerrainMenu( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, Terrain* terrain, TerrainVoxel* voxelTerrain );
 	void AnimationMenu( AnimatedModel* animModel, Camera* pCamera );
 	void BezierSplineMenu();

@@ -14,16 +14,12 @@ void Skeleton::Set( std::vector<int>& boneHierarchy, std::vector<XMFLOAT4X4>& bo
 	m_vBoneHierarchy = boneHierarchy;
 
 	for ( size_t i = 0; i < boneOffsets.size(); i++ )
-	{
 		m_vBoneData.push_back( new Bone( boneOffsets[i], m_vBoneHierarchy[i] ) );
-	}
 
 	for ( size_t bone = 0; bone < boneHierarchy.size(); bone++ )
 	{
 		if ( boneHierarchy[bone] < 0 || boneHierarchy[bone] >= m_vBoneData.size() )
-		{
 			continue;
-		}
 		m_vBoneData[boneHierarchy[bone]]->AddChild( bone );
 	}
 
@@ -59,7 +55,7 @@ std::vector<XMFLOAT4X4> Skeleton::GetFinalTransforms( const std::string& clipNam
 	// Move animation data into a useable transform space
 	for ( UINT i = 0; i < numBones; ++i )
 	{
-		XMMATRIX offset = XMLoadFloat4x4( m_vBoneData[i]->GetOffSet() );
+		XMMATRIX offset = XMLoadFloat4x4( m_vBoneData[i]->GetOffset() );
 		XMMATRIX toRoot = XMLoadFloat4x4( &toRootTransforms[i] );
 		XMStoreFloat4x4( &finalTransforms[i], XMMatrixMultiply( offset, toRoot ) );
 	}
@@ -71,10 +67,7 @@ std::vector<std::string> Skeleton::AnimationClips()
 {
 	std::vector<std::string> animationNames;
 	for ( auto animation : m_mAnimations )
-	{
 		animationNames.push_back( animation.first );
-	}
-
 	return animationNames;
 }
 
@@ -114,21 +107,23 @@ void Skeleton::RebuildPose()
 				XMLoadFloat4x4( m_vBoneData[i]->GetWorld() ),
 				XMMatrixInverse( nullptr, XMLoadFloat4x4( m_vBoneData[m_vBoneData[i]->GetParent()]->GetWorld() ) ) );
 
-			XMVECTOR scalevec, rot, pos;
-			XMMatrixDecompose( &scalevec, &rot, &pos, RealMat );
+			XMVECTOR pos, rot, scale;
+			XMMatrixDecompose( &scale, &rot, &pos, RealMat );
 
 			XMFLOAT4X4 real = XMFLOAT4X4();
 			XMFLOAT4 posReal = XMFLOAT4();
 			XMFLOAT4 rotQuatReal = XMFLOAT4();
 			XMFLOAT4 scaleReal = XMFLOAT4();
 
-			XMStoreFloat4( &scaleReal, scalevec );
+			XMStoreFloat4( &scaleReal, scale );
 			XMStoreFloat4( &rotQuatReal, rot );
 			XMStoreFloat4( &posReal, pos );
 			XMStoreFloat4x4( &real, RealMat );
+
 			frame.m_fTranslation = XMFLOAT3( posReal.x, posReal.y, posReal.z );
 			frame.m_fScale = XMFLOAT3( scaleReal.x, scaleReal.y, scaleReal.z );
 			frame.m_fRotationQuat = rotQuatReal;
+
 			m_vBoneData[i]->SetReal( real );
 		}
 

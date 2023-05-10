@@ -41,8 +41,8 @@ public:
     inline bool GetIsActive() const noexcept { return m_bIsActive; }
     inline void SetIsActive( bool isActive ) noexcept { m_bIsActive = isActive; }
 
-    inline Transform* GetTransform() const noexcept { return m_pCubeTransform; }
-    inline TerrainAppearance* GetAppearance() noexcept { return m_pCubeAppearance; }
+    inline Transform* GetTransform() const noexcept { return m_pCubeTransform.get(); }
+    inline TerrainAppearance* GetAppearance() noexcept { return m_pCubeAppearance.get(); }
 
     void SetBlockType( BlockType block );
     inline VoxelCube GetCubeData() const noexcept { return m_cubeData; }
@@ -50,8 +50,8 @@ public:
 
 private:
     void CleanUp();
-    Transform* m_pCubeTransform = nullptr;
-    TerrainAppearance* m_pCubeAppearance = nullptr;
+    std::unique_ptr<Transform> m_pCubeTransform;
+    std::unique_ptr<TerrainAppearance> m_pCubeAppearance;
 
     VoxelCube m_cubeData;
     bool m_bIsActive = false;
@@ -68,7 +68,7 @@ public:
         ID3D11DeviceContext* pContext, ShaderController* shaderControl,
         ConstantBuffer<MatrixBuffer>& cbuffer, ConstantBuffer<VoxelCube>& voxelBuffer, CameraController* camControl );
 
-    inline Transform* GetTransform() const noexcept { return m_pChunkTransform; }
+    inline Transform* GetTransform() const noexcept { return m_pChunkTransform.get(); }
     inline int GetMaxHeight() const noexcept { return m_iMaxHeight; }
     inline void SetSeed( int seed ) noexcept { m_iSeed = seed; }
 
@@ -85,7 +85,7 @@ private:
     float m_fFrequency = 0.01f;
 
     XMFLOAT3 m_fPos;
-    Transform* m_pChunkTransform;
+    std::unique_ptr<Transform> m_pChunkTransform;
     std::vector<Block*> m_vCubesToDraw;
     std::vector<ID3D11ShaderResourceView*> m_vTextures;
     std::vector<std::vector< std::vector<Block*>>> m_vAllCubesInChunk;

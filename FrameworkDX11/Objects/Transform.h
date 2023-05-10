@@ -27,8 +27,8 @@ public:
 
 	XMFLOAT4X4 GetWorldMatrix();
 	inline void SetWorldMatrix( XMFLOAT4X4 mat ) noexcept { m_mWorld = mat; }
-	inline Quaternion GetOrienation() const noexcept { return m_qOrientation; }
-	inline void SetOrienation( Quaternion orientation ) noexcept { m_qOrientation = orientation; }
+	inline Quaternion GetOrientation() const noexcept { return m_qOrientation; }
+	inline void SetOrientation( Quaternion orientation ) noexcept { m_qOrientation = orientation; }
 
 private:
 	void ConvertToQuaternion();

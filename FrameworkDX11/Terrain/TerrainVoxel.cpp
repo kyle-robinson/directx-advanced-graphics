@@ -265,19 +265,19 @@ Chunk::Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos
     m_iMaxHeight( size.y )
 {
     m_vAllCubesInChunk.resize( m_iXSize );
-    m_pChunkTransform = new Transform();
+    m_pChunkTransform = std::make_unique<Transform>();
     m_pChunkTransform->SetPosition( pos );
     GenerateTerrain( pDevice, pContext );
     SetupTextures( pDevice, pContext );
 }
 
-Chunk::Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos, XMFLOAT3 size, int seed, float frequency, int octave )
+Chunk::Chunk( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, XMFLOAT3 pos, XMFLOAT3 size, int seed, float frequency, int octave ) :
+    m_iSeed( seed ),
+    m_fFrequency( frequency ),
+	m_iOctaves( octave )
 {
-    m_iSeed = seed;
-    m_fFrequency = frequency;
-    m_iOctaves = octave;
     m_vAllCubesInChunk.resize( m_iXSize );
-    m_pChunkTransform = new Transform();
+    m_pChunkTransform = std::make_unique<Transform>();
     m_pChunkTransform->SetPosition( pos );
     GenerateTerrain( pDevice, pContext );
     SetupTextures( pDevice, pContext );
@@ -414,18 +414,14 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
             for ( int z = 0; z < m_vAllCubesInChunk[x][y].size(); z++ )
             {
                 if ( m_vAllCubesInChunk[x][y][z]->GetIsActive() == false )
-                {
                     continue;
-                }
 
                 bool lXNegative = lDefault;
                 if ( x > 0 )
                 {
                     lXNegative = m_vAllCubesInChunk[x - 1][y][z]->GetIsActive();
                     if ( lXNegative )
-                    {
                         faceCount++;
-                    }
                 }
 
                 bool lXPositive = lDefault;
@@ -433,9 +429,7 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
                 {
                     lXPositive = m_vAllCubesInChunk[x + 1][y][z]->GetIsActive();
                     if ( lXPositive )
-                    {
                         faceCount++;
-                    }
                 }
 
                 bool lYNegative = lDefault;
@@ -443,9 +437,7 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
                 {
                     lYNegative = m_vAllCubesInChunk[x][y][z - 1]->GetIsActive();
                     if ( lYNegative )
-                    {
                         faceCount++;
-                    }
                 }
 
                 bool lYPositive = lDefault;
@@ -453,9 +445,7 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
                 {
                     lYPositive = m_vAllCubesInChunk[x][y][z + 1]->GetIsActive();
                     if ( lYPositive )
-                    {
                         faceCount++;
-                    }
                 }
 
                 bool lZNegative = lDefault;
@@ -463,9 +453,7 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
                 {
                     lZNegative = m_vAllCubesInChunk[x][y - 1][z]->GetIsActive();
                     if ( lZNegative )
-                    {
                         faceCount++;
-                    }
                 }
 
                 bool lZPositive = lDefault;
@@ -473,9 +461,7 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
                 {
                     lZPositive = m_vAllCubesInChunk[x][y + 1][z]->GetIsActive();
                     if ( lZPositive )
-                    {
                         faceCount++;
-                    }
                 }
 
                 if ( !lXNegative || !lXPositive || !lYNegative || !lYPositive || !lZNegative || !lZPositive )
@@ -486,17 +472,15 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
                     // Set the type for each cube
                     float a = noise2.GetNoise( (float)x, (float)y, (float)z );
                     if ( a < 0 )
-                    {
-                        m_vAllCubesInChunk[x][y][z]->SetBlockType( BlockType::Stone );
-                    }
-                    else if ( a < 0.5f )
-                    {
-                        m_vAllCubesInChunk[x][y][z]->SetBlockType( BlockType::Grass );
-                    }
-                    else if ( a < 1.0f )
-                    {
                         m_vAllCubesInChunk[x][y][z]->SetBlockType( BlockType::Snow );
-                    }
+                    else if ( a < 0.25f )
+                        m_vAllCubesInChunk[x][y][z]->SetBlockType( BlockType::Stone );
+                    else if ( a < 0.5f )
+                        m_vAllCubesInChunk[x][y][z]->SetBlockType( BlockType::Grass );
+                    else if ( a < 0.75f )
+                        m_vAllCubesInChunk[x][y][z]->SetBlockType( BlockType::Grass );
+                    else if ( a < 1.0f )
+                        m_vAllCubesInChunk[x][y][z]->SetBlockType( BlockType::Water );
                 }
 
             }
@@ -561,9 +545,6 @@ void Chunk::SetupTextures( ID3D11Device* pDevice, ID3D11DeviceContext* pContext 
 
 void Chunk::CleanUp()
 {
-    delete m_pChunkTransform;
-    m_pChunkTransform = nullptr;
-
     for ( auto cubeX : m_vAllCubesInChunk )
     {
         for ( auto cubeY : cubeX )
@@ -592,8 +573,8 @@ void Block::InitMesh_Cube(
     bool lZNegative, bool lZPositive,
     ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
-    m_pCubeTransform = new Transform();
-    m_pCubeAppearance = new TerrainAppearance();
+    m_pCubeTransform = std::make_unique<Transform>();
+    m_pCubeAppearance = std::make_unique<TerrainAppearance>();
     m_pCubeAppearance->InitMesh_Cube( lXNegative, lXPositive, lYNegative, lYPositive, lZNegative, lZPositive, pDevice, pContext );
 }
 
@@ -605,10 +586,5 @@ void Block::SetBlockType( BlockType block )
 
 void Block::CleanUp()
 {
-    delete m_pCubeAppearance;
-    m_pCubeAppearance = nullptr;
-
-    delete m_pCubeTransform;
-    m_pCubeTransform = nullptr;
 }
 #pragma endregion

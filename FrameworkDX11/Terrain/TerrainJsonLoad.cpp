@@ -1,9 +1,5 @@
 #include "TerrainJsonLoad.h"
 
-TerrainJsonLoad::TerrainJsonLoad() {}
-
-TerrainJsonLoad::~TerrainJsonLoad() {}
-
 void TerrainJsonLoad::LoadData( std::string fileName, TerrainData& output )
 {
 	rapidjson::Document document;

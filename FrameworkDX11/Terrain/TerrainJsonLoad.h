@@ -52,7 +52,7 @@ struct TerrainData
 template <typename DataFormat>
 bool CheckDataIsThere( const std::string& objectName, const DataFormat& document )
 {
-    return document.HasMember( objectName.c_str() );;
+    return document.HasMember( objectName.c_str() );
 }
 
 inline bool StoreFile( const std::string& fileName, const rapidjson::Document& document )
@@ -69,9 +69,6 @@ inline bool StoreFile( const std::string& fileName, const rapidjson::Document& d
 class TerrainJsonLoad
 {
 public:
-    TerrainJsonLoad();
-    ~TerrainJsonLoad();
-
     static void LoadData( std::string fileName, TerrainData& output );
     static void StoreData( std::string fileName, TerrainData dataToStore );
 

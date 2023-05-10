@@ -8,7 +8,7 @@ AnimatedModel::AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D
     loader.LoadM3d( modelFile, m_vSkinVert, m_vIndex2, m_vSubsets, m_vMat, m_skeleton );
 
      // Appearance
-    m_pAppearance = new Appearance();
+    m_pAppearance = std::make_unique<Appearance>();
     m_pAppearance->SetVertexBuffer( pDevice, m_vSkinVert );
     m_pAppearance->SetIndices( pDevice, m_vIndex2 );
 
@@ -16,7 +16,7 @@ AnimatedModel::AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D
     shaderControl->NewAnimationShader( "Animation", L"Animation.hlsl", pDevice, pContext );
 
     // Transform data
-    m_pTransform = new Transform();
+    m_pTransform = std::make_unique<Transform>();
     m_pTransform->SetPosition( 0.0f, -2.0f, 0.0f );
     m_pTransform->SetRotation( 0.0f, 180.0f, 0.0f );
     m_pTransform->SetScale( 0.05f, 0.05f, 0.05f );
@@ -179,18 +179,6 @@ void AnimatedModel::CleanUp()
         }
     }
     m_pNormalMapResourceView.clear();
-
-    if ( m_pTransform )
-    {
-        delete m_pTransform;
-        m_pTransform = nullptr;
-    }
-
-    if ( m_pAppearance )
-    {
-        delete m_pAppearance;
-        m_pAppearance = nullptr;
-    }
 
     m_skeleton.CleanUp();
 }

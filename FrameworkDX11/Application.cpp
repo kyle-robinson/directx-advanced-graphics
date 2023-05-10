@@ -6,9 +6,9 @@
 
 Application::Application()
 {
-    m_pLightController = new LightController();
-    m_pImGuiManager = new ImGuiManager();
-    m_pInput = new Input();
+    m_pLightController = std::make_unique<LightController>();
+    m_pImGuiManager = std::make_unique<ImGuiManager>();
+    m_pInput = std::make_unique<Input>();
 }
 
 Application::~Application()
@@ -18,7 +18,7 @@ Application::~Application()
 
 bool Application::Initialize( HINSTANCE hInstance, int width, int height )
 {
-    if ( !m_window.Initialize( m_pInput, hInstance, "DirectX 11 Advanced Graphics & Rendering", "TutorialWindowClass", width, height ) )
+    if ( !m_window.Initialize( m_pInput.get(), hInstance, "DirectX 11 Advanced Graphics & Rendering", "TutorialWindowClass", width, height ) )
         return false;
 
     m_gfx.Initialize( m_window.GetHWND(), width, height );
@@ -88,18 +88,18 @@ bool Application::InitializeWorld()
     }
 
     // Terrain generation
-    m_pTerrain = new Terrain( "Resources/Textures/coastMountain513.raw", XMFLOAT2( 513, 513 ),
+    m_pTerrain = std::make_unique<Terrain>( "Resources/Textures/coastMountain513.raw", XMFLOAT2( 513, 513 ),
         100, TerrainGenType::HeightMapLoad, m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController() );
     std::vector<std::string> texGround = { "grass.dds", "darkdirt.dds", "lightdirt.dds", "stone.dds", "snow.dds" };
     m_pTerrain->SetTextures( texGround, m_gfx.GetDevice() );
     m_pTerrain->SetBlendMap( "Resources/Textures/blend.dds", m_gfx.GetDevice() );
-    m_pVoxelTerrain = new TerrainVoxel( m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController(), 5, 5 );
+    m_pVoxelTerrain = std::make_unique<TerrainVoxel>( m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController(), 5, 5 );
 
     // Create animated model
-    m_pSoldier = new AnimatedModel( "Resources/Models/Soldier/soldier.m3d", m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController() );
+    m_pSoldier = std::make_unique<AnimatedModel>( "Resources/Models/Soldier/soldier.m3d", m_gfx.GetDevice(), m_gfx.GetContext(), m_gfx.GetShaderController() );
 
     // Create lights
-    m_pDepthLight = new ShadowMap( m_gfx.GetDevice(), m_gfx.GetWidth(), m_gfx.GetHeight() );
+    m_pDepthLight = std::make_unique<ShadowMap>( m_gfx.GetDevice(), m_gfx.GetWidth(), m_gfx.GetHeight() );
 
     m_pLightController->AddLight( "Point", true, LightType::PointLight,
         XMFLOAT4( -3.0f, 0.0f, -3.0f, 0.0f ), XMFLOAT4( Colors::White ),
@@ -112,13 +112,13 @@ bool Application::InitializeWorld()
     m_pLightController->GetLight( "Spot" )->GetCamera()->SetRotation( XMConvertToRadians( 90.0f ), 0.0f, 0.0f );
 
     // Initialize the cameras
-    m_pCamController = new CameraController();
+    m_pCamController = std::make_unique<CameraController>();
     Camera* pCamera = new Camera( XMFLOAT3( 0.0f, 0.0f, -5.0f ), m_gfx.GetWidth(), m_gfx.GetHeight(), 0.01f, 175.0f );
     pCamera->SetName( "Free Camera" );
     m_pCamController->AddCam( pCamera );
     for ( unsigned int i = 0; i < MAX_LIGHTS; i++ )
         m_pCamController->AddCam( m_pLightController->GetLight( i )->GetCamera() );
-    m_pInput->AddCamControl( m_pCamController );
+    m_pInput->AddCamControl( m_pCamController.get() );
 
     // Initialize the sky
 #if defined ( _x64 )
@@ -165,7 +165,7 @@ void Application::Draw()
     // Setup the viewport
     m_gfx.GetViewports()[0]->Bind( m_gfx.GetContext() );
 
-    // Move objects that will be shadowed into list
+    // Move objects to be shadowed into list
     std::vector<DrawableGameObject*> gameObjects;
     gameObjects.push_back( m_pCube );
     for ( unsigned int i = 0; i < m_pWalls.size(); i++ )
@@ -191,13 +191,11 @@ void Application::Draw()
     m_gfx.GetSamplerController()->SetState( "Clamp", 1u, m_gfx.GetContext() );
     m_gfx.GetSamplerController()->SetState( "Border", 2u, m_gfx.GetContext() );
 
-    // get the game object world transform
+    // Get world transforms
     XMFLOAT4X4 WorldAsFloat = m_pCube->GetTransform()->GetWorldMatrix();
     XMMATRIX mGO = XMLoadFloat4x4( &WorldAsFloat );
-
     XMFLOAT4X4 viewAsFloats = m_pCamController->GetCurrentCam()->GetView();
     XMFLOAT4X4 projectionAsFloats = m_pCamController->GetCurrentCam()->GetProjection();
-
     XMMATRIX RTTview = XMLoadFloat4x4( &viewAsFloats );
     XMMATRIX RTTprojection = XMLoadFloat4x4( &projectionAsFloats );
     XMMATRIX viewProject = RTTview * RTTprojection;
@@ -262,8 +260,8 @@ void Application::Draw()
     m_pLightController->Draw( m_gfx.GetContext(), m_matrixCB );
 
     // Render terrain
-    m_pVoxelTerrain->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), m_matrixCB, m_pCamController );
-    m_pTerrain->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), m_matrixCB, m_pCamController );
+    m_pVoxelTerrain->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), m_matrixCB, m_pCamController.get() );
+    m_pTerrain->Draw( m_gfx.GetContext(), m_gfx.GetShaderController(), m_matrixCB, m_pCamController.get() );
 
 #if defined ( _x64 )
     // Draw skybox
@@ -316,7 +314,7 @@ void Application::Draw()
 
     // Bloom alpha
     UINT offset = 0;
-    ID3D11ShaderResourceView* ResourceView1;
+    ID3D11ShaderResourceView* srv1 = nullptr;
     if ( &m_postProcessingCB.data.UseBloom )
     {
         m_gfx.GetRenderTargetController()->GetRenderTarget( "Alpha" )->SetRenderTarget( m_gfx.GetContext() );
@@ -329,8 +327,8 @@ void Application::Draw()
         if ( !m_postProcessingCB.ApplyChanges() )
             return;
         m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
-        ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
-        m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
+        srv1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
+        m_gfx.GetContext()->PSSetShaderResources( 0, 1, &srv1 );
         m_gfx.GetContext()->Draw( 4, 0 );
     }
 
@@ -353,14 +351,10 @@ void Application::Draw()
         m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
 
         if ( m_postProcessingCB.data.UseBloom )
-        {
-            ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Alpha" )->GetTexture();
-        }
+            srv1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Alpha" )->GetTexture();
         else
-        {
-            ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
-        }
-        m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
+            srv1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
+        m_gfx.GetContext()->PSSetShaderResources( 0, 1, &srv1 );
         m_gfx.GetContext()->Draw( 4, 0 );
 
         // Blur 1
@@ -374,8 +368,8 @@ void Application::Draw()
         if ( !m_postProcessingCB.ApplyChanges() )
             return;
         m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
-        ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "DownSample" )->GetTexture();
-        m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
+        srv1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "DownSample" )->GetTexture();
+        m_gfx.GetContext()->PSSetShaderResources( 0, 1, &srv1 );
         m_gfx.GetContext()->Draw( 4, 0 );
 
         // Blur 2
@@ -389,8 +383,8 @@ void Application::Draw()
         if ( !m_postProcessingCB.ApplyChanges() )
             return;
         m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
-        ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Gaussian1" )->GetTexture();
-        m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
+        srv1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Gaussian1" )->GetTexture();
+        m_gfx.GetContext()->PSSetShaderResources( 0, 1, &srv1 );
         m_gfx.GetContext()->Draw( 4, 0 );
 
         // Setup the viewport
@@ -407,16 +401,16 @@ void Application::Draw()
         if ( !m_postProcessingCB.ApplyChanges() )
             return;
 		m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
-        ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Gaussian2" )->GetTexture();
-        m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
+        srv1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Gaussian2" )->GetTexture();
+        m_gfx.GetContext()->PSSetShaderResources( 0, 1, &srv1 );
         m_gfx.GetContext()->Draw( 4, 0 );
     }
 
-    ID3D11ShaderResourceView* ResourceView2;
-    ID3D11ShaderResourceView* ResourceView3;
+    ID3D11ShaderResourceView* srv2 = nullptr;
+    ID3D11ShaderResourceView* srv3 = nullptr;
     if ( m_postProcessingCB.data.UseDepthOfField )
     {
-        // Depth of field
+        // Depth of Field
         m_gfx.GetRenderTargetController()->GetRenderTarget( "DepthOfField" )->SetRenderTarget( m_gfx.GetContext() );
         m_gfx.GetContext()->IASetInputLayout( m_gfx.GetShaderController()->GetFullScreenShaderByName( "DepthOfField" ).m_pVertexLayout );
         m_gfx.GetSamplerController()->SetState( "Wrap", 0u, m_gfx.GetContext() );
@@ -427,12 +421,12 @@ void Application::Draw()
         if ( !m_postProcessingCB.ApplyChanges() )
             return;
         m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
-        ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
-        ResourceView2 = m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->GetTexture();
-        ResourceView3 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Depth" )->GetTexture();
-        m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
-        m_gfx.GetContext()->PSSetShaderResources( 1, 1, &ResourceView2 );
-        m_gfx.GetContext()->PSSetShaderResources( 2, 1, &ResourceView3 );
+        srv1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
+        srv2 = m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->GetTexture();
+        srv3 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Depth" )->GetTexture();
+        m_gfx.GetContext()->PSSetShaderResources( 0, 1, &srv1 );
+        m_gfx.GetContext()->PSSetShaderResources( 1, 1, &srv2 );
+        m_gfx.GetContext()->PSSetShaderResources( 2, 1, &srv3 );
         m_gfx.GetContext()->Draw( 4, 0 );
     }
 
@@ -449,19 +443,13 @@ void Application::Draw()
 	m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
 
     if ( m_postProcessingCB.data.UseBlur )
-    {
-        ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->GetTexture();
-    }
+        srv1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->GetTexture();
     else if ( m_postProcessingCB.data.UseDepthOfField )
-    {
-        ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "DepthOfField" )->GetTexture();
-    }
+        srv1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "DepthOfField" )->GetTexture();
     else
-    {
-        ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
-    }
+        srv1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "RTT" )->GetTexture();
 
-    m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
+    m_gfx.GetContext()->PSSetShaderResources( 0, 1, &srv1 );
     m_gfx.GetContext()->Draw( 4, 0 );
 
     // Final post processing
@@ -476,13 +464,13 @@ void Application::Draw()
     m_gfx.GetContext()->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
     m_gfx.GetContext()->VSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Final" ).m_pVertexShader, nullptr, 0 );
     m_gfx.GetContext()->PSSetShader( m_gfx.GetShaderController()->GetFullScreenShaderByName( "Final" ).m_pPixelShader, nullptr, 0 );
-    ResourceView1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Fade" )->GetTexture();
-    ResourceView2 = m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->GetTexture();
+    srv1 = m_gfx.GetRenderTargetController()->GetRenderTarget( "Fade" )->GetTexture();
+    srv2 = m_gfx.GetRenderTargetController()->GetRenderTarget( "UpSample" )->GetTexture();
     if ( !m_postProcessingCB.ApplyChanges() )
         return;
     m_gfx.GetContext()->PSSetConstantBuffers( 0, 1, m_postProcessingCB.GetAddressOf() );
-    m_gfx.GetContext()->PSSetShaderResources( 0, 1, &ResourceView1 );
-    m_gfx.GetContext()->PSSetShaderResources( 1, 1, &ResourceView2 );
+    m_gfx.GetContext()->PSSetShaderResources( 0, 1, &srv1 );
+    m_gfx.GetContext()->PSSetShaderResources( 1, 1, &srv2 );
     m_gfx.GetContext()->Draw( 4, 0 );
 
     if ( m_pInput->IsImGuiEnabled() )
@@ -491,14 +479,14 @@ void Application::Draw()
 
         // Render ImGui windows
         m_pImGuiManager->BeginRender();
-        m_pImGuiManager->SceneWindow( m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetRenderTargetController()->GetRenderTarget( "Final" )->GetTexture(), m_pInput );
-        m_pImGuiManager->CameraMenu( m_pCamController, *m_pVoxelTerrain->GetIsDraw() );
+        m_pImGuiManager->SceneWindow( m_gfx.GetWidth(), m_gfx.GetHeight(), m_gfx.GetRenderTargetController()->GetRenderTarget( "Final" )->GetTexture(), m_pInput.get() );
+        m_pImGuiManager->CameraMenu( m_pCamController.get(), *m_pVoxelTerrain->GetIsDraw() );
         m_pImGuiManager->ObjectMenu( m_gfx.GetDevice(), m_pCamController->GetCurrentCam(), gameObjects );
-        m_pImGuiManager->LightMenu( m_pLightController, m_pCamController->GetCurrentCam() );
+        m_pImGuiManager->LightMenu( m_pLightController.get(), m_pCamController->GetCurrentCam() );
         m_pImGuiManager->ShaderMenu( m_gfx.GetShaderController(), &m_postProcessingCB.data, m_gfx.GetRasterizerController() );
         m_pImGuiManager->BezierSplineMenu();
-        m_pImGuiManager->TerrainMenu( m_gfx.GetDevice(), m_gfx.GetContext(), m_pTerrain, m_pVoxelTerrain );
-        m_pImGuiManager->AnimationMenu( m_pSoldier, m_pCamController->GetCurrentCam() );
+        m_pImGuiManager->TerrainMenu( m_gfx.GetDevice(), m_gfx.GetContext(), m_pTerrain.get(), m_pVoxelTerrain.get() );
+        m_pImGuiManager->AnimationMenu( m_pSoldier.get(), m_pCamController->GetCurrentCam() );
         m_pImGuiManager->EndRender();
     }
 
@@ -510,30 +498,6 @@ void Application::Cleanup()
     m_pCube->CleanUp();
     for ( unsigned int i = 0; i < m_pWalls.size(); i++ )
         m_pWalls[i]->CleanUp();
-
-    delete m_pInput;
-    m_pInput = nullptr;
-
-    delete m_pCamController;
-    m_pCamController = nullptr;
-
-    delete m_pLightController;
-    m_pLightController = nullptr;
-
-    delete m_pImGuiManager;
-    m_pImGuiManager = nullptr;
-
-    delete m_pDepthLight;
-    m_pDepthLight = nullptr;
-
-    delete m_pTerrain;
-    m_pTerrain = nullptr;
-
-    delete m_pVoxelTerrain;
-    m_pVoxelTerrain = nullptr;
-
-    delete m_pSoldier;
-    m_pSoldier = nullptr;
 
     // Remove any bound render target or depth/stencil buffer
     ID3D11RenderTargetView* nullViews[] = { nullptr };

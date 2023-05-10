@@ -498,7 +498,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Objects\Appearance.h" />
-    <ClInclude Include="Objects\BillboradObject.h" />
     <ClInclude Include="Objects\Camera.h" />
     <ClInclude Include="Objects\CameraController.h" />
     <ClInclude Include="Objects\DrawableGameObject.h" />
@@ -596,7 +595,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Objects\Appearance.cpp" />
-    <ClCompile Include="Objects\BillboradObject.cpp" />
     <ClCompile Include="Objects\Camera.cpp" />
     <ClCompile Include="Objects\CameraController.cpp" />
     <ClCompile Include="Objects\DrawableGameObject.cpp" />

@@ -113,9 +113,6 @@
     <ClCompile Include="Objects\DrawableGameObject.cpp">
       <Filter>Objects\Drawables</Filter>
     </ClCompile>
-    <ClCompile Include="Objects\BillboradObject.cpp">
-      <Filter>Objects\Drawables</Filter>
-    </ClCompile>
     <ClCompile Include="WinMain.cpp" />
     <ClCompile Include="Utility\DataStucts.cpp">
       <Filter>Utility\Data</Filter>
@@ -397,9 +394,6 @@
       <Filter>Objects\Light</Filter>
     </ClInclude>
     <ClInclude Include="Objects\DrawableGameObject.h">
-      <Filter>Objects\Drawables</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\BillboradObject.h">
       <Filter>Objects\Drawables</Filter>
     </ClInclude>
     <ClInclude Include="Utility\DataStucts.h">
