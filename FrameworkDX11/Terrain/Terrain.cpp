@@ -3,6 +3,8 @@
 #include <ostream>
 #include <fstream>
 
+/* REFERENCE: Frank Luna, Introduction to 3D Game Programming with DirectX 11, Chapter 19 Terrain Rendering */
+
 // Noise Generator : https://github.com/Auburn/FastNoiseLite
 #include "fastNoiseLite\Cpp\FastNoiseLite.h"
 #include "DirectXPackedVector.h"

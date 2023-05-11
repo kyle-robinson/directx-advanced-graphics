@@ -14,6 +14,8 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
+/* REFERENCE: Frank Luna, Introduction to 3D Game Programming with DirectX 11, Chapter 25 Character Animation */
+
 class AnimatedModel
 {
 public:

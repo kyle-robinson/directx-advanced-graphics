@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "AnimatedModel.h"
 
+/* REFERENCE: Frank Luna, Introduction to 3D Game Programming with DirectX 11, Chapter 25 Character Animation */
+
 AnimatedModel::AnimatedModel( std::string modelFile, ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ShaderController* shaderControl )
     : m_sModelName( modelFile )
 {

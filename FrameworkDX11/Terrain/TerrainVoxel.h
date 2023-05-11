@@ -8,6 +8,7 @@
 #include "TerrainAppearance.h"
 #include "ConstantBuffer.h"
 
+/* REFERENCE: https://sites.google.com/site/letsmakeavoxelengine/ */
 // Noise generator : https://github.com/Auburn/FastNoiseLite
 #include "fastNoiseLite\Cpp\FastNoiseLite.h"
 
@@ -33,9 +34,9 @@ public:
     ~Block();
 
     void InitMesh_Cube(
-        bool lXNegative, bool lXPositive,
-        bool lYNegative, bool lYPositive,
-        bool lZNegative, bool lZPositive,
+        bool XNegative, bool XPositive,
+        bool YNegative, bool YPositive,
+        bool ZNegative, bool ZPositive,
         ID3D11Device* pDevice, ID3D11DeviceContext* pContext );
 
     inline bool GetIsActive() const noexcept { return m_bIsActive; }

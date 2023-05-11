@@ -10,6 +10,8 @@
 #include "ConstantBuffer.h"
 #include "RandomHelper.h"
 
+/* REFERENCE: Frank Luna, Introduction to 3D Game Programming with DirectX 11, Chapter 19 Terrain Rendering */
+
 enum class TerrainGenType
 {
 	HeightMapLoad = 0,

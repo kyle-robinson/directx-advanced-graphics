@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "TerrainVoxel.h"
 
+/* REFERENCE: https://sites.google.com/site/letsmakeavoxelengine/ */
+
 #pragma region FRUSTUM-CULLING
 void ExtractFrustumPlanes2( XMFLOAT4 frustumPlane[6], CXMMATRIX m )
 {
@@ -358,22 +360,15 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
         {
             int active = ( ( noise.GetNoise( x + m_pChunkTransform->GetPosition().x, z + m_pChunkTransform->GetPosition().z ) + 1 ) / 2 ) * 20;
             if ( active > maxHeight )
-            {
                 active = maxHeight;
-            }
             if ( m_iMaxHeight < active )
-            {
                 m_iMaxHeight = active;
-            }
+
             m_vAllCubesInChunk[x].resize( m_iZSize );
             for ( float y = 0; y < maxHeight; y++ )
-            {
                 m_vAllCubesInChunk[x][z].push_back( new Block( pDevice, pContext ) );
-            }
             for ( float y = 0; y < active; y++ )
-            {
                 m_vAllCubesInChunk[x][z][y]->SetIsActive( true );
-            }
         }
     }
 
@@ -390,9 +385,7 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
             {
                 float active = ( ( noise.GetNoise( x + m_pChunkTransform->GetPosition().x, y, z + m_pChunkTransform->GetPosition().z ) + 1 ) / 2 );
                 if ( active < 0.5f )
-                {
                     m_vAllCubesInChunk[x][z][y]->SetIsActive( false );
-                }
             }
         }
     }
@@ -404,7 +397,7 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
     noise.SetFractalOctaves( 3 );
 
     // Face cube creation
-    bool lDefault = false;
+    bool bDefault = false;
     for ( int x = 0; x < m_iXSize; x++ )
     {
         for ( int y = 0; y < m_iXSize; y++ )
@@ -416,57 +409,57 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
                 if ( m_vAllCubesInChunk[x][y][z]->GetIsActive() == false )
                     continue;
 
-                bool lXNegative = lDefault;
+                bool XNegative = bDefault;
                 if ( x > 0 )
                 {
-                    lXNegative = m_vAllCubesInChunk[x - 1][y][z]->GetIsActive();
-                    if ( lXNegative )
+                    XNegative = m_vAllCubesInChunk[x - 1][y][z]->GetIsActive();
+                    if ( XNegative )
                         faceCount++;
                 }
 
-                bool lXPositive = lDefault;
+                bool XPositive = bDefault;
                 if ( x < m_iXSize - 1 )
                 {
-                    lXPositive = m_vAllCubesInChunk[x + 1][y][z]->GetIsActive();
-                    if ( lXPositive )
+                    XPositive = m_vAllCubesInChunk[x + 1][y][z]->GetIsActive();
+                    if ( XPositive )
                         faceCount++;
                 }
 
-                bool lYNegative = lDefault;
+                bool YNegative = bDefault;
                 if ( z > 0 )
                 {
-                    lYNegative = m_vAllCubesInChunk[x][y][z - 1]->GetIsActive();
-                    if ( lYNegative )
+                    YNegative = m_vAllCubesInChunk[x][y][z - 1]->GetIsActive();
+                    if ( YNegative )
                         faceCount++;
                 }
 
-                bool lYPositive = lDefault;
+                bool YPositive = bDefault;
                 if ( z < m_vAllCubesInChunk[x][y].size() )
                 {
-                    lYPositive = m_vAllCubesInChunk[x][y][z + 1]->GetIsActive();
-                    if ( lYPositive )
+                    YPositive = m_vAllCubesInChunk[x][y][z + 1]->GetIsActive();
+                    if ( YPositive )
                         faceCount++;
                 }
 
-                bool lZNegative = lDefault;
+                bool ZNegative = bDefault;
                 if ( y > 0 )
                 {
-                    lZNegative = m_vAllCubesInChunk[x][y - 1][z]->GetIsActive();
-                    if ( lZNegative )
+                    ZNegative = m_vAllCubesInChunk[x][y - 1][z]->GetIsActive();
+                    if ( ZNegative )
                         faceCount++;
                 }
 
-                bool lZPositive = lDefault;
+                bool ZPositive = bDefault;
                 if ( y < m_iXSize - 1 )
                 {
-                    lZPositive = m_vAllCubesInChunk[x][y + 1][z]->GetIsActive();
-                    if ( lZPositive )
+                    ZPositive = m_vAllCubesInChunk[x][y + 1][z]->GetIsActive();
+                    if ( ZPositive )
                         faceCount++;
                 }
 
-                if ( !lXNegative || !lXPositive || !lYNegative || !lYPositive || !lZNegative || !lZPositive )
+                if ( !XNegative || !XPositive || !YNegative || !YPositive || !ZNegative || !ZPositive )
                 {
-                    m_vAllCubesInChunk[x][y][z]->InitMesh_Cube( lXNegative, lXPositive, lYNegative, lYPositive, lZNegative, lZPositive, pDevice, pContext );
+                    m_vAllCubesInChunk[x][y][z]->InitMesh_Cube( XNegative, XPositive, YNegative, YPositive, ZNegative, ZPositive, pDevice, pContext );
                     m_vAllCubesInChunk[x][y][z]->GetTransform()->SetPosition( x / 0.5f, z / 0.5f, y / 0.5f );
 
                     // Set the type for each cube
@@ -487,7 +480,7 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
         }
     }
 
-    // manage cubes so list to draw is small
+    // Optimize to limit the number of cubes that are drawn
     for ( int x = 0; x < m_iXSize; x++ )
     {
         for ( int y = 0; y < m_iXSize; y++ )
@@ -495,17 +488,13 @@ void Chunk::GenerateTerrain( ID3D11Device* pDevice, ID3D11DeviceContext* pContex
             for ( int z = 0; z < m_vAllCubesInChunk[x][y].size(); z++ )
             {
                 if ( m_vAllCubesInChunk[x][y][z]->GetIsActive() == false )
-                {
                     continue;
-                }
+
                 if ( m_vAllCubesInChunk[x][y][z]->GetAppearance() == nullptr )
-                {
                     m_vAllCubesInChunk[x][y][z]->SetIsActive( false );
-                }
+
                 if ( m_vAllCubesInChunk[x][y][z]->GetIsActive() )
-                {
                     m_vCubesToDraw.push_back( m_vAllCubesInChunk[x][y][z] );
-                }
             }
         }
     }
@@ -568,14 +557,14 @@ Block::~Block()
 }
 
 void Block::InitMesh_Cube(
-    bool lXNegative, bool lXPositive,
-    bool lYNegative, bool lYPositive,
-    bool lZNegative, bool lZPositive,
+    bool XNegative, bool XPositive,
+    bool YNegative, bool YPositive,
+    bool ZNegative, bool ZPositive,
     ID3D11Device* pDevice, ID3D11DeviceContext* pContext )
 {
     m_pCubeTransform = std::make_unique<Transform>();
     m_pCubeAppearance = std::make_unique<TerrainAppearance>();
-    m_pCubeAppearance->InitMesh_Cube( lXNegative, lXPositive, lYNegative, lYPositive, lZNegative, lZPositive, pDevice, pContext );
+    m_pCubeAppearance->InitMesh_Cube( XNegative, XPositive, YNegative, YPositive, ZNegative, ZPositive, pDevice, pContext );
 }
 
 void Block::SetBlockType( BlockType block )
